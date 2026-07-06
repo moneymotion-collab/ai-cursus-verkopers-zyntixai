@@ -1,0 +1,1 @@
+# zyntixai-cursus-verkopers

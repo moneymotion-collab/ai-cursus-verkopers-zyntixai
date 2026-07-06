@@ -1,0 +1,17 @@
+{
+  "name": "zyntixai-cursus-verkopers",
+  "private": true,
+  "scripts": {
+    "supabase": "supabase",
+    "db:reset": "supabase db reset",
+    "db:lint": "supabase db lint",
+    "db:push": "supabase db push"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.110.0"
+  },
+  "devDependencies": {
+    "supabase": "^2.109.0"
+  }
+}
