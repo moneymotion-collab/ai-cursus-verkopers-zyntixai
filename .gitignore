@@ -11,6 +11,8 @@
 
 # supabase local state
 .supabase/
+supabase/.temp/
+supabase/.branches/
 
 # misc
 .DS_Store
