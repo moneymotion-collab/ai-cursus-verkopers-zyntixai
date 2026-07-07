@@ -43,7 +43,7 @@ Relationship of a Customer to a Program over time. Owns lifecycle state (active,
 | Object | Meaning |
 | ------ | ------- |
 | Note / Operational Context | Free-form or structured operational memory linked to Lead or Customer |
-| Progress / Engagement Context | Signals and assessment relative to an Enrollment |
+| Progress / Engagement Context | Signals and assessment relative to an Enrollment; aggregate visibility via Enrollments list filters |
 | Onboarding Context | Step state relative to an Enrollment |
 | Conversation Preparation Context | Operator prep + customer readiness for upcoming interaction |
 | AI Prepared Output | Draft, summary, or suggestion grounded in invoking context |
@@ -149,11 +149,14 @@ Programs are reference/configuration objects — not delivery execution surfaces
 | Customer–Program relationship | Enrollment object |
 | Lifecycle state (active, paused, completed, exited) | Enrollment object |
 | Onboarding context | Enrollment → Onboarding section |
-| Progress context | Enrollment → Progress section |
+| Progress context (detail) | Enrollment → Progress section |
+| Cross-enrollment progress visibility | Enrollments list (filtered operational view) |
 | Completion/exit | Enrollment terminal state (LCS-20) |
 | Pause | Enrollment state — resume to active delivery (OD-014) |
 
 Enrollment is the operational unit for delivery lifecycle — not replaceable by Customer or Program alone.
+
+The **Enrollments list** (More menu) is the authoritative **cross-enrollment operational workspace** for lifecycle, onboarding, and progress aggregate review — not a passive registry.
 
 ---
 
@@ -186,10 +189,11 @@ Enrollment is the operational unit for delivery lifecycle — not replaceable by
 | Aspect | Rule |
 | ------ | ---- |
 | Candidate generation | Occurs in operational context (LCS stages per L2) — not in review UI |
-| Review surface | NBA review intent — authoritative for accept/defer/dismiss |
-| Object contextual | Shows current recommendation for entity — links to review |
-| Command Center | References awaiting review |
-| OD-015 | Review does not self-generate infinite loop |
+| Review queue | More → Next Best Action Review — authoritative list for all pending recommendations |
+| Review detail | Recommendation detail within queue — accept/defer/dismiss |
+| Object contextual | Shows current recommendation for entity — links to same queue item |
+| Command Center | References awaiting review — drill-down to NBA review queue |
+| OD-015 | Review does not self-generate; one recommendation, one review lifecycle, multiple references |
 
 ---
 
@@ -233,7 +237,8 @@ AI output is Context Object — never authoritative truth. Always tied to invoki
 | Enrollment | REFERENCES | Customer | Relationship participant | Parent link |
 | Enrollment | REFERENCES | Program | What is delivered | Parent link |
 | Enrollment | OWNS CONTEXT | Onboarding Context | Activation state | Enrollment detail section |
-| Enrollment | OWNS CONTEXT | Progress Context | Engagement state | Enrollment detail section |
+| Enrollment | OWNS CONTEXT | Progress Context | Engagement state (detail) | Enrollment detail section |
+| Enrollments list | AGGREGATES | Enrollment + Progress state | Cross-enrollment operational view | More menu workspace |
 | Enrollment | MAY SURFACE IN | Attention Item | Onboarding/progress risk | Link to Attention queue |
 | Attention Item | DERIVED FROM | Lead/Customer/Enrollment/Task/Progress | Evidence-backed signal | Drill-down to source |
 | Attention Item | MAY PRODUCE | NBA Recommendation | Escalation to action review | Link to NBA review |

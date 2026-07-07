@@ -17,7 +17,7 @@ Enable a course seller to find operational information quickly when they know **
 | Tasks | Yes | By title, linked entity name |
 | Notes | Contextual | Search within Lead/Customer; global search may surface note matches linked to entity |
 | Attention items | Partial | Search by entity name; queue is primary browse |
-| NBA recommendations | No direct | Accessed via review intent, not free-text search |
+| NBA recommendations | Queue browse via RI-NBA-QUEUE | Accessed via More menu review queue |
 | AI outputs | No | Ephemeral drafts — not discovery index |
 
 ---
@@ -119,7 +119,7 @@ If context insufficient, AI discloses limitation — does not fabricate.
 | Prepare answer | RI-ANSWER-PREP context on Customer/Lead |
 | Prepare conversation | RI-CONV-PREP |
 | Explain attention | Stay on RI-ATTENTION-DETAIL with expanded rationale |
-| Suggest NBA | Link to RI-NBA-REVIEW — not auto-accepted |
+| Suggest NBA | Link to RI-NBA-QUEUE or RI-NBA-REVIEW — not auto-accepted |
 
 ---
 

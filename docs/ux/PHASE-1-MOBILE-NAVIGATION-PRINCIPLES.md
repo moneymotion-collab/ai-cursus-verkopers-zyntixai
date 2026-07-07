@@ -16,7 +16,9 @@ Mobile prioritizes:
 2. Actionability in the field (C4)
 3. Cognitive load limit (max 5 bottom nav items)
 
-Programs, Enrollments, and Settings move to secondary "More" — not bottom bar.
+Programs, Enrollments, NBA Review, and Settings move to secondary "More" — not bottom bar.
+
+Enrollments and NBA Review are **operational workspaces** in More — ordered before Programs for discoverability.
 
 ---
 
@@ -38,11 +40,12 @@ These five constitute the mobile bottom navigation bar.
 
 | Destination | Mobile Treatment |
 | ----------- | ---------------- |
-| Programs | More menu (hamburger or top More) |
-| Enrollments | More menu; also reachable from Customer detail |
+| Programs | More menu |
+| Enrollments | More menu (first item); Command Center drill-down; Customer detail |
+| Next Best Action Review | More menu (second item); Command Center drill-down; object contextual |
 | Settings | More menu |
-| NBA Review | Reachable from Command Center, Attention, object — not bottom nav |
-| Conversation Preparation | Reachable from object detail, Command Center |
+| Conversation Preparation | Object detail, Command Center |
+| Progress aggregate review | More → Enrollments (filtered); Command Center drill-down |
 
 ---
 

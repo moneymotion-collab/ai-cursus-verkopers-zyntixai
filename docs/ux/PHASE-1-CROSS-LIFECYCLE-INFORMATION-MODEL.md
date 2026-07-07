@@ -68,11 +68,12 @@ Some operational information spans multiple lifecycle stages and objects. Cross-
 | Scope | S9 |
 | L2.1 decision | OD-015 — LCS-17 reviews existing recommendations; no self-generating loop |
 | Candidate generation | In operational context (LCS-02, 04, 07, 08, 10, 11, 13, 14, 15, 18, 19, 21, 22) |
-| Review location | NBA review intent (accessible from Command Center, Attention escalation, object contextual panel) |
-| Aggregate surface | Command Center references NBA awaiting review |
-| Contextual surface | Object detail shows current recommendation with link to review |
-| Standalone destination | **Review intent yes; generation no** |
-| Access rule | Accept/defer/dismiss in one review surface; new candidate requires changed context |
+| Review location | More → Next Best Action Review queue (authoritative list) |
+| Review detail | Recommendation detail within queue |
+| Aggregate surface | Command Center references NBA awaiting review — drill to queue |
+| Contextual surface | Object detail shows current recommendation — links to same queue item |
+| Standalone destination | **Review queue in More** — not top-level nav |
+| Access rule | Accept/defer/dismiss in queue; new candidate requires changed context (OD-015) |
 | L2 support | LCS-17; WF10 |
 
 ---
@@ -111,11 +112,15 @@ Some operational information spans multiple lifecycle stages and objects. Cross-
 | Field | Specification |
 | ----- | ------------- |
 | Scope | S6 |
-| Primary contexts | Enrollment detail; summary on Customer |
-| Aggregate surface | Command Center may reference progress stall candidates |
-| Standalone destination | **No** |
-| Access rule | Unknown is valid state; does not fabricate signals |
+| Detail context | Enrollment detail — authoritative per-enrollment progress |
+| Aggregate context | Enrollments list — cross-enrollment operational view with filters (stalled candidate, declining candidate, unknown, needs review) |
+| Alternate aggregate | Customers list — operational filters surfacing customers with enrollment progress concerns |
+| Aggregate surface | Command Center references progress stall candidates — drill to Enrollments filtered view |
+| Standalone destination | **No** — aggregate via Enrollments workspace, not Reports |
+| Access rule | Unknown is valid; no fabricated signals; thresholds deferred to L6 |
 | L2 support | LCS-13; WF5 |
+
+**Progress concern ≠ Attention Item:** Overview may be needed before formal attention candidate. Enrollments aggregate supports WF5 cross-customer review without opening each Customer individually.
 
 ---
 
@@ -138,7 +143,8 @@ Some operational information spans multiple lifecycle stages and objects. Cross-
 | ------ | ------------------- |
 | Task | Task object |
 | Attention Item | Attention queue |
-| NBA Recommendation | NBA review surface |
+| NBA Recommendation | NBA review queue (More menu) |
+| Cross-enrollment progress visibility | Enrollments list (filtered view) |
 | Note | Note linked to Lead/Customer |
 | Enrollment lifecycle | Enrollment object |
 | AI output | Contextual to invocation — not standalone record type at IA level |
@@ -174,7 +180,7 @@ Violations (separate attention lists, independent NBA copies) are IA defects.
 
 1. Command Center never owns task completion state.
 2. Customer detail never owns attention dismissal state.
-3. Object contextual NBA panel never owns review outcome — links to review surface.
+3. Object contextual NBA panel never owns review outcome — links to NBA review queue item.
 4. Enrollment summary on Customer never owns full onboarding detail.
 
 ---
@@ -185,4 +191,4 @@ Violations (separate attention lists, independent NBA copies) are IA defects.
 | -------- | --------------- |
 | OD-013 | Recurring Q&A contextual on Lead/Customer; WF8 only in conversation prep embed |
 | OD-014 | Paused shown as Enrollment state filter/badge; no "Paused customers" top-level destination |
-| OD-015 | NBA review surface separate from candidate generation; no infinite review loop in navigation |
+| OD-015 | NBA review queue in More; generation contextual; no infinite review loop |

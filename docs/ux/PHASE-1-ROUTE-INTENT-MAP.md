@@ -33,7 +33,7 @@ No actual application routes, framework folders, or URL structures exist or are 
 | Intent ID | User Intent | Conceptual Path | Information Owner | Entry Points |
 | --------- | ----------- | --------------- | ----------------- | ------------ |
 | RI-PROGRAMS | See what we offer | `/more/programs` | Program list | More menu |
-| RI-ENROLLMENTS | See active relationships | `/more/enrollments` | Enrollment list | More menu, Program detail, Customer detail |
+| RI-ENROLLMENTS | See active relationships; review progress/onboarding across enrollments | `/more/enrollments` | Enrollment list (operational workspace) | More menu, Program detail, Customer detail, Command Center |
 
 ---
 
@@ -69,10 +69,11 @@ Command Center sub-intents are **sections within RI-HOME**, not separate routes:
 
 | Intent ID | User Intent | Conceptual Path | Information Owner | Entry Points |
 | --------- | ----------- | --------------- | ----------------- | ------------ |
-| RI-NBA-REVIEW | Review next best action recommendation | `/review/nba/{recommendation}` | NBA review surface | Command Center, Attention escalation, object contextual panel |
+| RI-NBA-QUEUE | Review all pending NBA recommendations | `/more/nba-review` | NBA review queue | More menu, Command Center, Attention escalation |
+| RI-NBA-REVIEW | Review one NBA recommendation | `/more/nba-review/{recommendation}` | NBA review queue item | NBA queue, Command Center, object contextual panel |
 | RI-ATTENTION-DETAIL | (see above) | `/attention/{item}` | Attention queue | — |
 
-NBA review may be implemented as modal or dedicated view — L4 decides presentation; intent is stable.
+NBA review queue is the **authoritative list workspace** for WF10. Command Center references items — it is not the review workspace. One recommendation, one review lifecycle, multiple references (OD-015).
 
 ---
 
@@ -100,7 +101,7 @@ NBA review may be implemented as modal or dedicated view — L4 decides presenta
 | Entry Point | Intents Reachable |
 | ----------- | ----------------- |
 | Primary navigation | RI-HOME, RI-LEADS, RI-CUSTOMERS, RI-TASKS, RI-ATTENTION |
-| More menu | RI-PROGRAMS, RI-ENROLLMENTS, RI-SETTINGS |
+| More menu | RI-PROGRAMS, RI-ENROLLMENTS, RI-NBA-QUEUE, RI-SETTINGS |
 | Global search | RI-LEAD-DETAIL, RI-CUSTOMER-DETAIL, RI-TASK-DETAIL, RI-PROGRAM-DETAIL |
 | Command Center cards | All detail and review intents |
 | Object badges | RI-ATTENTION-DETAIL, RI-TASK-DETAIL, RI-NBA-REVIEW |
@@ -114,7 +115,8 @@ NBA review may be implemented as modal or dedicated view — L4 decides presenta
 | ----------- | ----------- | --------- |
 | RI-HOME | Tap overdue task | RI-TASK-DETAIL |
 | RI-HOME | Tap attention item | RI-ATTENTION-DETAIL |
-| RI-HOME | Tap NBA card | RI-NBA-REVIEW |
+| RI-HOME | Tap NBA card | RI-NBA-QUEUE or RI-NBA-REVIEW |
+| RI-HOME | Tap progress/onboarding gap | RI-ENROLLMENTS (filtered) |
 | RI-HOME | Tap lead follow-up | RI-LEAD-DETAIL |
 | RI-HOME | Tap onboarding gap | RI-ENROLLMENT-DETAIL |
 | RI-ATTENTION-DETAIL | Escalate to action | RI-NBA-REVIEW or RI-INTERVENTION |
@@ -163,9 +165,10 @@ Invalid or unauthorized deep links show deterministic failure — not silent red
 | RI-ATTENTION-DETAIL | Critical |
 | RI-TASK-DETAIL | High |
 | RI-LEAD-DETAIL / RI-CUSTOMER-DETAIL | High |
-| RI-NBA-REVIEW | High |
+| RI-NBA-QUEUE / RI-NBA-REVIEW | High — via More or Command Center |
 | RI-CONV-PREP | High |
-| RI-PROGRAMS / RI-ENROLLMENTS | Secondary — More menu |
+| RI-ENROLLMENTS | Secondary — More (operational workspace); Command Center drill-down |
+| RI-PROGRAMS | Secondary — More menu |
 | RI-AI-COMMAND | High — contextual overlay |
 
 ---
@@ -194,10 +197,11 @@ L4 maps intents to screens and interaction flows. L4 must preserve:
 | RI-TASK-DETAIL | Complete task | Task object | List, CC, object | Linked entity | Task ID | High |
 | RI-ATTENTION | Review attention queue | Attention queue | Nav, CC | RI-ATTENTION-DETAIL | None | Critical |
 | RI-ATTENTION-DETAIL | Review item | Attention item | Queue, badge, CC | Entity, NBA, intervention | Item ID | Critical |
-| RI-NBA-REVIEW | Review recommendation | NBA review surface | CC, attention, object | Intervention, task | Recommendation ID | High |
+| RI-NBA-QUEUE | Review all pending NBA | NBA review queue | More, CC, Attention | RI-NBA-REVIEW | None | High |
+| RI-NBA-REVIEW | Review one recommendation | NBA queue item | Queue, CC, object | Intervention, task | Recommendation ID | High |
 | RI-PROGRAMS | Browse programs | Program list | More | RI-PROGRAM-DETAIL | None | Secondary |
 | RI-PROGRAM-DETAIL | View program | Program object | List | Enrollments | Program ID | Secondary |
-| RI-ENROLLMENTS | Browse enrollments | Enrollment list | More, object | RI-ENROLLMENT-DETAIL | None | Secondary |
+| RI-ENROLLMENTS | Browse/review enrollments | Enrollment workspace | More, CC, object | RI-ENROLLMENT-DETAIL | Filter params optional | Secondary |
 | RI-ENROLLMENT-DETAIL | Manage enrollment | Enrollment object | List, customer | Customer, program, onboarding | Enrollment ID | Secondary |
 | RI-CONV-PREP | Prepare conversation | Prep context | Object, CC, task | AI command | Entity + conversation | High |
 | RI-ANSWER-PREP | Prepare answer | Q&A context | Object, AI | AI command | Entity + question | High |

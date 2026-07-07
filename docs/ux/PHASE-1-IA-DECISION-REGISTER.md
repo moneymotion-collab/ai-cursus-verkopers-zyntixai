@@ -181,11 +181,11 @@ Owner:
 | IA question | Is NBA review the same as NBA generation UI? |
 | Evidence | OD-015; LCS-17; AP-08 |
 | Alternatives considered | NBA as top-level menu equal to Attention |
-| Decision | NBA review is dedicated intent; generation is contextual; single review surface |
-| Rationale | Separates recommendation framing from human review |
+| Decision | NBA review is authoritative queue in More; generation is contextual; single review surface (refined L3.1: IA-018) |
+| Rationale | Separates recommendation framing from human review; coherent multi-item workload |
 | User impact | Clear accept/defer/dismiss |
-| Navigation impact | RI-NBA-REVIEW intent, not primary nav |
-| Mobile impact | Reachable from Home and Attention |
+| Navigation impact | RI-NBA-QUEUE in More; not primary nav |
+| Mobile impact | More menu; Command Center entry |
 | Scope impact | None |
 | L2 compatibility | Full — OD-015 preserved |
 | Residual uncertainty | Ranking in L7 |
@@ -333,4 +333,59 @@ Owner:
 | Mobile impact | Excluded |
 | Scope impact | None |
 | L2 compatibility | Full |
+| Owner | Laptop Product Completion Track |
+
+### IA-017 — Progress aggregate visibility via Enrollments workspace
+
+| Field | Value |
+| ----- | ----- |
+| Date | 2026-07-07 (L3.1 register entry date) |
+| Status | `APPROVED` |
+| IA question | Is contextual-only Progress sufficient for cross-customer review? |
+| Evidence | P1-03, P1-12; WF5; Scenario B (80 customers); AT-03 cross-object need |
+| Alternatives considered | Top-level Progress nav; Reports module |
+| Decision | Progress detail on Enrollment; cross-enrollment aggregate via Enrollments list filters; Customer list operational filters; Command Center drills to Enrollments filtered view |
+| Rationale | WF5 requires cross-enrollment visibility without one-by-one Customer opens; no new scope domain |
+| User impact | Coach can review stalled/unknown/declining enrollments in one workspace |
+| Navigation impact | Enrollments operational workspace strengthened; Progress not top-level |
+| Mobile impact | More → Enrollments; Command Center drill-down |
+| Scope impact | None — operational states only; no metrics suite |
+| L2 compatibility | Full |
+| Residual uncertainty | Filter labels and column layout in L4 |
+| Owner | Laptop Product Completion Track |
+
+### IA-018 — NBA Review authoritative queue in More
+
+| Field | Value |
+| ----- | ----- |
+| Date | 2026-07-07 (L3.1 register entry date) |
+| Status | `APPROVED` |
+| IA question | Is there one coherent place to review all pending NBA recommendations? |
+| Evidence | P1-15; WF10; Scenario B (multiple awaiting review); OD-015 |
+| Alternatives considered | Top-level NBA nav; Command Center as review workspace |
+| Decision | NBA review queue in More (RI-NBA-QUEUE); detail via RI-NBA-REVIEW; Command Center references only |
+| Rationale | One recommendation, one review lifecycle, multiple references; avoids Command Center overload |
+| User impact | Intentional access to full review workload |
+| Navigation impact | More menu item; supersedes intent-only access |
+| Mobile impact | More menu; Command Center entry |
+| Scope impact | None |
+| L2 compatibility | Full — OD-015 preserved |
+| Owner | Laptop Product Completion Track |
+
+### IA-019 — Enrollments remains grouped; strengthened as operational workspace
+
+| Field | Value |
+| ----- | ----- |
+| Date | 2026-07-07 (L3.1 register entry date) |
+| Status | `APPROVED` |
+| IA question | Is More too deep for Phase 1 Enrollment operations? |
+| Evidence | S5, S12, S6; WF3–5; cross-enrollment scenarios; AT-01 frequency 3–4 |
+| Alternatives considered | Promote to primary desktop/mobile nav |
+| Decision | Keep Enrollments in More; define as cross-enrollment operational workspace; first item in More; Command Center and Customer list entry points |
+| Rationale | Daily frequency lower than Customers/Tasks; aggregate workspace solves depth without mobile nav expansion |
+| User impact | Cross-enrollment operations accessible in ≤2 taps from Home drill-down |
+| Navigation impact | More ordering: Enrollments first |
+| Mobile impact | More menu; not bottom nav |
+| Scope impact | None |
+| L2 compatibility | Full — OD-014 pause on Enrollment |
 | Owner | Laptop Product Completion Track |

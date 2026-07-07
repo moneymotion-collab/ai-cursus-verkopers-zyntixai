@@ -28,11 +28,12 @@ Primary navigation is persistent on desktop sidebar and mobile bottom bar (subse
 
 | Item | Intent |
 | ---- | ------ |
-| Programs | "What do we offer?" |
-| Enrollments | "Which customer–program relationships are active?" |
-| Settings | "Configure my business access and preferences" |
+| Enrollments | Cross-enrollment operational workspace — active relationships, onboarding, progress, pause state |
+| Next Best Action Review | Review all pending recommendations coherently (authoritative queue) |
+| Programs | What we offer |
+| Settings | Configure my business access and preferences |
 
-Grouping rationale: lower daily frequency (C1 score 3); reduces mobile and desktop top-level clutter.
+Grouping rationale: lower daily frequency than primary five (C1 score 3–4); reduces mobile top-level clutter. Enrollments and NBA Review are **operational workspaces**, not passive registries — ordered first in More for discoverability.
 
 ---
 
@@ -44,6 +45,10 @@ Secondary navigation appears within list views and object detail:
 - Sort (due date, last activity, priority)
 - Segmented views on Tasks (Today / Upcoming / Overdue)
 - Segmented views on Attention (Open / Snoozed / Dismissed history)
+- Segmented views on Enrollments (Active / Paused / Onboarding incomplete / Progress needs review / Completed)
+- Progress concern filters on Enrollments list (stalled candidate, declining candidate, unknown — product states, not metrics)
+- Operational filters on Customers list (open attention, enrollment stalled, onboarding incomplete)
+- Segmented views on NBA Review queue (Awaiting review / Deferred / Dismissed history)
 
 Secondary navigation does not create new operational truth.
 
@@ -56,10 +61,10 @@ Contextual navigation is available inside object detail and triggered flows:
 | Capability | Entry |
 | ---------- | ----- |
 | Notes | Lead/Customer detail tab or section |
-| Progress | Customer → Enrollment context |
+| Progress | Enrollment detail (detail); Enrollments list (aggregate cross-enrollment view) |
 | Onboarding | Enrollment detail |
 | Conversation preparation | Lead/Customer detail; upcoming conversation banner |
-| NBA recommendation | Object detail panel; Attention escalation |
+| NBA recommendation | Object detail panel; links to NBA review queue |
 | AI assistance | Contextual command affordance on any object/aggregate view |
 | Recurring Q&A preparation | Customer/Lead context; AI prepare answer |
 
@@ -72,7 +77,8 @@ Command Center
   → [reference card] → Attention item detail (authoritative queue)
   → [reference card] → Task detail
   → [reference card] → Lead / Customer detail
-  → [reference card] → NBA review intent
+  → [reference card] → NBA review queue (filtered if scoped)
+  → [reference card] → Enrollments list (progress/onboarding filter)
   → [reference card] → Conversation preparation intent
 ```
 
@@ -255,14 +261,15 @@ Attention                         [REVIEW QUEUE — authoritative]
     └── Escalate → NBA review / Intervention
 
 More                              [GROUPED]
+├── Enrollments                   [OPERATIONAL WORKSPACE — cross-enrollment]
+│   └── Enrollment detail → Customer, Program, Onboarding, Progress
+├── Next Best Action Review       [AUTHORITATIVE REVIEW QUEUE]
+│   └── Recommendation detail → Accept / Defer / Dismiss → Intervention
 ├── Programs
 │   └── Program detail → Enrollments
-├── Enrollments
-│   └── Enrollment detail → Customer, Program, Onboarding, Progress
 └── Settings
 
 Contextual (no top-level)
-├── NBA Review intent (from Command Center, Attention, object)
 ├── Conversation Preparation intent (from object, Command Center)
 ├── Recurring Q&A preparation (from Customer/Lead, AI)
 └── Bounded AI command (from any object/aggregate context)

@@ -150,7 +150,7 @@ Leads                   [CORE-OBJECT list]
 Customers               [CORE-OBJECT list]
 Tasks                   [ACTION-OBJECT list]
 Attention               [ACTION-OBJECT authoritative queue]
-More                    [GROUPED — Programs, Enrollments, Settings]
+More                    [GROUPED — Enrollments, Next Best Action Review, Programs, Settings]
 ```
 
 Contextual capabilities (notes, progress, onboarding, conversation prep, NBA, AI) live inside object and aggregate contexts — not as parallel top-level universes.
@@ -174,7 +174,8 @@ Contextual capabilities (notes, progress, onboarding, conversation prep, NBA, AI
 | Destination | Group | Rationale |
 | ----------- | ----- | --------- |
 | Programs | More | Lower daily frequency (C1: 3); configuration/reference role (S4) |
-| Enrollments | More | Operational lifecycle visibility (S5); needed but secondary to Customers (C1: 3) |
+| Enrollments | More (operational workspace) | Cross-enrollment lifecycle workspace (S5, S6, S12); first item in More |
+| Next Best Action Review | More (review queue) | Authoritative NBA review queue (S9); not top-level — grouped like Enrollments |
 | Settings | More | Account/business configuration; not operational core |
 
 ---
@@ -184,10 +185,11 @@ Contextual capabilities (notes, progress, onboarding, conversation prep, NBA, AI
 | Capability | Access Model | Scope |
 | ---------- | ------------ | ----- |
 | Notes and operational context | Lead detail, Customer detail, preparation flows | S10 |
-| Progress and engagement | Customer detail → enrollment context | S6 |
+| Progress and engagement | Enrollment detail (authoritative detail); Enrollments list (aggregate operational view); Customer list filters | S6 |
 | Onboarding visibility | Enrollment context on Customer/Program | S12 |
 | Conversation preparation | Lead/Customer detail; upcoming-conversation trigger; Command Center reference | S11 |
-| Next Best Action (contextual) | Object detail side panel; links to review | S9 |
+| Next Best Action (contextual) | Object detail side panel; links to NBA review queue | S9 |
+| Next Best Action (review queue) | More → Next Best Action Review; Command Center references | S9 |
 | Bounded AI assistance | Contextual command from current object/aggregate | S13 |
 | Recurring Q&A preparation | Customer/Lead context; AI command; optional conversation prep embed | S13, OD-013 |
 
@@ -201,7 +203,9 @@ Contextual capabilities (notes, progress, onboarding, conversation prep, NBA, AI
 
 **References (does not duplicate):** Tasks, Attention items, NBA awaiting review, lead follow-ups, onboarding gaps, progress stall candidates, conversation prep gaps.
 
-**Drill-down:** Always to authoritative object or queue owner.
+**Does not substitute for:** Enrollments operational workspace (progress/onboarding cross-view), NBA review queue, Tasks list, or Attention queue.
+
+**Drill-down:** Always to authoritative object or queue owner — e.g., progress concerns → Enrollments filtered view; NBA cards → NBA review queue.
 
 ---
 
@@ -213,10 +217,10 @@ Contextual capabilities (notes, progress, onboarding, conversation prep, NBA, AI
 | Notes and context | Contextual; searchable via discovery |
 | Tasks and follow-up | Top-level Tasks + contextual on Lead/Customer |
 | Needs Attention | Authoritative Attention queue + contextual badges linking to same items |
-| Next Best Action | Review queue intent + contextual on objects; generation contextual (OD-015) |
+| Next Best Action | Authoritative review queue (More) + contextual on objects; generation contextual (OD-015) |
 | Conversation preparation | Contextual preparation intent; WF8 when within prep context |
 | Bounded AI | Contextual command; never replaces navigation |
-| Progress | Contextual under enrollment |
+| Progress | Detail on Enrollment; aggregate operational view on Enrollments list; Customer list filters |
 | Onboarding | Contextual under enrollment |
 
 ---
@@ -231,7 +235,9 @@ Contextual capabilities (notes, progress, onboarding, conversation prep, NBA, AI
 | Enrollment lifecycle state | Enrollment object |
 | Task due/completion state | Task object |
 | Attention evidence and review state | Attention queue (single source) |
-| NBA recommendation and review outcome | NBA review surface (single source) |
+| NBA recommendation and review outcome | NBA review queue (single source) |
+| Progress assessment (per enrollment) | Enrollment object |
+| Cross-enrollment progress visibility | Enrollments list (filtered operational view) |
 | Notes | Note context linked to Lead/Customer |
 | Daily prioritization lens | Command Center (aggregate only) |
 
@@ -244,6 +250,8 @@ Contextual capabilities (notes, progress, onboarding, conversation prep, NBA, AI
 3. Tasks listed on Customer are **views** of Task objects — completing in either place updates one task.
 4. Enrollment state on Customer is a **summary** — full lifecycle detail on Enrollment object.
 5. Progress context does not duplicate Attention evidence — Attention links to underlying evidence.
+6. Progress aggregate views on Enrollments list are **filters over enrollment records** — not a separate progress database.
+7. NBA review queue owns accept/defer/dismiss state — Command Center and object panels reference same recommendation IDs.
 
 ---
 
@@ -287,11 +295,12 @@ Cross-navigation carries: current object ID, active enrollment where relevant, o
 | Enrollments | P1-13, P1-14 | S5, S12 | WF3, WF4 | LCS-09–12, LCS-20 | GROUPED DESTINATION |
 | Tasks | P1-07 | S7 | WF1, WF9 | LCS-04, 10, 18, 19 | PRIMARY DESTINATION |
 | Attention | P1-02, P1-12 | S8 | WF6 | LCS-15–16, LCS-18 | PRIMARY DESTINATION |
-| NBA Review | P1-15 | S9 | WF10 | LCS-17 | REVIEW INTENT |
+| NBA Review | P1-15 | S9 | WF10 | LCS-17 | REVIEW QUEUE (More) |
+| Progress aggregate | P1-03, P1-12 | S6 | WF5 | LCS-13 | AGGREGATE (Enrollments list) |
 | Notes (contextual) | P1-01, P1-04, P1-11 | S10 | WF1, WF2 | LCS-02, 06, 08, 14 | CONTEXTUAL |
 | Conversation Prep | P1-09, P1-10 | S11 | WF8 | LCS-05, LCS-19 | CONTEXTUAL |
 | AI Assistance | P1-04, P1-05, P1-10, P1-15 | S13 | WF8, WF10 | LCS-05, 14, 15–17, 19 | CONTEXTUAL |
-| Progress (contextual) | P1-03, P1-12 | S6 | WF5 | LCS-13 | CONTEXTUAL |
+| Progress (contextual) | P1-03, P1-12 | S6 | WF5 | LCS-13 | CONTEXTUAL + AGGREGATE |
 | Onboarding (contextual) | P1-13 | S12 | WF4 | LCS-10–11 | CONTEXTUAL |
 | Recurring Q&A | P1-04, P1-05 | S13, S10, S3 | Cross-lifecycle | LCS-14 | CROSS-LIFECYCLE |
 
