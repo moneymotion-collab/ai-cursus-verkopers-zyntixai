@@ -69,12 +69,12 @@ Phase 1 defines a **shared operational foundation** for course-selling businesse
 | P1-01 | Customer information is scattered across different tools and places. | Context is fragmented; preparation and follow-up are slow and error-prone. | Centralize customer operational context in one command center (`S3`, `S10`). |
 | P1-02 | The business owner does not know which customer needs attention. | Important customers are missed; risk and dissatisfaction increase. | Provide Needs Attention visibility with explainable priority (`S8`). |
 | P1-03 | Customer progress is unclear. | Intervention is delayed; coaching and support become reactive. | Expose progress and engagement visibility (`S6`). |
-| P1-04 | The owner repeatedly answers the same questions. | Time is wasted; customer experience feels inconsistent. | Preserve operational context and support bounded AI preparation (`S10`, `S11`, `S13`). |
-| P1-05 | Answers are often not personalized enough. | Customers feel generic support; trust and outcomes suffer. | Ground preparation and recommendations in customer-specific context (`S3`, `S11`, `S13`). |
+| P1-04 | The owner repeatedly answers the same questions. | Time is wasted; customer experience feels inconsistent. | Reduce repeat-answer burden through bounded, grounded answer preparation using operational context (`S13` primary; `S10`, `S3` supporting). Owner reviews and sends; no autonomous support agent. |
+| P1-05 | Answers are often not personalized enough. | Customers feel generic support; trust and outcomes suffer. | Produce personalized response drafts grounded in customer-specific context (`S13` primary; `S3`, `S10` supporting). Human reviews before any consequential action. |
 | P1-06 | Leads are followed up poorly. | Conversion drops; pipeline value is lost. | Provide lead operational management and follow-up control (`S2`, `S7`). |
 | P1-07 | Daily tasks are forgotten. | Operational debt accumulates; customers and leads are neglected. | Provide task and follow-up control with daily prioritization (`S1`, `S7`). |
 | P1-08 | The entrepreneur does not know where to start in the morning. | Time is spent reactively instead of on highest-value work. | Provide Morning Command Center daily overview (`S1`). |
-| P1-09 | Customers arrive unprepared for conversations. | Calls are inefficient; outcomes are weaker. | Improve onboarding visibility and conversation preparation (`S11`, `S12`). |
+| P1-09 | Customers arrive unprepared for conversations. | Calls are inefficient; outcomes are weaker. | Improve conversation readiness through operator preparation and bounded customer readiness visibility (`S11` primary; `S7`, `S12` supporting). Not a scheduling or reminder platform. |
 | P1-10 | The entrepreneur must manually prepare every conversation. | Preparation becomes a bottleneck; consistency varies. | Provide conversation preparation with relevant history and talking points (`S11`, `S13`). |
 | P1-11 | Notes are chaotic. | Institutional knowledge is lost; handoffs fail. | Provide structured notes and operational context (`S10`). |
 | P1-12 | The business does not know which customers are likely to disengage or drop out. | Churn risk is discovered too late. | Surface attention and engagement-risk signals for human intervention (`S6`, `S8`). |
@@ -231,12 +231,17 @@ These outcomes describe product behavior. They are not numeric business-performa
 - preserve relevant context
 - support customer/lead preparation
 - improve continuity across interactions
+- capture recurring question-and-answer patterns as operational context where observed
+
+**Boundary:** Notes preserve context; they do not by themselves eliminate repeated-answer burden. Repeated questions are addressed primarily through bounded AI preparation (`S13`) using preserved context.
 
 ### S11 — Conversation Preparation
 
 **Minimum Phase 1 intent:**
 
-Before a call/check-in, provide useful preparation context such as:
+Conversation preparation serves two distinct actors:
+
+**Operator preparation (business owner/coach):** Before a call/check-in, provide useful preparation context such as:
 
 - relevant history
 - latest notes
@@ -245,7 +250,14 @@ Before a call/check-in, provide useful preparation context such as:
 - suggested talking points
 - missing information
 
-**Boundary:** Guaranteed conversation outcomes are not promised.
+**Customer readiness visibility:** Surface whether the customer has completed relevant pre-call preparation, such as:
+
+- assigned pre-call tasks completed or outstanding
+- requested information submitted or missing
+- onboarding steps relevant to the conversation completed or incomplete
+- progress updates provided or stale
+
+**Boundary:** This is not a full scheduling suite, reminder platform, or autonomous customer messaging system. Guaranteed conversation outcomes are not promised. Operator prepares; customer readiness is visible, not autonomously enforced.
 
 ### S12 — Onboarding Visibility
 
@@ -268,6 +280,12 @@ Before a call/check-in, provide useful preparation context such as:
 - drafting
 - prioritization assistance
 - next-action recommendation
+- grounded answer preparation for recurring questions using available operational context
+- personalized response draft preparation using customer-specific context from `S3` and `S10`
+
+**Personalization chain (required behavior model):**
+
+`available customer context (S3, S10)` → `relevant context selection` → `grounded preparation (S13)` → `personalized draft or suggested response` → `human review` → `human controls consequential action`
 
 **Required controls:**
 
@@ -377,13 +395,13 @@ Before a call/check-in, provide useful preparation context such as:
 | Element | Definition |
 | ------- | ---------- |
 | Trigger | Upcoming call/check-in with lead or customer |
-| Actor | Business owner or coach |
-| Required context | History, notes, progress, unresolved issues, program context |
-| Main flow | Preparation view opened → context reviewed → talking points considered → conversation conducted |
-| Expected outcome | Conversation starts with relevant context ready |
-| Failure/exception | Missing notes, stale history, fabricated suggestions |
-| AI role | Prepare summary and talking points from evidence |
-| Human boundary | Owner validates preparation before conversation |
+| Actor | Business owner or coach (operator); customer readiness assessed separately |
+| Required context | History, notes, progress, unresolved issues, program context, outstanding pre-call tasks, onboarding state where relevant |
+| Main flow | Preparation view opened → operator context reviewed → customer readiness state reviewed (tasks complete, information submitted, onboarding steps done) → talking points considered → conversation conducted |
+| Expected outcome | Operator starts with relevant context; customer readiness gaps are visible before the call |
+| Failure/exception | Missing notes, stale history, fabricated suggestions, customer readiness invisible |
+| AI role | Prepare operator summary and talking points from evidence; do not fabricate customer readiness |
+| Human boundary | Owner validates preparation before conversation; owner decides how to address customer readiness gaps |
 
 ### WF9 — Task Completion and Follow-Up Continuity
 
@@ -463,12 +481,12 @@ Technical implementation evidence remains under Computer 1 authority.
 | P1-01 | Scattered customer information | S3 | S10 | O3 |
 | P1-02 | Unknown who needs attention | S8 | S1 | O1 |
 | P1-03 | Unclear customer progress | S6 | S3 | O5 |
-| P1-04 | Repeated same questions | S10 | S11, S13 | O7 |
-| P1-05 | Insufficient personalization | S3 | S11, S13 | O7, O9 |
+| P1-04 | Repeated same questions | S13 | S10, S3 | O7, O9 |
+| P1-05 | Insufficient personalization | S13 | S3, S10 | O7, O9 |
 | P1-06 | Poor lead follow-up | S2 | S7 | O2 |
 | P1-07 | Forgotten daily tasks | S7 | S1 | O6, O10 |
 | P1-08 | No morning starting point | S1 | S7, S9 | O6 |
-| P1-09 | Unprepared customers | S12 | S11 | O7, O10 |
+| P1-09 | Unprepared customers | S11 | S7, S12 | O7, O10 |
 | P1-10 | Manual conversation prep | S11 | S13 | O7 |
 | P1-11 | Chaotic notes | S10 | S3 | O3 |
 | P1-12 | Unknown disengagement risk | S8 | S6 | O1, O5 |

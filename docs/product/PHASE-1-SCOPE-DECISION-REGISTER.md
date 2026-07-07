@@ -191,3 +191,42 @@ Owner:
 | Decision | `APPROVED` |
 | Rationale | Enforces change control and prevents silent expansion |
 | Owner | Laptop Product Completion Track |
+
+### SD-013 — Repeated-question handling via bounded AI preparation
+
+| Field | Value |
+| ----- | ----- |
+| Date | 2026-07-07 (L1.1 register entry date) |
+| Status | `APPROVED` |
+| Proposal | Correct primary mapping for P1-04: `S13` primary, `S10`/`S3` supporting |
+| Problem ID addressed | P1-04 |
+| Current scope insufficiency | `S10` alone preserves context but does not reduce repeat-answer burden |
+| Decision | `APPROVED` |
+| Rationale | Recurring questions are solved through grounded answer preparation, not notes storage alone; no chatbot or knowledge base required |
+| Owner | Laptop Product Completion Track |
+
+### SD-014 — Personalization as context plus bounded AI preparation
+
+| Field | Value |
+| ----- | ----- |
+| Date | 2026-07-07 (L1.1 register entry date) |
+| Status | `APPROVED` |
+| Proposal | Correct primary mapping for P1-05: `S13` primary, `S3`/`S10` supporting |
+| Problem ID addressed | P1-05 |
+| Current scope insufficiency | `S3` provides context availability but does not produce personalized responses |
+| Decision | `APPROVED` |
+| Rationale | Personalization requires grounded AI draft preparation with human review; `S3` is supporting context, not the personalization mechanism |
+| Owner | Laptop Product Completion Track |
+
+### SD-015 — Conversation preparation distinguishes operator and customer readiness
+
+| Field | Value |
+| ----- | ----- |
+| Date | 2026-07-07 (L1.1 register entry date) |
+| Status | `APPROVED` |
+| Proposal | Correct primary mapping for P1-09: `S11` primary, `S7`/`S12` supporting; clarify dual-actor boundary |
+| Problem ID addressed | P1-09 |
+| Current scope insufficiency | `S12` onboarding visibility alone does not address customer pre-call readiness |
+| Decision | `APPROVED` |
+| Rationale | Operator preparation and customer readiness visibility are distinct; pre-call tasks (`S7`) and onboarding (`S12` where relevant) support but do not replace `S11` |
+| Owner | Laptop Product Completion Track |

@@ -88,6 +88,14 @@ For any Phase 1 AI capability (`S13` and AI-assisted domains), require:
 | Consequential action not silently executed | Yes |
 | Failure behavior visible | Yes |
 
+### Semantic problem coverage (P1-04, P1-05, P1-09)
+
+| Problem | Required completion evidence |
+| ------- | ---------------------------- |
+| P1-04 | Owner can prepare grounded answers to recurring questions using `S13` with context from `S3`/`S10`; notes alone are insufficient; no autonomous support agent |
+| P1-05 | Personalized response drafts are traceable to customer-specific context; human reviews before consequential action; no quality guarantee claimed |
+| P1-09 | Operator preparation (`S11`) and customer readiness visibility (`S7`, `S12` where relevant) are distinguishable; scheduling/reminder platform not required |
+
 ---
 
 ## 6. UX Completion Standard
