@@ -75,17 +75,41 @@ New documentation-only product/specification surfaces within its allowlist.
 
 Require explicit coordination before modification.
 
+### `docs/parallel-work/**`
+
+Classification: `SHARED_CONTROLLED` (not exclusively laptop-owned).
+
+- Laptop maintains product-track policy documents during parallel work.
+- Desktop holds normal update authority for canonical execution artifacts (`ACTIVE-PATH-REGISTRY.md`, `D2-CONDITIONS-REGISTER.md`).
+- Any edit requires shared-lock procedure per `SHARED-PATH-POLICY.md`.
+- Integration owner: Desktop.
+
 ## 5. Baseline
 
 - laptop branch: `parallel/laptop-product-track-20260707`
 - isolation baseline SHA: `fd9a981ed41e15ed08b9a6951c82f535c579d3ca`
 - L0-B status: `PASS — LAPTOP BRANCH ISOLATED`
+- D2 verdict: `PASS WITH CONDITIONS — CONTROLLED PARALLEL EXECUTION ONLY`
+- D2-R1 verdict: `PASS — PARALLEL EXECUTION LOCK ESTABLISHED` (see `D2-CONDITIONS-REGISTER.md`)
 
-## 6. Default Deny Principle
+## 6. Canonical Governance Index
+
+| Document | Role |
+| -------- | ---- |
+| `PARALLEL-WORK-OWNERSHIP.md` | Authority model (this file) |
+| `LAPTOP-ALLOWLIST.md` | Laptop path authorization |
+| `COMPUTER-1-PROTECTED-ZONES.md` | Desktop protected surfaces |
+| `SHARED-PATH-POLICY.md` | Shared-file locks and `.env.example` precedence |
+| `SESSION-SAFETY-CHECKLIST.md` | Per-session operational checks |
+| `ACTIVE-PATH-REGISTRY.md` | Canonical active-path state (desktop update authority) |
+| `D2-CONDITIONS-REGISTER.md` | D2 condition tracking and provenance |
+| `SHARED-LOCK-REGISTRY.md` | Shared-file lock records |
+
+## 7. Default Deny Principle
 
 Any path not explicitly authorized for the laptop must be treated as **NOT AUTHORIZED** until intentionally classified.
 
-## 7. Stop-Work Conditions
+## 8. Stop-Work Conditions
 
 Laptop work must stop immediately if:
 
@@ -100,7 +124,7 @@ Laptop work must stop immediately if:
 - branch ownership becomes unclear
 - merge/rebase is unexpectedly required
 
-## 8. Change Transfer Principle
+## 9. Change Transfer Principle
 
 Laptop work is not merged into `main` automatically. Integration occurs only at explicit checkpoints after:
 

@@ -17,26 +17,54 @@ Everything is denied unless explicitly allowed.
 - `docs/marketing/**`
 - `docs/parallel-work/**`
 
-## 3. Current L0-C Write Authorization
+## 3. Active Laptop Documentation Authorization
 
-During L0-C only, exactly these files are authorized for creation/modification:
+The following zones are authorized for laptop creation and modification on branch `parallel/laptop-product-track-20260707`:
 
-- `docs/parallel-work/PARALLEL-WORK-OWNERSHIP.md`
-- `docs/parallel-work/LAPTOP-ALLOWLIST.md`
-- `docs/parallel-work/COMPUTER-1-PROTECTED-ZONES.md`
-- `docs/parallel-work/SHARED-PATH-POLICY.md`
-- `docs/parallel-work/SESSION-SAFETY-CHECKLIST.md`
+| Zone | Status | Owner Class |
+| ---- | ------ | ----------- |
+| `docs/product/**` | **Authorized now** | `LAPTOP_OWNED` |
+| `docs/ux/**` | **Authorized now** | `LAPTOP_OWNED` |
+| `docs/parallel-work/**` | **Authorized with lock rules** | `SHARED_CONTROLLED` |
 
-## 4. Future Conditional Zones
+Within `docs/parallel-work/**`, laptop may edit policy documents (this file, ownership manifest, checklists). Canonical execution artifacts (`ACTIVE-PATH-REGISTRY.md`, `D2-CONDITIONS-REGISTER.md`) are normally updated by desktop unless laptop holds an explicit shared lock.
 
-Future source/frontend paths are not automatically authorized merely because they are frontend-related. Any future code path requires:
+## 4. Reserved Future Laptop Zones
+
+Authorized when populated; not active until first file is created:
+
+- `docs/qa/**`
+- `docs/ai/**`
+- `docs/demo/**`
+- `docs/launch/**`
+- `docs/business/**`
+- `docs/beta/**`
+- `docs/marketing/**`
+
+## 5. Blocked Implementation Roots
+
+The following paths are `BLOCKED_BY_DEFAULT` until an explicit implementation ownership audit assigns exact subpaths:
+
+- `app/**`
+- `src/**`
+- `lib/**`
+- `components/**`
+- `tests/**`
+- `scripts/**`
+
+No broad frontend root is authorized without subpath assignment, path-intersection check (S1), and registry update.
+
+## 6. Future Conditional Zones
+
+Future source paths beyond the blocked roots require:
 
 - explicit path audit
 - ownership assignment
 - no overlap confirmation
 - technical release decision
+- registry update in `ACTIVE-PATH-REGISTRY.md`
 
-## 5. Prohibited Actions
+## 7. Prohibited Actions
 
 The laptop track must not perform:
 
@@ -51,7 +79,7 @@ The laptop track must not perform:
 - generated code
 - package changes
 
-## 6. Path Review Rule
+## 8. Path Review Rule
 
 Before every commit, require:
 
