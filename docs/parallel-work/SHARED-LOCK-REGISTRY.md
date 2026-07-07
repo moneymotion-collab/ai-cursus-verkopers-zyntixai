@@ -35,11 +35,15 @@ This is a **current remediation decision** for D2-R2. It does **not** claim retr
 | Start Time | 2026-07-07 (D2-R2 session) |
 | Release Condition | Governance persistence commit completes; working tree clean |
 | Integration Owner | Desktop |
-| Status | `ACTIVE` (release upon persistence commit) |
+| Status | `RELEASED` |
+| Release SHA | `ceb7b9f` — governance persistence commit |
+| Released | 2026-07-07 (D2-R2) |
 
 ## 4. Released Locks
 
-_(None yet — LOCK-20260707-001 releases upon governance persistence commit.)_
+### LOCK-20260707-001 — Released
+
+Released upon governance persistence commit `ceb7b9f`. Bootstrap transition `BT-20260707-001` is closed. Future shared edits require normal lock protocol.
 
 ## 5. Future Lock Template
 

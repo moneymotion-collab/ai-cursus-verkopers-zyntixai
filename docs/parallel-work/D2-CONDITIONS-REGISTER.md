@@ -42,7 +42,7 @@ Stable record of D2 governance conditions and D2-R1 remediation status. Replaces
 | -------- | ----- | --- |
 | P0 open | 0 | — |
 | P1 open | 0 | — |
-| Accepted residual | 2 | D2-C01, D2-C06 |
+| Accepted residual | 3 | D2-C01, D2-C06, D2-C13 |
 | Mitigated (ongoing guard) | 1 | D2-C05 |
 
 ## 5. D2-R1 Closure
@@ -61,13 +61,22 @@ Stable record of D2 governance conditions and D2-R1 remediation status. Replaces
 | Source Main SHA | `fd9a981ed41e15ed08b9a6951c82f535c579d3ca` |
 | Bootstrap lock | `LOCK-20260707-001` |
 | Persistence strategy | Single commit |
-| Governance Baseline Commit | Recorded post-commit below |
-| D2-R2 verdict | Pending post-commit verification |
+| Governance Baseline Commit | `ceb7b9f` — `docs(governance): close parallel execution persistence gaps` |
+| Persistence strategy | Single commit (parallel-work); README pointer deferred to desktop S4 |
+| D2-R2 verdict | `PASS — PARALLEL EXECUTION LOCK PERSISTED AND VERIFIED` (pending Commit B) |
 
 ## 7. D2-R2 Closure
 
 | Field | Value |
 | ----- | ----- |
-| D2-R2 verdict | Pending post-commit verification |
-| D2 final closure | Pending |
+| D2-R2 verdict | `PASS — PARALLEL EXECUTION LOCK PERSISTED AND VERIFIED` |
+| D2 final closure | `D2 CLOSED` |
+| Governance Baseline Commit | `ceb7b9f` |
+| Closure metadata commit | Pending |
 | Remote push | `NO` |
+
+### D2-R2 Additional Conditions
+
+| ID | Condition | Severity | Remediation | Status |
+| -- | --------- | -------- | ----------- | ------ |
+| D2-C13 | `README.md` governance pointer blocked by laptop pre-commit hook | P2 | Deferred to desktop S4 integration; exact diff in handoff | `ACCEPTED_RESIDUAL` |
