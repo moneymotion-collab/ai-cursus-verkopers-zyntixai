@@ -2,6 +2,7 @@
   "name": "zyntixai-cursus-verkopers",
   "private": true,
   "scripts": {
+    "dev": "supabase start",
     "supabase": "supabase",
     "db:reset": "supabase db reset",
     "db:lint": "supabase db lint",
