@@ -86,6 +86,11 @@ UXP-01 through UXP-14: decision context, authoritative truth, context before act
 
 **Rule:** Every card drills to authoritative destination. Does not own task/attention/NBA/enrollment state.
 
+**L3.1 integrity rules (see `PHASE-1-INFORMATION-ARCHITECTURE.md` §13):**
+
+- **F001 — Enrollment fan-out:** Progress and onboarding references are enrollment-scoped. Multiple enrollments for one customer MUST be explicitly grouped or enumerated; counts MUST state unit (`enrollments` / `items`, not silent `customers`). Drill-down → Enrollments filtered view or Enrollment detail.
+- **F003 — Non-comparable buckets:** Regions are separate operational buckets pre-L5. No cross-domain ranking, weights, or scores. User chooses drill-down. Intra-domain ordering within Tasks or future queue rules remains allowed.
+
 ---
 
 ### SCR-002 — Leads Workspace

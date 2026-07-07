@@ -50,9 +50,25 @@ Transitions are evidence-driven, human-controlled where consequential, and may b
 | Onboarding | Enrollment active; onboarding in progress |
 | Active | Customer actively participating in delivery |
 | Paused | Delivery temporarily suspended |
-| At Risk | Engagement or progress concern flagged |
+| At Risk | Engagement or progress concern flagged — **visibility interpretation only**; see §4.1 |
 | Completed | Program relationship fulfilled |
 | Ended | Enrollment ended early or exited |
+
+---
+
+## 4.1 Enrollment "At Risk" and Attention Authority (L3.1-R1)
+
+`At Risk` is an **enrollment-scoped visibility state**, not a separate review queue object.
+
+| Rule | Requirement |
+| ---- | ----------- |
+| Meaning | The enrollment currently has evidence-backed concern associated with human review |
+| Authoritative review object | **Attention Item** in the Attention queue (single lifecycle per underlying concern) |
+| Same concern | MUST NOT produce multiple authoritative Attention Items for the same underlying evidence and concern identity |
+| Badge relationship | Enrollment `At Risk` MUST reference the authoritative Attention Item (or eligible candidate not yet open); it MUST NOT stand alone as a second authoritative review object |
+| Distinct concerns | Materially different evidence (e.g., stalled progress vs missed onboarding step) MAY produce separate Attention Items on the same enrollment |
+| Resolution | When the authoritative Attention Item is resolved, dismissed, or superseded without remaining valid evidence, `At Risk` MUST NOT persist as an independent authority |
+| No risk engine | `At Risk` does not imply autonomous churn scoring or a separate risk queue |
 
 ---
 

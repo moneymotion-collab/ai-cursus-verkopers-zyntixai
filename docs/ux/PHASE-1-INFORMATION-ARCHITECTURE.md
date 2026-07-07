@@ -207,6 +207,35 @@ Contextual capabilities (notes, progress, onboarding, conversation prep, NBA, AI
 
 **Drill-down:** Always to authoritative object or queue owner — e.g., progress concerns → Enrollments filtered view; NBA cards → NBA review queue.
 
+### Command Center enrollment fan-out (L3.1-R1 — F001)
+
+The Command Center aggregate lens MUST preserve **enrollment as the authoritative operational unit** for progress and onboarding concerns.
+
+| Rule | Requirement |
+| ---- | ----------- |
+| Authoritative unit | Progress and onboarding references are **enrollment-scoped**, not merged into a synthetic customer-level progress state |
+| Multi-enrollment fan-out | When one customer has multiple enrollment-scoped references, the Command Center MUST make fan-out explicit (e.g., customer identity + count of enrollments requiring review, or enumerated enrollment/program lines) |
+| No false customer inflation | Multiple enrollment references for one customer MUST NOT be presented as multiple independent customer problems |
+| No over-collapse | Two materially distinct enrollment concerns MUST NOT be hidden into one reference merely because they share a customer |
+| Count semantics | Counts MUST declare their unit (`enrollments`, `items`, or `customers`) and MUST NOT silently switch units |
+| Drill-down authority | Grouped or summarized references drill to **Enrollments Workspace (filtered)** or Enrollment detail — not a customer-level progress aggregate |
+
+### Command Center cross-domain buckets (L3.1-R1 — F003)
+
+Before an approved L5/L6/L7 ranking contract exists, Command Center regions are **separate operational buckets**:
+
+| Bucket examples | Non-comparable with |
+| ----------------- | ------------------- |
+| Tasks (overdue/due) | Attention severity, NBA review urgency, progress concern, onboarding gap |
+
+| Rule | Requirement |
+| ---- | ----------- |
+| Cross-domain ranking | Task priority ≠ Attention severity ≠ NBA urgency ≠ Progress concern ≠ Onboarding gap — **not numerically comparable** at Phase 1 product level |
+| No hidden weights | Implementation MUST NOT assume cross-type points, scores, or weights without an approved later contract |
+| Human choice | The business owner chooses which bucket to drill into; Command Center summarizes and references — it does not claim mathematically optimal cross-domain ordering pre-ranking |
+| Intra-domain ordering | Overdue-before-upcoming within Tasks, and future intra-queue ordering within Attention or NBA per later approved rules, remain permitted |
+| Future phases | L5 section ordering, L6 attention thresholds, and L7 NBA ranking MAY introduce approved mechanics later — not in L3.1-R1 |
+
 ---
 
 ## 14. Cross-Lifecycle Threads
@@ -252,6 +281,9 @@ Contextual capabilities (notes, progress, onboarding, conversation prep, NBA, AI
 5. Progress context does not duplicate Attention evidence — Attention links to underlying evidence.
 6. Progress aggregate views on Enrollments list are **filters over enrollment records** — not a separate progress database.
 7. NBA review queue owns accept/defer/dismiss state — Command Center and object panels reference same recommendation IDs.
+8. Command Center enrollment references are **enrollment-scoped**; multi-enrollment fan-out per customer is explicit; counts declare unit (L3.1-R1 F001).
+9. Enrollment `At Risk` is visibility referencing authoritative Attention Item — not a duplicate review queue (L3.1-R1 F002; state model §4.1).
+10. Command Center regions are **non-comparable cross-domain buckets** pre-L5; no hidden cross-type ranking (L3.1-R1 F003).
 
 ---
 

@@ -105,6 +105,7 @@ No billing implementation is defined at L2.
 | False positive | Human dismisses with record |
 | Stale attention signal | Refresh or snooze; surface staleness |
 | Duplicate attention items | Consolidate or flag duplicate |
+| Enrollment `At Risk` with open Attention Item | `At Risk` is visibility on enrollment; Attention Item is authoritative — same concern MUST NOT double-count as independent review workloads |
 | Human dismisses signal | Record dismissal; may re-open with new evidence |
 | Issue returns after resolution | New attention cycle with new evidence |
 
