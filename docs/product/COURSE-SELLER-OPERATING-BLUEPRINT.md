@@ -319,8 +319,8 @@ One operator may perform sales, coaching, and ownership roles. The model support
 | Human decision boundary | Delivery interventions; pacing |
 | AI role | Observe |
 | Expected outcome | Active participation tracked operationally |
-| Exit conditions | Pause, completion, or exit initiated |
-| Next states | LCS-13, LCS-19, LCS-20 |
+| Exit conditions | Active participation continues, or terminal outcome initiated (completion/exit) |
+| Next states | LCS-13, LCS-19, LCS-14; enrollment **Paused** state (temporary — resume `LCS-12`); LCS-20 (terminal only) |
 | Failure/exception | Pause without reason; disengagement |
 | Attention potential | Disengagement during delivery |
 | NBA potential | "Schedule check-in" |
@@ -364,7 +364,9 @@ One operator may perform sales, coaching, and ownership roles. The model support
 | Failure/exception | Missing context; ungrounded draft |
 | Attention potential | Repeated questions without resolution pattern |
 | NBA potential | "Prepare answer for recurring question" |
-| Traceability | P1-04, P1-05 \| S13, S10, S3 \| WF8 |
+| Traceability | P1-04, P1-05 \| S13, S10, S3 \| Cross-lifecycle thread; WF8 conditional (see below) |
+
+**Workflow boundary:** Recurring/support questions are a **cross-lifecycle operating thread** that may occur during `LCS-12`, `LCS-13`, or other active stages. `WF8` applies **only when** answer preparation occurs within conversation preparation (`LCS-05` or `LCS-19`). Standalone inbound questions (e.g., module location, session time, program step) are **not** WF8 by default.
 
 **L1.1 Q1 resolution:** Explicit FAQ tagging is optional. Minimum behavior: question context + operational context + bounded grounded preparation + human review. Pattern detection deferred to L5/L6 if needed.
 
@@ -414,21 +416,23 @@ One operator may perform sales, coaching, and ownership roles. The model support
 
 | Field | Specification |
 | ----- | ------------- |
-| Operational purpose | Practical next action recommended and reviewed |
+| Operational purpose | Human reviews an **existing** next-best-action recommendation |
 | Primary actor | Business Owner |
-| Trigger | Attention review, morning prioritization, or explicit request |
-| Entry conditions | Entity in actionable state |
+| Trigger | Existing NBA in `Recommended` state; morning prioritization; or escalation from attention review |
+| Entry conditions | A candidate has already been generated elsewhere and framed as a recommendation |
 | Required context | Current state, evidence, recommended action, rationale |
-| Main flow | Recommendation shown → rationale reviewed → accept/defer/dismiss |
-| Human decision boundary | Accept or reject action |
-| AI role | Recommend |
-| Expected outcome | Clear next action decision |
-| Exit conditions | Action accepted, deferred, or dismissed |
-| Next states | LCS-18, LCS-04, LCS-09, etc. |
+| Main flow | Recommendation shown → rationale reviewed → accept/defer/dismiss → if accepted, proceed to intervention or task |
+| Human decision boundary | Accept, defer, or dismiss recommendation |
+| AI role | Recommend (initial framing only — before review) |
+| Expected outcome | Clear next action decision recorded |
+| Exit conditions | Accepted, deferred, or dismissed |
+| Next states | LCS-18 (accepted), prior stage (deferred/dismissed), or operational stage per action |
 | Failure/exception | Recommendation without evidence |
 | Attention potential | No |
-| NBA potential | This stage is NBA |
+| NBA potential | N/A — this stage **is** the review step of WF10; it does not generate new candidates |
 | Traceability | P1-15 \| S9 \| WF10 |
+
+**Circularity boundary:** `LCS-17` does **not** self-generate new NBA candidates. A new candidate requires **changed context**, a **new triggering stage** (e.g., `LCS-15`, `LCS-04`), or an **explicit alternative-request/recomputation** after dismiss/defer — not an automatic re-entry loop.
 
 ### LCS-18 — Human Intervention
 
@@ -485,21 +489,23 @@ Niche-specific signals (e.g., trading journal) deferred.
 
 | Field | Specification |
 | ----- | ------------- |
-| Operational purpose | Program relationship completes, ends, pauses, or exits |
+| Operational purpose | Program relationship reaches a **terminal** outcome: successful completion, exit, or early end |
 | Primary actor | Coach / Owner |
-| Trigger | Program end, early exit, pause request |
-| Entry conditions | Active or paused enrollment |
+| Trigger | Program end reached, early exit decision, or relationship termination |
+| Entry conditions | Active enrollment (not merely paused) |
 | Required context | Completion criteria, exit reason, customer state |
-| Main flow | Outcome recorded → enrollment state updated → renewal/reactivation considered |
-| Human decision boundary | Completion vs exit; pause |
+| Main flow | Terminal outcome recorded → enrollment state updated → renewal/reactivation considered |
+| Human decision boundary | Completion vs exit vs ended early |
 | AI role | Observe |
-| Expected outcome | Clear end state |
-| Exit conditions | Completed, ended, or paused recorded |
+| Expected outcome | Clear **terminal** end state recorded |
+| Exit conditions | Completed, ended, or exited recorded |
 | Next states | LCS-21, LCS-22 |
 | Failure/exception | Ambiguous end state |
 | Attention potential | Exit without handoff note |
 | NBA potential | "Record completion outcome" |
 | Traceability | P1-14 \| S5 \| WF3 |
+
+**Pause boundary:** **Pause is not a terminal outcome.** Pause is a temporary enrollment/customer **state** during `LCS-12` or `LCS-13`. A paused enrollment resumes `LCS-12` directly without passing through `LCS-20`.
 
 ### LCS-21 — Renewal / Continuation Review
 
@@ -553,11 +559,12 @@ Niche-specific signals (e.g., trading journal) deferred.
 | Onboarding | LCS-10–11 | S12, S5 |
 | Progress | LCS-12–13 | S6 |
 | Attention | LCS-15–16, LCS-18 | S8 |
-| Next Best Action | LCS-17 | S9 |
+| Next Best Action | Candidate stages → LCS-17 (review) | S9 |
 | Task Continuity | LCS-04, 10, 18, 19 | S7 |
 | Notes and Context | LCS-02, 06, 08, 14 | S10 |
 | Conversation Preparation | LCS-05, LCS-19 | S11, S13 |
-| Bounded AI | LCS-05, 14, 15–17, 19 | S13 |
+| Recurring Q&A | LCS-14 (any active stage) | S13, S10, S3 — cross-lifecycle; WF8 only when within conversation prep |
+| Bounded AI | LCS-05, 14, 15–16, 19 | S13 |
 
 ---
 
@@ -598,9 +605,11 @@ Detection rules are not defined at L2.
 
 ## 10. Next Best Action Entry Points
 
-Stages that may produce NBA candidates:
+Stages that may **generate** NBA candidates (prior to `LCS-17` review):
 
-- LCS-02, LCS-04, LCS-07, LCS-08, LCS-10, LCS-11, LCS-13, LCS-14, LCS-15, LCS-17, LCS-18, LCS-19, LCS-21, LCS-22
+- LCS-02, LCS-04, LCS-07, LCS-08, LCS-10, LCS-11, LCS-13, LCS-14, LCS-15, LCS-18, LCS-19, LCS-21, LCS-22
+
+`LCS-17` is the **review** stage (WF10), not a candidate-generation entry point.
 
 ---
 
@@ -619,29 +628,29 @@ L2 does **not** model:
 
 ## 12. Traceability Summary
 
-| Stage | Problem IDs | Scope Domains | Workflows |
-| ----- | ----------- | ------------- | --------- |
-| LCS-01 | P1-06 | S2 | WF1 |
-| LCS-02 | P1-01, P1-11 | S2, S10 | WF1 |
-| LCS-03 | P1-06 | S2 | WF1 |
-| LCS-04 | P1-06, P1-07 | S2, S7 | WF1, WF9 |
-| LCS-05 | P1-10 | S11, S13 | WF8 |
-| LCS-06 | P1-06, P1-11 | S2, S10 | WF1 |
-| LCS-07 | P1-06 | S2 | WF2 |
-| LCS-08 | P1-01, P1-11, P1-14 | S3, S10 | WF2 |
-| LCS-09 | P1-14 | S4, S5 | WF3 |
-| LCS-10 | P1-13 | S5, S12 | WF4 |
-| LCS-11 | P1-02, P1-13 | S12, S8 | WF4 |
-| LCS-12 | P1-03, P1-14 | S4, S5, S6 | WF3, WF5 |
-| LCS-13 | P1-03, P1-12 | S6, S8 | WF5 |
-| LCS-14 | P1-04, P1-05 | S13, S10, S3 | WF8 |
-| LCS-15 | P1-02, P1-12 | S8 | WF6 |
-| LCS-16 | P1-02 | S8 | WF6 |
-| LCS-17 | P1-15 | S9 | WF10 |
-| LCS-18 | P1-02, P1-12 | S7, S8 | WF6, WF9 |
-| LCS-19 | P1-09, P1-10 | S11, S7, S12 | WF8 |
-| LCS-20 | P1-14 | S5 | WF3 |
-| LCS-21 | P1-15 | S9 | WF10 |
-| LCS-22 | P1-06 | S2, S9 | WF1 |
+| Stage | Problem IDs | Scope Domains | Workflows | Mapping Type |
+| ----- | ----------- | ------------- | --------- | ------------ |
+| LCS-01 | P1-06 | S2 | WF1 | DIRECT |
+| LCS-02 | P1-01, P1-11 | S2, S10 | WF1 | DIRECT |
+| LCS-03 | P1-06 | S2 | WF1 | DIRECT |
+| LCS-04 | P1-06, P1-07 | S2, S7 | WF1, WF9 | DIRECT |
+| LCS-05 | P1-10 | S11, S13 | WF8 | DIRECT |
+| LCS-06 | P1-06, P1-11 | S2, S10 | WF1 | DIRECT |
+| LCS-07 | P1-06 | S2 | WF2 | DIRECT |
+| LCS-08 | P1-01, P1-11, P1-14 | S3, S10 | WF2 | DIRECT |
+| LCS-09 | P1-14 | S4, S5 | WF3 | DIRECT |
+| LCS-10 | P1-13 | S5, S12 | WF4 | DIRECT |
+| LCS-11 | P1-02, P1-13 | S12, S8 | WF4 | DIRECT |
+| LCS-12 | P1-03, P1-14 | S4, S5, S6 | WF3, WF5 | DIRECT |
+| LCS-13 | P1-03, P1-12 | S6, S8 | WF5 | DIRECT |
+| LCS-14 | P1-04, P1-05 | S13, S10, S3 | WF8 (conditional) | CROSS-LIFECYCLE |
+| LCS-15 | P1-02, P1-12 | S8 | WF6 | DIRECT |
+| LCS-16 | P1-02 | S8 | WF6 | DIRECT |
+| LCS-17 | P1-15 | S9 | WF10 | DIRECT |
+| LCS-18 | P1-02, P1-12 | S7, S8 | WF6, WF9 | DIRECT |
+| LCS-19 | P1-09, P1-10 | S11, S7, S12 | WF8 | DIRECT |
+| LCS-20 | P1-14 | S5 | WF3 | DIRECT |
+| LCS-21 | P1-15 | S9 | WF10 | DIRECT |
+| LCS-22 | P1-06 | S2, S9 | WF1 | DIRECT |
 
 All 15 problems remain traceable across the lifecycle model.

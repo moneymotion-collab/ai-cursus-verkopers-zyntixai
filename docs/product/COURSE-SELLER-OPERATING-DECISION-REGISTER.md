@@ -193,3 +193,45 @@ Owner:
 | Decision | Renewal and reactivation are lifecycle concepts; not a full revenue automation platform |
 | Rationale | Preserves Phase 1 scope boundary |
 | Owner | Laptop Product Completion Track |
+
+### OD-013 — Recurring Q&A is cross-lifecycle; WF8 conditional only
+
+| Field | Value |
+| ----- | ----- |
+| Date | 2026-07-07 (L2.1 register entry date) |
+| Status | `APPROVED` |
+| Operating question | Does LCS-14 universally map to WF8? |
+| Related lifecycle stage | LCS-14 |
+| Related problem IDs | P1-04, P1-05 |
+| Related scope domains | S13, S10, S3 |
+| Decision | LCS-14 is a cross-lifecycle thread; WF8 applies only when answer prep occurs within conversation preparation |
+| Rationale | Standalone inbound questions are not conversation preparation |
+| Owner | Laptop Product Completion Track |
+
+### OD-014 — Pause is temporary state, not completion/exit
+
+| Field | Value |
+| ----- | ----- |
+| Date | 2026-07-07 (L2.1 register entry date) |
+| Status | `APPROVED` |
+| Operating question | Does pause route through LCS-20? |
+| Related lifecycle stage | LCS-12, LCS-20 |
+| Related problem IDs | P1-14 |
+| Related scope domains | S5 |
+| Decision | Pause is enrollment/customer state during active delivery; LCS-20 is terminal only |
+| Rationale | Prevents temporary inactivity from appearing terminal |
+| Owner | Laptop Product Completion Track |
+
+### OD-015 — NBA review does not self-generate candidates
+
+| Field | Value |
+| ----- | ----- |
+| Date | 2026-07-07 (L2.1 register entry date) |
+| Status | `APPROVED` |
+| Operating question | Can LCS-17 create infinite NBA loops? |
+| Related lifecycle stage | LCS-17 |
+| Related problem IDs | P1-15 |
+| Related scope domains | S9 |
+| Decision | LCS-17 reviews existing recommendations; new candidates require changed context or explicit recomputation |
+| Rationale | Separates candidate generation from human review |
+| Owner | Laptop Product Completion Track |

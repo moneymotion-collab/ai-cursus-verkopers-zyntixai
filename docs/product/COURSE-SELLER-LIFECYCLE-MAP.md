@@ -40,7 +40,7 @@ The normal path for a converting course seller:
 | Lead lost | `LCS-07` | `LCS-22` reactivation or archive |
 | Lead deferred | `LCS-07` | `LCS-04` follow-up or `LCS-22` |
 | Reactivation | `LCS-22` | `LCS-04` or `LCS-03` |
-| Customer paused | `LCS-12` / `LCS-20` | Resume `LCS-12` |
+| Customer paused | `LCS-12` (enrollment **Paused** state) | Resume `LCS-12` — does not pass through `LCS-20` |
 | Onboarding stalled | `LCS-11` | `LCS-18` intervention |
 | Enrollment ended early | `LCS-20` | `LCS-22` or complete exit |
 | Progress stalled | `LCS-13` | `LCS-15`–`LCS-18` |
@@ -77,11 +77,14 @@ The normal path for a converting course seller:
 | LCS-10 | Onboarding started | LCS-11 | Coach / Customer | |
 | LCS-11 | Onboarding complete | LCS-12 | System Process | Stall → LCS-15 |
 | LCS-12 | Active participation | LCS-13 | Coach | Ongoing |
+| LCS-12 | Pause requested/recorded | LCS-12 | Coach / Owner | Enrollment **Paused** state; not terminal |
+| LCS-12 | Pause lifted | LCS-12 | Coach / Owner | Resume active delivery |
+| LCS-12 | Terminal outcome | LCS-20 | Owner | Completion/exit/ended early only |
 | LCS-13 | Stall/risk signal | LCS-15 | ZyntixAI (Observe/Analyze) | |
 | LCS-14 | Question received | LCS-14 | Owner + ZyntixAI Prepare | May loop |
 | LCS-15 | Signal surfaced | LCS-16 | Owner | |
 | LCS-16 | Review complete | LCS-17 or LCS-18 | Owner | |
-| LCS-17 | Action recommended | LCS-18 or dismiss | Owner | |
+| LCS-17 | Recommendation reviewed | LCS-18 or dismiss/defer | Owner | Review only; no self-generated loop |
 | LCS-18 | Intervention done | LCS-12 or LCS-04 | Owner | |
 | LCS-19 | Conversation upcoming | LCS-06 or check-in | Owner + Customer | Dual readiness |
 | LCS-12 | Program ends | LCS-20 | Owner | |
@@ -111,11 +114,11 @@ The lifecycle map models **common** behavior, not every business identically.
 | -------- | ------------------------ |
 | WF1 Lead to Follow-Up | LCS-01–04, LCS-22 |
 | WF2 Lead to Customer Handoff | LCS-07–08 |
-| WF3 Customer to Enrollment | LCS-08–09, LCS-12 |
+| WF3 Customer to Enrollment | LCS-08–09, LCS-12, LCS-20 |
 | WF4 Onboarding Visibility | LCS-10–11 |
 | WF5 Progress Review | LCS-13 |
 | WF6 Attention to Intervention | LCS-15–18 |
 | WF7 Morning Prioritization | Aggregates LCS-04, 07, 11, 13, 15–17, 19 |
-| WF8 Conversation Preparation | LCS-05, LCS-19 |
+| WF8 Conversation Preparation | LCS-05, LCS-19 (LCS-14 only when within conversation prep context) |
 | WF9 Task Continuity | LCS-04, 10, 18, 19 |
 | WF10 Next Best Action | LCS-17 |

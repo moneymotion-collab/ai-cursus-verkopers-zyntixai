@@ -45,7 +45,7 @@ One real person may perform Business Owner, Sales Operator, and Coach roles simu
 | LCS-14 Recurring Q&A Preparation | Coach / Owner | Customer | Prepare | Yes (send answer) |
 | LCS-15 Attention Signal Emergence | System Process | ZyntixAI Analyze | Analyze | No (candidate only) |
 | LCS-16 Attention Review | Business Owner | — | Recommend | Yes |
-| LCS-17 Next Best Action Review | Business Owner | — | Recommend | Yes |
+| LCS-17 Next Best Action Review | Business Owner | — | Observe (present recommendation) | Yes |
 | LCS-18 Human Intervention | Coach / Owner | Customer | Prepare (optional) | Yes |
 | LCS-19 Conversation Readiness | Coach | Customer | Prepare | Yes |
 | LCS-20 Completion / Exit | Coach / Owner | Customer | Observe | Yes |

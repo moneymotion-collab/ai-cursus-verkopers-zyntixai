@@ -62,7 +62,7 @@ No billing implementation is defined at L2.
 | Customer without active enrollment | Valid state; surface for review |
 | Enrollment with unclear program | Surface ambiguity; human associates program |
 | Early exit | Record ended state; review attention if needed |
-| Pause | Record paused; retain context |
+| Pause | Record paused; retain context; **resume to LCS-12** — not routed through LCS-20 |
 | Status ambiguity | Default to needs review; no silent assumption |
 
 **Traceability:** P1-14 | S4, S5 | WF3
@@ -123,7 +123,7 @@ No billing implementation is defined at L2.
 | Unsupported claim risk | Withhold or qualify; no fabricated facts |
 | Draft cannot be grounded | No output presented as fact |
 
-**Traceability:** P1-04, P1-05, P1-09 | S13 | WF8, WF10
+**Traceability:** P1-04, P1-05, P1-09 | S13 | Cross-lifecycle; WF8 conditional; WF10 for NBA |
 
 ---
 
@@ -176,6 +176,6 @@ No billing implementation is defined at L2.
 | Onboarding | P1-13, P1-02 | S12, S8 | WF4 |
 | Progress | P1-03, P1-12 | S6, S8 | WF5 |
 | Attention | P1-02, P1-12 | S8 | WF6 |
-| AI | P1-04, P1-05 | S13 | WF8, WF10 |
+| AI | P1-04, P1-05 | S13 | Cross-lifecycle; WF8 conditional |
 | Conversation prep | P1-09, P1-10 | S11 | WF8 |
 | Task | P1-07 | S7 | WF9 |

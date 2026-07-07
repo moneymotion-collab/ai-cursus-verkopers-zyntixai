@@ -152,6 +152,8 @@ Operator readiness and customer readiness are **independent** dimensions.
 3. **Reversible where appropriate** — Deferred, snoozed, and dismissed states may change with new evidence.
 4. **Explicit failure state** — Unknown, incomplete, blocked, and ambiguous states are first-class.
 5. **No silent transition** — State changes should be traceable to an event or human action.
+6. **Pause ≠ terminal** — `Paused` is a temporary enrollment/customer state during `LCS-12`/`LCS-13`. It does not route through `LCS-20` Completion/Exit.
+7. **NBA review ≠ candidate generation** — `Recommended` → `Reviewed` occurs in `LCS-17`. New `Candidate` states require changed context or explicit recomputation.
 
 ---
 
