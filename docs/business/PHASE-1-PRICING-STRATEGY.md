@@ -62,7 +62,7 @@ No live prices. All figures are **HYPOTHETICAL** for modeling only.
 | ----- | ----------- | -------- | ------ | ------------- | --------- |
 | **Controlled free beta** | Invited course sellers; single tenant | Wave-based; fixed end date | Full Phase 1 scope when implemented; bounded AI; no SLA | Workflow + value validation | Convert to paid launch offer or exit |
 | Paid beta | — | — | — | — | **NOT SUPPORTED** until WTP + cost proof |
-| Public free tier at launch | TBD | TBD | TBD | Acquisition | BUSINESS-GAP-007 |
+| Public free tier at launch | Deferred; not required for Phase 1 | — | — | Avoid false offers | See `PHASE-1-COMMERCIAL-READINESS-GATE.md` §7.1 |
 
 **Purpose of free beta:** Evidence collection (beta plan), not revenue.
 

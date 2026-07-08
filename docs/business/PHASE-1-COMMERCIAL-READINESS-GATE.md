@@ -56,7 +56,7 @@ This contract uses the repository-defined P0–P3 model from:
 | BETA-GAP-001–003 | Cohort, retention, targets | Beta contract | Beta economics | OPEN |
 | BETA-BLOCK-001–007 | Beta blockers | Beta gate | Beta offer | OPEN |
 | BUSINESS-BLOCK-001–010 | See §6 | This artifact | Commercial planning | OPEN |
-| BUSINESS-GAP-004–008 | See §7 | This artifact | Planning inputs | OPEN |
+ | BUSINESS-GAP-004–008 | See §7 | This artifact | Planning inputs | CLOSED (R2) |
 
 ---
 
@@ -104,18 +104,18 @@ This contract uses the repository-defined P0–P3 model from:
 
 ## 6. Commercial Blocker Register
 
-| Blocker ID | Root cause | Source dependency | Severity | Commercial impact | Canonical owner | Status |
-| ---------- | ---------- | ----------------- | -------- | ----------------- | --------------- | ------ |
-| BUSINESS-BLOCK-001 | No runnable build / deployable artifact | DEMO-GAP-002; LAUNCH-BLOCK-003/006 | P1 | `BLOCKS_COMMERCIAL_ASSESSMENT`, `BLOCKS_PAID_BETA`, `BLOCKS_LIVE_PRICING` | Desktop | OPEN |
-| BUSINESS-BLOCK-002 | QA acceptance not executed | LAUNCH-BLOCK-002; QA execution required | P2 | `BLOCKS_CLAIM_APPROVAL`, `BLOCKS_LIVE_PRICING` | Desktop/QA | OPEN |
-| BUSINESS-BLOCK-003 | Multi-tenant isolation not adversarially proven | QA-GAP-002 | **P0** | `BLOCKS_COMMERCIAL_ASSESSMENT`, `BLOCKS_LIVE_PRICING`, `BLOCKS_SECURITY_CLAIMS` | Desktop | OPEN |
-| BUSINESS-BLOCK-004 | AI cost inputs missing (tokens + vendor pricing + workload) | AI-IN-*; OOS-14 | P2 | `BLOCKS_UNIT_ECONOMICS_APPROVAL`, `BLOCKS_LIVE_PRICING` | Product/Business | OPEN |
-| BUSINESS-BLOCK-005 | Non-AI variable cost inputs missing (infra + support allocation) | INF-IN-* | P2 | `BLOCKS_UNIT_ECONOMICS_APPROVAL`, `BLOCKS_LIVE_PRICING` | Ops/Business | OPEN |
-| BUSINESS-BLOCK-006 | Willingness-to-pay evidence absent | Beta feedback / buyer interviews | P2 | `BLOCKS_PRICE_APPROVAL` | Business | OPEN |
-| BUSINESS-BLOCK-007 | Billing not implemented (Stripe, entitlement enforcement) | Desktop implementation | P2 | `BLOCKS_LIVE_PRICING` | Desktop | OPEN |
-| BUSINESS-BLOCK-008 | Launch readiness blockers unresolved | LAUNCH-BLOCK-001–007 | P2 | `BLOCKS_PAID_BETA`, `BLOCKS_LIVE_PRICING` | Cross-team | OPEN |
-| BUSINESS-BLOCK-009 | Beta execution not authorized / not executed | BETA-BLOCK-001–007 | P2 | `DEFERRED_DEPENDENCY`, `BLOCKS_BETA_EVIDENCE`, `BLOCKS_PRICE_APPROVAL` | Laptop/Desktop | OPEN |
-| BUSINESS-BLOCK-010 | Legal/tax policy inputs not yet available | Legal/finance decisions | P2 | `BLOCKS_LIVE_PRICING` | Business/Legal/Finance | OPEN |
+| Blocker ID | Root cause | Evidence state | Severity | Commercial impact | Canonical owner | Status |
+| ---------- | ---------- | -------------- | -------- | ----------------- | --------------- | ------ |
+| BUSINESS-BLOCK-001 | Runnable build/runtime evidence not available (Phase 1 not yet deployable) | `PROOF_MISSING` / `IMPLEMENTATION_DEPENDENT` | P1 | `BLOCKS_COMMERCIAL_ASSESSMENT`, `BLOCKS_PAID_BETA`, `BLOCKS_LIVE_PRICING` | Desktop | OPEN |
+| BUSINESS-BLOCK-002 | QA acceptance evidence not executed | `NOT_EXECUTED` | P2 | `BLOCKS_CLAIM_APPROVAL`, `BLOCKS_LIVE_PRICING` | Desktop/QA | OPEN |
+| BUSINESS-BLOCK-003 | Tenant-isolation adversarial proof missing (no confirmed exposure recorded) | `PROOF_MISSING` | P1 | `BLOCKS_COMMERCIAL_ASSESSMENT`, `BLOCKS_LIVE_PRICING`, `BLOCKS_SECURITY_CLAIMS` | Desktop | OPEN |
+| BUSINESS-BLOCK-004 | AI cost inputs missing (tokens + vendor pricing + workload) | `PROOF_MISSING` | P2 | `BLOCKS_UNIT_ECONOMICS_APPROVAL`, `BLOCKS_LIVE_PRICING` | Product/Business | OPEN |
+| BUSINESS-BLOCK-005 | Non-AI variable cost inputs missing (infra + support allocation) | `PROOF_MISSING` | P2 | `BLOCKS_UNIT_ECONOMICS_APPROVAL`, `BLOCKS_LIVE_PRICING` | Ops/Business | OPEN |
+| BUSINESS-BLOCK-006 | Willingness-to-pay evidence absent | `PROOF_MISSING` | P2 | `BLOCKS_PRICE_APPROVAL` | Business | OPEN |
+| BUSINESS-BLOCK-007 | Billing not implemented (Stripe, entitlement enforcement) | `IMPLEMENTATION_DEPENDENT` | P2 | `BLOCKS_LIVE_PRICING` | Desktop | OPEN |
+| BUSINESS-BLOCK-008 | Launch readiness blockers unresolved | `PROOF_MISSING` / `NOT_EXECUTED` | P2 | `BLOCKS_PAID_BETA`, `BLOCKS_LIVE_PRICING` | Cross-team | OPEN |
+| BUSINESS-BLOCK-009 | Beta execution not authorized / not executed | `NOT_EXECUTED` | P2 | `DEFERRED_DEPENDENCY`, `BLOCKS_BETA_EVIDENCE`, `BLOCKS_PRICE_APPROVAL` | Laptop/Desktop | OPEN |
+| BUSINESS-BLOCK-010 | Legal/tax policy inputs not yet available | `PROOF_MISSING` | P2 | `BLOCKS_LIVE_PRICING` | Business/Legal/Finance | OPEN |
 
 ---
 
@@ -123,11 +123,67 @@ This contract uses the repository-defined P0–P3 model from:
 
 | Gap ID | Planning-contract defect (missing/ambiguous) | Severity | Commercial impact | Canonical owner | Status |
 | ------ | ------------------------------------------ | -------- | ----------------- | --------------- | ------ |
-| BUSINESS-GAP-004 | Trial policy contract absent (length, eligibility, conversion rule) | P2 | `BLOCKS_PRICE_APPROVAL` | Business | OPEN |
-| BUSINESS-GAP-005 | Refund/cancel/downgrade contract absent (timing + downgrade behavior) | P2 | `BLOCKS_LIVE_PRICING` | Business/Legal | OPEN |
-| BUSINESS-GAP-006 | Tax handling decision absent (jurisdiction approach, disclosures) | P2 | `BLOCKS_LIVE_PRICING` | Finance/Legal | OPEN |
-| BUSINESS-GAP-007 | Public free tier policy undecided (existence + purpose) | P3 | `NON_BLOCKING` | Business | OPEN |
-| BUSINESS-GAP-008 | Support model definition missing (included channels + boundaries by package) | P2 | `BLOCKS_PRICE_APPROVAL` | Ops/Business | OPEN |
+| BUSINESS-GAP-004 | Trial policy contract absent (length, eligibility, conversion rule) | P2 | `BLOCKS_PRICE_APPROVAL` | Business | **CLOSED (R2)** |
+| BUSINESS-GAP-005 | Refund/cancel/downgrade contract absent (timing + downgrade behavior) | P2 | `BLOCKS_LIVE_PRICING` | Business/Legal | **CLOSED (R2)** |
+| BUSINESS-GAP-006 | Tax handling decision absent (jurisdiction approach, disclosures) | P2 | `BLOCKS_LIVE_PRICING` | Finance/Legal | **CLOSED (R2)** |
+| BUSINESS-GAP-007 | Public free tier policy undecided (existence + purpose) | P3 | `NON_BLOCKING` | Business | **CLOSED (R2)** |
+| BUSINESS-GAP-008 | Support model definition missing (included channels + boundaries by package) | P2 | `BLOCKS_PRICE_APPROVAL` | Ops/Business | **CLOSED (R2)** |
+
+### R2 Gap Closure (Decision rules; no invented durations/rights/tax treatment)
+
+The following gaps are closed as **planning-contract defects** by adding deterministic decision rules and activation gates, without inventing the underlying future decisions or legal/tax facts.
+
+| Gap ID | R2 decision | Post-state | Remaining dependency |
+| ------ | ----------- | ---------- | -------------------- |
+| BUSINESS-GAP-004 | CLOSE BY DECISION RULE | CLOSED | BUSINESS-BLOCK-010 (legal/tax) + BUSINESS-BLOCK-004/005 (unit economics) + BUSINESS-BLOCK-007 (billing) |
+| BUSINESS-GAP-005 | CLOSE BY DECISION RULE | CLOSED | BUSINESS-BLOCK-010 (legal validation + billing behavior) |
+| BUSINESS-GAP-006 | CLOSE BY DECISION RULE | CLOSED | BUSINESS-BLOCK-010 (accounting/tax configuration) |
+| BUSINESS-GAP-007 | CLOSE BY CONTRACT DECISION | CLOSED | None (explicitly deferred; not required for Phase 1) |
+| BUSINESS-GAP-008 | CLOSE BY CONTRACT DECISION | CLOSED | BUSINESS-BLOCK-005 (support cost inputs) |
+
+---
+
+## 7.1 Trial / Cancellation / Tax / Free Tier / Support — Decision Rules (No invented values)
+
+### Trial policy (BUSINESS-GAP-004) — CLOSED BY DECISION RULE
+
+- **Status:** Trial duration/structure is **UNAPPROVED**.
+- **Rule:** No trial terms may be published or implemented until:
+  - BUSINESS-BLOCK-007 (billing) is closed, and
+  - BUSINESS-BLOCK-004/005 (unit economics inputs) support a bounded trial model, and
+  - required legal/tax validation for displayed terms is available (BUSINESS-BLOCK-010).
+- **Owner:** Business Owner (business decision) + Desktop (billing implementation).
+- **Prohibited:** inventing a number of days, “credit card required”, auto-renewal behaviors, or any public claim of trial terms without approval.
+
+### Cancellation / refund / downgrade (BUSINESS-GAP-005) — CLOSED BY DECISION RULE
+
+- **Status:** Legal refund rights and jurisdictional obligations are **UNKNOWN** in this repository and must not be invented.
+- **Rule:** Before live pricing activation:
+  - decision owner must define *product policy behavior* (access after cancel, downgrade effects, data retention behavior) and
+  - obtain legal review for externally displayed terms (BUSINESS-BLOCK-010) and
+  - implement billing-state enforcement (BUSINESS-BLOCK-007).
+- **Owner:** Business/Legal for terms; Desktop for enforcement.
+- **Prohibited:** promising refunds, cancellation rights, or downgrade behavior beyond what is legally validated and technically implemented.
+
+### Tax handling (BUSINESS-GAP-006) — CLOSED BY DECISION RULE
+
+- **Status:** Tax/VAT/BTW treatment is **UNDETERMINED**.
+- **Rule:** Live pricing must remain blocked until:
+  - target jurisdictions are defined and
+  - accounting/tax configuration and disclosures are documented with authoritative review (BUSINESS-BLOCK-010).
+- **Prohibited:** stating VAT/BTW rates, reverse-charge rules, B2B/B2C treatment, OSS, or “tax included/excluded” claims without evidence.
+
+### Public free tier (BUSINESS-GAP-007) — CLOSED BY CONTRACT DECISION
+
+- **Decision:** **No public free tier is required for Phase 1 planning.** The only free access defined here is **controlled free beta** (separately governed by the Beta contract and authorization state).
+- **Rule:** Marketing must not claim or assume a public free tier unless a future business decision explicitly introduces it.
+
+### Support model (BUSINESS-GAP-008) — CLOSED BY CONTRACT DECISION
+
+- **Decision:** Define **support scope and boundaries** now; defer response times/SLA and staffing to Ops inputs (BUSINESS-BLOCK-005).
+- **Scope (allowed):** product usage questions, bug reporting, access issues triage, security incident escalation routing.
+- **Out of scope:** guaranteed response times, 24/7 coverage, dedicated AM, bespoke implementation services (unless later approved).
+- **Rule:** No SLA/support claims may be marketed until Ops confirms resourcing and billing terms exist.
 
 ### Reclassified (R1)
 

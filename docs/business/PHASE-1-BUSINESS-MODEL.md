@@ -133,10 +133,11 @@ Per Out-of-Scope register and implementation state:
 
 | Topic | Repository evidence | Status |
 | ----- | ------------------- | ------ |
-| Trial length | None | BUSINESS-GAP-004 |
-| Refund policy | None | BUSINESS-GAP-005 |
-| Cancellation/downgrade | None | BUSINESS-GAP-005 |
-| Tax treatment | None | BUSINESS-GAP-006 |
-| Legal terms | None | BUSINESS-GAP-006 |
+| Trial terms | None | Defined by decision rule in `PHASE-1-COMMERCIAL-READINESS-GATE.md` §7.1 (UNAPPROVED; activation-gated) |
+| Refund policy | None | Defined by decision rule in `PHASE-1-COMMERCIAL-READINESS-GATE.md` §7.1 (legal-dependent) |
+| Cancellation/downgrade | None | Defined by decision rule in `PHASE-1-COMMERCIAL-READINESS-GATE.md` §7.1 (legal + billing-dependent) |
+| Tax treatment | None | Defined by decision rule in `PHASE-1-COMMERCIAL-READINESS-GATE.md` §7.1 (accounting-dependent) |
+| Public free tier | None | Explicitly deferred (no public free tier required for Phase 1) — see §7.1 |
+| Support model | None | Support scope defined; SLA/resourcing deferred — see §7.1 |
 
 No legal conclusions invented.

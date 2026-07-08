@@ -71,8 +71,8 @@ Do not price L5/L6/L7 value before implementation proof.
 | S8 conversation prep | When implemented | Limited | Standard | Higher allowance | AI-bound |
 | AI prep requests/month | Low cap | Medium | High | Custom band | OOS-14 |
 | Enrollment fair-use cap | Low | Medium | High | Negotiated | F001 preserved |
-| Support | Best-effort | Email | Priority | Dedicated | BUSINESS-GAP-008 |
-| SLA | None | None | TBD | TBD | INPUT MISSING |
+| Support | Best-effort | Placeholder | Placeholder | Placeholder | Support scope defined; response/SLA not approved — see `PHASE-1-COMMERCIAL-READINESS-GATE.md` §7.1 |
+| SLA | None | None | TBD | TBD | Not approved; must not be sold/marketed |
 
 All limits **HYPOTHETICAL** until cost model + beta usage.
 
@@ -84,8 +84,8 @@ All limits **HYPOTHETICAL** until cost model + beta usage.
 | ---------- | ---- | -------------- |
 | Beta → paid Core | New subscription; beta data retention per policy | BILLING IMPLEMENTED required |
 | Core → Pro | Add NBA + higher AI cap | Seat + feature flags |
-| Pro → Core | NBA disabled; AI cap reduced | Grace period TBD — BUSINESS-GAP-005 |
-| Downgrade at cancel | Access until period end | BUSINESS-GAP-005 |
+| Pro → Core | NBA disabled; AI cap reduced | Cancellation/downgrade policy activation-gated (legal + billing) — see `PHASE-1-COMMERCIAL-READINESS-GATE.md` §7.1 |
+| Downgrade at cancel | Access until period end | Policy activation-gated (legal + billing) — see `PHASE-1-COMMERCIAL-READINESS-GATE.md` §7.1 |
 
 No billing implementation in this phase.
 
