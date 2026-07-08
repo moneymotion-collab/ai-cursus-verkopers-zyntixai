@@ -17,6 +17,23 @@ Deterministic gates before live pricing and commercial launch. **Planning artifa
 
 ---
 
+## 2.1 Severity Source of Truth (P0–P3)
+
+This contract uses the repository-defined P0–P3 model from:
+
+- `docs/beta/PHASE-1-BETA-FEEDBACK-TRIAGE.md` §4 (explicit examples)
+
+| Level | Repository examples (not exhaustive) |
+| ----- | ------------------------------------ |
+| **P0** | Cross-tenant exposure; autonomous AI action; data corruption |
+| **P1** | Core workflow blocked; F001/F002/F003 regression |
+| **P2** | Confusing UX; non-blocking data issue; performance degradation |
+| **P3** | Cosmetic; minor copy |
+
+**Rule:** Commercial blocking impact must be represented separately and must not be encoded by inflating P-severity.
+
+---
+
 ## 3. Commercial Identifier Registry
 
 | Identifier | Exact name | Source | Commercial relevance | Status |
@@ -39,7 +56,7 @@ Deterministic gates before live pricing and commercial launch. **Planning artifa
 | BETA-GAP-001–003 | Cohort, retention, targets | Beta contract | Beta economics | OPEN |
 | BETA-BLOCK-001–007 | Beta blockers | Beta gate | Beta offer | OPEN |
 | BUSINESS-BLOCK-001–010 | See §6 | This artifact | Commercial planning | OPEN |
-| BUSINESS-GAP-001–008 | See §7 | This artifact | Planning inputs | OPEN |
+| BUSINESS-GAP-004–008 | See §7 | This artifact | Planning inputs | OPEN |
 
 ---
 
@@ -87,33 +104,40 @@ Deterministic gates before live pricing and commercial launch. **Planning artifa
 
 ## 6. Commercial Blocker Register
 
-| Blocker ID | Domain | Missing evidence | Severity | Owner | Status |
-| ---------- | ------ | ---------------- | -------- | ----- | ------ |
-| BUSINESS-BLOCK-001 | Implementation | No runnable product build | P0 | Desktop | OPEN |
-| BUSINESS-BLOCK-002 | QA | QA acceptance not executed | P0 | Desktop | OPEN |
-| BUSINESS-BLOCK-003 | Security | RLS adversarial proof (QA-GAP-002) | P0 | Desktop | OPEN |
-| BUSINESS-BLOCK-004 | Cost | AI unit economics inputs | P0 | Product/Business | OPEN |
-| BUSINESS-BLOCK-005 | Cost | Infrastructure cost inputs | P1 | Ops | OPEN |
-| BUSINESS-BLOCK-006 | Market | Willingness-to-pay evidence | P1 | Business | OPEN |
-| BUSINESS-BLOCK-007 | Billing | Stripe/billing not implemented | P0 | Desktop | OPEN |
-| BUSINESS-BLOCK-008 | Launch | LAUNCH-BLOCK-001–007 | P0 | Cross-team | OPEN |
-| BUSINESS-BLOCK-009 | Beta | BETA-BLOCK-001–007 | P1 | Laptop/Desktop | OPEN |
-| BUSINESS-BLOCK-010 | Legal | Refund/cancel/tax policy | P1 | Business/Legal | OPEN |
+| Blocker ID | Root cause | Source dependency | Severity | Commercial impact | Canonical owner | Status |
+| ---------- | ---------- | ----------------- | -------- | ----------------- | --------------- | ------ |
+| BUSINESS-BLOCK-001 | No runnable build / deployable artifact | DEMO-GAP-002; LAUNCH-BLOCK-003/006 | P1 | `BLOCKS_COMMERCIAL_ASSESSMENT`, `BLOCKS_PAID_BETA`, `BLOCKS_LIVE_PRICING` | Desktop | OPEN |
+| BUSINESS-BLOCK-002 | QA acceptance not executed | LAUNCH-BLOCK-002; QA execution required | P2 | `BLOCKS_CLAIM_APPROVAL`, `BLOCKS_LIVE_PRICING` | Desktop/QA | OPEN |
+| BUSINESS-BLOCK-003 | Multi-tenant isolation not adversarially proven | QA-GAP-002 | **P0** | `BLOCKS_COMMERCIAL_ASSESSMENT`, `BLOCKS_LIVE_PRICING`, `BLOCKS_SECURITY_CLAIMS` | Desktop | OPEN |
+| BUSINESS-BLOCK-004 | AI cost inputs missing (tokens + vendor pricing + workload) | AI-IN-*; OOS-14 | P2 | `BLOCKS_UNIT_ECONOMICS_APPROVAL`, `BLOCKS_LIVE_PRICING` | Product/Business | OPEN |
+| BUSINESS-BLOCK-005 | Non-AI variable cost inputs missing (infra + support allocation) | INF-IN-* | P2 | `BLOCKS_UNIT_ECONOMICS_APPROVAL`, `BLOCKS_LIVE_PRICING` | Ops/Business | OPEN |
+| BUSINESS-BLOCK-006 | Willingness-to-pay evidence absent | Beta feedback / buyer interviews | P2 | `BLOCKS_PRICE_APPROVAL` | Business | OPEN |
+| BUSINESS-BLOCK-007 | Billing not implemented (Stripe, entitlement enforcement) | Desktop implementation | P2 | `BLOCKS_LIVE_PRICING` | Desktop | OPEN |
+| BUSINESS-BLOCK-008 | Launch readiness blockers unresolved | LAUNCH-BLOCK-001–007 | P2 | `BLOCKS_PAID_BETA`, `BLOCKS_LIVE_PRICING` | Cross-team | OPEN |
+| BUSINESS-BLOCK-009 | Beta execution not authorized / not executed | BETA-BLOCK-001–007 | P2 | `DEFERRED_DEPENDENCY`, `BLOCKS_BETA_EVIDENCE`, `BLOCKS_PRICE_APPROVAL` | Laptop/Desktop | OPEN |
+| BUSINESS-BLOCK-010 | Legal/tax policy inputs not yet available | Legal/finance decisions | P2 | `BLOCKS_LIVE_PRICING` | Business/Legal/Finance | OPEN |
 
 ---
 
 ## 7. Business Planning Gap Register
 
-| Gap ID | Missing input | Impact | Severity | Owner | Resolution |
-| ------ | ------------- | ------ | -------- | ----- | ---------- |
-| BUSINESS-GAP-001 | AI token cost model | Cannot size allowances | P0 | Product | Vendor quotes + usage model |
-| BUSINESS-GAP-002 | WTP / buyer interviews | Cannot validate scenarios | P1 | Business | Beta feedback |
-| BUSINESS-GAP-003 | Beta AI usage distribution | Cannot set fair caps | P0 | Beta | Execute beta |
-| BUSINESS-GAP-004 | Trial policy | Cannot define acquisition funnel | P2 | Business | Policy decision |
-| BUSINESS-GAP-005 | Refund/cancel/downgrade policy | Cannot commit commercially | P1 | Legal/Business | Policy decision |
-| BUSINESS-GAP-006 | Tax treatment | Cannot price internationally | P2 | Legal/Finance | Jurisdiction review |
-| BUSINESS-GAP-007 | Public free tier at launch | Packaging incomplete | P2 | Business | Post-beta decision |
-| BUSINESS-GAP-008 | Support model & cost | Margin model incomplete | P1 | Ops | Staffing plan |
+| Gap ID | Planning-contract defect (missing/ambiguous) | Severity | Commercial impact | Canonical owner | Status |
+| ------ | ------------------------------------------ | -------- | ----------------- | --------------- | ------ |
+| BUSINESS-GAP-004 | Trial policy contract absent (length, eligibility, conversion rule) | P2 | `BLOCKS_PRICE_APPROVAL` | Business | OPEN |
+| BUSINESS-GAP-005 | Refund/cancel/downgrade contract absent (timing + downgrade behavior) | P2 | `BLOCKS_LIVE_PRICING` | Business/Legal | OPEN |
+| BUSINESS-GAP-006 | Tax handling decision absent (jurisdiction approach, disclosures) | P2 | `BLOCKS_LIVE_PRICING` | Finance/Legal | OPEN |
+| BUSINESS-GAP-007 | Public free tier policy undecided (existence + purpose) | P3 | `NON_BLOCKING` | Business | OPEN |
+| BUSINESS-GAP-008 | Support model definition missing (included channels + boundaries by package) | P2 | `BLOCKS_PRICE_APPROVAL` | Ops/Business | OPEN |
+
+### Reclassified (R1)
+
+The following items were previously treated as BUSINESS planning gaps but are external evidence/implementation dependencies and are therefore canonical BUSINESS-BLOCKs:
+
+| Prior item | R1 decision | Canonical representation |
+| ---------- | ----------- | ------------------------ |
+| BUSINESS-GAP-001 (AI token cost model) | RECLASSIFY AS BLOCK | BUSINESS-BLOCK-004 (AI cost inputs missing) |
+| BUSINESS-GAP-002 (WTP evidence) | RECLASSIFY AS BLOCK | BUSINESS-BLOCK-006 (WTP evidence absent) |
+| BUSINESS-GAP-003 (Beta AI usage distribution) | RECLASSIFY AS BLOCK | BUSINESS-BLOCK-009 (beta evidence deferred) |
 
 ---
 
@@ -123,9 +147,9 @@ Deterministic gates before live pricing and commercial launch. **Planning artifa
 | ---------------- | --------------- | -------------- | ---------- |
 | DEMO-GAP-002 (no build) | BUSINESS-BLOCK-001 | **REUSED** | Same root — no triple count |
 | LAUNCH-BLOCK-001–007 | BUSINESS-BLOCK-008 | **REUSED** | Launch gates pricing |
-| BETA-BLOCK-001–007 | BUSINESS-BLOCK-009 | **REUSED** | Beta gates WTP evidence |
+| BETA-BLOCK-001–007 | BUSINESS-BLOCK-009 | **REUSED** | Beta gates evidence collection (usage + WTP) |
 | QA-GAP-002 | BUSINESS-BLOCK-003 | **REUSED** | Security blocks sell |
-| OOS-14 / no cost data | BUSINESS-BLOCK-004, GAP-001 | **NEW** | Commercial-specific |
+| OOS-14 / no cost data | BUSINESS-BLOCK-004 | **REUSED** | Single canonical cost-input blocker |
 
 ---
 
@@ -167,7 +191,7 @@ Deterministic gates before live pricing and commercial launch. **Planning artifa
 | Billing implementation | PRICING APPROVED + packaging frozen | Desktop |
 | Stripe products/prices | BUSINESS-BLOCK-004–007 closed | Desktop |
 | Beta execution | BETA gate PASS | Laptop + Desktop |
-| Marketing planning | Business contract (this) | Laptop `docs/marketing/**` |
+| Marketing planning | Business contract CLOSED (no open BUSINESS-GAP) | Laptop `docs/marketing/**` |
 | Live pricing | All PRG gates PASS + owner signoff | Business + Desktop |
 
 **This phase does not activate pricing or modify Stripe.**

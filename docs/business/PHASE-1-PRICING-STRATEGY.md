@@ -91,7 +91,7 @@ Per OOS-14 and S13 boundary:
 | Included allowance | Monthly AI prep requests per workspace (quantity TBD after cost model) |
 | Fair-use | Soft warning before hard limit |
 | Hard limit | Degrade to manual-only; no silent overage charge without disclosure |
-| Overage | Optional paid add-on — requires BUSINESS-GAP-003 cost inputs |
+| Overage | Optional paid add-on — requires BUSINESS-BLOCK-004 (AI cost inputs) + BUSINESS-BLOCK-009 (beta usage evidence) |
 | Abuse | Rate limit; no autonomous external sends |
 | Degradation | UXS-10 style decline when context insufficient |
 
