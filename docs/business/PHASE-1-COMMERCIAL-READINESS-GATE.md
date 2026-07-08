@@ -1,0 +1,194 @@
+# ZyntixAI Phase 1 Commercial Readiness Gate
+
+## 1. Purpose
+
+Deterministic gates before live pricing and commercial launch. **Planning artifact only.**
+
+---
+
+## 2. Planning Status Vocabulary
+
+| Status | Meaning |
+| ------ | ------- |
+| `BUSINESS MODEL ESTABLISHED` | This contract set complete |
+| `PRICING STRATEGY ESTABLISHED` | Hypotheses documented |
+| `BUSINESS PLANNING CONDITIONALLY OPEN` | Gaps remain; architecture valid |
+| `BUSINESS PLANNING FAILED` | Cannot proceed |
+
+---
+
+## 3. Commercial Identifier Registry
+
+| Identifier | Exact name | Source | Commercial relevance | Status |
+| ---------- | ---------- | ------ | -------------------- | ------ |
+| P1-01–P1-15 | Phase 1 problems | Launch Scope | Value mapping | VERIFIED |
+| O1–O10 | Phase 1 outcomes | Launch Scope | Monetization targets | VERIFIED |
+| S1–S13 | Capability domains | Launch Scope | Packaging units | VERIFIED |
+| WF1–WF10 | Workflows | Operating blueprint | Demo/beta paths | VERIFIED |
+| F001 | Customer ≠ Enrollment | Product integrity | Value metric constraint | VERIFIED |
+| F002 | Attention lifecycle | Product integrity | L6 commercial claims | VERIFIED |
+| F003 | No hidden cross-domain ranking | Product integrity | Claim control | VERIFIED |
+| OOS-14 | Unlimited AI deferred | Out-of-Scope | AI pricing boundary | VERIFIED |
+| OOS-08 | Autonomous operator | Out-of-Scope | Prohibited claims | VERIFIED |
+| QA-GAP-001 | Program count semantics | QA contract | Enrollment packaging | OPEN |
+| QA-GAP-002 | Desktop RLS proof | QA contract | Multi-tenant sellability | OPEN |
+| DEMO-GAP-001 | WF8 partial | Demo contract | S8 sellability | OPEN |
+| DEMO-GAP-002 | No runnable build | Demo contract | All commercial offers | OPEN |
+| LAUNCH-GAP-001–003 | Env, rollback, observability | Launch contract | Paid launch | OPEN |
+| LAUNCH-BLOCK-001–007 | Launch blockers | Launch gate | Pricing activation | OPEN |
+| BETA-GAP-001–003 | Cohort, retention, targets | Beta contract | Beta economics | OPEN |
+| BETA-BLOCK-001–007 | Beta blockers | Beta gate | Beta offer | OPEN |
+| BUSINESS-BLOCK-001–010 | See §6 | This artifact | Commercial planning | OPEN |
+| BUSINESS-GAP-001–008 | See §7 | This artifact | Planning inputs | OPEN |
+
+---
+
+## 4. Commercial Claim Control Matrix
+
+| Commercial claim | Source | Evidence status | Allowed? | Disclosure |
+| ---------------- | ------ | --------------- | -------- | ---------- |
+| Operational command center | O1, O6, S1 | SPECIFIED_NOT_IMPLEMENTED | **NO** (live) | When L5 ships |
+| See who needs attention today | O1, S5 | SPECIFIED_NOT_IMPLEMENTED | **NO** (live) | When L6 ships |
+| Human-controlled next actions | O8, S6 | SPECIFIED_NOT_IMPLEMENTED | **NO** (live) | When L7 ships |
+| Grounded AI conversation prep | O7, S8 | DEMO-GAP-001 | **NO** (live) | Partial demo only |
+| Centralized customer context | O3, S2–S4 | IMPLEMENTATION_DEPENDENT | **NO** (live) | Post-QA |
+| Bounded AI assistance | S13, OOS-14 | IMPLEMENTATION_DEPENDENT | **NO** (live) | Limits required |
+| AI runs your whole company | — | OOS-08 | **NO** | Prohibited |
+| Prevents churn / guarantees revenue | — | None | **NO** | Prohibited |
+| Automatically fixes risk | — | None | **NO** | Prohibited |
+| Replaces your team | — | OOS-08 | **NO** | Prohibited |
+| Fully autonomous operator | — | OOS-08 | **NO** | Prohibited |
+| Guaranteed ROI | — | None | **NO** | Prohibited |
+| Unlimited AI | — | OOS-14 | **NO** | Prohibited |
+| Unlimited customers | — | Cost model missing | **NO** | Prohibited |
+| Everything included | — | OOS register | **NO** | List exclusions |
+| Secure multi-tenant isolation | S12 | QA-GAP-002 | **NO** (live) | Post-RLS proof |
+
+---
+
+## 5. Pricing Readiness Gate
+
+| Gate | Criterion | Status |
+| ---- | --------- | ------ |
+| PRG-01 | Target buyer defined | **PASS** |
+| PRG-02 | Value metric selected | **PASS** (workspace primary) |
+| PRG-03 | Package boundaries defined | **PASS** (hypothetical tiers) |
+| PRG-04 | Feature availability verified | **PASS** (all NOT sellable now) |
+| PRG-05 | Cost inputs available | **FAIL** — INPUT MISSING |
+| PRG-06 | Unit economics assessed | **NOT YET ASSESSABLE** |
+| PRG-07 | Claim matrix approved | **PASS** (controls defined) |
+| PRG-08 | Beta evidence sufficient | **FAIL** — beta not executed |
+| PRG-09 | Billing implementation | **FAIL** — desktop not implemented |
+| PRG-10 | Launch readiness compatible | **FAIL** — LAUNCH-BLOCK open |
+
+**Overall pricing readiness:** **NOT YET ASSESSABLE** for approval; **FAIL** for activation.
+
+---
+
+## 6. Commercial Blocker Register
+
+| Blocker ID | Domain | Missing evidence | Severity | Owner | Status |
+| ---------- | ------ | ---------------- | -------- | ----- | ------ |
+| BUSINESS-BLOCK-001 | Implementation | No runnable product build | P0 | Desktop | OPEN |
+| BUSINESS-BLOCK-002 | QA | QA acceptance not executed | P0 | Desktop | OPEN |
+| BUSINESS-BLOCK-003 | Security | RLS adversarial proof (QA-GAP-002) | P0 | Desktop | OPEN |
+| BUSINESS-BLOCK-004 | Cost | AI unit economics inputs | P0 | Product/Business | OPEN |
+| BUSINESS-BLOCK-005 | Cost | Infrastructure cost inputs | P1 | Ops | OPEN |
+| BUSINESS-BLOCK-006 | Market | Willingness-to-pay evidence | P1 | Business | OPEN |
+| BUSINESS-BLOCK-007 | Billing | Stripe/billing not implemented | P0 | Desktop | OPEN |
+| BUSINESS-BLOCK-008 | Launch | LAUNCH-BLOCK-001–007 | P0 | Cross-team | OPEN |
+| BUSINESS-BLOCK-009 | Beta | BETA-BLOCK-001–007 | P1 | Laptop/Desktop | OPEN |
+| BUSINESS-BLOCK-010 | Legal | Refund/cancel/tax policy | P1 | Business/Legal | OPEN |
+
+---
+
+## 7. Business Planning Gap Register
+
+| Gap ID | Missing input | Impact | Severity | Owner | Resolution |
+| ------ | ------------- | ------ | -------- | ----- | ---------- |
+| BUSINESS-GAP-001 | AI token cost model | Cannot size allowances | P0 | Product | Vendor quotes + usage model |
+| BUSINESS-GAP-002 | WTP / buyer interviews | Cannot validate scenarios | P1 | Business | Beta feedback |
+| BUSINESS-GAP-003 | Beta AI usage distribution | Cannot set fair caps | P0 | Beta | Execute beta |
+| BUSINESS-GAP-004 | Trial policy | Cannot define acquisition funnel | P2 | Business | Policy decision |
+| BUSINESS-GAP-005 | Refund/cancel/downgrade policy | Cannot commit commercially | P1 | Legal/Business | Policy decision |
+| BUSINESS-GAP-006 | Tax treatment | Cannot price internationally | P2 | Legal/Finance | Jurisdiction review |
+| BUSINESS-GAP-007 | Public free tier at launch | Packaging incomplete | P2 | Business | Post-beta decision |
+| BUSINESS-GAP-008 | Support model & cost | Margin model incomplete | P1 | Ops | Staffing plan |
+
+---
+
+## 8. Blocker Deduplication
+
+| Existing blocker | Business impact | Reused or new? | Dedup rule |
+| ---------------- | --------------- | -------------- | ---------- |
+| DEMO-GAP-002 (no build) | BUSINESS-BLOCK-001 | **REUSED** | Same root — no triple count |
+| LAUNCH-BLOCK-001–007 | BUSINESS-BLOCK-008 | **REUSED** | Launch gates pricing |
+| BETA-BLOCK-001–007 | BUSINESS-BLOCK-009 | **REUSED** | Beta gates WTP evidence |
+| QA-GAP-002 | BUSINESS-BLOCK-003 | **REUSED** | Security blocks sell |
+| OOS-14 / no cost data | BUSINESS-BLOCK-004, GAP-001 | **NEW** | Commercial-specific |
+
+---
+
+## 9. Commercial Readiness Matrix
+
+| Domain | Required evidence | Current evidence | Status | Commercial blocker? |
+| ------ | ----------------- | ---------------- | ------ | ------------------- |
+| Buyer | Actor matrix, launch scope | Documented | PASS | No |
+| Value | O1–O10, P1 map | Documented | PASS | No |
+| Packaging | This matrix | Hypothetical tiers | PASS (planning) | No |
+| Price hypothesis | Pricing strategy | HYPOTHETICAL only | PASS (planning) | No |
+| Usage / AI limits | OOS-14, S13 | Planned not enforced | IMPLEMENTATION_DEPENDENT | Yes |
+| AI costs | Unit economics register | INPUT MISSING | FAIL | BUSINESS-BLOCK-004 |
+| Infra costs | Unit economics register | INPUT MISSING | FAIL | BUSINESS-BLOCK-005 |
+| Unit economics | Formulas only | Not calculable | NOT YET ASSESSABLE | Yes |
+| Claims | This matrix | Controlled | PASS | No |
+| Beta evidence | Beta plan | Not executed | FAIL | BUSINESS-BLOCK-009 |
+| Launch readiness | Launch gate | OPEN | FAIL | BUSINESS-BLOCK-008 |
+| Billing | Shared path policy | Not implemented | FAIL | BUSINESS-BLOCK-007 |
+
+---
+
+## 10. Current Verdicts
+
+| Decision | Verdict |
+| -------- | ------- |
+| Commercial model ready for paid launch | **PHASE 1 COMMERCIAL MODEL NOT YET ASSESSABLE** |
+| Live pricing activation | **LIVE PRICING NOT AUTHORIZED** |
+| Business planning closure | **BUSINESS & PRICING PLANNING CONTRACT CONDITIONALLY OPEN** |
+| Beta execution | **NOT AUTHORIZED** (unchanged) |
+| Launch authorization | **NOT AUTHORIZED** (unchanged) |
+
+---
+
+## 11. Handoff to Future Work
+
+| Next phase | Depends on | Owner |
+| ---------- | ---------- | ----- |
+| Billing implementation | PRICING APPROVED + packaging frozen | Desktop |
+| Stripe products/prices | BUSINESS-BLOCK-004–007 closed | Desktop |
+| Beta execution | BETA gate PASS | Laptop + Desktop |
+| Marketing planning | Business contract (this) | Laptop `docs/marketing/**` |
+| Live pricing | All PRG gates PASS + owner signoff | Business + Desktop |
+
+**This phase does not activate pricing or modify Stripe.**
+
+---
+
+## 12. No-Scope-Expansion Audit
+
+| Potential expansion | Added? | Evidence |
+| ------------------- | ------ | -------- |
+| New product feature | NO | Docs only |
+| New AI capability | NO | OOS-14 preserved |
+| New role | NO | Actor matrix unchanged |
+| New queue/ranking | NO | F002/F003 preserved |
+| New integration | NO | — |
+| New DB contract | NO | No migrations |
+| Autonomous action | NO | OOS-08 preserved |
+| New commercial promise | NO | Claim matrix restrictive |
+
+---
+
+## 13. Physical Desktop Verification
+
+**PHYSICAL DESKTOP NOT DIRECTLY VERIFIED** — billing ownership inferred from governance docs only.
