@@ -199,6 +199,45 @@ function extractMessage(error: unknown): string {
   return "";
 }
 
+const MISSING_SESSION_MESSAGE = /^auth session missing!$/i;
+
+export function isMissingAuthSessionError(error: unknown): boolean {
+  if (!error) {
+    return false;
+  }
+
+  if (typeof error === "object" && error !== null) {
+    const authError = error as {
+      name?: string;
+      code?: string;
+      message?: string;
+      status?: number;
+    };
+
+    if (authError.name === "AuthSessionMissingError") {
+      return true;
+    }
+
+    if (authError.code === "session_not_found") {
+      return true;
+    }
+
+    if (MISSING_SESSION_MESSAGE.test(extractMessage(error))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function resolveAuthAccessError(error: unknown): TaskApplicationError {
+  if (isMissingAuthSessionError(error)) {
+    return authRequiredError();
+  }
+
+  return normalizeTaskError(error);
+}
+
 function mapTransportError(error: PostgrestError | Error): TaskApplicationError {
   const message = extractMessage(error);
   const lower = message.toLowerCase();
@@ -338,5 +377,24 @@ export function authRequiredError(): TaskApplicationError {
     message: "Please sign in to continue.",
     retryable: false,
     category: "auth",
+  };
+}
+
+export function taskNotFoundError(): TaskApplicationError {
+  return {
+    code: "TASK_NOT_FOUND",
+    message: "Task not found or access denied.",
+    retryable: false,
+    category: "not_found",
+  };
+}
+
+export function invalidQueryError(fieldErrors?: Record<string, string>): TaskApplicationError {
+  return {
+    code: "VALIDATION_ERROR",
+    message: "Invalid task query.",
+    retryable: false,
+    category: "validation",
+    fieldErrors,
   };
 }

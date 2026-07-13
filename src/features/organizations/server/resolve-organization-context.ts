@@ -7,8 +7,10 @@ import {
 import type { TaskApplicationError } from "@/features/tasks/domain/types";
 import {
   authRequiredError,
+  isMissingAuthSessionError,
   normalizeTaskError,
   orgContextMissingError,
+  resolveAuthAccessError,
 } from "@/features/tasks/server/normalize-task-error";
 import { validateOrganizationContext } from "@/features/tasks/validation/schemas";
 
@@ -44,17 +46,24 @@ export async function resolveOrganizationContext(
     error: authError,
   } = await params.supabase.auth.getUser();
 
-  if (authError) {
+  if (!user) {
+    if (!authError || isMissingAuthSessionError(authError)) {
+      return {
+        ok: false,
+        error: authRequiredError(),
+      };
+    }
+
     return {
       ok: false,
-      error: normalizeTaskError(authError),
+      error: resolveAuthAccessError(authError),
     };
   }
 
-  if (!user) {
+  if (authError) {
     return {
       ok: false,
-      error: authRequiredError(),
+      error: resolveAuthAccessError(authError),
     };
   }
 
@@ -127,12 +136,16 @@ export async function listActiveOrganizationMemberships(
     error: authError,
   } = await supabase.auth.getUser();
 
-  if (authError) {
-    return { ok: false, error: normalizeTaskError(authError) };
+  if (!user) {
+    if (!authError || isMissingAuthSessionError(authError)) {
+      return { ok: false, error: authRequiredError() };
+    }
+
+    return { ok: false, error: resolveAuthAccessError(authError) };
   }
 
-  if (!user) {
-    return { ok: false, error: authRequiredError() };
+  if (authError) {
+    return { ok: false, error: resolveAuthAccessError(authError) };
   }
 
   const { data, error } = await supabase

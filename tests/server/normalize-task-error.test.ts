@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { normalizeTaskError } from "@/features/tasks/server/normalize-task-error";
+import {
+  isMissingAuthSessionError,
+  normalizeTaskError,
+  resolveAuthAccessError,
+} from "@/features/tasks/server/normalize-task-error";
+
+function createMissingSessionError() {
+  const error = new Error("Auth session missing!");
+  error.name = "AuthSessionMissingError";
+  return error;
+}
 
 describe("normalizeTaskError", () => {
   it("maps insufficient role without leaking org details", () => {
@@ -23,5 +33,45 @@ describe("normalizeTaskError", () => {
     const error = normalizeTaskError({ message: "some unknown database glitch" });
     expect(error.code).toBe("UNEXPECTED_ERROR");
     expect(error.retryable).toBe(true);
+  });
+
+  it("maps read query validation style errors via fallback", () => {
+    const error = normalizeTaskError({ message: "column tasks.secret does not exist" });
+    expect(error.code).toBe("UNEXPECTED_ERROR");
+    expect(error.message).not.toMatch(/column/i);
+  });
+});
+
+describe("isMissingAuthSessionError", () => {
+  it("recognizes AuthSessionMissingError shape", () => {
+    expect(isMissingAuthSessionError(createMissingSessionError())).toBe(true);
+  });
+
+  it("recognizes compatibility message", () => {
+    expect(isMissingAuthSessionError({ message: "Auth session missing!" })).toBe(true);
+  });
+
+  it("rejects unrelated auth errors", () => {
+    expect(isMissingAuthSessionError(new Error("Invalid JWT"))).toBe(false);
+  });
+});
+
+describe("resolveAuthAccessError", () => {
+  it("maps missing session to AUTH_REQUIRED without leaking raw message", () => {
+    const error = resolveAuthAccessError(createMissingSessionError());
+    expect(error.code).toBe("AUTH_REQUIRED");
+    expect(error.message).toBe("Please sign in to continue.");
+    expect(error.message).not.toMatch(/Auth session missing/i);
+  });
+
+  it("maps network failures to NETWORK_ERROR", () => {
+    const error = resolveAuthAccessError(new Error("fetch failed"));
+    expect(error.code).toBe("NETWORK_ERROR");
+    expect(error.message).not.toMatch(/fetch failed/i);
+  });
+
+  it("maps unknown values to UNEXPECTED_ERROR", () => {
+    const error = resolveAuthAccessError({ message: "some unknown database glitch" });
+    expect(error.code).toBe("UNEXPECTED_ERROR");
   });
 });
