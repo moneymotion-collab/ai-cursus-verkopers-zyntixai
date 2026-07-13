@@ -9,6 +9,7 @@
 # next.js
 /.next/
 /out/
+tsconfig.tsbuildinfo
 
 # supabase local state
 .supabase/
