@@ -1,4 +1,5 @@
 import type { Json, Tables } from "@/types/database";
+import type { TaskReadModel } from "@/features/tasks/domain/read-types";
 
 export type TaskRow = Tables<"tasks">;
 export type TaskStatusHistoryRow = Tables<"task_status_history">;
@@ -61,6 +62,7 @@ export type TaskApplicationErrorCode =
   | "TIMEOUT"
   | "RATE_LIMITED"
   | "DATABASE_UNAVAILABLE"
+  | "MUTATION_COMMITTED_REFRESH_REQUIRED"
   | "UNEXPECTED_ERROR";
 
 export type TaskApplicationError = {
@@ -70,11 +72,50 @@ export type TaskApplicationError = {
   category: "auth" | "permission" | "validation" | "not_found" | "conflict" | "network" | "server";
   fieldErrors?: Record<string, string>;
   cause?: string;
+  refreshRequired?: boolean;
+};
+
+/** D4.1 RPC adapter result — unchanged contract for adapter layer. */
+export type TaskRpcAdapterResult =
+  | { ok: true; taskId?: string }
+  | { ok: false; error: TaskApplicationError };
+
+export type TaskMutationRefreshHints = {
+  task: true;
+  taskLists: true;
+  taskHistory: boolean;
+};
+
+export type TaskMutationSuccess = {
+  ok: true;
+  taskId: string;
+  task: TaskReadModel;
+  committed: true;
+  refreshRequired: false;
+  refreshHints: TaskMutationRefreshHints;
+};
+
+export type TaskMutationFailure = {
+  ok: false;
+  committed: false;
+  error: TaskApplicationError;
+};
+
+export type TaskMutationCommittedRefreshFailure = {
+  ok: false;
+  committed: true;
+  taskId: string;
+  refreshHints: TaskMutationRefreshHints;
+  error: TaskApplicationError & {
+    refreshRequired: true;
+    retryable: false;
+  };
 };
 
 export type TaskMutationResult =
-  | { ok: true; taskId?: string }
-  | { ok: false; error: TaskApplicationError };
+  | TaskMutationSuccess
+  | TaskMutationFailure
+  | TaskMutationCommittedRefreshFailure;
 
 export type TaskCreateInput = {
   title: string;

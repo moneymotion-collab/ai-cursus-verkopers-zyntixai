@@ -8,7 +8,7 @@ import type {
   TaskCancelInput,
   TaskCompleteInput,
   TaskCreateInput,
-  TaskMutationResult,
+  TaskRpcAdapterResult,
   TaskReassignInput,
   TaskRescheduleInput,
   TaskRestoreInput,
@@ -41,7 +41,7 @@ async function requireOrganizationContext(
   params: AdapterContext,
 ): Promise<
   | { ok: true; context: ResolvedOrganizationContext }
-  | { ok: false; error: TaskMutationResult }
+  | { ok: false; error: TaskRpcAdapterResult }
 > {
   const resolved = await resolveOrganizationContext({
     supabase: params.supabase,
@@ -74,7 +74,7 @@ function metadataObject(value: Json | undefined): Json {
 
 export async function createTaskRpc(
   params: AdapterContext & { input: TaskCreateInput },
-): Promise<TaskMutationResult> {
+): Promise<TaskRpcAdapterResult> {
   const org = await requireOrganizationContext(params);
   if (!org.ok) {
     return org.error;
@@ -124,7 +124,7 @@ export async function createTaskRpc(
 
 export async function updateTaskRpc(
   params: AdapterContext & { input: TaskUpdateInput },
-): Promise<TaskMutationResult> {
+): Promise<TaskRpcAdapterResult> {
   const org = await requireOrganizationContext(params);
   if (!org.ok) {
     return org.error;
@@ -159,7 +159,7 @@ export async function updateTaskRpc(
 
 export async function reassignTaskRpc(
   params: AdapterContext & { input: TaskReassignInput },
-): Promise<TaskMutationResult> {
+): Promise<TaskRpcAdapterResult> {
   const org = await requireOrganizationContext(params);
   if (!org.ok) {
     return org.error;
@@ -190,7 +190,7 @@ export async function reassignTaskRpc(
 
 export async function rescheduleTaskRpc(
   params: AdapterContext & { input: TaskRescheduleInput },
-): Promise<TaskMutationResult> {
+): Promise<TaskRpcAdapterResult> {
   const org = await requireOrganizationContext(params);
   if (!org.ok) {
     return org.error;
@@ -221,7 +221,7 @@ export async function rescheduleTaskRpc(
 
 export async function completeTaskRpc(
   params: AdapterContext & { input: TaskCompleteInput },
-): Promise<TaskMutationResult> {
+): Promise<TaskRpcAdapterResult> {
   const org = await requireOrganizationContext(params);
   if (!org.ok) {
     return org.error;
@@ -252,7 +252,7 @@ export async function completeTaskRpc(
 
 export async function cancelTaskRpc(
   params: AdapterContext & { input: TaskCancelInput },
-): Promise<TaskMutationResult> {
+): Promise<TaskRpcAdapterResult> {
   const org = await requireOrganizationContext(params);
   if (!org.ok) {
     return org.error;
@@ -283,7 +283,7 @@ export async function cancelTaskRpc(
 
 export async function archiveTaskRpc(
   params: AdapterContext & { input: TaskArchiveInput },
-): Promise<TaskMutationResult> {
+): Promise<TaskRpcAdapterResult> {
   const org = await requireOrganizationContext(params);
   if (!org.ok) {
     return org.error;
@@ -313,7 +313,7 @@ export async function archiveTaskRpc(
 
 export async function restoreTaskRpc(
   params: AdapterContext & { input: TaskRestoreInput },
-): Promise<TaskMutationResult> {
+): Promise<TaskRpcAdapterResult> {
   const org = await requireOrganizationContext(params);
   if (!org.ok) {
     return org.error;

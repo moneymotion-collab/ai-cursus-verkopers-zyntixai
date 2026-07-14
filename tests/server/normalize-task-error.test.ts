@@ -40,6 +40,36 @@ describe("normalizeTaskError", () => {
     expect(error.code).toBe("UNEXPECTED_ERROR");
     expect(error.message).not.toMatch(/column/i);
   });
+
+  it("maps terminal-only archive restriction", () => {
+    const error = normalizeTaskError({ message: "only terminal tasks can be archived" });
+    expect(error.code).toBe("INVALID_STATE_TRANSITION");
+    expect(error.message).not.toMatch(/terminal/i);
+  });
+
+  it("maps terminal-only restore restriction", () => {
+    const error = normalizeTaskError({ message: "only terminal tasks can be restored" });
+    expect(error.code).toBe("INVALID_STATE_TRANSITION");
+    expect(error.message).not.toMatch(/terminal/i);
+  });
+
+  it("maps invalid task type", () => {
+    const error = normalizeTaskError({ message: "invalid task type" });
+    expect(error.code).toBe("VALIDATION_ERROR");
+    expect(error.message).toBe("Invalid task type.");
+  });
+
+  it("maps invalid task priority", () => {
+    const error = normalizeTaskError({ message: "invalid task priority" });
+    expect(error.code).toBe("VALIDATION_ERROR");
+    expect(error.message).toBe("Invalid task priority.");
+  });
+
+  it("maps missing system idempotency key", () => {
+    const error = normalizeTaskError({ message: "system idempotency key is required" });
+    expect(error.code).toBe("VALIDATION_ERROR");
+    expect(error.message).not.toMatch(/idempotency key is required/i);
+  });
 });
 
 describe("isMissingAuthSessionError", () => {

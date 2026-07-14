@@ -176,6 +176,41 @@ const MESSAGE_RULES: Array<{
     retryable: false,
     category: "validation",
   },
+  {
+    pattern: /^invalid task type$/i,
+    code: "VALIDATION_ERROR",
+    message: "Invalid task type.",
+    retryable: false,
+    category: "validation",
+  },
+  {
+    pattern: /^invalid task priority$/i,
+    code: "VALIDATION_ERROR",
+    message: "Invalid task priority.",
+    retryable: false,
+    category: "validation",
+  },
+  {
+    pattern: /^system idempotency key is required$/i,
+    code: "VALIDATION_ERROR",
+    message: "System tasks require an idempotency key.",
+    retryable: false,
+    category: "validation",
+  },
+  {
+    pattern: /^only terminal tasks can be archived$/i,
+    code: "INVALID_STATE_TRANSITION",
+    message: "Only completed or cancelled tasks can be archived.",
+    retryable: false,
+    category: "conflict",
+  },
+  {
+    pattern: /^only terminal tasks can be restored$/i,
+    code: "INVALID_STATE_TRANSITION",
+    message: "Only completed or cancelled tasks can be restored.",
+    retryable: false,
+    category: "conflict",
+  },
 ];
 
 function extractMessage(error: unknown): string {
@@ -396,5 +431,15 @@ export function invalidQueryError(fieldErrors?: Record<string, string>): TaskApp
     retryable: false,
     category: "validation",
     fieldErrors,
+  };
+}
+
+export function mutationCommittedRefreshRequiredError(): TaskApplicationError {
+  return {
+    code: "MUTATION_COMMITTED_REFRESH_REQUIRED",
+    message: "Your change was saved. Refresh to see the latest task.",
+    retryable: false,
+    category: "server",
+    refreshRequired: true,
   };
 }

@@ -11,7 +11,7 @@ export const organizationContextSchema = z.object({
   organizationId: uuidSchema,
 });
 
-const linkedContextRefinement = (
+export const linkedContextRefinement = (
   data: {
     leadId?: string | null;
     customerId?: string | null;
@@ -66,7 +66,7 @@ const linkedContextRefinement = (
   }
 };
 
-const dueAtSchema = z
+export const dueAtSchema = z
   .string()
   .min(1, "Due date is required")
   .refine((value) => !Number.isNaN(Date.parse(value)), {
