@@ -226,22 +226,29 @@ describe("task read queries", () => {
   });
 
   it("lists tasks with derived due-state mapping", async () => {
-    const supabase = createReadMockSupabase({
-      user: { id: USER_ID },
-      tasksList: { data: [sampleListRow], count: 1, error: null },
-    });
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-07-14T10:00:00.000Z"));
 
-    const result = await listTasks({
-      supabase,
-      organizationId: ORG_ID,
-      pagination: { page: 1, pageSize: 25 },
-    });
+    try {
+      const supabase = createReadMockSupabase({
+        user: { id: USER_ID },
+        tasksList: { data: [sampleListRow], count: 1, error: null },
+      });
 
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data.items).toHaveLength(1);
-      expect(result.data.items[0].derived.upcoming).toBe(true);
-      expect(result.data.pagination.totalCount).toBe(1);
+      const result = await listTasks({
+        supabase,
+        organizationId: ORG_ID,
+        pagination: { page: 1, pageSize: 25 },
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.data.items).toHaveLength(1);
+        expect(result.data.items[0].derived.upcoming).toBe(true);
+        expect(result.data.pagination.totalCount).toBe(1);
+      }
+    } finally {
+      vi.useRealTimers();
     }
   });
 
