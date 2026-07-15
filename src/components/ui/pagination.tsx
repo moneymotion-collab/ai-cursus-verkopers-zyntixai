@@ -5,9 +5,16 @@ type PaginationProps = {
   totalPages: number;
   previousHref?: string;
   nextHref?: string;
+  ariaLabel?: string;
 };
 
-export function Pagination({ page, totalPages, previousHref, nextHref }: PaginationProps) {
+export function Pagination({
+  page,
+  totalPages,
+  previousHref,
+  nextHref,
+  ariaLabel = "Task list pagination",
+}: PaginationProps) {
   if (totalPages <= 1 && !previousHref && !nextHref) {
     return null;
   }
@@ -15,7 +22,7 @@ export function Pagination({ page, totalPages, previousHref, nextHref }: Paginat
   const pageLabel = totalPages > 0 ? `Page ${page} of ${totalPages}` : `Page ${page}`;
 
   return (
-    <nav className={styles.pagination} aria-label="Task list pagination">
+    <nav className={styles.pagination} aria-label={ariaLabel}>
       {previousHref ? (
         <a className={styles.link} href={previousHref} rel="prev">
           Previous page

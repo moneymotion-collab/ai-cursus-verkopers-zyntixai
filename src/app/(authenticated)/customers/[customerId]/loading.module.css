@@ -1,0 +1,25 @@
+.loading {
+  display: grid;
+  gap: 1rem;
+}
+
+.title {
+  margin: 0;
+}
+
+.message {
+  margin: 0;
+  color: var(--muted-text);
+}
+
+.skeleton {
+  height: 12rem;
+  border-radius: 0.75rem;
+  background: #e2e8f0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    background: #e2e8f0;
+  }
+}
