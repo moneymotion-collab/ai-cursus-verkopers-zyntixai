@@ -10,7 +10,7 @@ import { CustomerListPresentation } from "@/features/customers/ui/customer-list"
 import { CustomerHistorySection } from "@/features/customers/ui/customer-history";
 
 describe("customers UI accessibility", () => {
-  it("renders Customers navigation between Home and Tasks with active state", () => {
+  it("renders Customers navigation between Leads and Tasks with active state", () => {
     const html = renderToStaticMarkup(
       <AppShell
         activeNav="customers"
@@ -25,10 +25,12 @@ describe("customers UI accessibility", () => {
     );
 
     const homeIndex = html.indexOf(">Home<");
+    const leadsIndex = html.indexOf(">Leads<");
     const customersIndex = html.indexOf(">Customers<");
     const tasksIndex = html.indexOf(">Tasks<");
     expect(homeIndex).toBeGreaterThan(-1);
-    expect(customersIndex).toBeGreaterThan(homeIndex);
+    expect(leadsIndex).toBeGreaterThan(homeIndex);
+    expect(customersIndex).toBeGreaterThan(leadsIndex);
     expect(tasksIndex).toBeGreaterThan(customersIndex);
     expect(html).toContain('href="/customers"');
     expect(html).toContain('href="/tasks"');

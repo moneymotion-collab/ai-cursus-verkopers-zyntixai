@@ -7,7 +7,7 @@ type AppShellProps = {
   organizationOptions?: OrganizationOption[];
   selectedOrganizationId?: string;
   organizationSelectorAction?: string;
-  activeNav?: "home" | "customers" | "tasks";
+  activeNav?: "home" | "leads" | "customers" | "tasks";
 };
 
 export function AppShell({
@@ -32,6 +32,13 @@ export function AppShell({
                 aria-current={activeNav === "home" ? "page" : undefined}
               >
                 Home
+              </Link>
+              <Link
+                className={styles.navLink}
+                href="/leads"
+                aria-current={activeNav === "leads" ? "page" : undefined}
+              >
+                Leads
               </Link>
               <Link
                 className={styles.navLink}

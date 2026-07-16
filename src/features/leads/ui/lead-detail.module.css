@@ -1,0 +1,148 @@
+.leadDetail {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 72rem;
+}
+
+.backLink {
+  color: var(--link-color, #1d4ed8);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  width: fit-content;
+}
+
+.backLink:focus-visible {
+  outline: 2px solid var(--focus-color, #2563eb);
+  outline-offset: 2px;
+}
+
+.header {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.75rem;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.workflowLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.workflowLinks a {
+  color: var(--link-color, #1d4ed8);
+  text-decoration: underline;
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.workflowLinks a:focus-visible {
+  outline: 2px solid var(--focus-color, #2563eb);
+  outline-offset: 2px;
+}
+
+.layout {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.identitySection,
+.convertedSection {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface-color);
+}
+
+.identitySection h2,
+.convertedSection h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+}
+
+.metaGrid {
+  margin: 0;
+  display: grid;
+  gap: 0.875rem;
+}
+
+.metaGrid div {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.metaGrid dt {
+  font-size: 0.8125rem;
+  color: var(--muted-text);
+}
+
+.metaGrid dd {
+  margin: 0;
+  word-break: break-word;
+}
+
+.stageCategory {
+  color: var(--muted-text);
+}
+
+.convertedMeta {
+  margin: 0.5rem 0 0;
+  color: var(--muted-text);
+  font-size: 0.875rem;
+}
+
+.panels {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.statePanel {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  background: var(--surface-color);
+  max-width: 40rem;
+}
+
+.statePanel h1 {
+  margin-top: 0;
+}
+
+.orgList {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.orgList a {
+  color: var(--link-color, #1d4ed8);
+}
+
+@media (min-width: 768px) {
+  .metaGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    align-items: start;
+  }
+}
