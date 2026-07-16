@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { logoutAction } from "@/features/auth/actions/auth-actions";
 import styles from "./app-shell.module.css";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
 
@@ -56,29 +57,36 @@ export function AppShell({
               </Link>
             </nav>
           </div>
-          {showOrgSelector ? (
-            <form className={styles.orgForm} method="get" action={organizationSelectorAction}>
-              <label className={styles.orgLabel} htmlFor="organization-selector">
-                Organization
-              </label>
-              <select
-                id="organization-selector"
-                name="org"
-                className={styles.orgSelect}
-                defaultValue={selectedOrganizationId}
-                aria-label="Select organization"
-              >
-                {organizationOptions.map((option) => (
-                  <option key={option.organizationId} value={option.organizationId}>
-                    {option.displayName}
-                  </option>
-                ))}
-              </select>
-              <button type="submit" className={styles.orgSubmit}>
-                Switch
+          <div className={styles.headerActions}>
+            {showOrgSelector ? (
+              <form className={styles.orgForm} method="get" action={organizationSelectorAction}>
+                <label className={styles.orgLabel} htmlFor="organization-selector">
+                  Organization
+                </label>
+                <select
+                  id="organization-selector"
+                  name="org"
+                  className={styles.orgSelect}
+                  defaultValue={selectedOrganizationId}
+                  aria-label="Select organization"
+                >
+                  {organizationOptions.map((option) => (
+                    <option key={option.organizationId} value={option.organizationId}>
+                      {option.displayName}
+                    </option>
+                  ))}
+                </select>
+                <button type="submit" className={styles.orgSubmit}>
+                  Switch
+                </button>
+              </form>
+            ) : null}
+            <form action={logoutAction} className={styles.logoutForm}>
+              <button type="submit" className={styles.logoutButton}>
+                Log out
               </button>
             </form>
-          ) : null}
+          </div>
         </div>
       </header>
       <main id="main-content" className={styles.main}>

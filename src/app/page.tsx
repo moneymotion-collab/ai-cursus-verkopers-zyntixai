@@ -1,11 +1,16 @@
-export default function HomePage() {
-  return (
-    <main>
-      <h1>ZyntixAI Application Foundation</h1>
-      <p>
-        Typed Tasks integration foundation is available for server-side use. Tasks
-        UI is not implemented in this gate.
-      </p>
-    </main>
-  );
+import { redirect } from "next/navigation";
+import { resolveAuthenticatedLanding } from "@/features/auth/server/resolve-authenticated-landing";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export default async function HomePage() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  redirect(await resolveAuthenticatedLanding(supabase));
 }
