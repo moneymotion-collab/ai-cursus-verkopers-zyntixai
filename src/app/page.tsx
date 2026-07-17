@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { resolveAuthenticatedLanding } from "@/features/auth/server/resolve-authenticated-landing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { resolveAuthenticatedEntryPath } from "@/features/auth/server/resolve-registration-destination";
 
 export default async function HomePage() {
   const supabase = await createSupabaseServerClient();
@@ -12,5 +12,5 @@ export default async function HomePage() {
     redirect("/login");
   }
 
-  redirect(await resolveAuthenticatedLanding(supabase));
+  redirect(await resolveAuthenticatedEntryPath(supabase, user));
 }

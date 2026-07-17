@@ -54,25 +54,15 @@
   font-size: 0.875rem;
 }
 
-.formError,
-.notice {
+.formError {
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
-}
-
-.formError {
   border: 1px solid #fecaca;
   background: #fef2f2;
 }
 
-.formError p,
-.notice p {
+.formError p {
   margin: 0;
-}
-
-.notice {
-  border: 1px solid #fde68a;
-  background: #fffbeb;
 }
 
 .submit {

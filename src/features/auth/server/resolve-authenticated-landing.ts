@@ -9,6 +9,7 @@ import {
 /**
  * Membership-aware default landing after authentication.
  * Reuses existing organization listing; does not trust browser org IDs.
+ * Zero-membership users go to registration recovery — never product routes.
  */
 export async function resolveAuthenticatedLanding(
   supabase: SupabaseClient<Database>,
@@ -16,7 +17,7 @@ export async function resolveAuthenticatedLanding(
   const membershipsResult = await listActiveOrganizationMemberships(supabase);
 
   if (!membershipsResult.ok || membershipsResult.memberships.length === 0) {
-    return "/leads";
+    return "/register/complete";
   }
 
   if (membershipsResult.memberships.length === 1) {
@@ -35,6 +36,11 @@ export async function resolvePostLoginDestination(
   rawNext: unknown,
 ): Promise<string> {
   const safeNext = resolveSafeReturnPath(rawNext, DEFAULT_RETURN_PATH);
+
+  const membershipsResult = await listActiveOrganizationMemberships(supabase);
+  if (!membershipsResult.ok || membershipsResult.memberships.length === 0) {
+    return "/register/complete";
+  }
 
   if (safeNext === "/" || safeNext === DEFAULT_RETURN_PATH) {
     return resolveAuthenticatedLanding(supabase);

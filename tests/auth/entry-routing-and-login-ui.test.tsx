@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { readFileSync } from "node:fs";
@@ -55,7 +55,10 @@ describe("root entry redirects", () => {
   });
 
   it("redirects single-organization users to organization-scoped leads", async () => {
-    getUserMock.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
+    getUserMock.mockResolvedValue({
+      data: { user: { id: "u1", email_confirmed_at: "2026-01-01T00:00:00Z" } },
+      error: null,
+    });
     listMembershipsMock.mockResolvedValue({
       ok: true,
       memberships: [{ organizationId: ORG_A, role: "owner" }],
@@ -63,8 +66,11 @@ describe("root entry redirects", () => {
     await expect(HomePage()).rejects.toThrow(`NEXT_REDIRECT:/leads?org=${ORG_A}`);
   });
 
-  it("redirects multi-organization and zero-organization users to /leads", async () => {
-    getUserMock.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
+  it("redirects multi-organization users to /leads and zero-org users to recovery", async () => {
+    getUserMock.mockResolvedValue({
+      data: { user: { id: "u1", email_confirmed_at: "2026-01-01T00:00:00Z" } },
+      error: null,
+    });
     listMembershipsMock.mockResolvedValue({
       ok: true,
       memberships: [
@@ -75,12 +81,15 @@ describe("root entry redirects", () => {
     await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT:/leads");
 
     listMembershipsMock.mockResolvedValue({ ok: true, memberships: [] });
-    await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT:/leads");
+    await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT:/register/complete");
   });
 });
 
 describe("login page session-expired messaging", () => {
+  const originalRegistrationFlag = process.env.PUBLIC_REGISTRATION_ENABLED;
+
   beforeEach(() => {
+    process.env.PUBLIC_REGISTRATION_ENABLED = "true";
     redirectMock.mockReset();
     getUserMock.mockReset();
     createServerClientMock.mockReset();
@@ -88,6 +97,14 @@ describe("login page session-expired messaging", () => {
       auth: { getUser: getUserMock },
     });
     getUserMock.mockResolvedValue({ data: { user: null }, error: null });
+  });
+
+  afterEach(() => {
+    if (originalRegistrationFlag === undefined) {
+      delete process.env.PUBLIC_REGISTRATION_ENABLED;
+    } else {
+      process.env.PUBLIC_REGISTRATION_ENABLED = originalRegistrationFlag;
+    }
   });
 
   it("renders the session-expired message when reason is present", async () => {
@@ -100,19 +117,60 @@ describe("login page session-expired messaging", () => {
     expect(html).toContain('for="login-password"');
     expect(html).toMatch(/autoComplete="email"|autocomplete="email"/);
     expect(html).toMatch(/autoComplete="current-password"|autocomplete="current-password"/);
+    expect(html).toContain('href="/register"');
+  });
+
+  it("hides the registration link when public registration is disabled", async () => {
+    process.env.PUBLIC_REGISTRATION_ENABLED = "false";
+    const element = await LoginPage({
+      searchParams: Promise.resolve({}),
+    });
+    const html = renderToStaticMarkup(element);
+    expect(html).not.toContain('href="/register"');
+    expect(html).toContain("Sign in");
+    expect(html).toContain('for="login-email"');
+  });
+
+  it("shows a neutral notice for registration=disabled", async () => {
+    process.env.PUBLIC_REGISTRATION_ENABLED = "false";
+    const element = await LoginPage({
+      searchParams: Promise.resolve({ registration: "disabled" }),
+    });
+    const html = renderToStaticMarkup(element);
+    expect(html).toContain("Public registration is currently unavailable.");
+    expect(html).not.toContain('href="/register"');
+    expect(html).not.toMatch(/PUBLIC_REGISTRATION_ENABLED|SMTP|environment/i);
   });
 });
 
 describe("login form pending and accessibility contract", () => {
   it("exposes labelled fields and pending copy in static markup", () => {
     const html = renderToStaticMarkup(
-      <LoginForm nextPath="/leads" sessionExpired sessionExpiredMessage={getSessionExpiredMessage()} />,
+      <LoginForm
+        nextPath="/leads"
+        sessionExpired
+        sessionExpiredMessage={getSessionExpiredMessage()}
+        showRegistrationLink
+      />,
     );
     expect(html).toContain('id="login-email"');
     expect(html).toContain('id="login-password"');
     expect(html).toContain('type="email"');
     expect(html).toContain('type="password"');
     expect(html).toContain(getSessionExpiredMessage());
+    expect(html).toContain("Sign in");
+    expect(html).toContain('href="/register"');
+  });
+
+  it("hides the registration link when showRegistrationLink is false", () => {
+    const html = renderToStaticMarkup(
+      <LoginForm
+        showRegistrationLink={false}
+        registrationUnavailableMessage="Public registration is currently unavailable."
+      />,
+    );
+    expect(html).not.toContain('href="/register"');
+    expect(html).toContain("Public registration is currently unavailable.");
     expect(html).toContain("Sign in");
   });
 
@@ -124,6 +182,7 @@ describe("login form pending and accessibility contract", () => {
     expect(source).toContain("pendingRef");
     expect(source).toContain("disabled={isPending}");
     expect(source).toContain('aria-busy={isPending}');
+    expect(source).not.toContain("process.env");
   });
 });
 

@@ -17,6 +17,14 @@ function isAllowlistedPathname(pathname: string): boolean {
     return true;
   }
 
+  if (
+    pathname === "/register" ||
+    pathname === "/register/check-email" ||
+    pathname === "/register/complete"
+  ) {
+    return true;
+  }
+
   return false;
 }
 
@@ -118,6 +126,18 @@ export function isProtectedApplicationPath(pathname: string): boolean {
     pathname === "/tasks" ||
     pathname.startsWith("/tasks/")
   );
+}
+
+export function isRegistrationPath(pathname: string): boolean {
+  return (
+    pathname === "/register" ||
+    pathname === "/register/check-email" ||
+    pathname === "/register/complete"
+  );
+}
+
+export function isAuthCallbackPath(pathname: string): boolean {
+  return pathname === "/auth/callback";
 }
 
 export { DEFAULT_RETURN_PATH };

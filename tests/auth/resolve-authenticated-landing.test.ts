@@ -47,13 +47,15 @@ describe("resolveAuthenticatedLanding", () => {
     await expect(resolveAuthenticatedLanding(fakeSupabase())).resolves.toBe("/leads");
   });
 
-  it("lands zero-organization users on /leads unavailable flow", async () => {
+  it("lands zero-organization users on registration recovery", async () => {
     listMembershipsMock.mockResolvedValue({
       ok: true,
       memberships: [],
     });
 
-    await expect(resolveAuthenticatedLanding(fakeSupabase())).resolves.toBe("/leads");
+    await expect(resolveAuthenticatedLanding(fakeSupabase())).resolves.toBe(
+      "/register/complete",
+    );
   });
 });
 

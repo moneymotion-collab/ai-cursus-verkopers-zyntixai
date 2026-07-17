@@ -927,6 +927,57 @@ export type Database = {
         }
         Relationships: []
       }
+      registration_intents: {
+        Row: {
+          company_name: string
+          completed_at: string | null
+          created_at: string
+          display_name: string
+          last_error_code: string | null
+          organization_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name: string
+          completed_at?: string | null
+          created_at?: string
+          display_name: string
+          last_error_code?: string | null
+          organization_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string
+          completed_at?: string | null
+          created_at?: string
+          display_name?: string
+          last_error_code?: string | null
+          organization_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registration_intents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registration_intents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       program_status_history: {
         Row: {
           changed_at: string
@@ -1358,6 +1409,15 @@ export type Database = {
         }
         Returns: string
       }
+      complete_owner_self_registration: {
+        Args: {
+          p_locale?: string
+          p_name: string
+          p_slug: string
+          p_timezone?: string
+        }
+        Returns: string
+      }
       create_organization_with_owner: {
         Args: {
           p_locale?: string
@@ -1366,6 +1426,13 @@ export type Database = {
           p_timezone?: string
         }
         Returns: string
+      }
+      upsert_registration_intent: {
+        Args: {
+          p_company_name: string
+          p_display_name: string
+        }
+        Returns: undefined
       }
       create_pipeline_stage: {
         Args: {

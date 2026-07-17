@@ -27,4 +27,10 @@ describe("generated database contract", () => {
       expect(generated).toContain(`${rpc}:`);
     }
   });
+
+  it("includes PX2.1 registration tables and RPCs", () => {
+    expect(generated).toContain("registration_intents:");
+    expect(generated).toContain("complete_owner_self_registration:");
+    expect(generated).toContain("upsert_registration_intent:");
+  });
 });

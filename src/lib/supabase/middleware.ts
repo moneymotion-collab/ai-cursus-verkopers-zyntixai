@@ -2,7 +2,15 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
 import { getPublicSupabaseEnv } from "@/lib/env/public";
-import { isProtectedApplicationPath } from "@/features/auth/server/safe-return-path";
+import {
+  isAuthCallbackPath,
+  isProtectedApplicationPath,
+  isRegistrationPath,
+} from "@/features/auth/server/safe-return-path";
+import {
+  isPublicRegistrationEnabled,
+  isPublicRegistrationEntryPath,
+} from "@/features/auth/server/public-registration";
 
 type CookieToSet = {
   name: string;
@@ -53,6 +61,8 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname, search } = request.nextUrl;
   const isLogin = pathname === "/login";
+  const isRegister = isRegistrationPath(pathname);
+  const isCallback = isAuthCallbackPath(pathname);
   const isProtected = isProtectedApplicationPath(pathname);
 
   if (!user && isProtected) {
@@ -68,6 +78,15 @@ export async function updateSession(request: NextRequest) {
     return redirectResponse;
   }
 
+  if (user && isProtected && !user.email_confirmed_at) {
+    const verifyUrl = request.nextUrl.clone();
+    verifyUrl.pathname = "/register/check-email";
+    verifyUrl.search = "";
+    const redirectResponse = NextResponse.redirect(verifyUrl);
+    applyCookies(redirectResponse, cookiesToSet);
+    return redirectResponse;
+  }
+
   if (user && isLogin) {
     const homeUrl = request.nextUrl.clone();
     homeUrl.pathname = "/";
@@ -75,6 +94,39 @@ export async function updateSession(request: NextRequest) {
     const redirectResponse = NextResponse.redirect(homeUrl);
     applyCookies(redirectResponse, cookiesToSet);
     return redirectResponse;
+  }
+
+  // Authenticated visitors on /register: never create a second org via the form.
+  if (user && pathname === "/register") {
+    const target = request.nextUrl.clone();
+    target.search = "";
+    if (!user.email_confirmed_at) {
+      target.pathname = "/register/check-email";
+    } else {
+      target.pathname = "/";
+    }
+    const redirectResponse = NextResponse.redirect(target);
+    applyCookies(redirectResponse, cookiesToSet);
+    return redirectResponse;
+  }
+
+  // PX2-DARK.1: exact /register only — nested recovery routes stay reachable.
+  if (
+    !user &&
+    isPublicRegistrationEntryPath(pathname) &&
+    !isPublicRegistrationEnabled()
+  ) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.search = "";
+    loginUrl.searchParams.set("registration", "disabled");
+    const redirectResponse = NextResponse.redirect(loginUrl);
+    applyCookies(redirectResponse, cookiesToSet);
+    return redirectResponse;
+  }
+
+  if (!user && (isRegister || isCallback)) {
+    return supabaseResponse;
   }
 
   return supabaseResponse;

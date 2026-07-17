@@ -9,6 +9,8 @@ type LoginFormProps = {
   nextPath?: string;
   sessionExpired?: boolean;
   sessionExpiredMessage?: string;
+  showRegistrationLink?: boolean;
+  registrationUnavailableMessage?: string;
 };
 
 type LoginUiState =
@@ -20,6 +22,8 @@ export function LoginForm({
   nextPath,
   sessionExpired = false,
   sessionExpiredMessage,
+  showRegistrationLink = false,
+  registrationUnavailableMessage,
 }: LoginFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
@@ -79,6 +83,12 @@ export function LoginForm({
         </div>
       ) : null}
 
+      {registrationUnavailableMessage ? (
+        <div className={styles.notice} role="status" aria-live="polite">
+          <p>{registrationUnavailableMessage}</p>
+        </div>
+      ) : null}
+
       {uiState.kind === "error" ? (
         <div className={styles.formError} role="alert">
           <p>{uiState.message}</p>
@@ -131,6 +141,15 @@ export function LoginForm({
       <button type="submit" className={styles.submit} disabled={isPending}>
         {isPending ? "Signing in…" : "Sign in"}
       </button>
+
+      {showRegistrationLink ? (
+        <p className={styles.footer}>
+          New here?{" "}
+          <a href="/register" className={styles.link}>
+            Create an account
+          </a>
+        </p>
+      ) : null}
     </form>
   );
 }

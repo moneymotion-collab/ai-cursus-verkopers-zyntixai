@@ -81,6 +81,12 @@ describe("resolveSafeReturnPath", () => {
     expect(resolveSafeReturnPath("/leads/../customers")).toBe("/customers");
     expect(resolveSafeReturnPath("/customers/%2e%2e/../leads")).toBe("/leads");
   });
+  it("accepts registration recovery paths", () => {
+    expect(resolveSafeReturnPath("/register")).toBe("/register");
+    expect(resolveSafeReturnPath("/register/check-email")).toBe("/register/check-email");
+    expect(resolveSafeReturnPath("/register/complete")).toBe("/register/complete");
+    expect(resolveSafeReturnPath("/register/evil")).toBe("/");
+  });
 });
 
 describe("isProtectedApplicationPath", () => {
@@ -91,5 +97,6 @@ describe("isProtectedApplicationPath", () => {
     expect(isProtectedApplicationPath("/tasks/1/edit")).toBe(true);
     expect(isProtectedApplicationPath("/")).toBe(false);
     expect(isProtectedApplicationPath("/login")).toBe(false);
+    expect(isProtectedApplicationPath("/register")).toBe(false);
   });
 });
