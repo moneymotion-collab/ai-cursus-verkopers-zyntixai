@@ -4,7 +4,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { CustomerDetail, CustomerUnavailableDetail } from "@/features/customers/ui/customer-detail";
 import type { CustomerDetailViewModel } from "@/features/customers/ui/load-customer-detail";
 import { resolveCustomerPermissions } from "@/features/customers/domain/permissions";
-import { customerPresentationContainsUuid } from "@/features/customers/ui/customer-presentation";
+import {
+  customerPresentationContainsUuid,
+  formatCustomerHistorySourceLabel,
+} from "@/features/customers/ui/customer-presentation";
+import { CustomerHistorySection } from "@/features/customers/ui/customer-history";
 
 const viewModel: CustomerDetailViewModel = {
   customer: {
@@ -36,7 +40,7 @@ const viewModel: CustomerDetailViewModel = {
       fromStatusLabel: null,
       toStatusLabel: "Active",
       actorLabel: "Taylor Owner",
-      sourceLabel: "manual",
+      sourceLabel: formatCustomerHistorySourceLabel("manual"),
       reason: "Onboarding complete",
       timestampLabel: "Jul 14, 2026",
     },
@@ -71,12 +75,39 @@ const viewModel: CustomerDetailViewModel = {
 };
 
 describe("Customer detail presentation", () => {
-  it("renders identity, history, tasks and enrollments without UUIDs", () => {
-    const html = renderToStaticMarkup(<CustomerDetail viewModel={viewModel} />);
+  it("renders approved Customer details terminology without UUIDs", () => {
+    const html = renderToStaticMarkup(
+      <CustomerDetail
+        viewModel={viewModel}
+        workflowLinks={{
+          edit: "/customers/11111111-1111-4111-8111-111111111111/edit",
+          status: "/customers/11111111-1111-4111-8111-111111111111/status",
+        }}
+      />,
+    );
+
+    expect(html).toContain("Customer details");
+    expect(html).toContain("<dt>Customer name</dt>");
+    expect(html).toContain("<dt>Assigned to</dt>");
+    expect(html).toContain("<dt>Customer status</dt>");
+    expect(html).toContain("<dt>Archive status</dt>");
+    expect(html).toContain("<dt>Customer since</dt>");
+    expect(html).toContain("<dt>End date</dt>");
+    expect(html).toContain("Not provided");
+    expect(html).toContain("Created by");
+    expect(html).toContain("Change customer status");
+    expect(html).not.toContain("Customer identity");
+    expect(html).not.toContain("<dt>Display name</dt>");
+    expect(html).not.toContain("<dt>Owner</dt>");
+    expect(html).not.toContain("Lifecycle status");
+    expect(html).not.toContain("Archive state");
+    expect(html).not.toContain("<dt>Started</dt>");
+    expect(html).not.toContain("<dt>Ended</dt>");
 
     expect(html).toContain("Acme Corp");
     expect(html).toContain("ops@acme.test");
     expect(html).toContain("Taylor Owner");
+    expect(html).toContain("Active");
     expect(html).toContain("Status history");
     expect(html).toContain("Related tasks");
     expect(html).toContain("Enrollment summary");
@@ -92,5 +123,37 @@ describe("Customer detail presentation", () => {
     expect(html).toContain("Customer unavailable");
     expect(html).toContain("Back to customers");
     expect(html).not.toContain("not found");
+  });
+});
+
+describe("Customer history source display", () => {
+  it("humanizes known and unknown history sources without rewriting stored values", () => {
+    expect(formatCustomerHistorySourceLabel("manual")).toBe("Manual");
+    expect(formatCustomerHistorySourceLabel("lead_conversion")).toBe("Lead conversion");
+    expect(formatCustomerHistorySourceLabel("system")).toBe("System");
+    expect(formatCustomerHistorySourceLabel("import")).toBe("Import");
+    expect(formatCustomerHistorySourceLabel("custom_event")).toBe("Custom Event");
+    expect(formatCustomerHistorySourceLabel("")).toBe("Unknown");
+
+    const html = renderToStaticMarkup(
+      <CustomerHistorySection
+        history={[
+          {
+            id: "history-1",
+            transitionLabel: "Status set to Onboarding",
+            fromStatusLabel: null,
+            toStatusLabel: "Onboarding",
+            actorLabel: "System",
+            sourceLabel: formatCustomerHistorySourceLabel("lead_conversion"),
+            reason: null,
+            timestampLabel: "Jul 14, 2026",
+          },
+        ]}
+        historyState={{ kind: "ready" }}
+      />,
+    );
+
+    expect(html).toContain("Lead conversion");
+    expect(html).not.toContain("lead_conversion");
   });
 });

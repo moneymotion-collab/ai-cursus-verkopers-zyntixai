@@ -12,6 +12,7 @@ describe("customers UI responsive CSS contract", () => {
     expect(css).toContain("@media (min-width: 1024px)");
     expect(css).toContain(".tableWrap");
     expect(css).toContain(".cardList");
+    expect(css).toMatch(/grid-template-columns:\s*7rem\s+1fr/);
   });
 
   it("stacks customer detail sections on smaller screens", () => {

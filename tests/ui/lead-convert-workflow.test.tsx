@@ -1,7 +1,12 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { LeadConvertForm } from "@/features/leads/ui/lead-convert-form";
+import {
+  CONVERT_EXISTING_CUSTOMER_EFFECT,
+  CONVERT_LEAD_CONFIRMATION_DESCRIPTION,
+  CONVERT_NEW_CUSTOMER_EFFECT,
+  LeadConvertForm,
+} from "@/features/leads/ui/lead-convert-form";
 import { CUSTOMER_ID } from "../helpers/lead-read-query-mocks";
 import { sampleLeadDetail } from "../helpers/lead-mutation-mocks";
 
@@ -19,7 +24,7 @@ const listState = {
 };
 
 describe("LeadConvertForm", () => {
-  it("supports new and existing customer conversion paths", () => {
+  it("supports new and existing customer conversion paths with accurate status copy", () => {
     const html = renderToStaticMarkup(
       <LeadConvertForm
         organizationId={sampleLeadDetail.organizationId}
@@ -33,10 +38,28 @@ describe("LeadConvertForm", () => {
       />,
     );
     expect(html).toContain("Convert lead to customer");
+    expect(html).toContain(CONVERT_LEAD_CONFIRMATION_DESCRIPTION);
     expect(html).toContain("Create a new customer from this lead");
     expect(html).toContain("Link to an existing customer");
     expect(html).toContain('id="convert-mode-existing"');
     expect(html).toContain("Convert to customer");
+    expect(html).toContain("<dt>Lead name</dt>");
+    expect(html).toContain("<dt>Assigned to</dt>");
+    expect(html).toContain(CONVERT_NEW_CUSTOMER_EFFECT);
+    expect(html).toContain("Onboarding");
+    expect(html).toContain("Lead status becomes Converted");
+    expect(html).not.toContain("This is separate from changing lead status");
     expect(html).not.toContain("transitionLeadStatusAction");
+  });
+
+  it("documents distinct create vs link-existing confirmation effects", () => {
+    expect(CONVERT_NEW_CUSTOMER_EFFECT).toContain("A new customer will be created");
+    expect(CONVERT_NEW_CUSTOMER_EFFECT).toContain("Onboarding");
+    expect(CONVERT_NEW_CUSTOMER_EFFECT).toContain("Lead status becomes Converted");
+
+    expect(CONVERT_EXISTING_CUSTOMER_EFFECT).toContain("linked to the selected existing customer");
+    expect(CONVERT_EXISTING_CUSTOMER_EFFECT).toContain("Lead status becomes Converted");
+    expect(CONVERT_EXISTING_CUSTOMER_EFFECT).toContain("No new customer is created");
+    expect(CONVERT_EXISTING_CUSTOMER_EFFECT).not.toContain("Onboarding");
   });
 });

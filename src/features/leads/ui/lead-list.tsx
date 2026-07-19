@@ -71,9 +71,9 @@ export function LeadListPresentation({
           <thead>
             <tr>
               <th scope="col">Lead</th>
-              <th scope="col">Status</th>
+              <th scope="col">Lead status</th>
               <th scope="col">Pipeline stage</th>
-              <th scope="col">Owner</th>
+              <th scope="col">Assigned to</th>
               <th scope="col">Email</th>
               <th scope="col">Updated</th>
             </tr>
@@ -85,18 +85,13 @@ export function LeadListPresentation({
                   <a className={styles.titleLink} href={row.detailHref}>
                     <span className={styles.titleCell}>{row.displayName}</span>
                   </a>
-                  <div className={styles.inlineBadges}>
-                    {row.archivedLabel ? (
+                  {row.archivedLabel ? (
+                    <div className={styles.inlineBadges}>
                       <span className={styles.archivedInline}>
                         <Badge variant="info">{row.archivedLabel}</Badge>
                       </span>
-                    ) : null}
-                    {row.convertedLabel ? (
-                      <span className={styles.archivedInline}>
-                        <Badge variant="success">{row.convertedLabel}</Badge>
-                      </span>
-                    ) : null}
-                  </div>
+                    </div>
+                  ) : null}
                 </td>
                 <td>
                   <Badge variant={badgeVariantForStatus(row.statusLabel)}>{row.statusLabel}</Badge>
@@ -121,11 +116,10 @@ export function LeadListPresentation({
               <Badge variant={badgeVariantForStatus(row.statusLabel)}>{row.statusLabel}</Badge>
               <Badge variant="neutral">{row.stageLabel}</Badge>
               {row.archivedLabel ? <Badge variant="info">{row.archivedLabel}</Badge> : null}
-              {row.convertedLabel ? <Badge variant="success">{row.convertedLabel}</Badge> : null}
             </div>
             <dl className={styles.cardMeta}>
               <div>
-                <dt>Owner</dt>
+                <dt>Assigned to</dt>
                 <dd>{row.ownerLabel}</dd>
               </div>
               {row.emailLabel !== "Not provided" ? (

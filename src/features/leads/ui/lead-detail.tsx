@@ -1,10 +1,12 @@
 import { Badge } from "@/components/ui/badge";
 import type { LeadDetailViewModel } from "@/features/leads/ui/load-lead-detail";
 import {
+  CONVERTED_LEAD_EDIT_NOTICE,
   formatLeadContact,
   formatLeadDate,
   formatLeadName,
 } from "@/features/leads/ui/lead-presentation";
+import { getLeadSourceTypeDisplayLabel } from "@/features/leads/ui/lead-source-type-options";
 import { LeadStatusHistorySection } from "@/features/leads/ui/lead-status-history";
 import { LeadStageHistorySection } from "@/features/leads/ui/lead-stage-history";
 import { LeadRelatedTasksSection } from "@/features/leads/ui/lead-related-tasks";
@@ -59,6 +61,9 @@ export function LeadDetail({ viewModel, reloadHref, workflowLinks }: LeadDetailP
   } = viewModel;
 
   const fullName = formatLeadName(lead.firstName, lead.lastName);
+  const pipelineStageLabel = lead.derived.isConverted ? "Last pipeline stage" : "Pipeline stage";
+  const sourceDisplay = getLeadSourceTypeDisplayLabel(lead.sourceType);
+  const showConvertedEditNotice = lead.derived.isConverted;
 
   return (
     <article className={styles.leadDetail}>
@@ -68,11 +73,10 @@ export function LeadDetail({ viewModel, reloadHref, workflowLinks }: LeadDetailP
 
       <header className={styles.header}>
         <h1 className={styles.title}>{lead.displayName}</h1>
-        <div className={styles.badgeRow}>
+        <div className={styles.badgeRow} data-testid="lead-detail-badges">
           <Badge variant={badgeVariantForStatus(lead.statusLabel)}>{lead.statusLabel}</Badge>
           <Badge variant="neutral">{lead.stage.name}</Badge>
           {lead.derived.isArchived ? <Badge variant="info">Archived</Badge> : null}
-          {lead.derived.isConverted ? <Badge variant="success">Converted</Badge> : null}
         </div>
         {workflowLinks ? (
           <nav className={styles.workflowLinks} aria-label="Lead actions">
@@ -84,6 +88,11 @@ export function LeadDetail({ viewModel, reloadHref, workflowLinks }: LeadDetailP
             {workflowLinks.restore ? <a href={workflowLinks.restore}>Restore lead</a> : null}
           </nav>
         ) : null}
+        {showConvertedEditNotice ? (
+          <p className={styles.convertedNotice} role="status">
+            {CONVERTED_LEAD_EDIT_NOTICE}
+          </p>
+        ) : null}
       </header>
 
       <div className={styles.layout}>
@@ -91,7 +100,7 @@ export function LeadDetail({ viewModel, reloadHref, workflowLinks }: LeadDetailP
           <h2 id="lead-identity-title">Lead overview</h2>
           <dl className={styles.metaGrid}>
             <div>
-              <dt>Display name</dt>
+              <dt>Lead name</dt>
               <dd>{lead.displayName}</dd>
             </div>
             <div>
@@ -119,7 +128,7 @@ export function LeadDetail({ viewModel, reloadHref, workflowLinks }: LeadDetailP
               </dd>
             </div>
             <div>
-              <dt>Owner</dt>
+              <dt>Assigned to</dt>
               <dd>{lead.ownerLabel}</dd>
             </div>
             <div>
@@ -131,25 +140,25 @@ export function LeadDetail({ viewModel, reloadHref, workflowLinks }: LeadDetailP
               <dd>{lead.statusLabel}</dd>
             </div>
             <div>
-              <dt>Pipeline stage</dt>
+              <dt>{pipelineStageLabel}</dt>
               <dd>
                 {lead.stage.name}
                 <span className={styles.stageCategory}> ({lead.stage.stageCategoryLabel})</span>
               </dd>
             </div>
             <div>
-              <dt>Source</dt>
+              <dt>Lead source</dt>
               <dd>
-                {lead.sourceType}
+                {sourceDisplay}
                 {lead.sourceDetail ? ` — ${lead.sourceDetail}` : ""}
               </dd>
             </div>
             <div>
-              <dt>Pursuit</dt>
+              <dt>Interested in</dt>
               <dd>{lead.pursuitLabel?.trim() || "Not provided"}</dd>
             </div>
             <div>
-              <dt>Archive state</dt>
+              <dt>Archive status</dt>
               <dd>{lead.derived.isArchived ? "Archived" : "Not archived"}</dd>
             </div>
             <div>
@@ -169,13 +178,19 @@ export function LeadDetail({ viewModel, reloadHref, workflowLinks }: LeadDetailP
               <h2 id="lead-converted-title">Converted customer</h2>
               <p>
                 {convertedCustomerHref ? (
-                  <a href={convertedCustomerHref}>{lead.convertedCustomer.displayLabel}</a>
+                  <a
+                    href={convertedCustomerHref}
+                    aria-label={`Open converted customer ${lead.convertedCustomer.displayLabel}`}
+                  >
+                    {lead.convertedCustomer.displayLabel}
+                  </a>
                 ) : (
                   lead.convertedCustomer.displayLabel
                 )}
               </p>
               <p className={styles.convertedMeta}>
-                Converted <time>{formatLeadDate(lead.convertedCustomer.convertedAt, organizationTimezone)}</time>
+                Converted{" "}
+                <time>{formatLeadDate(lead.convertedCustomer.convertedAt, organizationTimezone)}</time>
                 {lead.convertedCustomer.isArchived ? (
                   <>
                     {" · "}

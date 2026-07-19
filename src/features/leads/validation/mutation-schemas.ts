@@ -36,7 +36,7 @@ const optionalMetadata = z.record(z.unknown()).optional();
 const requiredSourceType = z
   .string()
   .trim()
-  .min(1, "Source type is required.")
+  .min(1, "Lead source is required.")
   .max(200)
   .default("manual");
 
@@ -47,7 +47,7 @@ const requiredSourceType = z
 export const createLeadInputSchema = z
   .object({
     organizationId: uuidSchema,
-    displayName: z.string().trim().min(1, "Display name is required.").max(200),
+    displayName: z.string().trim().min(1, "Lead name is required.").max(200),
     firstName: optionalTrimmedString(200),
     lastName: optionalTrimmedString(200),
     email: optionalEmail,
@@ -68,13 +68,13 @@ export const updateLeadProfileInputSchema = z
   .object({
     organizationId: uuidSchema,
     leadId: uuidSchema,
-    displayName: z.string().trim().min(1, "Display name is required.").max(200),
+    displayName: z.string().trim().min(1, "Lead name is required.").max(200),
     firstName: optionalTrimmedString(200),
     lastName: optionalTrimmedString(200),
     email: optionalEmail,
     phone: optionalTrimmedString(50),
     ownerMemberId: uuidSchema.optional().nullable(),
-    sourceType: z.string().trim().min(1, "Source type is required.").max(200),
+    sourceType: z.string().trim().min(1, "Lead source is required.").max(200),
     sourceDetail: optionalTrimmedString(200),
     pursuitLabel: optionalTrimmedString(200),
     metadata: optionalMetadata,

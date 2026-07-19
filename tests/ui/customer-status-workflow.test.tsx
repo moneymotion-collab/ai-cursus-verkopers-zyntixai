@@ -22,11 +22,14 @@ describe("CustomerStatusForm", () => {
       />,
     );
     expect(html).toContain("Change customer status");
+    expect(html).toContain("Current customer status:");
+    expect(html).toContain("New customer status");
     expect(html).toContain("Active");
     for (const status of allowedTargets) {
       expect(html).toContain(`id="status-${status}"`);
     }
     expect(html).not.toContain('id="status-active"');
+    expect(html).not.toContain(">Ended<");
     expect(html).toContain('id="status-reason"');
   });
 });

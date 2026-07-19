@@ -75,7 +75,7 @@ export function CustomerArchiveForm({
   return (
     <CustomerLifecycleFormShell
       heading="Archive customer"
-      description="Archiving hides this customer from staff and viewers while keeping the lifecycle status unchanged."
+      description="Archiving hides this customer from staff and viewers while keeping the customer status unchanged."
       backHref={backHref}
       isPending={isPending}
       pendingLabel={isPending ? "Archiving…" : undefined}
@@ -86,7 +86,7 @@ export function CustomerArchiveForm({
         <h2 id="archive-explanation-title">What archiving means</h2>
         <ul className={lifecycleStyles.explanationList}>
           <li>Archive is not deletion.</li>
-          <li>The lifecycle status remains {customer.statusLabel}.</li>
+          <li>The customer status remains {customer.statusLabel}.</li>
           <li>Staff and viewers will no longer see this customer.</li>
           <li>Related records are not deleted.</li>
         </ul>

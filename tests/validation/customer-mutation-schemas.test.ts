@@ -50,6 +50,19 @@ describe("createCustomerInputSchema", () => {
       }).success,
     ).toBe(false);
   });
+
+  it("surfaces Customer name terminology in validation messages", () => {
+    const result = createCustomerInputSchema.safeParse({
+      organizationId: ORG_ID,
+      displayName: "   ",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.error.issues.some((issue) => issue.message === "Customer name is required."),
+      ).toBe(true);
+    }
+  });
 });
 
 describe("updateCustomerProfileInputSchema", () => {

@@ -73,7 +73,7 @@ describe("customer detail workflow controls", () => {
       />,
     );
     expect(html).toContain("Edit customer");
-    expect(html).toContain("Change status");
+    expect(html).toContain("Change customer status");
     expect(html).toContain("Archive customer");
     expect(html).not.toContain("Restore customer");
     expect(html).toContain(`org=${ORG_ID}`);
@@ -87,7 +87,7 @@ describe("customer detail workflow controls", () => {
       />,
     );
     expect(html).toContain("Edit customer");
-    expect(html).toContain("Change status");
+    expect(html).toContain("Change customer status");
     expect(html).not.toContain("Archive customer");
     expect(html).not.toContain("Restore customer");
   });
@@ -100,7 +100,7 @@ describe("customer detail workflow controls", () => {
       />,
     );
     expect(html).not.toContain("Edit customer");
-    expect(html).not.toContain("Change status");
+    expect(html).not.toContain("Change customer status");
     expect(html).not.toContain("Archive customer");
     expect(html).not.toContain("Restore customer");
   });
@@ -114,7 +114,7 @@ describe("customer detail workflow controls", () => {
     );
     expect(html).toContain("Restore customer");
     expect(html).not.toContain("Edit customer");
-    expect(html).not.toContain("Change status");
+    expect(html).not.toContain("Change customer status");
     expect(html).not.toContain("Archive customer");
   });
 });

@@ -14,7 +14,6 @@ export type LeadListPresentationRow = {
   pursuitLabel: string;
   updatedAtLabel: string;
   archivedLabel: string | null;
-  convertedLabel: string | null;
 };
 
 export function formatLeadDate(isoTimestamp: string, timeZone: string): string {
@@ -64,7 +63,6 @@ export function toLeadListPresentationRow(
     pursuitLabel: lead.pursuitLabel?.trim() || MISSING_LABEL,
     updatedAtLabel: formatLeadDate(lead.updatedAt, options.timeZone),
     archivedLabel: lead.derived.isArchived ? "Archived" : null,
-    convertedLabel: lead.derived.isConverted ? "Converted" : null,
   };
 }
 
@@ -79,4 +77,36 @@ export function formatLeadName(
 ): string {
   const parts = [firstName?.trim(), lastName?.trim()].filter(Boolean);
   return parts.length > 0 ? parts.join(" ") : MISSING_LABEL;
+}
+
+export const CONVERTED_LEAD_EDIT_NOTICE =
+  "Changes to this lead will not update the converted customer.";
+
+const LEAD_HISTORY_SOURCE_LABELS: Record<string, string> = {
+  manual: "Manual",
+  conversion: "Conversion",
+  system: "System",
+  import: "Import",
+};
+
+/**
+ * Display-only mapping for history source enums. Does not rewrite stored values.
+ */
+export function formatLeadHistorySourceLabel(source: string): string {
+  const trimmed = source.trim();
+  if (!trimmed) {
+    return "Unknown";
+  }
+
+  const known = LEAD_HISTORY_SOURCE_LABELS[trimmed];
+  if (known) {
+    return known;
+  }
+
+  return trimmed
+    .replace(/[_-]+/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
 }

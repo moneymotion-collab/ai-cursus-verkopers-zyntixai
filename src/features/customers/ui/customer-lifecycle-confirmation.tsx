@@ -11,15 +11,15 @@ export function CustomerLifecycleSummary({ customer }: CustomerLifecycleSummaryP
       <h2 id="lifecycle-customer-summary-title">Customer summary</h2>
       <dl className={styles.summaryList}>
         <div>
-          <dt>Display name</dt>
+          <dt>Customer name</dt>
           <dd>{customer.displayName}</dd>
         </div>
         <div>
-          <dt>Lifecycle status</dt>
+          <dt>Customer status</dt>
           <dd>{customer.statusLabel}</dd>
         </div>
         <div>
-          <dt>Owner</dt>
+          <dt>Assigned to</dt>
           <dd>{customer.ownerLabel}</dd>
         </div>
       </dl>

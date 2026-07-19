@@ -11,7 +11,7 @@ export function LeadLifecycleSummary({ lead }: LeadLifecycleSummaryProps) {
       <h2 id="lifecycle-lead-summary-title">Lead summary</h2>
       <dl className={styles.summaryList}>
         <div>
-          <dt>Display name</dt>
+          <dt>Lead name</dt>
           <dd>{lead.displayName}</dd>
         </div>
         <div>
@@ -19,11 +19,11 @@ export function LeadLifecycleSummary({ lead }: LeadLifecycleSummaryProps) {
           <dd>{lead.statusLabel}</dd>
         </div>
         <div>
-          <dt>Pipeline stage</dt>
+          <dt>{lead.derived.isConverted ? "Last pipeline stage" : "Pipeline stage"}</dt>
           <dd>{lead.stage.name}</dd>
         </div>
         <div>
-          <dt>Owner</dt>
+          <dt>Assigned to</dt>
           <dd>{lead.ownerLabel}</dd>
         </div>
       </dl>

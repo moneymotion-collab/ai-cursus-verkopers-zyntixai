@@ -32,7 +32,8 @@ describe("LeadStatusForm", () => {
     expect(html).toContain("Open");
     expect(html).toContain("Lost");
     expect(html).toContain("Disqualified");
-    expect(html).toContain("Use convert to customer");
+    expect(html).toContain("To complete a successful lead, use Convert to customer.");
+    expect(html).not.toContain("won deals");
     expect(html).not.toContain("Converted");
     expect(html).not.toContain('value="converted"');
   });

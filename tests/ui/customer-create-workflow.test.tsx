@@ -24,20 +24,34 @@ beforeEach(() => {
 });
 
 describe("CustomerCreateForm", () => {
-  it("renders approved fields and owner options without lifecycle inputs", () => {
+  it("renders approved Customer name terminology without lifecycle inputs", () => {
     const html = renderToStaticMarkup(
       <CustomerCreateForm
         organizationId="11111111-1111-4111-8111-111111111111"
-        listState={{ org: "11111111-1111-4111-8111-111111111111", archived: false, sort: "display_name", direction: "asc", page: 1, pageSize: 25 }}
+        listState={{
+          org: "11111111-1111-4111-8111-111111111111",
+          archived: false,
+          sort: "display_name",
+          direction: "asc",
+          page: 1,
+          pageSize: 25,
+        }}
         ownerOptions={ownerOptions}
         cancelHref="/customers"
       />,
     );
     expect(html).toContain("Create customer");
+    expect(html).toContain("Customer details");
+    expect(html).toContain("Customer name (required)");
     expect(html).toContain('id="create-display-name"');
+    expect(html).toContain('name="displayName"');
+    expect(html).toContain("Assigned to");
+    expect(html).toContain('name="ownerMemberId"');
     expect(html).toContain("Unassigned");
     expect(html).toContain("Taylor Owner");
-    expect(html.toLowerCase()).not.toContain("status");
+    expect(html).not.toContain("Display name (required)");
+    expect(html).not.toContain(">Owner<");
+    expect(html).not.toContain("Customer identity");
     expect(html.toLowerCase()).not.toContain("archive");
   });
 

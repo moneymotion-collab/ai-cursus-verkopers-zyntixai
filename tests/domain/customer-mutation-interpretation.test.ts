@@ -61,7 +61,7 @@ describe("interpretCustomerMutationResult", () => {
         message: "Please check the highlighted fields.",
         retryable: false,
         category: "validation",
-        fieldErrors: { displayName: "Display name is required." },
+        fieldErrors: { displayName: "Customer name is required." },
       },
     });
 

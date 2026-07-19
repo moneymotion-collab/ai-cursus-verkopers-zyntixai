@@ -55,6 +55,9 @@ describe("customers UI accessibility", () => {
     );
 
     expect(filters).toContain('for="filter-customer-search"');
+    expect(filters).toContain('for="filter-customer-status">Customer status</label>');
+    expect(filters).toContain('for="filter-customer-owner">Assigned to</label>');
+    expect(filters).toContain('placeholder="Search by customer name or email"');
     expect(filters).toContain("Show archived customers");
 
     const list = renderToStaticMarkup(
@@ -90,6 +93,9 @@ describe("customers UI accessibility", () => {
     );
 
     expect(list).toContain("<th");
+    expect(list).toContain("<th scope=\"col\">Customer status</th>");
+    expect(list).toContain("<th scope=\"col\">Assigned to</th>");
+    expect(list).toContain("<th scope=\"col\">Customer since</th>");
     expect(list).toContain('aria-label="Customer list"');
   });
 

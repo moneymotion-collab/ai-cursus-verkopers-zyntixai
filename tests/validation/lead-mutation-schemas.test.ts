@@ -76,6 +76,31 @@ describe("createLeadInputSchema", () => {
       }).success,
     ).toBe(false);
   });
+
+  it("surfaces Lead name and Lead source terminology in validation messages", () => {
+    const missingName = createLeadInputSchema.safeParse({
+      organizationId: ORG_ID,
+      displayName: "   ",
+    });
+    expect(missingName.success).toBe(false);
+    if (!missingName.success) {
+      expect(missingName.error.issues.some((issue) => issue.message === "Lead name is required.")).toBe(
+        true,
+      );
+    }
+
+    const missingSource = createLeadInputSchema.safeParse({
+      organizationId: ORG_ID,
+      displayName: "Prospect",
+      sourceType: "   ",
+    });
+    expect(missingSource.success).toBe(false);
+    if (!missingSource.success) {
+      expect(
+        missingSource.error.issues.some((issue) => issue.message === "Lead source is required."),
+      ).toBe(true);
+    }
+  });
 });
 
 describe("updateLeadProfileInputSchema", () => {
@@ -106,14 +131,31 @@ describe("updateLeadProfileInputSchema", () => {
       }).success,
     ).toBe(false);
 
-    expect(
-      updateLeadProfileInputSchema.safeParse({
-        organizationId: ORG_ID,
-        leadId: LEAD_ID,
-        displayName: "",
-        sourceType: "manual",
-      }).success,
-    ).toBe(false);
+    const missingName = updateLeadProfileInputSchema.safeParse({
+      organizationId: ORG_ID,
+      leadId: LEAD_ID,
+      displayName: "",
+      sourceType: "manual",
+    });
+    expect(missingName.success).toBe(false);
+    if (!missingName.success) {
+      expect(missingName.error.issues.some((issue) => issue.message === "Lead name is required.")).toBe(
+        true,
+      );
+    }
+  });
+
+  it("accepts legacy free-text sourceType values on update without rewriting them", () => {
+    const result = updateLeadProfileInputSchema.safeParse({
+      organizationId: ORG_ID,
+      leadId: LEAD_ID,
+      displayName: "Prospect",
+      sourceType: "trade-show-2024",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.sourceType).toBe("trade-show-2024");
+    }
   });
 
   it("rejects empty update payloads missing required fields", () => {

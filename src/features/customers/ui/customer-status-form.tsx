@@ -91,7 +91,7 @@ export function CustomerStatusForm({
       </a>
       <h1>Change customer status</h1>
       <p>
-        Current status: <strong>{customer.statusLabel}</strong>
+        Current customer status: <strong>{customer.statusLabel}</strong>
       </p>
 
       {uiState.kind === "error" ? (
@@ -116,7 +116,7 @@ export function CustomerStatusForm({
       ) : null}
 
       <section className={styles.section} aria-labelledby="status-target-title">
-        <h2 id="status-target-title">New status</h2>
+        <h2 id="status-target-title">New customer status</h2>
         <div className={styles.statusOptions} role="radiogroup" aria-labelledby="status-target-title">
           {allowedTargets.map((status) => (
             <div key={status} className={styles.statusOption}>
@@ -146,7 +146,7 @@ export function CustomerStatusForm({
       <section className={styles.section} aria-labelledby="status-reason-title">
         <h2 id="status-reason-title">Reason (optional)</h2>
         <div className={styles.field}>
-          <label htmlFor="status-reason">Reason for status change</label>
+          <label htmlFor="status-reason">Reason for customer status change</label>
           <textarea
             id="status-reason"
             name="reason"

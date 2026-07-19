@@ -29,6 +29,7 @@ import {
 import type { CustomerListUrlState } from "@/features/customers/ui/customer-list-search-params";
 import {
   formatCustomerDate,
+  formatCustomerHistorySourceLabel,
   formatOptionalCustomerDate,
 } from "@/features/customers/ui/customer-presentation";
 import { getCustomerStatusLabel } from "@/features/customers/domain/status";
@@ -123,7 +124,7 @@ function buildHistoryItems(
       fromStatusLabel: fromLabel,
       toStatusLabel: toLabel,
       actorLabel: entry.changedByLabel,
-      sourceLabel: entry.source,
+      sourceLabel: formatCustomerHistorySourceLabel(entry.source),
       reason: entry.reason,
       timestampLabel: formatCustomerDate(entry.changedAt, timeZone),
     };

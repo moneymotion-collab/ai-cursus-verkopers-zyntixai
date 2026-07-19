@@ -71,10 +71,10 @@ export function CustomerListPresentation({
           <thead>
             <tr>
               <th scope="col">Customer</th>
-              <th scope="col">Status</th>
-              <th scope="col">Owner</th>
+              <th scope="col">Customer status</th>
+              <th scope="col">Assigned to</th>
               <th scope="col">Email</th>
-              <th scope="col">Started</th>
+              <th scope="col">Customer since</th>
               <th scope="col">Updated</th>
             </tr>
           </thead>
@@ -116,7 +116,7 @@ export function CustomerListPresentation({
             </div>
             <dl className={styles.cardMeta}>
               <div>
-                <dt>Owner</dt>
+                <dt>Assigned to</dt>
                 <dd>{row.ownerLabel}</dd>
               </div>
               {row.emailLabel !== "Not provided" ? (

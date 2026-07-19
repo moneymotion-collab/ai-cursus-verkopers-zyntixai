@@ -29,7 +29,7 @@ import {
   parseLeadListReturnState,
 } from "@/features/leads/ui/lead-navigation";
 import type { LeadListUrlState } from "@/features/leads/ui/lead-list-search-params";
-import { formatLeadDate } from "@/features/leads/ui/lead-presentation";
+import { formatLeadDate, formatLeadHistorySourceLabel } from "@/features/leads/ui/lead-presentation";
 import type { Database } from "@/types/database";
 
 const LEAD_ID_PATTERN =
@@ -143,7 +143,7 @@ function buildStatusHistoryItems(
       fromStatusLabel: fromLabel,
       toStatusLabel: toLabel,
       actorLabel: entry.changedByLabel,
-      sourceLabel: entry.source,
+      sourceLabel: formatLeadHistorySourceLabel(entry.source),
       reason: entry.reason,
       timestampLabel: formatLeadDate(entry.changedAt, timeZone),
     };
@@ -167,7 +167,7 @@ function buildStageHistoryItems(
       fromStageLabel: fromLabel,
       toStageLabel: toLabel,
       actorLabel: entry.changedByLabel,
-      sourceLabel: entry.source,
+      sourceLabel: formatLeadHistorySourceLabel(entry.source),
       reason: entry.reason,
       timestampLabel: formatLeadDate(entry.changedAt, timeZone),
     };

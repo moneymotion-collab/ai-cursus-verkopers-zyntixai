@@ -137,6 +137,36 @@ describe("loadLeadDetailPage", () => {
     }
   });
 
+  it("humanizes history source labels without changing stored source values", async () => {
+    statusHistoryMock.mockResolvedValue({
+      ok: true,
+      data: [
+        {
+          id: "hist-1",
+          organizationId: ORG_ID,
+          leadId: LEAD_ID,
+          fromStatus: "open",
+          fromStatusLabel: "Open",
+          toStatus: "converted",
+          toStatusLabel: "Converted",
+          changedByMemberId: null,
+          changedByLabel: "System",
+          source: "conversion",
+          reason: null,
+          changedAt: "2026-07-14T10:00:00.000Z",
+        },
+      ],
+    });
+
+    const result = await loadLeadDetailPage(createSupabase(), LEAD_ID, { org: ORG_ID });
+    expect(result.kind).toBe("ready");
+    if (result.kind === "ready") {
+      expect(result.data.statusHistoryState.kind).toBe("ready");
+      expect(result.data.statusHistory[0]?.sourceLabel).toBe("Conversion");
+      expect(statusHistoryMock.mock.results[0]?.type).toBe("return");
+    }
+  });
+
   it("returns unavailable when lead read fails with permission-safe error", async () => {
     getLeadByIdMock.mockResolvedValue({
       ok: false,

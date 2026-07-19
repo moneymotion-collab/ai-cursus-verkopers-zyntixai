@@ -27,6 +27,15 @@ import lifecycleStyles from "./lead-lifecycle.module.css";
 const CONVERT_MODE_NEW = "new";
 const CONVERT_MODE_EXISTING = "existing";
 
+export const CONVERT_LEAD_CONFIRMATION_DESCRIPTION =
+  "Converting this lead will create or link a customer and change the lead status to Converted.";
+
+export const CONVERT_NEW_CUSTOMER_EFFECT =
+  "A new customer will be created from this lead. The customer starts with status Onboarding. Lead status becomes Converted. Lead history and the customer link are preserved. Archiving the lead or customer later remains independent.";
+
+export const CONVERT_EXISTING_CUSTOMER_EFFECT =
+  "This lead will be linked to the selected existing customer. Lead status becomes Converted. No new customer is created. Lead history and the customer link are preserved. Archiving the lead or customer later remains independent.";
+
 type LeadConvertFormProps = {
   organizationId: string;
   lead: LeadDetailReadModel;
@@ -104,7 +113,7 @@ export function LeadConvertForm({
   return (
     <LeadLifecycleFormShell
       heading="Convert lead to customer"
-      description="Conversion marks this lead as converted and links it to a customer record. This is separate from changing lead status."
+      description={CONVERT_LEAD_CONFIRMATION_DESCRIPTION}
       backHref={cancelHref}
       isPending={isPending}
       pendingLabel={isPending ? "Converting…" : undefined}
@@ -115,7 +124,7 @@ export function LeadConvertForm({
         <h2 id="convert-summary-title">Lead data used for conversion</h2>
         <dl className={lifecycleStyles.summaryList}>
           <div>
-            <dt>Display name</dt>
+            <dt>Lead name</dt>
             <dd>{lead.displayName}</dd>
           </div>
           <div>
@@ -127,9 +136,11 @@ export function LeadConvertForm({
             <dd>{lead.phone ?? "—"}</dd>
           </div>
         </dl>
-        <p className={styles.transitionEffect}>
-          The lead record remains available as a converted lead after conversion.
-        </p>
+        {convertMode === CONVERT_MODE_NEW ? (
+          <p className={styles.transitionEffect}>{CONVERT_NEW_CUSTOMER_EFFECT}</p>
+        ) : (
+          <p className={styles.transitionEffect}>{CONVERT_EXISTING_CUSTOMER_EFFECT}</p>
+        )}
       </section>
 
       <form

@@ -43,7 +43,7 @@ export function LeadListFilters({
         <input type="hidden" name="page" value="1" />
 
         <div className={styles.field}>
-          <label htmlFor="filter-lead-status">Status</label>
+          <label htmlFor="filter-lead-status">Lead status</label>
           <select id="filter-lead-status" name="status" defaultValue={urlState.status ?? "all"}>
             <option value="all">All statuses</option>
             {LEAD_STATUSES.map((status) => (
@@ -70,9 +70,9 @@ export function LeadListFilters({
 
         {ownerOptions.length > 0 ? (
           <div className={styles.field}>
-            <label htmlFor="filter-lead-owner">Owner</label>
+            <label htmlFor="filter-lead-owner">Assigned to</label>
             <select id="filter-lead-owner" name="owner" defaultValue={urlState.owner ?? ""}>
-              <option value="">Any owner</option>
+              <option value="">Anyone</option>
               <option value={LEAD_OWNER_UNASSIGNED_VALUE}>Unassigned</option>
               {ownerOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -86,7 +86,7 @@ export function LeadListFilters({
         <div className={styles.field}>
           <label htmlFor="filter-lead-sort">Sort by</label>
           <select id="filter-lead-sort" name="sort" defaultValue={urlState.sort ?? "display_name"}>
-            <option value="display_name">Display name</option>
+            <option value="display_name">Lead name</option>
             <option value="updated_at">Updated date</option>
             <option value="status">Status</option>
             <option value="created_at">Created date</option>
@@ -113,7 +113,7 @@ export function LeadListFilters({
             type="search"
             defaultValue={urlState.q ?? ""}
             maxLength={200}
-            placeholder="Search by display name or email"
+            placeholder="Search by lead name or email"
           />
         </div>
 

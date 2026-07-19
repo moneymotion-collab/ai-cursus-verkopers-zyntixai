@@ -66,7 +66,7 @@ export function CustomerDetail({ viewModel, reloadHref, workflowLinks }: Custome
         {workflowLinks ? (
           <nav className={styles.workflowLinks} aria-label="Customer actions">
             {workflowLinks.edit ? <a href={workflowLinks.edit}>Edit customer</a> : null}
-            {workflowLinks.status ? <a href={workflowLinks.status}>Change status</a> : null}
+            {workflowLinks.status ? <a href={workflowLinks.status}>Change customer status</a> : null}
             {workflowLinks.archive ? <a href={workflowLinks.archive}>Archive customer</a> : null}
             {workflowLinks.restore ? <a href={workflowLinks.restore}>Restore customer</a> : null}
           </nav>
@@ -74,11 +74,11 @@ export function CustomerDetail({ viewModel, reloadHref, workflowLinks }: Custome
       </header>
 
       <div className={styles.layout}>
-        <section className={styles.identitySection} aria-labelledby="customer-identity-title">
-          <h2 id="customer-identity-title">Customer identity</h2>
+        <section className={styles.identitySection} aria-labelledby="customer-details-title">
+          <h2 id="customer-details-title">Customer details</h2>
           <dl className={styles.metaGrid}>
             <div>
-              <dt>Display name</dt>
+              <dt>Customer name</dt>
               <dd>{customer.displayName}</dd>
             </div>
             <div>
@@ -106,7 +106,7 @@ export function CustomerDetail({ viewModel, reloadHref, workflowLinks }: Custome
               </dd>
             </div>
             <div>
-              <dt>Owner</dt>
+              <dt>Assigned to</dt>
               <dd>{customer.ownerLabel}</dd>
             </div>
             <div>
@@ -114,19 +114,19 @@ export function CustomerDetail({ viewModel, reloadHref, workflowLinks }: Custome
               <dd>{customer.createdByLabel}</dd>
             </div>
             <div>
-              <dt>Lifecycle status</dt>
+              <dt>Customer status</dt>
               <dd>{customer.statusLabel}</dd>
             </div>
             <div>
-              <dt>Archive state</dt>
+              <dt>Archive status</dt>
               <dd>{customer.derived.isArchived ? "Archived" : "Not archived"}</dd>
             </div>
             <div>
-              <dt>Started</dt>
+              <dt>Customer since</dt>
               <dd>{formatCustomerDate(customer.startedAt, organizationTimezone)}</dd>
             </div>
             <div>
-              <dt>Ended</dt>
+              <dt>End date</dt>
               <dd>{formatOptionalCustomerDate(customer.endedAt, organizationTimezone)}</dd>
             </div>
             <div>

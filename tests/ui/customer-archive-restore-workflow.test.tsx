@@ -19,7 +19,7 @@ const listState = {
 };
 
 describe("CustomerArchiveForm", () => {
-  it("states archive is not deletion and preserves lifecycle status", () => {
+  it("states archive is not deletion and preserves customer status", () => {
     const html = renderToStaticMarkup(
       <CustomerArchiveForm
         organizationId={sampleCustomerDetail.organizationId}
@@ -30,13 +30,15 @@ describe("CustomerArchiveForm", () => {
     );
     expect(html).toContain("Archive customer");
     expect(html).toContain("Archive is not deletion");
-    expect(html).toContain("lifecycle status remains Active");
+    expect(html).toContain("customer status remains Active");
+    expect(html).toContain("<dt>Customer name</dt>");
+    expect(html).toContain("<dt>Assigned to</dt>");
     expect(html).not.toContain("status history");
   });
 });
 
 describe("CustomerRestoreForm", () => {
-  it("requires archived customer and preserves lifecycle status", () => {
+  it("preserves customer status independently from archive status", () => {
     const html = renderToStaticMarkup(
       <CustomerRestoreForm
         organizationId={archivedCustomerDetail.organizationId}
@@ -46,7 +48,7 @@ describe("CustomerRestoreForm", () => {
       />,
     );
     expect(html).toContain("Restore customer");
-    expect(html).toContain("lifecycle status remains Active");
-    expect(html).toContain("Restore customer");
+    expect(html).toContain("customer status remains Active");
+    expect(html).toContain("No customer status change occurs during restore");
   });
 });

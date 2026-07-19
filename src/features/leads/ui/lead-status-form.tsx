@@ -97,8 +97,8 @@ export function LeadStatusForm({
         Current lead status: <strong>{lead.statusLabel}</strong>
       </p>
       <p>
-        Pipeline stage stays <strong>{lead.stage.name}</strong>. Use convert to customer for won
-        deals.
+        Pipeline stage stays <strong>{lead.stage.name}</strong>. To complete a successful lead, use
+        Convert to customer.
       </p>
 
       {uiState.kind === "error" ? (

@@ -64,6 +64,11 @@ describe("leads UI accessibility", () => {
     );
 
     expect(filters).toContain('for="filter-lead-search"');
+    expect(filters).toContain('for="filter-lead-status">Lead status</label>');
+    expect(filters).toContain('for="filter-lead-owner">Assigned to</label>');
+    expect(filters).toContain('placeholder="Search by lead name or email"');
+    expect(filters).toContain('value="display_name"');
+    expect(filters).toContain("Lead name");
     expect(filters).toContain("Show archived leads");
 
     const list = renderToStaticMarkup(
@@ -73,8 +78,8 @@ describe("leads UI accessibility", () => {
             id: "22222222-2222-4222-8222-222222222222",
             organizationId: "11111111-1111-4111-8111-111111111111",
             displayName: "Prospect Co",
-            status: "open",
-            statusLabel: "Open",
+            status: "converted",
+            statusLabel: "Converted",
             email: "ops@prospect.test",
             ownerMemberId: null,
             ownerLabel: "Unassigned",
@@ -84,12 +89,12 @@ describe("leads UI accessibility", () => {
             stageCategoryLabel: "New",
             sourceType: "manual",
             pursuitLabel: null,
-            convertedCustomerId: null,
-            convertedAt: null,
+            convertedCustomerId: "55555555-5555-4555-8555-555555555555",
+            convertedAt: "2026-07-14T10:00:00.000Z",
             createdAt: "2026-07-14T10:00:00.000Z",
             updatedAt: "2026-07-14T10:00:00.000Z",
             archivedAt: null,
-            derived: { isArchived: false, isConverted: false, isConvertible: true },
+            derived: { isArchived: false, isConverted: true, isConvertible: false },
           },
         ]}
         timeZone="UTC"
@@ -107,8 +112,13 @@ describe("leads UI accessibility", () => {
     );
 
     expect(list).toContain("<table");
+    expect(list).toContain("<th scope=\"col\">Lead status</th>");
+    expect(list).toContain("<th scope=\"col\">Assigned to</th>");
     expect(list).toContain("Pipeline stage");
     expect(list).toContain("Prospect Co");
+    expect(list).toContain(">Converted<");
+    expect(list.split(">Converted<").length - 1).toBe(2);
+    expect(list).toContain("<dt>Assigned to</dt>");
 
     const history = renderToStaticMarkup(
       <LeadStatusHistorySection
@@ -119,7 +129,7 @@ describe("leads UI accessibility", () => {
             fromStatusLabel: "Open",
             toStatusLabel: "Lost",
             actorLabel: "Taylor Owner",
-            sourceLabel: "manual",
+            sourceLabel: "Manual",
             reason: null,
             timestampLabel: "Jul 14, 2026",
           },
@@ -130,6 +140,7 @@ describe("leads UI accessibility", () => {
 
     expect(history).toContain('aria-label="Lead status history"');
     expect(history).toContain("<ol");
+    expect(history).toContain("Manual");
   });
 
   it("renders accessible pagination labels", () => {

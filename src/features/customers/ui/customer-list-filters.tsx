@@ -40,7 +40,7 @@ export function CustomerListFilters({
         <input type="hidden" name="page" value="1" />
 
         <div className={styles.field}>
-          <label htmlFor="filter-customer-status">Status</label>
+          <label htmlFor="filter-customer-status">Customer status</label>
           <select id="filter-customer-status" name="status" defaultValue={urlState.status ?? "all"}>
             <option value="all">All statuses</option>
             {CUSTOMER_STATUSES.map((status) => (
@@ -53,9 +53,9 @@ export function CustomerListFilters({
 
         {ownerOptions.length > 0 ? (
           <div className={styles.field}>
-            <label htmlFor="filter-customer-owner">Owner</label>
+            <label htmlFor="filter-customer-owner">Assigned to</label>
             <select id="filter-customer-owner" name="owner" defaultValue={urlState.owner ?? ""}>
-              <option value="">Any owner</option>
+              <option value="">Anyone</option>
               <option value={CUSTOMER_OWNER_UNASSIGNED_VALUE}>Unassigned</option>
               {ownerOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -69,10 +69,10 @@ export function CustomerListFilters({
         <div className={styles.field}>
           <label htmlFor="filter-customer-sort">Sort by</label>
           <select id="filter-customer-sort" name="sort" defaultValue={urlState.sort ?? "display_name"}>
-            <option value="display_name">Display name</option>
+            <option value="display_name">Customer name</option>
             <option value="updated_at">Updated date</option>
             <option value="status">Status</option>
-            <option value="started_at">Started date</option>
+            <option value="started_at">Customer since</option>
           </select>
         </div>
 
@@ -96,7 +96,7 @@ export function CustomerListFilters({
             type="search"
             defaultValue={urlState.q ?? ""}
             maxLength={200}
-            placeholder="Search by display name or email"
+            placeholder="Search by customer name or email"
           />
         </div>
 

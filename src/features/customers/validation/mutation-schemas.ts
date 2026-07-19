@@ -34,7 +34,7 @@ const optionalEmail = z
 export const createCustomerInputSchema = z
   .object({
     organizationId: uuidSchema,
-    displayName: z.string().trim().min(1, "Display name is required.").max(200),
+    displayName: z.string().trim().min(1, "Customer name is required.").max(200),
     firstName: optionalTrimmedString(200),
     lastName: optionalTrimmedString(200),
     email: optionalEmail,
@@ -47,7 +47,7 @@ export const updateCustomerProfileInputSchema = z
   .object({
     organizationId: uuidSchema,
     customerId: uuidSchema,
-    displayName: z.string().trim().min(1, "Display name is required.").max(200),
+    displayName: z.string().trim().min(1, "Customer name is required.").max(200),
     firstName: optionalTrimmedString(200),
     lastName: optionalTrimmedString(200),
     email: optionalEmail,

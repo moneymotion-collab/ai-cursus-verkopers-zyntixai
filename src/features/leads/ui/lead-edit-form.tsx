@@ -15,6 +15,11 @@ import {
 } from "@/features/leads/ui/lead-form-state";
 import { buildLeadDetailHref } from "@/features/leads/ui/lead-navigation";
 import type { LeadListUrlState } from "@/features/leads/ui/lead-list-search-params";
+import {
+  DEFAULT_LEAD_SOURCE_TYPE,
+  buildLeadSourceTypeSelectOptions,
+} from "@/features/leads/ui/lead-source-type-options";
+import { CONVERTED_LEAD_EDIT_NOTICE } from "@/features/leads/ui/lead-presentation";
 import styles from "./lead-form.module.css";
 
 type LeadEditFormProps = {
@@ -56,6 +61,7 @@ export function LeadEditForm({
   const [sourceDetail, setSourceDetail] = useState(lead.sourceDetail ?? "");
   const [pursuitLabel, setPursuitLabel] = useState(lead.pursuitLabel ?? "");
 
+  const sourceTypeOptions = buildLeadSourceTypeSelectOptions(lead.sourceType);
   const fieldErrors = uiState.kind === "field_error" ? uiState.fieldErrors : undefined;
   const locked = leadFormIsLocked(uiState);
   const isPending = uiState.kind === "pending";
@@ -78,7 +84,7 @@ export function LeadEditForm({
       email: email.trim() || null,
       phone: phone.trim() || null,
       ownerMemberId: resolveOwnerMemberId(ownerMemberId),
-      sourceType: sourceType.trim() || "manual",
+      sourceType: sourceType.trim() || DEFAULT_LEAD_SOURCE_TYPE,
       sourceDetail: sourceDetail.trim() || null,
       pursuitLabel: pursuitLabel.trim() || null,
     });
@@ -115,6 +121,12 @@ export function LeadEditForm({
       </a>
       <h1>Edit lead</h1>
 
+      {lead.derived.isConverted ? (
+        <div className={styles.formNotice} role="status">
+          <p>{CONVERTED_LEAD_EDIT_NOTICE}</p>
+        </div>
+      ) : null}
+
       {uiState.kind === "error" ? (
         <div className={styles.formError} role="alert">
           <p>{uiState.message}</p>
@@ -146,7 +158,7 @@ export function LeadEditForm({
         <h2 id="edit-lead-identity-title">Lead identity</h2>
 
         <div className={styles.field}>
-          <label htmlFor="edit-lead-display-name">Display name (required)</label>
+          <label htmlFor="edit-lead-display-name">Lead name (required)</label>
           <input
             id="edit-lead-display-name"
             name="displayName"
@@ -223,7 +235,7 @@ export function LeadEditForm({
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="edit-lead-owner">Owner</label>
+          <label htmlFor="edit-lead-owner">Assigned to</label>
           <select
             id="edit-lead-owner"
             name="ownerMemberId"
@@ -253,39 +265,56 @@ export function LeadEditForm({
       </section>
 
       <section className={styles.section} aria-labelledby="edit-lead-source-title">
-        <h2 id="edit-lead-source-title">Source and pursuit</h2>
+        <h2 id="edit-lead-source-title">Source and interest</h2>
 
         <div className={styles.field}>
-          <label htmlFor="edit-lead-source-type">Source type (required)</label>
-          <input
+          <label htmlFor="edit-lead-source-type">Lead source</label>
+          <select
             id="edit-lead-source-type"
             name="sourceType"
             value={sourceType}
             onChange={(event) => setSourceType(event.target.value)}
-            required
             aria-invalid={Boolean(fieldErrorMessage(fieldErrors, "sourceType"))}
+            aria-describedby={
+              fieldErrorMessage(fieldErrors, "sourceType")
+                ? "edit-lead-source-type-error"
+                : undefined
+            }
             disabled={locked}
-          />
+          >
+            {sourceTypeOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          {fieldErrorMessage(fieldErrors, "sourceType") ? (
+            <p id="edit-lead-source-type-error" className={styles.fieldError}>
+              {fieldErrorMessage(fieldErrors, "sourceType")}
+            </p>
+          ) : null}
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="edit-lead-source-detail">Source detail</label>
+          <label htmlFor="edit-lead-source-detail">Source details</label>
           <input
             id="edit-lead-source-detail"
             name="sourceDetail"
             value={sourceDetail}
             onChange={(event) => setSourceDetail(event.target.value)}
+            placeholder="Example: Instagram DM after the beta tester post"
             disabled={locked}
           />
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="edit-lead-pursuit-label">Pursuit label</label>
+          <label htmlFor="edit-lead-pursuit-label">Interested in</label>
           <input
             id="edit-lead-pursuit-label"
             name="pursuitLabel"
             value={pursuitLabel}
             onChange={(event) => setPursuitLabel(event.target.value)}
+            placeholder="Example: ZyntixAI Beta or Product Demo"
             disabled={locked}
           />
         </div>

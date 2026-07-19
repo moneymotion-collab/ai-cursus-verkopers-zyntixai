@@ -85,9 +85,9 @@ export function CustomerRestoreForm({
       <section className={lifecycleStyles.summary} aria-labelledby="restore-explanation-title">
         <h2 id="restore-explanation-title">What restoring means</h2>
         <ul className={lifecycleStyles.explanationList}>
-          <li>The lifecycle status remains {customer.statusLabel}.</li>
+          <li>The customer status remains {customer.statusLabel}.</li>
           <li>Staff and viewers can see the customer again when their role allows it.</li>
-          <li>No lifecycle status change occurs during restore.</li>
+          <li>No customer status change occurs during restore.</li>
         </ul>
       </section>
 

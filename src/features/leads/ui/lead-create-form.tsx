@@ -14,6 +14,10 @@ import {
 } from "@/features/leads/ui/lead-form-state";
 import { buildLeadDetailHref } from "@/features/leads/ui/lead-navigation";
 import type { LeadListUrlState } from "@/features/leads/ui/lead-list-search-params";
+import {
+  DEFAULT_LEAD_SOURCE_TYPE,
+  LEAD_SOURCE_TYPE_OPTIONS,
+} from "@/features/leads/ui/lead-source-type-options";
 import styles from "./lead-form.module.css";
 
 type LeadCreateFormProps = {
@@ -45,7 +49,7 @@ export function LeadCreateForm({
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [ownerMemberId, setOwnerMemberId] = useState(LEAD_OWNER_UNASSIGNED_VALUE);
-  const [sourceType, setSourceType] = useState("manual");
+  const [sourceType, setSourceType] = useState<string>(DEFAULT_LEAD_SOURCE_TYPE);
   const [sourceDetail, setSourceDetail] = useState("");
   const [pursuitLabel, setPursuitLabel] = useState("");
 
@@ -70,7 +74,7 @@ export function LeadCreateForm({
       email: email.trim() || null,
       phone: phone.trim() || null,
       ownerMemberId: resolveOwnerMemberId(ownerMemberId),
-      sourceType: sourceType.trim() || "manual",
+      sourceType: sourceType.trim() || DEFAULT_LEAD_SOURCE_TYPE,
       sourceDetail: sourceDetail.trim() || null,
       pursuitLabel: pursuitLabel.trim() || null,
     });
@@ -138,7 +142,7 @@ export function LeadCreateForm({
         <h2 id="create-lead-identity-title">Lead identity</h2>
 
         <div className={styles.field}>
-          <label htmlFor="create-lead-display-name">Display name (required)</label>
+          <label htmlFor="create-lead-display-name">Lead name (required)</label>
           <input
             id="create-lead-display-name"
             name="displayName"
@@ -218,7 +222,7 @@ export function LeadCreateForm({
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="create-lead-owner">Owner</label>
+          <label htmlFor="create-lead-owner">Assigned to</label>
           <select
             id="create-lead-owner"
             name="ownerMemberId"
@@ -246,37 +250,45 @@ export function LeadCreateForm({
       </section>
 
       <section className={styles.section} aria-labelledby="create-lead-source-title">
-        <h2 id="create-lead-source-title">Source and pursuit</h2>
+        <h2 id="create-lead-source-title">Source and interest</h2>
 
         <div className={styles.field}>
-          <label htmlFor="create-lead-source-type">Source type</label>
-          <input
+          <label htmlFor="create-lead-source-type">Lead source</label>
+          <select
             id="create-lead-source-type"
             name="sourceType"
             value={sourceType}
             onChange={(event) => setSourceType(event.target.value)}
             disabled={locked}
-          />
+          >
+            {LEAD_SOURCE_TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="create-lead-source-detail">Source detail</label>
+          <label htmlFor="create-lead-source-detail">Source details</label>
           <input
             id="create-lead-source-detail"
             name="sourceDetail"
             value={sourceDetail}
             onChange={(event) => setSourceDetail(event.target.value)}
+            placeholder="Example: Instagram DM after the beta tester post"
             disabled={locked}
           />
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="create-lead-pursuit">Pursuit label</label>
+          <label htmlFor="create-lead-pursuit">Interested in</label>
           <input
             id="create-lead-pursuit"
             name="pursuitLabel"
             value={pursuitLabel}
             onChange={(event) => setPursuitLabel(event.target.value)}
+            placeholder="Example: ZyntixAI Beta or Product Demo"
             disabled={locked}
           />
         </div>

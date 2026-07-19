@@ -25,5 +25,17 @@ describe("leads UI responsive contract", () => {
     expect(css).toContain(".tableWrap");
     expect(css).toContain(".cardList");
     expect(css).toContain("1024px");
+    expect(css).toMatch(/grid-template-columns:\s*7rem\s+1fr/);
+  });
+
+  it("keeps converted detail notice and badge row wrapping for narrow layouts", () => {
+    const css = readFileSync(
+      join(process.cwd(), "src/features/leads/ui/lead-detail.module.css"),
+      "utf8",
+    );
+    expect(css).toContain(".convertedNotice");
+    expect(css).toContain("word-break: break-word");
+    expect(css).toContain(".badgeRow");
+    expect(css).toContain("flex-wrap: wrap");
   });
 });

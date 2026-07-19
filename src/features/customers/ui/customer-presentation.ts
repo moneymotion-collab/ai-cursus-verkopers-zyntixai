@@ -75,6 +75,36 @@ export function formatCustomerName(
   return parts.length > 0 ? parts.join(" ") : MISSING_LABEL;
 }
 
+const CUSTOMER_HISTORY_SOURCE_LABELS: Record<string, string> = {
+  manual: "Manual",
+  lead_conversion: "Lead conversion",
+  system: "System",
+  import: "Import",
+};
+
+/**
+ * Display-only mapping for customer history source values.
+ * Does not rewrite stored history rows.
+ */
+export function formatCustomerHistorySourceLabel(source: string): string {
+  const trimmed = source.trim();
+  if (!trimmed) {
+    return "Unknown";
+  }
+
+  const known = CUSTOMER_HISTORY_SOURCE_LABELS[trimmed];
+  if (known) {
+    return known;
+  }
+
+  return trimmed
+    .replace(/[_-]+/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
 const UUID_PATTERN =
   /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i;
 

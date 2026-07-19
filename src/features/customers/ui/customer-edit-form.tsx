@@ -136,10 +136,10 @@ export function CustomerEditForm({
       ) : null}
 
       <section className={styles.section} aria-labelledby="edit-identity-title">
-        <h2 id="edit-identity-title">Customer identity</h2>
+        <h2 id="edit-identity-title">Customer details</h2>
 
         <div className={styles.field}>
-          <label htmlFor="edit-display-name">Display name (required)</label>
+          <label htmlFor="edit-display-name">Customer name (required)</label>
           <input
             id="edit-display-name"
             name="displayName"
@@ -213,7 +213,7 @@ export function CustomerEditForm({
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="edit-owner">Owner</label>
+          <label htmlFor="edit-owner">Assigned to</label>
           <select
             id="edit-owner"
             name="ownerMemberId"

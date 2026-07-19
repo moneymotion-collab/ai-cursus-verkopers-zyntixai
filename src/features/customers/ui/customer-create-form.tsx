@@ -130,10 +130,10 @@ export function CustomerCreateForm({
       ) : null}
 
       <section className={styles.section} aria-labelledby="create-identity-title">
-        <h2 id="create-identity-title">Customer identity</h2>
+        <h2 id="create-identity-title">Customer details</h2>
 
         <div className={styles.field}>
-          <label htmlFor="create-display-name">Display name (required)</label>
+          <label htmlFor="create-display-name">Customer name (required)</label>
           <input
             id="create-display-name"
             name="displayName"
@@ -234,7 +234,7 @@ export function CustomerCreateForm({
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="create-owner">Owner</label>
+          <label htmlFor="create-owner">Assigned to</label>
           <select
             id="create-owner"
             name="ownerMemberId"

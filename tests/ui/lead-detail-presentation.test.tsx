@@ -2,7 +2,12 @@ import React from "react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { LeadDetail } from "@/features/leads/ui/lead-detail";
+import {
+  CONVERTED_LEAD_EDIT_NOTICE,
+  formatLeadHistorySourceLabel,
+} from "@/features/leads/ui/lead-presentation";
 import type { LeadDetailViewModel } from "@/features/leads/ui/load-lead-detail";
+import { LeadStatusHistorySection } from "@/features/leads/ui/lead-status-history";
 
 const ORG_ID = "11111111-1111-4111-8111-111111111111";
 const LEAD_ID = "22222222-2222-4222-8222-222222222222";
@@ -79,24 +84,87 @@ function buildViewModel(overrides: Partial<LeadDetailViewModel> = {}): LeadDetai
   };
 }
 
+function extractBadgeRegion(html: string): string {
+  const match = html.match(
+    /data-testid="lead-detail-badges"[^>]*>([\s\S]*?)<\/div>/,
+  );
+  return match?.[1] ?? "";
+}
+
 describe("LeadDetail presentation", () => {
-  it("distinguishes status and pipeline stage and links converted customer", () => {
-    const html = renderToStaticMarkup(<LeadDetail viewModel={buildViewModel()} />);
+  it("uses approved terminology and Last pipeline stage for converted leads", () => {
+    const html = renderToStaticMarkup(
+      <LeadDetail
+        viewModel={buildViewModel()}
+        workflowLinks={{ edit: `/leads/${LEAD_ID}/edit` }}
+      />,
+    );
 
     expect(html).toContain("Lead overview");
-    expect(html).toContain("Converted");
-    expect(html).toContain("Qualified");
-    expect(html).toContain("Pipeline stage");
-    expect(html).toContain("Lead status");
+    expect(html).toContain("<dt>Lead name</dt>");
+    expect(html).toContain("<dt>Assigned to</dt>");
+    expect(html).toContain("<dt>Lead source</dt>");
+    expect(html).toContain("Manual entry");
+    expect(html).toContain("<dt>Interested in</dt>");
+    expect(html).toContain("<dt>Archive status</dt>");
+    expect(html).toContain("<dt>Lead status</dt>");
+    expect(html).toContain("<dt>Last pipeline stage</dt>");
+    expect(html).not.toContain("<dt>Pipeline stage</dt>");
+    expect(html).not.toContain("<dt>Display name</dt>");
+    expect(html).not.toContain("<dt>Owner</dt>");
+    expect(html).not.toContain("<dt>Source</dt>");
+    expect(html).not.toContain("<dt>Pursuit</dt>");
+    expect(html).not.toContain("<dt>Archive state</dt>");
+    expect(html).toContain(CONVERTED_LEAD_EDIT_NOTICE);
+    expect(html).toContain("Edit lead");
+  });
+
+  it("keeps one Converted status badge and preserves Converted customer panel", () => {
+    const html = renderToStaticMarkup(<LeadDetail viewModel={buildViewModel()} />);
+    const badges = extractBadgeRegion(html);
+
+    expect(badges.split(">Converted<").length - 1).toBe(1);
+    expect(badges).toContain("Qualified");
+    expect(badges).not.toContain("Archived");
+
     expect(html).toContain("Converted customer");
     expect(html).toContain(`href="/customers/${CUSTOMER_ID}?org=${ORG_ID}"`);
+    expect(html).toContain('aria-label="Open converted customer Prospect Co Customer"');
     expect(html).toContain("Customer archived");
+    expect(html).toContain("Qualified");
     expect(html).not.toContain("Convert lead");
-    expect(html).not.toContain("Edit lead");
     expect(html).not.toContain("Archive lead");
   });
 
-  it("renders archived lead state", () => {
+  it("shows Pipeline stage for non-converted leads without converted edit notice", () => {
+    const html = renderToStaticMarkup(
+      <LeadDetail
+        viewModel={buildViewModel({
+          lead: {
+            ...buildViewModel().lead,
+            status: "open",
+            statusLabel: "Open",
+            convertedCustomer: null,
+            derived: {
+              isArchived: false,
+              isConverted: false,
+              isConvertible: true,
+              allowedStatusTransitions: ["lost", "disqualified"],
+            },
+          },
+          convertedCustomerHref: undefined,
+        })}
+        workflowLinks={{ edit: `/leads/${LEAD_ID}/edit` }}
+      />,
+    );
+
+    expect(html).toContain("<dt>Pipeline stage</dt>");
+    expect(html).not.toContain("<dt>Last pipeline stage</dt>");
+    expect(html).not.toContain(CONVERTED_LEAD_EDIT_NOTICE);
+    expect(html).toContain("Edit lead");
+  });
+
+  it("renders archived lead state independently of conversion", () => {
     const html = renderToStaticMarkup(
       <LeadDetail
         viewModel={buildViewModel({
@@ -113,10 +181,47 @@ describe("LeadDetail presentation", () => {
               allowedStatusTransitions: [],
             },
           },
+          convertedCustomerHref: undefined,
         })}
       />,
     );
 
+    const badges = extractBadgeRegion(html);
+    expect(badges).toContain("Archived");
+    expect(badges).toContain("Open");
+    expect(html).toContain("<dt>Archive status</dt>");
     expect(html).toContain("Archived");
+  });
+});
+
+describe("Lead history source display", () => {
+  it("humanizes known and unknown history sources without changing stored values", () => {
+    expect(formatLeadHistorySourceLabel("manual")).toBe("Manual");
+    expect(formatLeadHistorySourceLabel("conversion")).toBe("Conversion");
+    expect(formatLeadHistorySourceLabel("system")).toBe("System");
+    expect(formatLeadHistorySourceLabel("import")).toBe("Import");
+    expect(formatLeadHistorySourceLabel("lead_conversion")).toBe("Lead Conversion");
+    expect(formatLeadHistorySourceLabel("")).toBe("Unknown");
+
+    const html = renderToStaticMarkup(
+      <LeadStatusHistorySection
+        history={[
+          {
+            id: "hist-1",
+            transitionLabel: "Status changed from Open to Converted",
+            fromStatusLabel: "Open",
+            toStatusLabel: "Converted",
+            actorLabel: "Taylor Owner",
+            sourceLabel: formatLeadHistorySourceLabel("conversion"),
+            reason: null,
+            timestampLabel: "Jul 14, 2026",
+          },
+        ]}
+        historyState={{ kind: "ready" }}
+      />,
+    );
+
+    expect(html).toContain("Conversion");
+    expect(html).not.toContain(" · conversion · ");
   });
 });
