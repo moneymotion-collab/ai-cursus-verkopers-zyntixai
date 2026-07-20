@@ -29,6 +29,10 @@ function isAllowlistedPathname(pathname: string): boolean {
     return true;
   }
 
+  if (pathname === "/onboarding") {
+    return true;
+  }
+
   return false;
 }
 
@@ -128,7 +132,8 @@ export function isProtectedApplicationPath(pathname: string): boolean {
     pathname === "/customers" ||
     pathname.startsWith("/customers/") ||
     pathname === "/tasks" ||
-    pathname.startsWith("/tasks/")
+    pathname.startsWith("/tasks/") ||
+    pathname === "/onboarding"
   );
 }
 

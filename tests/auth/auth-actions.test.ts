@@ -37,6 +37,22 @@ describe("loginAction", () => {
         signOut: signOutMock,
         getUser: getUserMock,
       },
+      from() {
+        return {
+          select() {
+            return {
+              eq() {
+                return {
+                  maybeSingle: async () => ({
+                    data: { onboarding_completed_at: "2026-07-01T00:00:00.000Z" },
+                    error: null,
+                  }),
+                };
+              },
+            };
+          },
+        };
+      },
     });
 
     getUserMock.mockResolvedValue({

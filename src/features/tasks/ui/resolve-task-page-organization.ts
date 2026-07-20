@@ -4,6 +4,7 @@ import {
   resolveOrganizationContext,
 } from "@/features/organizations/server/resolve-organization-context";
 import { resolveOrganizationTimezone } from "@/features/organizations/server/resolve-organization-timezone";
+import { redirectIfOrganizationOnboardingIncomplete } from "@/features/onboarding/server/enforce-product-onboarding";
 import type { OrganizationRole } from "@/features/tasks/domain/permissions";
 import {
   buildOrganizationOptions,
@@ -90,6 +91,12 @@ export async function resolveTaskPageOrganization(
     selection.organizationId,
   );
   const timeZone = timezoneResult.ok ? timezoneResult.timezone : "UTC";
+
+  await redirectIfOrganizationOnboardingIncomplete(
+    supabase,
+    selection.organizationId,
+    orgContext.context.role,
+  );
 
   return {
     kind: "ready",

@@ -4,6 +4,7 @@ import {
   resolveOrganizationContext,
 } from "@/features/organizations/server/resolve-organization-context";
 import { resolveOrganizationTimezone } from "@/features/organizations/server/resolve-organization-timezone";
+import { redirectIfOrganizationOnboardingIncomplete } from "@/features/onboarding/server/enforce-product-onboarding";
 import type { LeadRole } from "@/features/leads/domain/types";
 import {
   buildOrganizationOptions,
@@ -100,6 +101,12 @@ export async function resolveLeadPageOrganization(
     organizationOptions.find((o) => o.organizationId === selection.organizationId)
       ?.displayName ||
     "Organization";
+
+  await redirectIfOrganizationOnboardingIncomplete(
+    supabase,
+    selection.organizationId,
+    orgContext.context.role,
+  );
 
   return {
     kind: "ready",

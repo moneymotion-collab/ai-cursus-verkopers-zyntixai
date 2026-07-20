@@ -15,8 +15,25 @@ vi.mock("@/features/organizations/server/resolve-organization-context", () => ({
   listActiveOrganizationMemberships: listMembershipsMock,
 }));
 
-function fakeSupabase() {
-  return {} as SupabaseClient<Database>;
+function fakeSupabase(completedAt: string | null = "2026-07-01T00:00:00.000Z") {
+  return {
+    from() {
+      return {
+        select() {
+          return {
+            eq() {
+              return {
+                maybeSingle: async () => ({
+                  data: { onboarding_completed_at: completedAt },
+                  error: null,
+                }),
+              };
+            },
+          };
+        },
+      };
+    },
+  } as unknown as SupabaseClient<Database>;
 }
 
 describe("resolveAuthenticatedLanding", () => {
@@ -24,7 +41,7 @@ describe("resolveAuthenticatedLanding", () => {
     listMembershipsMock.mockReset();
   });
 
-  it("lands single-organization users on organization-scoped leads", async () => {
+  it("lands single completed-organization owners on organization-scoped leads", async () => {
     listMembershipsMock.mockResolvedValue({
       ok: true,
       memberships: [{ organizationId: ORG_A, role: "owner" }],
@@ -32,6 +49,17 @@ describe("resolveAuthenticatedLanding", () => {
 
     await expect(resolveAuthenticatedLanding(fakeSupabase())).resolves.toBe(
       `/leads?org=${ORG_A}`,
+    );
+  });
+
+  it("lands single incomplete-organization owners on onboarding", async () => {
+    listMembershipsMock.mockResolvedValue({
+      ok: true,
+      memberships: [{ organizationId: ORG_A, role: "owner" }],
+    });
+
+    await expect(resolveAuthenticatedLanding(fakeSupabase(null))).resolves.toBe(
+      `/onboarding?org=${ORG_A}`,
     );
   });
 
@@ -68,10 +96,16 @@ describe("resolvePostLoginDestination", () => {
     });
   });
 
-  it("uses sanitized allowlisted destinations", async () => {
+  it("uses sanitized allowlisted destinations when onboarding is complete", async () => {
     await expect(
       resolvePostLoginDestination(fakeSupabase(), "/tasks?status=open"),
     ).resolves.toBe("/tasks?status=open");
+  });
+
+  it("rewrites incomplete owner product destinations to onboarding", async () => {
+    await expect(
+      resolvePostLoginDestination(fakeSupabase(null), `/leads?org=${ORG_A}`),
+    ).resolves.toBe(`/onboarding?org=${ORG_A}`);
   });
 
   it("resolves default and root destinations through organization landing", async () => {
@@ -87,5 +121,11 @@ describe("resolvePostLoginDestination", () => {
     await expect(
       resolvePostLoginDestination(fakeSupabase(), "https://evil.example"),
     ).resolves.toBe(`/leads?org=${ORG_A}`);
+  });
+
+  it("allows an onboarding return path", async () => {
+    await expect(
+      resolvePostLoginDestination(fakeSupabase(null), `/onboarding?org=${ORG_A}`),
+    ).resolves.toBe(`/onboarding?org=${ORG_A}`);
   });
 });

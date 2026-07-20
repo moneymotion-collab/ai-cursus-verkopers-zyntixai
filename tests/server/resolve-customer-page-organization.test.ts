@@ -13,6 +13,12 @@ import {
   USER_ID,
 } from "../helpers/customer-read-query-mocks";
 
+vi.mock("next/navigation", () => ({
+  redirect: (path: string) => {
+    throw new Error(`NEXT_REDIRECT:${path}`);
+  },
+}));
+
 const ORG_B = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 
 function createOrgResolverSupabase(options: {
@@ -20,6 +26,7 @@ function createOrgResolverSupabase(options: {
   memberships?: Array<{ organizationId: string; role: "owner" | "admin" | "staff" | "viewer" }>;
   orgNames?: Record<string, string>;
   timezone?: string | null;
+  onboardingCompletedAt?: string | null;
 }) {
   const membershipRows = (options.memberships ?? []).map((membership, index) => ({
     id: `33333333-3333-4333-8333-333333333${index}`,
@@ -58,7 +65,11 @@ function createOrgResolverSupabase(options: {
             }),
             eq: vi.fn().mockReturnValue({
               maybeSingle: vi.fn().mockResolvedValue({
-                data: { timezone: options.timezone ?? "UTC" },
+                data: {
+                  timezone: options.timezone ?? "UTC",
+                  onboarding_completed_at:
+                    options.onboardingCompletedAt ?? "2026-07-01T00:00:00.000Z",
+                },
                 error: null,
               }),
             }),

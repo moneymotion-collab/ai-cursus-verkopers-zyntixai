@@ -54,6 +54,7 @@ export function buildOnboardingContext(params: {
   teamSizeBand: string | null;
   onboardingCompletedAt: string | null;
   firstRunChecklistDismissedAt: string | null;
+  membershipRole: string;
 }): OnboardingContext {
   const missingRequiredFields = computeMissingRequiredFields({
     displayName: params.displayName,
@@ -64,6 +65,7 @@ export function buildOnboardingContext(params: {
     primaryGoal: params.primaryGoal,
   });
 
+  const membershipRole = params.membershipRole;
   return {
     organizationId: params.organizationId,
     displayName: params.displayName,
@@ -75,6 +77,8 @@ export function buildOnboardingContext(params: {
     teamSizeBand: asEnum(params.teamSizeBand, TEAM_SIZE_BANDS),
     onboardingCompletedAt: params.onboardingCompletedAt,
     firstRunChecklistDismissedAt: params.firstRunChecklistDismissedAt,
+    membershipRole,
+    isOwner: membershipRole === "owner",
     isComplete: isOnboardingComplete(params.onboardingCompletedAt),
     missingRequiredFields,
   };
@@ -126,6 +130,8 @@ export function contextFromRpcPayload(payload: Json): OnboardingContext | null {
       row.first_run_checklist_dismissed_at === null
         ? (row.first_run_checklist_dismissed_at as string | null)
         : null,
+    // Write RPC is owner-only; successful apply implies owner membership.
+    membershipRole: "owner",
   });
 }
 
@@ -268,6 +274,7 @@ export async function readOnboardingContext(
       teamSizeBand: row.team_size_band,
       onboardingCompletedAt: row.onboarding_completed_at,
       firstRunChecklistDismissedAt: row.first_run_checklist_dismissed_at,
+      membershipRole: resolved.role,
     }),
   };
 }

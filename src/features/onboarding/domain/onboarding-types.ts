@@ -32,6 +32,8 @@ export type OnboardingFieldSnapshot = {
 
 export type OnboardingContext = OnboardingFieldSnapshot & {
   organizationId: string;
+  membershipRole: string;
+  isOwner: boolean;
   isComplete: boolean;
   missingRequiredFields: OnboardingRequiredFieldKey[];
 };

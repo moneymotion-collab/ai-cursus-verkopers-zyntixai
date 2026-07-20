@@ -33,8 +33,9 @@ describe("B1.2 onboarding source security contract", () => {
     expect(read).toContain("organization_ambiguous");
   });
 
-  it("does not introduce onboarding UI routes or middleware gates", () => {
+  it("keeps server actions free of client redirects and service-role secrets", () => {
     expect(actions).not.toContain("redirect(");
+    expect(actions).not.toContain("SERVICE_ROLE");
     expect(apply).not.toContain("middleware");
   });
 });

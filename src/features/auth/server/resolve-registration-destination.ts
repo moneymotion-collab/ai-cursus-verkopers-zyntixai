@@ -69,6 +69,6 @@ export async function tryProvisionAndLand(
 
   return {
     ok: true,
-    path: `/leads?org=${encodeURIComponent(provisioned.organizationId)}`,
+    path: `/onboarding?org=${encodeURIComponent(provisioned.organizationId)}`,
   };
 }

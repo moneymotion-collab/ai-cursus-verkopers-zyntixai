@@ -118,8 +118,10 @@ describe("buildOnboardingContext", () => {
       teamSizeBand: null,
       onboardingCompletedAt: null,
       firstRunChecklistDismissedAt: null,
+      membershipRole: "owner",
     });
     expect(context.isComplete).toBe(false);
+    expect(context.isOwner).toBe(true);
     expect(context.missingRequiredFields).toEqual([
       "displayName",
       "primaryOffering",

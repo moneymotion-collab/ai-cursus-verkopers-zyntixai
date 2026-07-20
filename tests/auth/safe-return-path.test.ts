@@ -25,6 +25,13 @@ describe("resolveSafeReturnPath", () => {
     );
   });
 
+  it("accepts the onboarding path with a safe organization query", () => {
+    expect(resolveSafeReturnPath("/onboarding")).toBe("/onboarding");
+    expect(
+      resolveSafeReturnPath("/onboarding?org=11111111-1111-4111-8111-111111111111"),
+    ).toBe("/onboarding?org=11111111-1111-4111-8111-111111111111");
+  });
+
   it("preserves safe query strings on allowlisted paths", () => {
     expect(resolveSafeReturnPath("/leads?org=11111111-1111-4111-8111-111111111111")).toBe(
       "/leads?org=11111111-1111-4111-8111-111111111111",
@@ -129,6 +136,7 @@ describe("isProtectedApplicationPath", () => {
     expect(isProtectedApplicationPath("/leads/new")).toBe(true);
     expect(isProtectedApplicationPath("/customers")).toBe(true);
     expect(isProtectedApplicationPath("/tasks/1/edit")).toBe(true);
+    expect(isProtectedApplicationPath("/onboarding")).toBe(true);
     expect(isProtectedApplicationPath("/")).toBe(false);
     expect(isProtectedApplicationPath("/login")).toBe(false);
     expect(isProtectedApplicationPath("/register")).toBe(false);
