@@ -25,6 +25,10 @@ function isAllowlistedPathname(pathname: string): boolean {
     return true;
   }
 
+  if (pathname === "/forgot-password" || pathname === "/reset-password") {
+    return true;
+  }
+
   return false;
 }
 
@@ -134,6 +138,15 @@ export function isRegistrationPath(pathname: string): boolean {
     pathname === "/register/check-email" ||
     pathname === "/register/complete"
   );
+}
+
+export function isPasswordRecoveryPath(pathname: string): boolean {
+  return pathname === "/forgot-password" || pathname === "/reset-password";
+}
+
+export function isPasswordResetDestination(path: string): boolean {
+  const pathname = path.split("?")[0] ?? path;
+  return pathname === "/reset-password";
 }
 
 export function isAuthCallbackPath(pathname: string): boolean {

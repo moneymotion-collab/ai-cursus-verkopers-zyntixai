@@ -117,6 +117,7 @@ describe("login page session-expired messaging", () => {
     expect(html).toContain('for="login-password"');
     expect(html).toMatch(/autoComplete="email"|autocomplete="email"/);
     expect(html).toMatch(/autoComplete="current-password"|autocomplete="current-password"/);
+    expect(html).toContain('href="/forgot-password"');
     expect(html).toContain('href="/register"');
   });
 
@@ -127,6 +128,7 @@ describe("login page session-expired messaging", () => {
     });
     const html = renderToStaticMarkup(element);
     expect(html).not.toContain('href="/register"');
+    expect(html).toContain('href="/forgot-password"');
     expect(html).toContain("Sign in");
     expect(html).toContain('for="login-email"');
   });
@@ -155,6 +157,7 @@ describe("login form pending and accessibility contract", () => {
     );
     expect(html).toContain('id="login-email"');
     expect(html).toContain('id="login-password"');
+    expect(html).toMatch(/method="post"/i);
     expect(html).toContain('type="email"');
     expect(html).toContain('type="password"');
     expect(html).toContain(getSessionExpiredMessage());
@@ -182,6 +185,8 @@ describe("login form pending and accessibility contract", () => {
     expect(source).toContain("pendingRef");
     expect(source).toContain("disabled={isPending}");
     expect(source).toContain('aria-busy={isPending}');
+    expect(source).toContain('method="post"');
+    expect(source).toContain("event.preventDefault()");
     expect(source).not.toContain("process.env");
   });
 });

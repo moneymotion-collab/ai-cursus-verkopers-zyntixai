@@ -11,6 +11,7 @@ type LoginFormProps = {
   sessionExpiredMessage?: string;
   showRegistrationLink?: boolean;
   registrationUnavailableMessage?: string;
+  passwordResetSuccessMessage?: string;
 };
 
 type LoginUiState =
@@ -24,6 +25,7 @@ export function LoginForm({
   sessionExpiredMessage,
   showRegistrationLink = false,
   registrationUnavailableMessage,
+  passwordResetSuccessMessage,
 }: LoginFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
@@ -68,6 +70,7 @@ export function LoginForm({
   return (
     <form
       className={styles.form}
+      method="post"
       onSubmit={handleSubmit}
       aria-busy={isPending}
       noValidate
@@ -80,6 +83,12 @@ export function LoginForm({
       {sessionExpired && sessionExpiredMessage ? (
         <div className={styles.notice} role="status" aria-live="polite">
           <p>{sessionExpiredMessage}</p>
+        </div>
+      ) : null}
+
+      {passwordResetSuccessMessage ? (
+        <div className={styles.notice} role="status" aria-live="polite">
+          <p>{passwordResetSuccessMessage}</p>
         </div>
       ) : null}
 
@@ -137,6 +146,12 @@ export function LoginForm({
           </p>
         ) : null}
       </div>
+
+      <p className={styles.footer}>
+        <a href="/forgot-password" className={styles.link}>
+          Forgot password?
+        </a>
+      </p>
 
       <button type="submit" className={styles.submit} disabled={isPending}>
         {isPending ? "Signing in…" : "Sign in"}

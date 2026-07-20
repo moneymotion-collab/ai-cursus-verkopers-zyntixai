@@ -129,7 +129,13 @@ describe("updateSession protected-route redirects", () => {
     process.env.PUBLIC_REGISTRATION_ENABLED = "false";
     getUserMock.mockResolvedValue({ data: { user: null }, error: null });
 
-    for (const path of ["/register/check-email", "/register/complete", "/auth/callback"]) {
+    for (const path of [
+      "/register/check-email",
+      "/register/complete",
+      "/auth/callback",
+      "/forgot-password",
+      "/reset-password",
+    ]) {
       const request = new NextRequest(`http://localhost:3000${path}`);
       const response = await updateSession(request);
       expect(response.headers.get("location")).toBeNull();

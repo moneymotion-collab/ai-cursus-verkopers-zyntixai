@@ -4,13 +4,21 @@ import { redirect } from "next/navigation";
 import { resolvePostLoginDestination } from "@/features/auth/server/resolve-authenticated-landing";
 import { parseLoginInput } from "@/features/auth/server/login-schema";
 import {
+  getRecoveryGenericSuccessMessage,
   normalizeLoginError,
+  normalizePasswordUpdateError,
+  normalizeRecoveryRequestError,
+  recoveryErrorMessage,
   zodFieldErrors,
 } from "@/features/auth/server/normalize-auth-error";
 import {
   parseRegisterInput,
   parseResendVerificationInput,
 } from "@/features/auth/server/register-schema";
+import {
+  parseForgotPasswordInput,
+  parseResetPasswordInput,
+} from "@/features/auth/server/recovery-schema";
 import {
   normalizeRegistrationAuthError,
   registrationErrorMessage,
@@ -24,6 +32,10 @@ import {
   isPublicRegistrationEnabled,
   PUBLIC_REGISTRATION_DISABLED_LOGIN_PATH,
 } from "@/features/auth/server/public-registration";
+import {
+  buildAuthCallbackUrl,
+  resolveSiteOrigin,
+} from "@/lib/env/site-origin";
 
 export type LoginActionResult =
   | { ok: true; redirectTo: string }
@@ -43,17 +55,22 @@ export type RegisterActionResult =
       redirectTo?: string;
     };
 
-function siteOrigin(): string | null {
-  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (explicit) {
-    return explicit.replace(/\/$/, "");
-  }
-  const vercel = process.env.VERCEL_URL?.trim();
-  if (vercel) {
-    return `https://${vercel.replace(/\/$/, "")}`;
-  }
-  return "http://127.0.0.1:3000";
-}
+export type ForgotPasswordActionResult =
+  | { ok: true; message: string }
+  | {
+      ok: false;
+      message: string;
+      fieldErrors?: Record<string, string[]>;
+    };
+
+export type ResetPasswordActionResult =
+  | { ok: true; redirectTo: string }
+  | {
+      ok: false;
+      message: string;
+      fieldErrors?: Record<string, string[]>;
+      redirectTo?: string;
+    };
 
 export async function loginAction(input: unknown): Promise<LoginActionResult> {
   const parsed = parseLoginInput(input);
@@ -157,20 +174,12 @@ export async function registerAction(input: unknown): Promise<RegisterActionResu
       };
     }
 
-    const origin = siteOrigin();
-    if (!origin) {
-      return {
-        ok: false,
-        code: "configuration_error",
-        message: registrationErrorMessage("configuration_error"),
-      };
-    }
-
+    const origin = resolveSiteOrigin();
     const { error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
-        emailRedirectTo: `${origin}/auth/callback`,
+        emailRedirectTo: buildAuthCallbackUrl(origin),
         data: {
           display_name: parsed.data.name,
           company_name: parsed.data.companyName,
@@ -222,10 +231,7 @@ export async function resendVerificationAction(
       data: { user },
     } = await supabase.auth.getUser();
 
-    const origin = siteOrigin();
-    if (!origin) {
-      return { ok: true, message: RESEND_SAFE_MESSAGE };
-    }
+    const origin = resolveSiteOrigin();
 
     if (user?.email_confirmed_at) {
       return {
@@ -248,7 +254,7 @@ export async function resendVerificationAction(
       type: "signup",
       email,
       options: {
-        emailRedirectTo: `${origin}/auth/callback`,
+        emailRedirectTo: buildAuthCallbackUrl(origin),
       },
     });
 
@@ -308,6 +314,108 @@ export async function completeRegistrationAction(): Promise<{
       ok: false,
       redirectTo: "/register/complete",
       message: registrationErrorMessage("temporary_service_failure"),
+    };
+  }
+}
+
+/**
+ * Password recovery request. Enumeration-safe success; never gated by
+ * PUBLIC_REGISTRATION_ENABLED.
+ */
+export async function requestPasswordResetAction(
+  input: unknown,
+): Promise<ForgotPasswordActionResult> {
+  const parsed = parseForgotPasswordInput(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: recoveryErrorMessage("invalid_input"),
+      fieldErrors: zodFieldErrors(parsed.error),
+    };
+  }
+
+  const success = {
+    ok: true as const,
+    message: getRecoveryGenericSuccessMessage(),
+  };
+
+  try {
+    const origin = resolveSiteOrigin();
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+      redirectTo: buildAuthCallbackUrl(origin, "/reset-password"),
+    });
+
+    if (error) {
+      const code = normalizeRecoveryRequestError(error);
+      if (code === "rate_limited") {
+        return {
+          ok: false,
+          message: recoveryErrorMessage("rate_limited"),
+        };
+      }
+      // Enumeration-safe: treat other provider failures as generic success.
+      return success;
+    }
+
+    return success;
+  } catch {
+    return success;
+  }
+}
+
+/**
+ * Update password using the authenticated recovery session, then sign out so
+ * the user signs in fresh with the new password.
+ */
+export async function updatePasswordAction(
+  input: unknown,
+): Promise<ResetPasswordActionResult> {
+  const parsed = parseResetPasswordInput(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: recoveryErrorMessage("invalid_input"),
+      fieldErrors: zodFieldErrors(parsed.error),
+    };
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        ok: false,
+        message: recoveryErrorMessage("recovery_expired"),
+        redirectTo: "/forgot-password?reason=recovery_expired",
+      };
+    }
+
+    const { error } = await supabase.auth.updateUser({
+      password: parsed.data.password,
+    });
+
+    if (error) {
+      const code = normalizePasswordUpdateError(error);
+      return {
+        ok: false,
+        message: recoveryErrorMessage(code),
+        redirectTo:
+          code === "recovery_expired"
+            ? "/forgot-password?reason=recovery_expired"
+            : undefined,
+      };
+    }
+
+    await supabase.auth.signOut();
+    return { ok: true, redirectTo: "/login?reset=success" };
+  } catch {
+    return {
+      ok: false,
+      message: recoveryErrorMessage("temporary_service_failure"),
     };
   }
 }

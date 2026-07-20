@@ -87,6 +87,40 @@ describe("resolveSafeReturnPath", () => {
     expect(resolveSafeReturnPath("/register/complete")).toBe("/register/complete");
     expect(resolveSafeReturnPath("/register/evil")).toBe("/");
   });
+
+  it("accepts password-recovery paths and required allowlisted shapes", () => {
+    expect(resolveSafeReturnPath("/forgot-password")).toBe("/forgot-password");
+    expect(resolveSafeReturnPath("/reset-password")).toBe("/reset-password");
+    expect(resolveSafeReturnPath("/leads")).toBe("/leads");
+    expect(resolveSafeReturnPath("/customers?status=active")).toBe(
+      "/customers?status=active",
+    );
+  });
+
+  it("rejects unsafe redirect shapes required by B1.1", () => {
+    expect(resolveSafeReturnPath("https://evil.example")).toBe("/");
+    expect(resolveSafeReturnPath("//evil.example")).toBe("/");
+    expect(resolveSafeReturnPath("javascript:alert(1)")).toBe("/");
+    expect(resolveSafeReturnPath("data:text/html,test")).toBe("/");
+    expect(resolveSafeReturnPath("")).toBe("/");
+    expect(resolveSafeReturnPath("   ")).toBe("/");
+    expect(resolveSafeReturnPath("/%zz")).toBe("/");
+  });
+});
+
+describe("password recovery path helpers", () => {
+  it("identifies recovery and reset destinations", async () => {
+    const {
+      isPasswordRecoveryPath,
+      isPasswordResetDestination,
+    } = await import("@/features/auth/server/safe-return-path");
+    expect(isPasswordRecoveryPath("/forgot-password")).toBe(true);
+    expect(isPasswordRecoveryPath("/reset-password")).toBe(true);
+    expect(isPasswordRecoveryPath("/login")).toBe(false);
+    expect(isPasswordResetDestination("/reset-password")).toBe(true);
+    expect(isPasswordResetDestination("/reset-password?x=1")).toBe(true);
+    expect(isPasswordResetDestination("/forgot-password")).toBe(false);
+  });
 });
 
 describe("isProtectedApplicationPath", () => {

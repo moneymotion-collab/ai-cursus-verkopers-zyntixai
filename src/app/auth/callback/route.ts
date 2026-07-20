@@ -2,7 +2,10 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/types/database";
 import { getPublicSupabaseEnv } from "@/lib/env/public";
-import { resolveSafeReturnPath } from "@/features/auth/server/safe-return-path";
+import {
+  isPasswordResetDestination,
+  resolveSafeReturnPath,
+} from "@/features/auth/server/safe-return-path";
 import { tryProvisionAndLand } from "@/features/auth/server/resolve-registration-destination";
 
 type CookieToSet = {
@@ -12,14 +15,18 @@ type CookieToSet = {
 };
 
 /**
- * Email verification / Auth callback.
+ * Email verification / password-recovery Auth callback.
  * Accepts only Supabase code exchange; redirects via allowlisted paths.
+ * Never logs the authorization code or tokens.
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const nextRaw = searchParams.get("next");
+  const providerError = searchParams.get("error");
+  const errorCode = searchParams.get("error_code");
   const safeNext = resolveSafeReturnPath(nextRaw, "/register/complete");
+  const isRecoveryDestination = isPasswordResetDestination(safeNext);
 
   const cookiesToSet: CookieToSet[] = [];
   let response = NextResponse.redirect(new URL("/register/check-email", origin));
@@ -44,13 +51,24 @@ export async function GET(request: NextRequest) {
     return response;
   }
 
+  function failurePath() {
+    if (isRecoveryDestination || nextRaw === "/reset-password") {
+      return "/forgot-password?reason=recovery_expired";
+    }
+    return "/register/check-email?reason=verification_expired";
+  }
+
+  if (providerError || errorCode) {
+    return finalize(failurePath());
+  }
+
   if (!code) {
-    return finalize("/register/check-email?reason=verification_expired");
+    return finalize(failurePath());
   }
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
-    return finalize("/register/check-email?reason=verification_expired");
+    return finalize(failurePath());
   }
 
   const {
@@ -58,7 +76,12 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return finalize("/login");
+    return finalize(isRecoveryDestination ? failurePath() : "/login");
+  }
+
+  // Password recovery: land on reset form. Do not run owner provisioning.
+  if (isRecoveryDestination) {
+    return finalize("/reset-password");
   }
 
   if (!user.email_confirmed_at) {
@@ -67,8 +90,12 @@ export async function GET(request: NextRequest) {
 
   const provisioned = await tryProvisionAndLand(supabase, user);
   if (provisioned.ok) {
-    if (safeNext.startsWith("/leads") || safeNext.startsWith("/customers") || safeNext.startsWith("/tasks")) {
-      return finalize(safeNext.includes("org=") ? safeNext : provisioned.path);
+    if (
+      safeNext.startsWith("/leads") ||
+      safeNext.startsWith("/customers") ||
+      safeNext.startsWith("/tasks")
+    ) {
+      return finalize(safeNext);
     }
     return finalize(provisioned.path);
   }

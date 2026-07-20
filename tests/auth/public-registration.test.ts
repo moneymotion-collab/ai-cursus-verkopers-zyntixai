@@ -15,9 +15,12 @@ describe("parsePublicRegistrationEnabled", () => {
     ["1", false],
     ["yes", false],
     ["on", false],
+    ["true", true],
+    ["TRUE", true],
     ["true ", true],
     [" TRUE ", true],
     ["unexpected", false],
+    ["   ", false],
   ] as const)("parses %j as enabled=%s", (input, expected) => {
     expect(parsePublicRegistrationEnabled(input)).toBe(expected);
   });

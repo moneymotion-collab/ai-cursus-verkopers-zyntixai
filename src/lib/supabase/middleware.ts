@@ -4,6 +4,7 @@ import type { Database } from "@/types/database";
 import { getPublicSupabaseEnv } from "@/lib/env/public";
 import {
   isAuthCallbackPath,
+  isPasswordRecoveryPath,
   isProtectedApplicationPath,
   isRegistrationPath,
 } from "@/features/auth/server/safe-return-path";
@@ -63,6 +64,7 @@ export async function updateSession(request: NextRequest) {
   const isLogin = pathname === "/login";
   const isRegister = isRegistrationPath(pathname);
   const isCallback = isAuthCallbackPath(pathname);
+  const isRecovery = isPasswordRecoveryPath(pathname);
   const isProtected = isProtectedApplicationPath(pathname);
 
   if (!user && isProtected) {
@@ -125,7 +127,8 @@ export async function updateSession(request: NextRequest) {
     return redirectResponse;
   }
 
-  if (!user && (isRegister || isCallback)) {
+  // Registration flag must never block login, callback, or password recovery.
+  if (!user && (isRegister || isCallback || isRecovery)) {
     return supabaseResponse;
   }
 

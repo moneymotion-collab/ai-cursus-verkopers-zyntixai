@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/features/auth/ui/login-form";
-import { getSessionExpiredMessage } from "@/features/auth/server/normalize-auth-error";
+import {
+  getPasswordResetSuccessMessage,
+  getSessionExpiredMessage,
+} from "@/features/auth/server/normalize-auth-error";
 import { resolvePostLoginDestination } from "@/features/auth/server/resolve-authenticated-landing";
 import { resolveSafeReturnPath } from "@/features/auth/server/safe-return-path";
 import {
@@ -26,6 +29,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const nextRaw = firstParam(params.next);
   const reason = firstParam(params.reason);
   const registration = firstParam(params.registration);
+  const reset = firstParam(params.reset);
   const safeNext = resolveSafeReturnPath(nextRaw);
   const sessionExpired = reason === "session_expired";
   const publicRegistrationEnabled = isPublicRegistrationEnabled();
@@ -33,6 +37,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     !publicRegistrationEnabled && registration === "disabled"
       ? PUBLIC_REGISTRATION_UNAVAILABLE_MESSAGE
       : undefined;
+  const passwordResetSuccess =
+    reset === "success" ? getPasswordResetSuccessMessage() : undefined;
 
   const supabase = await createSupabaseServerClient();
   const {
@@ -52,6 +58,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         sessionExpiredMessage={sessionExpired ? getSessionExpiredMessage() : undefined}
         showRegistrationLink={publicRegistrationEnabled}
         registrationUnavailableMessage={registrationUnavailable}
+        passwordResetSuccessMessage={passwordResetSuccess}
       />
     </main>
   );

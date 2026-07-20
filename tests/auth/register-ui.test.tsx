@@ -55,6 +55,7 @@ describe("register UI contracts", () => {
 
   it("renders accessible register fields and login link", () => {
     const html = renderToStaticMarkup(<RegisterForm />);
+    expect(html).toMatch(/method="post"/i);
     expect(html).toContain('id="register-name"');
     expect(html).toContain('id="register-email"');
     expect(html).toContain('id="register-password"');

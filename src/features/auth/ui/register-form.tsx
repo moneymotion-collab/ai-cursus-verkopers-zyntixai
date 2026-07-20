@@ -72,6 +72,7 @@ export function RegisterForm() {
   return (
     <form
       className={styles.form}
+      method="post"
       onSubmit={handleSubmit}
       aria-busy={isPending}
       noValidate

@@ -81,11 +81,28 @@ describe("registration source security boundaries", () => {
     );
     const resendStart = actions.indexOf("export async function resendVerificationAction");
     const completeStart = actions.indexOf("export async function completeRegistrationAction");
+    const requestResetStart = actions.indexOf(
+      "export async function requestPasswordResetAction",
+    );
+    const updatePasswordStart = actions.indexOf("export async function updatePasswordAction");
     expect(resendStart).toBeGreaterThan(-1);
     expect(completeStart).toBeGreaterThan(-1);
+    expect(requestResetStart).toBeGreaterThan(-1);
+    expect(updatePasswordStart).toBeGreaterThan(-1);
     expect(actions.slice(resendStart, completeStart)).not.toContain(
       "isPublicRegistrationEnabled",
     );
-    expect(actions.slice(completeStart)).not.toContain("isPublicRegistrationEnabled");
+    expect(actions.slice(completeStart, requestResetStart)).not.toContain(
+      "isPublicRegistrationEnabled",
+    );
+    expect(actions.slice(requestResetStart)).not.toContain("isPublicRegistrationEnabled");
+  });
+
+  it("documents NEXT_PUBLIC_SITE_URL for Auth redirects without exposing secrets", () => {
+    const envExample = readFileSync(join(process.cwd(), ".env.example"), "utf8");
+    expect(envExample).toContain("NEXT_PUBLIC_SITE_URL=");
+    expect(envExample).not.toMatch(/eyJ[A-Za-z0-9_-]{10,}/);
+    expect(envExample).not.toMatch(/sb_secret_/i);
+    expect(envExample).not.toMatch(/sk_live_/i);
   });
 });
