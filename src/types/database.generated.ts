@@ -853,37 +853,58 @@ export type Database = {
       organizations: {
         Row: {
           archived_at: string | null
+          business_type: string | null
           created_at: string
           created_by: string | null
+          first_run_checklist_dismissed_at: string | null
           id: string
           locale: string | null
           name: string
+          onboarding_completed_at: string | null
+          primary_audience: string | null
+          primary_goal: string | null
+          primary_offering: string | null
           slug: string
           status: string
+          team_size_band: string | null
           timezone: string | null
           updated_at: string
         }
         Insert: {
           archived_at?: string | null
+          business_type?: string | null
           created_at?: string
           created_by?: string | null
+          first_run_checklist_dismissed_at?: string | null
           id?: string
           locale?: string | null
           name: string
+          onboarding_completed_at?: string | null
+          primary_audience?: string | null
+          primary_goal?: string | null
+          primary_offering?: string | null
           slug: string
           status?: string
+          team_size_band?: string | null
           timezone?: string | null
           updated_at?: string
         }
         Update: {
           archived_at?: string | null
+          business_type?: string | null
           created_at?: string
           created_by?: string | null
+          first_run_checklist_dismissed_at?: string | null
           id?: string
           locale?: string | null
           name?: string
+          onboarding_completed_at?: string | null
+          primary_audience?: string | null
+          primary_goal?: string | null
+          primary_offering?: string | null
           slug?: string
           status?: string
+          team_size_band?: string | null
           timezone?: string | null
           updated_at?: string
         }
@@ -1408,6 +1429,21 @@ export type Database = {
           p_source_type?: string
         }
         Returns: string
+      }
+      apply_organization_onboarding: {
+        Args: {
+          p_organization_id: string
+          p_mode: string
+          p_organization_name?: string | null
+          p_display_name?: string | null
+          p_business_type?: string | null
+          p_primary_audience?: string | null
+          p_primary_offering?: string | null
+          p_primary_goal?: string | null
+          p_team_size_band?: string | null
+          p_clear_team_size_band?: boolean
+        }
+        Returns: Json
       }
       complete_owner_self_registration: {
         Args: {
