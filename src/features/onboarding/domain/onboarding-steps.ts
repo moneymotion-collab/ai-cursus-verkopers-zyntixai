@@ -95,8 +95,33 @@ export function formValuesFromContext(
   };
 }
 
+function isCanonicalBusinessType(
+  value: OnboardingFormValues["businessType"],
+): value is BusinessType {
+  return Boolean(value) && BUSINESS_TYPES.includes(value as BusinessType);
+}
+
+function isCanonicalPrimaryAudience(
+  value: OnboardingFormValues["primaryAudience"],
+): value is PrimaryAudience {
+  return Boolean(value) && PRIMARY_AUDIENCES.includes(value as PrimaryAudience);
+}
+
+function isCanonicalPrimaryOffering(
+  value: OnboardingFormValues["primaryOffering"],
+): value is PrimaryOffering {
+  return Boolean(value) && PRIMARY_OFFERINGS.includes(value as PrimaryOffering);
+}
+
+function isCanonicalPrimaryGoal(
+  value: OnboardingFormValues["primaryGoal"],
+): value is PrimaryGoal {
+  return Boolean(value) && PRIMARY_GOALS.includes(value as PrimaryGoal);
+}
+
 /**
  * Resume at the first incomplete step based on saved server values.
+ * Unknown / non-canonical enums recover at the step that owns them.
  */
 export function resolveInitialOnboardingStep(
   values: OnboardingFormValues,
@@ -104,14 +129,17 @@ export function resolveInitialOnboardingStep(
   if (
     !values.displayName.trim() ||
     !values.organizationName.trim() ||
-    !values.businessType
+    !isCanonicalBusinessType(values.businessType)
   ) {
     return 1;
   }
-  if (!values.primaryAudience || !values.primaryOffering) {
+  if (
+    !isCanonicalPrimaryAudience(values.primaryAudience) ||
+    !isCanonicalPrimaryOffering(values.primaryOffering)
+  ) {
     return 2;
   }
-  if (!values.primaryGoal) {
+  if (!isCanonicalPrimaryGoal(values.primaryGoal)) {
     return 3;
   }
   return 3;
@@ -162,12 +190,13 @@ export function validateOnboardingStep(
 export function firstInvalidField(
   fieldErrors: Record<string, string[]>,
 ): string | null {
+  // Match visible field order (Step 2: offering then audience).
   const order = [
     "displayName",
     "organizationName",
     "businessType",
-    "primaryAudience",
     "primaryOffering",
+    "primaryAudience",
     "primaryGoal",
     "teamSizeBand",
   ];
@@ -270,13 +299,13 @@ export function reviewLabels(values: OnboardingFormValues) {
   return {
     displayName: values.displayName.trim() || "—",
     organizationName: values.organizationName.trim() || "—",
-    businessType: values.businessType
+    businessType: isCanonicalBusinessType(values.businessType)
       ? BUSINESS_TYPE_LABELS[values.businessType]
       : "—",
-    primaryAudience: values.primaryAudience
+    primaryAudience: isCanonicalPrimaryAudience(values.primaryAudience)
       ? PRIMARY_AUDIENCE_LABELS[values.primaryAudience]
       : "—",
-    primaryOffering: values.primaryOffering
+    primaryOffering: isCanonicalPrimaryOffering(values.primaryOffering)
       ? PRIMARY_OFFERING_LABELS[values.primaryOffering]
       : "—",
   };

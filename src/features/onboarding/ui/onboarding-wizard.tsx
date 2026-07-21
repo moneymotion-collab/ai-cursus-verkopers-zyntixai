@@ -116,9 +116,12 @@ export function OnboardingWizard({ context, initialStep }: OnboardingWizardProps
     setValues(formValuesFromContext(result.context));
     setUiState({ kind: "idle" });
     pendingRef.current = false;
+    // Keep the App Router RSC payload aligned with the just-persisted draft so a
+    // refresh cannot revive a stale Step 2 snapshot (production Full Route Cache).
+    router.refresh();
 
     if (step < 3) {
-      setStep((step + 1) as OnboardingStepNumber);
+      setStep((current) => (current + 1) as OnboardingStepNumber);
       return;
     }
   }

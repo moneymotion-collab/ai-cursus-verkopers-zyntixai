@@ -159,5 +159,11 @@ describe("onboarding steps domain", () => {
     expect(firstInvalidField({ businessType: ["Choose the type of business you run."] })).toBe(
       "businessType",
     );
+    expect(
+      firstInvalidField({
+        primaryAudience: ["Choose your primary audience."],
+        primaryOffering: ["Choose your main offer."],
+      }),
+    ).toBe("primaryOffering");
   });
 });

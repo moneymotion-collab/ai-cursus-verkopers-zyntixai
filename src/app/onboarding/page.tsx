@@ -10,6 +10,9 @@ import { OnboardingWizard } from "@/features/onboarding/ui/onboarding-wizard";
 import { OnboardingStatusPanel } from "@/features/onboarding/ui/onboarding-status-panel";
 import styles from "./page.module.css";
 
+/** Always read live onboarding draft — never serve a cached Step 2 snapshot. */
+export const dynamic = "force-dynamic";
+
 type OnboardingPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
@@ -132,7 +135,20 @@ export default async function OnboardingPage({
   return (
     <main className={styles.page} aria-labelledby="onboarding-title">
       <p className={styles.brand}>ZyntixAI</p>
-      <OnboardingWizard context={result.context} initialStep={initialStep} />
+      <OnboardingWizard
+        key={[
+          result.context.organizationId,
+          result.context.businessType ?? "",
+          result.context.primaryOffering ?? "",
+          result.context.primaryAudience ?? "",
+          result.context.primaryGoal ?? "",
+          result.context.teamSizeBand ?? "",
+          result.context.displayName ?? "",
+          result.context.organizationName,
+        ].join(":")}
+        context={result.context}
+        initialStep={initialStep}
+      />
     </main>
   );
 }
