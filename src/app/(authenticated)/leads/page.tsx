@@ -11,6 +11,7 @@ import {
 } from "@/features/leads/ui/lead-list-search-params";
 import { buildLeadCreateHref } from "@/features/leads/ui/lead-navigation";
 import { canShowCreateLeadWorkflow } from "@/features/leads/ui/lead-workflow-visibility";
+import { FirstValueChecklistPanel } from "@/features/onboarding/ui/first-value-checklist-panel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
 
@@ -28,10 +29,15 @@ function buildPageHref(urlState: LeadListUrlState, page: number): string {
   return `/leads${buildLeadListQueryString({ ...urlState, page })}`;
 }
 
-function resolveEmptyState(urlState: LeadListUrlState): {
+function resolveEmptyState(
+  urlState: LeadListUrlState,
+  canCreateLead: boolean,
+): {
   title: string;
   description: string;
   clearHref?: string;
+  actionHref?: string;
+  actionLabel?: string;
 } {
   if (urlState.archived) {
     return {
@@ -67,7 +73,9 @@ function resolveEmptyState(urlState: LeadListUrlState): {
 
   return {
     title: "No leads are available.",
-    description: "Leads in your organization will appear here.",
+    description: "Add your first lead to start organizing your pipeline.",
+    actionHref: canCreateLead ? buildLeadCreateHref(urlState) : undefined,
+    actionLabel: canCreateLead ? "Add your first lead" : undefined,
   };
 }
 
@@ -152,12 +160,15 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
     );
   }
 
-  const emptyState = resolveEmptyState(result.urlState);
+  const canCreateLead = canShowCreateLeadWorkflow(result.role);
+  const emptyState = resolveEmptyState(result.urlState, canCreateLead);
   const { pagination } = result.list;
   const previousHref =
     pagination.hasPreviousPage ? buildPageHref(result.urlState, pagination.page - 1) : undefined;
   const nextHref =
     pagination.hasNextPage ? buildPageHref(result.urlState, pagination.page + 1) : undefined;
+  const checklist =
+    result.checklist && result.checklist.visible ? result.checklist : null;
 
   return (
     <AppShell
@@ -170,7 +181,7 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
         <header className={styles.pageHeader}>
           <div className={styles.pageHeaderRow}>
             <h1>Leads</h1>
-            {canShowCreateLeadWorkflow(result.role) ? (
+            {canCreateLead ? (
               <a className={styles.newLeadLink} href={buildLeadCreateHref(result.urlState)}>
                 New lead
               </a>
@@ -183,6 +194,8 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
             Showing {result.list.items.length} of {pagination.total} leads
           </p>
         </header>
+
+        {checklist ? <FirstValueChecklistPanel checklist={checklist} /> : null}
 
         {result.filterWarning ? (
           <Alert title="Filters adjusted" variant="warning">
@@ -204,6 +217,8 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
           emptyTitle={emptyState.title}
           emptyDescription={emptyState.description}
           clearFiltersHref={emptyState.clearHref}
+          emptyActionHref={emptyState.actionHref}
+          emptyActionLabel={emptyState.actionLabel}
         />
 
         <Pagination

@@ -11,6 +11,8 @@ import {
   loadCustomerMemberFilterOptions,
   type CustomerMemberOption,
 } from "@/features/customers/server/load-customer-member-filter-options";
+import type { FirstValueChecklistViewModel } from "@/features/onboarding/domain/first-value-checklist";
+import { loadFirstValueChecklist } from "@/features/onboarding/server/load-first-value-checklist";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
 import {
   buildLeadListQueryString,
@@ -31,6 +33,7 @@ export type LeadsPageSuccess = {
   ownerOptions: CustomerMemberOption[];
   stageOptions: LeadPipelineStageOption[];
   filterWarning: string | null;
+  checklist: FirstValueChecklistViewModel | null;
 };
 
 export type LeadsPageResult =
@@ -116,6 +119,12 @@ export async function loadLeadsPage(
       ? "Some filters were reset because they were invalid."
       : null;
 
+  const checklist = await loadFirstValueChecklist({
+    supabase,
+    organizationId: orgResult.organizationId,
+    role: orgResult.role,
+  });
+
   return {
     kind: "success",
     organizationOptions: orgResult.organizationOptions,
@@ -128,6 +137,7 @@ export async function loadLeadsPage(
     ownerOptions,
     stageOptions,
     filterWarning,
+    checklist,
   };
 }
 

@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   parseOnboardingCompleteInput,
@@ -14,7 +16,18 @@ import {
   completeOnboarding,
   saveOnboardingDraft,
 } from "@/features/onboarding/server/apply-onboarding";
+import {
+  checklistMessage,
+  dismissFirstValueChecklist,
+  type ChecklistDismissResult,
+} from "@/features/onboarding/server/dismiss-first-value-checklist";
 import { readOnboardingContext } from "@/features/onboarding/server/read-onboarding-context";
+
+const dismissChecklistInputSchema = z
+  .object({
+    organizationId: z.string().uuid("Organization is required."),
+  })
+  .strict();
 
 function zodFieldErrors(
   error: import("zod").ZodError,
@@ -89,6 +102,37 @@ export async function completeOnboardingAction(
       ok: false,
       code: "unexpected_error",
       message: onboardingMessage("unexpected_error"),
+    };
+  }
+}
+
+export async function dismissFirstValueChecklistAction(
+  input: unknown,
+): Promise<ChecklistDismissResult> {
+  const parsed = dismissChecklistInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      code: "validation_error",
+      message: checklistMessage("validation_error"),
+    };
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const result = await dismissFirstValueChecklist(
+      supabase,
+      parsed.data.organizationId,
+    );
+    if (result.ok) {
+      revalidatePath("/leads");
+    }
+    return result;
+  } catch {
+    return {
+      ok: false,
+      code: "unexpected_error",
+      message: checklistMessage("unexpected_error"),
     };
   }
 }

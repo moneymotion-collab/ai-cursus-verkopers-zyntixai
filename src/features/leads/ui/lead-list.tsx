@@ -15,6 +15,8 @@ export type LeadListPresentationProps = {
   emptyTitle: string;
   emptyDescription: string;
   clearFiltersHref?: string;
+  emptyActionHref?: string;
+  emptyActionLabel?: string;
 };
 
 function badgeVariantForStatus(label: string): "neutral" | "success" | "warning" | "danger" | "info" {
@@ -44,6 +46,8 @@ export function LeadListPresentation({
   emptyTitle,
   emptyDescription,
   clearFiltersHref,
+  emptyActionHref,
+  emptyActionLabel,
 }: LeadListPresentationProps) {
   const rows = mapLeadsToPresentationRows(leads, timeZone, listState);
 
@@ -55,6 +59,11 @@ export function LeadListPresentation({
         </h2>
         <p className={styles.emptyTitle}>{emptyTitle}</p>
         <p className={styles.emptyDescription}>{emptyDescription}</p>
+        {emptyActionHref && emptyActionLabel ? (
+          <a className={styles.emptyAction} href={emptyActionHref}>
+            {emptyActionLabel}
+          </a>
+        ) : null}
         {clearFiltersHref ? (
           <a className={styles.clearLink} href={clearFiltersHref}>
             Clear filters
