@@ -13,9 +13,9 @@ import {
 } from "@/features/auth/server/safe-return-path";
 
 describe("programs navigation groundwork", () => {
-  it("registers canonical routes without exposing a visible dead link", () => {
+  it("registers canonical routes and exposes the Programs nav link", () => {
     expect(PROGRAMS_ROUTE).toBe("/programs");
-    expect(PROGRAMS_NAV_VISIBLE).toBe(false);
+    expect(PROGRAMS_NAV_VISIBLE).toBe(true);
     expect(isProgramsPathname("/programs")).toBe(true);
     expect(isProgramsPathname("/programs/new")).toBe(true);
     expect(isProgramsPathname("/programmes")).toBe(false);

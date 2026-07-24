@@ -93,6 +93,23 @@ export async function loadProgramDetailFoundation(params: {
     programId: params.programId,
   });
 
+  let historyState: ProgramDetailLoaderResult["historyState"];
+  let history: ProgramDetailLoaderResult["history"] = [];
+
+  if (!capabilities.canViewProgramHistory) {
+    historyState = { kind: "hidden" };
+  } else if (!historyResult.ok) {
+    historyState = {
+      kind: "error",
+      message: historyResult.error.message,
+    };
+  } else if (historyResult.data.length === 0) {
+    historyState = { kind: "empty" };
+  } else {
+    historyState = { kind: "ready" };
+    history = historyResult.data;
+  }
+
   return {
     ok: true,
     data: {
@@ -100,7 +117,8 @@ export async function loadProgramDetailFoundation(params: {
       role: params.role,
       capabilities,
       program: programResult.data,
-      history: historyResult.ok ? historyResult.data : [],
+      history,
+      historyState,
     },
   };
 }

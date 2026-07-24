@@ -1,0 +1,113 @@
+import { Badge } from "@/components/ui/badge";
+import type { ProgramDetailViewModel } from "@/features/programs/ui/load-program-detail-page";
+import {
+  formatProgramDate,
+  formatOptionalProgramDate,
+} from "@/features/programs/ui/program-presentation";
+import { ProgramHistorySection } from "@/features/programs/ui/program-history";
+import styles from "./program-detail.module.css";
+
+type ProgramDetailProps = {
+  viewModel: ProgramDetailViewModel;
+  reloadHref?: string;
+};
+
+function badgeVariantForStatus(
+  label: string,
+): "neutral" | "success" | "warning" | "danger" | "info" {
+  if (label === "Active") return "success";
+  if (label === "Retired") return "danger";
+  if (label === "Paused") return "warning";
+  return "neutral";
+}
+
+export function ProgramUnavailableDetail({ backHref }: { backHref: string }) {
+  return (
+    <section className={styles.statePanel} aria-labelledby="program-unavailable-title">
+      <h1 id="program-unavailable-title">Program unavailable</h1>
+      <p>This program is unavailable. It may have been removed or you may not have access.</p>
+      <p>
+        <a href={backHref}>Back to programs</a>
+      </p>
+    </section>
+  );
+}
+
+export function ProgramDetail({ viewModel, reloadHref }: ProgramDetailProps) {
+  const { program, history, historyState, descriptionLabel, organizationTimezone, backHref } =
+    viewModel;
+
+  return (
+    <article className={styles.programDetail}>
+      <a className={styles.backLink} href={backHref}>
+        Back to programs
+      </a>
+
+      <header className={styles.header}>
+        <h1 className={styles.title}>{program.name}</h1>
+        <div className={styles.badgeRow}>
+          <Badge variant={badgeVariantForStatus(program.statusLabel)}>
+            {program.statusLabel}
+          </Badge>
+          {program.derived.isArchived ? <Badge variant="info">Archived</Badge> : null}
+        </div>
+      </header>
+
+      <div className={styles.layout}>
+        <section className={styles.identitySection} aria-labelledby="program-details-title">
+          <h2 id="program-details-title">Program details</h2>
+          <dl className={styles.metaGrid}>
+            <div>
+              <dt>Program name</dt>
+              <dd>{program.name}</dd>
+            </div>
+            <div>
+              <dt>Description</dt>
+              <dd>{descriptionLabel}</dd>
+            </div>
+            <div>
+              <dt>Delivery mode</dt>
+              <dd>{program.deliveryModeLabel}</dd>
+            </div>
+            <div>
+              <dt>Lifecycle status</dt>
+              <dd>{program.statusLabel}</dd>
+            </div>
+            <div>
+              <dt>Archive status</dt>
+              <dd>{program.derived.isArchived ? "Archived" : "Not archived"}</dd>
+            </div>
+            <div>
+              <dt>Open enrollments</dt>
+              <dd>{program.openEnrollmentCount}</dd>
+            </div>
+            <div>
+              <dt>Created</dt>
+              <dd>{formatProgramDate(program.createdAt, organizationTimezone)}</dd>
+            </div>
+            <div>
+              <dt>Updated</dt>
+              <dd>{formatProgramDate(program.updatedAt, organizationTimezone)}</dd>
+            </div>
+            <div>
+              <dt>Archived at</dt>
+              <dd>{formatOptionalProgramDate(program.archivedAt, organizationTimezone)}</dd>
+            </div>
+          </dl>
+          <p className={styles.boundaryNote}>
+            Enrollment management and progress tracking will follow in later phases. Open enrollment
+            count is shown for awareness only.
+          </p>
+        </section>
+
+        <div className={styles.panels}>
+          <ProgramHistorySection
+            history={history}
+            historyState={historyState}
+            reloadHref={reloadHref}
+          />
+        </div>
+      </div>
+    </article>
+  );
+}

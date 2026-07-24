@@ -102,12 +102,19 @@ export type ProgramListLoaderResult = {
   result: ProgramListReadResult;
 };
 
+export type ProgramHistoryLoadState =
+  | { kind: "ready" }
+  | { kind: "empty" }
+  | { kind: "error"; message: string }
+  | { kind: "hidden" };
+
 export type ProgramDetailLoaderResult = {
   organizationId: string;
   role: ProgramRole;
   capabilities: ProgramPermissionSet;
   program: ProgramDetailReadModel;
   history: ProgramStatusHistoryEntry[];
+  historyState: ProgramHistoryLoadState;
 };
 
 export const DEFAULT_PROGRAM_PAGE_SIZE = 25;

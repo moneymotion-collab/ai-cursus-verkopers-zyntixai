@@ -1,6 +1,6 @@
 /**
  * Canonical Programs route and navigation metadata.
- * Visible shell activation is deferred until B1.5.2 provides a safe `/programs` page.
+ * Visible shell activation is enabled in B1.5.2 when list/create/detail routes exist.
  */
 
 export const PROGRAMS_ROUTE = "/programs" as const;
@@ -61,7 +61,6 @@ export function buildProgramEditHref(
 }
 
 /**
- * Visible primary-nav Programs link must remain inactive until B1.5.2.
- * Registry metadata is available for route protection and future shell wiring.
+ * Visible primary-nav Programs link — activated in B1.5.2 once list/create/detail routes exist.
  */
-export const PROGRAMS_NAV_VISIBLE = false as const;
+export const PROGRAMS_NAV_VISIBLE = true as const;

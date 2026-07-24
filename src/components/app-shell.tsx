@@ -2,13 +2,18 @@ import Link from "next/link";
 import { logoutAction } from "@/features/auth/actions/auth-actions";
 import styles from "./app-shell.module.css";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
+import {
+  PROGRAMS_NAV_LABEL,
+  PROGRAMS_NAV_VISIBLE,
+  PROGRAMS_ROUTE,
+} from "@/features/programs/domain/programs-navigation";
 
 type AppShellProps = {
   children: React.ReactNode;
   organizationOptions?: OrganizationOption[];
   selectedOrganizationId?: string;
   organizationSelectorAction?: string;
-  activeNav?: "home" | "leads" | "customers" | "tasks";
+  activeNav?: "home" | "leads" | "customers" | "programs" | "tasks";
 };
 
 export function AppShell({
@@ -48,6 +53,15 @@ export function AppShell({
               >
                 Customers
               </Link>
+              {PROGRAMS_NAV_VISIBLE ? (
+                <Link
+                  className={styles.navLink}
+                  href={PROGRAMS_ROUTE}
+                  aria-current={activeNav === "programs" ? "page" : undefined}
+                >
+                  {PROGRAMS_NAV_LABEL}
+                </Link>
+              ) : null}
               <Link
                 className={styles.navLink}
                 href="/tasks"
