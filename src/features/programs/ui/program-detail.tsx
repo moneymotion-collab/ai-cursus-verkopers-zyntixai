@@ -7,9 +7,17 @@ import {
 import { ProgramHistorySection } from "@/features/programs/ui/program-history";
 import styles from "./program-detail.module.css";
 
+export type ProgramWorkflowLinks = {
+  edit?: string;
+  status?: string;
+  archive?: string;
+  restore?: string;
+};
+
 type ProgramDetailProps = {
   viewModel: ProgramDetailViewModel;
   reloadHref?: string;
+  workflowLinks?: ProgramWorkflowLinks;
 };
 
 function badgeVariantForStatus(
@@ -33,7 +41,7 @@ export function ProgramUnavailableDetail({ backHref }: { backHref: string }) {
   );
 }
 
-export function ProgramDetail({ viewModel, reloadHref }: ProgramDetailProps) {
+export function ProgramDetail({ viewModel, reloadHref, workflowLinks }: ProgramDetailProps) {
   const { program, history, historyState, descriptionLabel, organizationTimezone, backHref } =
     viewModel;
 
@@ -51,6 +59,16 @@ export function ProgramDetail({ viewModel, reloadHref }: ProgramDetailProps) {
           </Badge>
           {program.derived.isArchived ? <Badge variant="info">Archived</Badge> : null}
         </div>
+        {workflowLinks ? (
+          <nav className={styles.workflowLinks} aria-label="Program actions">
+            {workflowLinks.edit ? <a href={workflowLinks.edit}>Edit program</a> : null}
+            {workflowLinks.status ? (
+              <a href={workflowLinks.status}>Change program status</a>
+            ) : null}
+            {workflowLinks.archive ? <a href={workflowLinks.archive}>Archive program</a> : null}
+            {workflowLinks.restore ? <a href={workflowLinks.restore}>Restore program</a> : null}
+          </nav>
+        ) : null}
       </header>
 
       <div className={styles.layout}>

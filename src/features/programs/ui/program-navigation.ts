@@ -41,6 +41,50 @@ export function buildBackToProgramsHref(listState?: ProgramListUrlState): string
   return buildProgramsListHref(listState);
 }
 
+export function buildProgramEditHref(
+  programId: string,
+  listState?: ProgramListUrlState,
+): string {
+  const base = `${PROGRAMS_ROUTE}/${encodeURIComponent(programId)}/edit`;
+  if (!listState) {
+    return base;
+  }
+  return `${base}${buildProgramListQueryString(listState)}`;
+}
+
+export function buildProgramStatusHref(
+  programId: string,
+  listState?: ProgramListUrlState,
+): string {
+  const base = `${PROGRAMS_ROUTE}/${encodeURIComponent(programId)}/status`;
+  if (!listState) {
+    return base;
+  }
+  return `${base}${buildProgramListQueryString(listState)}`;
+}
+
+export function buildProgramArchiveHref(
+  programId: string,
+  listState?: ProgramListUrlState,
+): string {
+  const base = `${PROGRAMS_ROUTE}/${encodeURIComponent(programId)}/archive`;
+  if (!listState) {
+    return base;
+  }
+  return `${base}${buildProgramListQueryString(listState)}`;
+}
+
+export function buildProgramRestoreHref(
+  programId: string,
+  listState?: ProgramListUrlState,
+): string {
+  const base = `${PROGRAMS_ROUTE}/${encodeURIComponent(programId)}/restore`;
+  if (!listState) {
+    return base;
+  }
+  return `${base}${buildProgramListQueryString(listState)}`;
+}
+
 export {
   parseProgramListReturnState,
   buildProgramListQueryString,

@@ -67,6 +67,40 @@ export const createProgramInput = {
   description: "Intro",
 };
 
+export const updateProgramInput = {
+  organizationId: ORG_ID,
+  programId: PROGRAM_ID,
+  name: "Growth Lab Updated",
+  deliveryMode: "hybrid" as const,
+  description: "Updated description",
+};
+
+export const transitionProgramInput = {
+  organizationId: ORG_ID,
+  programId: PROGRAM_ID,
+  toStatus: "active" as const,
+  reason: "Ready for enrollments",
+};
+
+export const archiveProgramInput = {
+  organizationId: ORG_ID,
+  programId: PROGRAM_ID,
+};
+
+export const restoreProgramInput = {
+  organizationId: ORG_ID,
+  programId: PROGRAM_ID,
+};
+
+export const sampleArchivedProgramDetail: ProgramDetailReadModel = {
+  ...sampleProgramDetail,
+  archivedAt: "2026-07-20T09:00:00.000Z",
+  derived: {
+    isArchived: true,
+    allowedTransitions: ["active", "retired"],
+  },
+};
+
 export function createProgramSuccessResult(): ProgramMutationResult {
   return {
     ok: true,
@@ -76,5 +110,67 @@ export function createProgramSuccessResult(): ProgramMutationResult {
     committed: true,
     refreshRequired: false,
     refreshHints: PROGRAM_MUTATION_REFRESH_HINTS.create,
+  };
+}
+
+export function updateProgramSuccessResult(): ProgramMutationResult {
+  return {
+    ok: true,
+    operation: "update",
+    programId: PROGRAM_ID,
+    program: {
+      ...sampleProgramDetail,
+      name: updateProgramInput.name,
+      deliveryMode: updateProgramInput.deliveryMode,
+      deliveryModeLabel: "Hybrid",
+      description: updateProgramInput.description,
+    },
+    committed: true,
+    refreshRequired: false,
+    refreshHints: PROGRAM_MUTATION_REFRESH_HINTS.update,
+  };
+}
+
+export function transitionProgramSuccessResult(): ProgramMutationResult {
+  return {
+    ok: true,
+    operation: "transition_status",
+    programId: PROGRAM_ID,
+    program: {
+      ...sampleProgramDetail,
+      status: "active",
+      statusLabel: "Active",
+      derived: {
+        isArchived: false,
+        allowedTransitions: ["paused", "retired"],
+      },
+    },
+    committed: true,
+    refreshRequired: false,
+    refreshHints: PROGRAM_MUTATION_REFRESH_HINTS.transition_status,
+  };
+}
+
+export function archiveProgramSuccessResult(): ProgramMutationResult {
+  return {
+    ok: true,
+    operation: "archive",
+    programId: PROGRAM_ID,
+    program: sampleArchivedProgramDetail,
+    committed: true,
+    refreshRequired: false,
+    refreshHints: PROGRAM_MUTATION_REFRESH_HINTS.archive,
+  };
+}
+
+export function restoreProgramSuccessResult(): ProgramMutationResult {
+  return {
+    ok: true,
+    operation: "restore",
+    programId: PROGRAM_ID,
+    program: sampleProgramDetail,
+    committed: true,
+    refreshRequired: false,
+    refreshHints: PROGRAM_MUTATION_REFRESH_HINTS.restore,
   };
 }

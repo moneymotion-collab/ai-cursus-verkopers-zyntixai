@@ -6,7 +6,17 @@ import { loadProgramDetailPage } from "@/features/programs/ui/load-program-detai
 import {
   parseProgramListReturnState,
   buildProgramListQueryString,
+  buildProgramArchiveHref,
+  buildProgramEditHref,
+  buildProgramRestoreHref,
+  buildProgramStatusHref,
 } from "@/features/programs/ui/program-navigation";
+import {
+  canShowArchiveProgramWorkflow,
+  canShowEditProgramWorkflow,
+  canShowRestoreProgramWorkflow,
+  canShowStatusProgramWorkflow,
+} from "@/features/programs/ui/program-workflow-visibility";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
 
@@ -84,6 +94,20 @@ export default async function ProgramDetailPage({
     org: result.selectedOrganizationId,
   };
   const reloadHref = `/programs/${programId}${buildProgramListQueryString(listState)}`;
+  const workflowLinks = {
+    edit: canShowEditProgramWorkflow(result.data.program, result.role)
+      ? buildProgramEditHref(programId, listState)
+      : undefined,
+    status: canShowStatusProgramWorkflow(result.data.program, result.role)
+      ? buildProgramStatusHref(programId, listState)
+      : undefined,
+    archive: canShowArchiveProgramWorkflow(result.data.program, result.role)
+      ? buildProgramArchiveHref(programId, listState)
+      : undefined,
+    restore: canShowRestoreProgramWorkflow(result.data.program, result.role)
+      ? buildProgramRestoreHref(programId, listState)
+      : undefined,
+  };
 
   return (
     <AppShell
@@ -93,7 +117,11 @@ export default async function ProgramDetailPage({
       organizationSelectorAction={`/programs/${programId}`}
     >
       <section className={styles.page}>
-        <ProgramDetail viewModel={result.data} reloadHref={reloadHref} />
+        <ProgramDetail
+          viewModel={result.data}
+          reloadHref={reloadHref}
+          workflowLinks={workflowLinks}
+        />
       </section>
     </AppShell>
   );

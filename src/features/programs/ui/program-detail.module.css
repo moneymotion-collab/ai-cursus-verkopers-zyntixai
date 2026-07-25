@@ -35,6 +35,23 @@
   align-items: center;
 }
 
+.workflowLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+}
+
+.workflowLinks a {
+  color: var(--link-color, #1d4ed8);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.workflowLinks a:focus-visible {
+  outline: 2px solid var(--focus-color, #2563eb);
+  outline-offset: 2px;
+}
+
 .layout {
   display: grid;
   gap: 1.5rem;

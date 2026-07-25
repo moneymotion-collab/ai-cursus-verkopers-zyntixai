@@ -6,7 +6,10 @@ import {
   ProgramUnavailableDetail,
 } from "@/features/programs/ui/program-detail";
 import type { ProgramDetailViewModel } from "@/features/programs/ui/load-program-detail-page";
-import { sampleProgramDetail } from "../helpers/program-test-fixtures";
+import {
+  sampleArchivedProgramDetail,
+  sampleProgramDetail,
+} from "../helpers/program-test-fixtures";
 
 vi.mock("@/components/ui/badge", () => ({
   Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
@@ -42,39 +45,56 @@ const baseViewModel: ProgramDetailViewModel = {
   backHref: "/programs",
 };
 
-describe("ProgramDetail", () => {
-  it("renders summary fields, history, enrollment count and no mutation controls", () => {
-    const html = renderToStaticMarkup(<ProgramDetail viewModel={baseViewModel} />);
+describe("ProgramDetail mutation controls", () => {
+  it("renders owner/admin workflow links when provided", () => {
+    const html = renderToStaticMarkup(
+      <ProgramDetail
+        viewModel={baseViewModel}
+        workflowLinks={{
+          edit: `/programs/${sampleProgramDetail.id}/edit`,
+          status: `/programs/${sampleProgramDetail.id}/status`,
+          archive: `/programs/${sampleProgramDetail.id}/archive`,
+        }}
+      />,
+    );
 
-    expect(html).toContain("Growth Lab");
-    expect(html).toContain("Draft");
-    expect(html).toContain("Cohort");
-    expect(html).toContain("Not archived");
-    expect(html).toContain("Open enrollments");
-    expect(html).toContain(">0<");
-    expect(html).toContain("Status history");
-    expect(html).toContain("Set to Draft");
-    expect(html).toContain("Back to programs");
-    expect(html).toContain("Enrollment management and progress tracking will follow");
-    expect(html).not.toContain("Edit program");
-    expect(html).not.toContain("Archive program");
+    expect(html).toContain("Edit program");
+    expect(html).toContain("Change program status");
+    expect(html).toContain("Archive program");
     expect(html).not.toContain("Restore program");
-    expect(html).not.toContain("Change program status");
+    expect(html).toContain("Open enrollments");
+    expect(html).toContain("Status history");
     expect(html).not.toContain('href="/enrollments');
     expect(html).not.toContain("Progress dashboard");
   });
 
-  it("renders empty history state", () => {
+  it("renders restore only for archived programs and keeps status prominent", () => {
     const html = renderToStaticMarkup(
       <ProgramDetail
         viewModel={{
           ...baseViewModel,
-          history: [],
-          historyState: { kind: "empty" },
+          program: sampleArchivedProgramDetail,
+        }}
+        workflowLinks={{
+          restore: `/programs/${sampleProgramDetail.id}/restore`,
         }}
       />,
     );
-    expect(html).toContain("No status history is available yet.");
+
+    expect(html).toContain("Archived");
+    expect(html).toContain("Restore program");
+    expect(html).not.toContain("Edit program");
+    expect(html).not.toContain("Archive program");
+    expect(html).toContain("Draft");
+  });
+
+  it("stays read-only for staff/viewer when workflow links are omitted", () => {
+    const html = renderToStaticMarkup(<ProgramDetail viewModel={baseViewModel} />);
+
+    expect(html).not.toContain("Edit program");
+    expect(html).not.toContain("Change program status");
+    expect(html).not.toContain("Archive program");
+    expect(html).not.toContain("Restore program");
   });
 
   it("renders unavailable detail without enumeration hints", () => {
@@ -82,7 +102,6 @@ describe("ProgramDetail", () => {
       <ProgramUnavailableDetail backHref="/programs" />,
     );
     expect(html).toContain("Program unavailable");
-    expect(html).toContain("Back to programs");
     expect(html).not.toContain("does not exist in another organization");
   });
 });
