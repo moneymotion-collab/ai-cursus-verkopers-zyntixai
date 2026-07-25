@@ -21,6 +21,10 @@ function isAllowlistedPathname(pathname: string): boolean {
     return true;
   }
 
+  if (pathname === "/enrollments" || pathname.startsWith("/enrollments/")) {
+    return true;
+  }
+
   if (
     pathname === "/register" ||
     pathname === "/register/check-email" ||
@@ -139,6 +143,8 @@ export function isProtectedApplicationPath(pathname: string): boolean {
     pathname.startsWith("/tasks/") ||
     pathname === "/programs" ||
     pathname.startsWith("/programs/") ||
+    pathname === "/enrollments" ||
+    pathname.startsWith("/enrollments/") ||
     pathname === "/onboarding"
   );
 }

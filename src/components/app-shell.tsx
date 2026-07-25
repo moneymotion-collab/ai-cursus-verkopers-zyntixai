@@ -7,13 +7,18 @@ import {
   PROGRAMS_NAV_VISIBLE,
   PROGRAMS_ROUTE,
 } from "@/features/programs/domain/programs-navigation";
+import {
+  ENROLLMENTS_NAV_LABEL,
+  ENROLLMENTS_NAV_VISIBLE,
+  ENROLLMENTS_ROUTE,
+} from "@/features/enrollments/domain/enrollments-navigation";
 
 type AppShellProps = {
   children: React.ReactNode;
   organizationOptions?: OrganizationOption[];
   selectedOrganizationId?: string;
   organizationSelectorAction?: string;
-  activeNav?: "home" | "leads" | "customers" | "programs" | "tasks";
+  activeNav?: "home" | "leads" | "customers" | "programs" | "enrollments" | "tasks";
 };
 
 export function AppShell({
@@ -60,6 +65,15 @@ export function AppShell({
                   aria-current={activeNav === "programs" ? "page" : undefined}
                 >
                   {PROGRAMS_NAV_LABEL}
+                </Link>
+              ) : null}
+              {ENROLLMENTS_NAV_VISIBLE ? (
+                <Link
+                  className={styles.navLink}
+                  href={ENROLLMENTS_ROUTE}
+                  aria-current={activeNav === "enrollments" ? "page" : undefined}
+                >
+                  {ENROLLMENTS_NAV_LABEL}
                 </Link>
               ) : null}
               <Link

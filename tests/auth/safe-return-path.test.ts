@@ -12,7 +12,7 @@ describe("resolveSafeReturnPath", () => {
     expect(resolveSafeReturnPath("")).toBe(DEFAULT_RETURN_PATH);
   });
 
-  it("accepts Leads, Customers, Tasks, and Programs paths including nested routes", () => {
+  it("accepts Leads, Customers, Tasks, Programs, and Enrollments paths including nested routes", () => {
     expect(resolveSafeReturnPath("/leads")).toBe("/leads");
     expect(resolveSafeReturnPath("/leads/11111111-1111-4111-8111-111111111111/edit")).toBe(
       "/leads/11111111-1111-4111-8111-111111111111/edit",
@@ -25,6 +25,11 @@ describe("resolveSafeReturnPath", () => {
     );
     expect(resolveSafeReturnPath("/programs")).toBe("/programs");
     expect(resolveSafeReturnPath("/programs/new")).toBe("/programs/new");
+    expect(resolveSafeReturnPath("/enrollments")).toBe("/enrollments");
+    expect(resolveSafeReturnPath("/enrollments/new")).toBe("/enrollments/new");
+    expect(
+      resolveSafeReturnPath("/enrollments/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/edit"),
+    ).toBe("/enrollments/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/edit");
   });
 
   it("accepts the onboarding path with a safe organization query", () => {
@@ -140,6 +145,8 @@ describe("isProtectedApplicationPath", () => {
     expect(isProtectedApplicationPath("/tasks/1/edit")).toBe(true);
     expect(isProtectedApplicationPath("/programs")).toBe(true);
     expect(isProtectedApplicationPath("/programs/abc/edit")).toBe(true);
+    expect(isProtectedApplicationPath("/enrollments")).toBe(true);
+    expect(isProtectedApplicationPath("/enrollments/abc/edit")).toBe(true);
     expect(isProtectedApplicationPath("/onboarding")).toBe(true);
     expect(isProtectedApplicationPath("/")).toBe(false);
     expect(isProtectedApplicationPath("/login")).toBe(false);
