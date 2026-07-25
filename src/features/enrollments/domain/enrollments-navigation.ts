@@ -61,7 +61,7 @@ export function buildEnrollmentEditHref(
 }
 
 /**
- * Visible primary-nav Enrollments link — remains hidden in B1.5.4 foundation.
- * Later list/create/detail phases may flip this to true once routes exist.
+ * Visible primary-nav Enrollments link — activated in B1.5.5 now that
+ * list/create/detail routes exist under /enrollments.
  */
-export const ENROLLMENTS_NAV_VISIBLE = false as const;
+export const ENROLLMENTS_NAV_VISIBLE = true as const;

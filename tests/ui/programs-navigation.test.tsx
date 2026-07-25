@@ -20,7 +20,6 @@ describe("Programs navigation activation", () => {
 
     expect(html).toContain(PROGRAMS_NAV_LABEL);
     expect(html).toContain(`href="${PROGRAMS_ROUTE}"`);
-    expect(html).not.toContain("Enrollments");
 
     const customersIndex = html.indexOf(">Customers<");
     const programsIndex = html.indexOf(`>${PROGRAMS_NAV_LABEL}<`);

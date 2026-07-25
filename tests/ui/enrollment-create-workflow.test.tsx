@@ -1,0 +1,135 @@
+import React from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
+import { createEnrollmentAction } from "@/features/enrollments/actions/enrollment-actions";
+import { EnrollmentCreateForm } from "@/features/enrollments/ui/enrollment-create-form";
+import { ORG_ID, MEMBER_ID } from "../helpers/enrollment-test-fixtures";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
+
+vi.mock("@/features/enrollments/actions/enrollment-actions", () => ({
+  createEnrollmentAction: vi.fn(),
+}));
+
+const createActionMock = vi.mocked(createEnrollmentAction);
+
+const listState = {
+  org: ORG_ID,
+  archived: false,
+  sort: "enrolled_at" as const,
+  direction: "desc" as const,
+  page: 1,
+  pageSize: 25,
+};
+
+const customers = [{ value: "c1", label: "Acme Corp", status: "active" }];
+const programs = [{ value: "p1", label: "Growth Lab" }];
+const members = [{ value: MEMBER_ID, label: "Jordan Lee" }];
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+describe("EnrollmentCreateForm", () => {
+  it("renders exact fields: customer, program, initial status, owner — no source, metadata, org or role", () => {
+    const html = renderToStaticMarkup(
+      <EnrollmentCreateForm
+        organizationId={ORG_ID}
+        listState={listState}
+        cancelHref="/enrollments"
+        customers={customers}
+        programs={programs}
+        members={members}
+      />,
+    );
+
+    expect(html).toContain("Create enrollment");
+    expect(html).toContain("Customer (required)");
+    expect(html).toContain("Program (required)");
+    expect(html).toContain("Initial status (required)");
+    expect(html).toContain("Owner (optional)");
+    expect(html).toContain('id="create-enrollment-customer"');
+    expect(html).toContain('name="customerId"');
+    expect(html).toContain('id="create-enrollment-program"');
+    expect(html).toContain('name="programId"');
+    expect(html).toContain('name="initialStatus"');
+    expect(html).toContain('name="ownerMemberId"');
+    expect(html).toContain("Acme Corp");
+    expect(html).toContain("Growth Lab");
+    expect(html).toContain("Jordan Lee");
+    expect(html).toContain("Unassigned");
+    expect(html).toContain("Back to enrollments");
+    expect(html).toContain("Cancel");
+
+    expect(html).not.toContain("Source");
+    expect(html).not.toContain("Metadata");
+    expect(html).not.toContain('name="metadata"');
+    expect(html).not.toContain('name="source"');
+    expect(html).not.toContain('name="organizationId"');
+    expect(html).not.toContain('name="role"');
+  });
+
+  it("shows a clear message and disables submit when there are no eligible customers", () => {
+    const html = renderToStaticMarkup(
+      <EnrollmentCreateForm
+        organizationId={ORG_ID}
+        listState={listState}
+        cancelHref="/enrollments"
+        customers={[]}
+        programs={programs}
+        members={members}
+      />,
+    );
+
+    expect(html).toContain("No eligible customers are available");
+    expect(html).not.toContain('id="create-enrollment-customer"');
+    expect(html).toMatch(/<button[^>]*disabled/);
+  });
+
+  it("shows a clear message and disables submit when there are no eligible programs", () => {
+    const html = renderToStaticMarkup(
+      <EnrollmentCreateForm
+        organizationId={ORG_ID}
+        listState={listState}
+        cancelHref="/enrollments"
+        customers={customers}
+        programs={[]}
+        members={members}
+      />,
+    );
+
+    expect(html).toContain("No eligible programs are available");
+  });
+
+  it("renders an options error banner when provided", () => {
+    const html = renderToStaticMarkup(
+      <EnrollmentCreateForm
+        organizationId={ORG_ID}
+        listState={listState}
+        cancelHref="/enrollments"
+        customers={customers}
+        programs={programs}
+        members={members}
+        optionsError="Some enrollment create options could not be loaded. Please try again."
+      />,
+    );
+
+    expect(html).toContain("Some enrollment create options could not be loaded");
+  });
+
+  it("does not invoke createEnrollmentAction during static render", () => {
+    renderToStaticMarkup(
+      <EnrollmentCreateForm
+        organizationId={ORG_ID}
+        listState={listState}
+        cancelHref="/enrollments"
+        customers={customers}
+        programs={programs}
+        members={members}
+      />,
+    );
+    expect(createActionMock).not.toHaveBeenCalled();
+  });
+});
