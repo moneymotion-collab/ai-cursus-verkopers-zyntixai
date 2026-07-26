@@ -46,6 +46,50 @@ export function buildBackToEnrollmentsHref(listState?: EnrollmentListUrlState): 
   return buildEnrollmentsListHref(listState);
 }
 
+export function buildEnrollmentEditHref(
+  enrollmentId: string,
+  listState?: EnrollmentListUrlState,
+): string {
+  const base = `${ENROLLMENTS_ROUTE}/${encodeURIComponent(enrollmentId)}/edit`;
+  if (!listState) {
+    return base;
+  }
+  return `${base}${buildEnrollmentListQueryString(listState)}`;
+}
+
+export function buildEnrollmentStatusHref(
+  enrollmentId: string,
+  listState?: EnrollmentListUrlState,
+): string {
+  const base = `${ENROLLMENTS_ROUTE}/${encodeURIComponent(enrollmentId)}/status`;
+  if (!listState) {
+    return base;
+  }
+  return `${base}${buildEnrollmentListQueryString(listState)}`;
+}
+
+export function buildEnrollmentArchiveHref(
+  enrollmentId: string,
+  listState?: EnrollmentListUrlState,
+): string {
+  const base = `${ENROLLMENTS_ROUTE}/${encodeURIComponent(enrollmentId)}/archive`;
+  if (!listState) {
+    return base;
+  }
+  return `${base}${buildEnrollmentListQueryString(listState)}`;
+}
+
+export function buildEnrollmentRestoreHref(
+  enrollmentId: string,
+  listState?: EnrollmentListUrlState,
+): string {
+  const base = `${ENROLLMENTS_ROUTE}/${encodeURIComponent(enrollmentId)}/restore`;
+  if (!listState) {
+    return base;
+  }
+  return `${base}${buildEnrollmentListQueryString(listState)}`;
+}
+
 export {
   parseEnrollmentListReturnState,
   buildEnrollmentListQueryString,

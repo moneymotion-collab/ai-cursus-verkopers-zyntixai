@@ -9,7 +9,17 @@ import { loadEnrollmentDetailPage } from "@/features/enrollments/ui/load-enrollm
 import {
   parseEnrollmentListReturnState,
   buildEnrollmentListQueryString,
+  buildEnrollmentArchiveHref,
+  buildEnrollmentEditHref,
+  buildEnrollmentRestoreHref,
+  buildEnrollmentStatusHref,
 } from "@/features/enrollments/ui/enrollment-navigation";
+import {
+  canShowArchiveEnrollmentWorkflow,
+  canShowEditEnrollmentWorkflow,
+  canShowRestoreEnrollmentWorkflow,
+  canShowStatusEnrollmentWorkflow,
+} from "@/features/enrollments/ui/enrollment-workflow-visibility";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
 
@@ -87,6 +97,20 @@ export default async function EnrollmentDetailPage({
     org: result.selectedOrganizationId,
   };
   const reloadHref = `/enrollments/${enrollmentId}${buildEnrollmentListQueryString(listState)}`;
+  const workflowLinks = {
+    edit: canShowEditEnrollmentWorkflow(result.data.enrollment, result.role)
+      ? buildEnrollmentEditHref(enrollmentId, listState)
+      : undefined,
+    status: canShowStatusEnrollmentWorkflow(result.data.enrollment, result.role)
+      ? buildEnrollmentStatusHref(enrollmentId, listState)
+      : undefined,
+    archive: canShowArchiveEnrollmentWorkflow(result.data.enrollment, result.role)
+      ? buildEnrollmentArchiveHref(enrollmentId, listState)
+      : undefined,
+    restore: canShowRestoreEnrollmentWorkflow(result.data.enrollment, result.role)
+      ? buildEnrollmentRestoreHref(enrollmentId, listState)
+      : undefined,
+  };
 
   return (
     <AppShell
@@ -96,7 +120,11 @@ export default async function EnrollmentDetailPage({
       organizationSelectorAction={`/enrollments/${enrollmentId}`}
     >
       <section className={styles.page}>
-        <EnrollmentDetail viewModel={result.data} reloadHref={reloadHref} />
+        <EnrollmentDetail
+          viewModel={result.data}
+          reloadHref={reloadHref}
+          workflowLinks={workflowLinks}
+        />
       </section>
     </AppShell>
   );

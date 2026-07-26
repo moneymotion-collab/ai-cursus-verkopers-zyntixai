@@ -51,7 +51,7 @@ const baseViewModel: EnrollmentDetailViewModel = {
   programHref: "/programs/22222222-2222-4222-8222-222222222222?org=11111111-1111-4111-8111-111111111111",
 };
 
-describe("EnrollmentDetail read-only presentation", () => {
+describe("EnrollmentDetail read-only presentation (no workflow links)", () => {
   it("renders enrollment details, linked customer/program, owner, source and history without mutation controls", () => {
     const html = renderToStaticMarkup(<EnrollmentDetail viewModel={baseViewModel} />);
 
@@ -66,11 +66,10 @@ describe("EnrollmentDetail read-only presentation", () => {
     expect(html).not.toContain("Change status");
     expect(html).not.toContain("Archive enrollment");
     expect(html).not.toContain("Restore enrollment");
-    expect(html).not.toContain("Edit enrollment");
     expect(html).not.toContain("Edit owner");
   });
 
-  it("renders archived badge for archived enrollments without exposing restore controls", () => {
+  it("renders archived badge for archived enrollments without workflow links", () => {
     const html = renderToStaticMarkup(
       <EnrollmentDetail
         viewModel={{ ...baseViewModel, enrollment: sampleArchivedEnrollmentDetail }}
@@ -82,35 +81,11 @@ describe("EnrollmentDetail read-only presentation", () => {
     expect(html).not.toContain("Archive enrollment");
   });
 
-  it("stays read-only for staff/viewer permission sets", () => {
-    const html = renderToStaticMarkup(
-      <EnrollmentDetail
-        viewModel={{
-          ...baseViewModel,
-          permissions: {
-            canListEnrollments: true,
-            canViewEnrollment: true,
-            canViewArchivedEnrollments: false,
-            canCreateEnrollment: false,
-            canUpdateOwnerOrMetadata: false,
-            canTransitionEnrollmentStatus: false,
-            canArchiveEnrollment: false,
-            canRestoreEnrollment: false,
-            canViewEnrollmentHistory: true,
-          },
-        }}
-      />,
-    );
-
-    expect(html).not.toContain("Change status");
-    expect(html).not.toContain("Archive enrollment");
-    expect(html).not.toContain("Restore enrollment");
-    expect(html).not.toContain("Edit enrollment");
-  });
-
-  it("mentions the deferred lifecycle/edit/archive boundary", () => {
+  it("mentions that progress tracking remains deferred, without claiming lifecycle/edit/archive are deferred", () => {
     const html = renderToStaticMarkup(<EnrollmentDetail viewModel={baseViewModel} />);
+    expect(html.toLowerCase()).toContain("progress");
     expect(html.toLowerCase()).toContain("deferred");
+    expect(html).not.toContain("Status changes, owner/metadata edits, and archive or restore actions are deferred");
   });
 
   it("renders unavailable detail without enumeration hints", () => {
@@ -119,5 +94,72 @@ describe("EnrollmentDetail read-only presentation", () => {
     );
     expect(html).toContain("Enrollment unavailable");
     expect(html).not.toContain("does not exist in another organization");
+  });
+});
+
+describe("EnrollmentDetail workflow links by role", () => {
+  it("shows edit/status/archive links for owner/admin on a non-archived, terminal-eligible-for-status enrollment", () => {
+    const html = renderToStaticMarkup(
+      <EnrollmentDetail
+        viewModel={baseViewModel}
+        workflowLinks={{
+          edit: "/enrollments/e1/edit",
+          status: "/enrollments/e1/status",
+        }}
+      />,
+    );
+
+    expect(html).toContain('href="/enrollments/e1/edit"');
+    expect(html).toContain("Edit owner");
+    expect(html).toContain('href="/enrollments/e1/status"');
+    expect(html).toContain("Change status");
+    expect(html).not.toContain("Archive enrollment");
+    expect(html).not.toContain("Restore enrollment");
+  });
+
+  it("shows the archive link only when provided (owner/admin, terminal, non-archived)", () => {
+    const html = renderToStaticMarkup(
+      <EnrollmentDetail
+        viewModel={baseViewModel}
+        workflowLinks={{ archive: "/enrollments/e1/archive" }}
+      />,
+    );
+
+    expect(html).toContain('href="/enrollments/e1/archive"');
+    expect(html).toContain("Archive enrollment");
+    expect(html).not.toContain("Edit owner");
+    expect(html).not.toContain("Change status");
+    expect(html).not.toContain("Restore enrollment");
+  });
+
+  it("shows restore only for owner/admin on archived enrollments, never edit/status/archive", () => {
+    const html = renderToStaticMarkup(
+      <EnrollmentDetail
+        viewModel={{ ...baseViewModel, enrollment: sampleArchivedEnrollmentDetail }}
+        workflowLinks={{ restore: "/enrollments/e1/restore" }}
+      />,
+    );
+
+    expect(html).toContain('href="/enrollments/e1/restore"');
+    expect(html).toContain("Restore enrollment");
+    expect(html).not.toContain("Edit owner");
+    expect(html).not.toContain("Change status");
+    expect(html).not.toContain("Archive enrollment");
+  });
+
+  it("renders no workflow nav at all when workflowLinks is omitted (viewer read-only)", () => {
+    const html = renderToStaticMarkup(<EnrollmentDetail viewModel={baseViewModel} />);
+    expect(html).not.toContain('aria-label="Enrollment actions"');
+  });
+
+  it("renders no workflow links when workflowLinks is an empty object (all denied)", () => {
+    const html = renderToStaticMarkup(
+      <EnrollmentDetail viewModel={baseViewModel} workflowLinks={{}} />,
+    );
+    expect(html).toContain('aria-label="Enrollment actions"');
+    expect(html).not.toContain("Edit owner");
+    expect(html).not.toContain("Change status");
+    expect(html).not.toContain("Archive enrollment");
+    expect(html).not.toContain("Restore enrollment");
   });
 });

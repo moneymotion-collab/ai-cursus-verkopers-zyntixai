@@ -7,9 +7,17 @@ import {
 import { EnrollmentHistorySection } from "@/features/enrollments/ui/enrollment-history";
 import styles from "./enrollment-detail.module.css";
 
+export type EnrollmentWorkflowLinks = {
+  edit?: string;
+  status?: string;
+  archive?: string;
+  restore?: string;
+};
+
 type EnrollmentDetailProps = {
   viewModel: EnrollmentDetailViewModel;
   reloadHref?: string;
+  workflowLinks?: EnrollmentWorkflowLinks;
 };
 
 function badgeVariantForStatus(
@@ -34,7 +42,7 @@ export function EnrollmentUnavailableDetail({ backHref }: { backHref: string }) 
   );
 }
 
-export function EnrollmentDetail({ viewModel, reloadHref }: EnrollmentDetailProps) {
+export function EnrollmentDetail({ viewModel, reloadHref, workflowLinks }: EnrollmentDetailProps) {
   const {
     enrollment,
     history,
@@ -65,6 +73,18 @@ export function EnrollmentDetail({ viewModel, reloadHref }: EnrollmentDetailProp
           </Badge>
           {enrollment.derived.isArchived ? <Badge variant="info">Archived</Badge> : null}
         </div>
+        {workflowLinks ? (
+          <nav className={styles.workflowLinks} aria-label="Enrollment actions">
+            {workflowLinks.edit ? <a href={workflowLinks.edit}>Edit owner</a> : null}
+            {workflowLinks.status ? <a href={workflowLinks.status}>Change status</a> : null}
+            {workflowLinks.archive ? (
+              <a href={workflowLinks.archive}>Archive enrollment</a>
+            ) : null}
+            {workflowLinks.restore ? (
+              <a href={workflowLinks.restore}>Restore enrollment</a>
+            ) : null}
+          </nav>
+        ) : null}
       </header>
 
       <div className={styles.layout}>
@@ -125,8 +145,7 @@ export function EnrollmentDetail({ viewModel, reloadHref }: EnrollmentDetailProp
             </div>
           </dl>
           <p className={styles.boundaryNote}>
-            Status changes, owner/metadata edits, and archive or restore actions are deferred to a
-            later phase. This view is read-only.
+            Progress tracking within this enrollment is deferred to a later phase.
           </p>
         </section>
 

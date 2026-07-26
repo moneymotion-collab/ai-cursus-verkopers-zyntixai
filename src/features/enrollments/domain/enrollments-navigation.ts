@@ -60,6 +60,39 @@ export function buildEnrollmentEditHref(
   return `${base}?org=${encodeURIComponent(organizationId)}`;
 }
 
+export function buildEnrollmentStatusHref(
+  enrollmentId: string,
+  organizationId?: string,
+): string {
+  const base = `${ENROLLMENTS_ROUTE}/${encodeURIComponent(enrollmentId)}/status`;
+  if (!organizationId) {
+    return base;
+  }
+  return `${base}?org=${encodeURIComponent(organizationId)}`;
+}
+
+export function buildEnrollmentArchiveHref(
+  enrollmentId: string,
+  organizationId?: string,
+): string {
+  const base = `${ENROLLMENTS_ROUTE}/${encodeURIComponent(enrollmentId)}/archive`;
+  if (!organizationId) {
+    return base;
+  }
+  return `${base}?org=${encodeURIComponent(organizationId)}`;
+}
+
+export function buildEnrollmentRestoreHref(
+  enrollmentId: string,
+  organizationId?: string,
+): string {
+  const base = `${ENROLLMENTS_ROUTE}/${encodeURIComponent(enrollmentId)}/restore`;
+  if (!organizationId) {
+    return base;
+  }
+  return `${base}?org=${encodeURIComponent(organizationId)}`;
+}
+
 /**
  * Visible primary-nav Enrollments link — activated in B1.5.5 now that
  * list/create/detail routes exist under /enrollments.
