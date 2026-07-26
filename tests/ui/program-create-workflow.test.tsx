@@ -48,11 +48,15 @@ describe("ProgramCreateForm", () => {
     expect(html).toContain("Back to programs");
     expect(html).toContain("Cancel");
     expect(html).toContain("start as draft");
+    expect(html).toContain("enroll customers through the Enrollments workspace");
+    expect(html).toContain("program is active");
+    expect(html).not.toContain("Enrollment management follows in a later phase");
     expect(html).not.toContain("expected_end_date");
     expect(html).not.toContain('name="organizationId"');
     expect(html).not.toContain('name="role"');
     expect(html).not.toContain('name="status"');
     expect(html).not.toContain("Lifecycle status");
+    expect(html).not.toContain('href="/enrollments');
   });
 
   it("does not invoke createProgramAction during static render", () => {

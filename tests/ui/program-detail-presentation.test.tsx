@@ -64,7 +64,11 @@ describe("ProgramDetail mutation controls", () => {
     expect(html).not.toContain("Restore program");
     expect(html).toContain("Open enrollments");
     expect(html).toContain("Status history");
+    expect(html).toContain("Enrollments are managed in the Enrollments workspace");
+    expect(html).toContain("Progress tracking remains deferred");
+    expect(html).not.toContain("Enrollment management and progress tracking will follow");
     expect(html).not.toContain('href="/enrollments');
+    expect(html).not.toContain("New enrollment");
     expect(html).not.toContain("Progress dashboard");
   });
 

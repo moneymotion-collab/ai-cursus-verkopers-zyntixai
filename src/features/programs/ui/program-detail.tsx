@@ -113,8 +113,8 @@ export function ProgramDetail({ viewModel, reloadHref, workflowLinks }: ProgramD
             </div>
           </dl>
           <p className={styles.boundaryNote}>
-            Enrollment management and progress tracking will follow in later phases. Open enrollment
-            count is shown for awareness only.
+            Enrollments are managed in the Enrollments workspace. The open enrollment count is shown
+            for awareness. Progress tracking remains deferred to a later phase.
           </p>
         </section>
 

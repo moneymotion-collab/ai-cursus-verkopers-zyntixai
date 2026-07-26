@@ -107,8 +107,9 @@ export function EnrollmentCreateForm({
       </a>
       <h1>Create enrollment</h1>
       <p className={styles.helpText}>
-        Enroll an eligible customer into an active program. Lifecycle, owner, and metadata
-        changes follow in a later phase.
+        Enroll an eligible customer into an active program. After creation, authorized users can
+        manage lifecycle status and ownership from the enrollment detail. Metadata editing is not
+        available yet.
       </p>
 
       {optionsError ? (

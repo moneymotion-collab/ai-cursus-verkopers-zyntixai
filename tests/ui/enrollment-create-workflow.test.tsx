@@ -62,9 +62,12 @@ describe("EnrollmentCreateForm", () => {
     expect(html).toContain("Unassigned");
     expect(html).toContain("Back to enrollments");
     expect(html).toContain("Cancel");
+    expect(html).toContain("manage lifecycle status and ownership");
+    expect(html).toContain("Metadata editing is not available yet");
+    expect(html).not.toContain("follow in a later phase");
+    expect(html).not.toContain("Lifecycle, owner, and metadata");
 
     expect(html).not.toContain("Source");
-    expect(html).not.toContain("Metadata");
     expect(html).not.toContain('name="metadata"');
     expect(html).not.toContain('name="source"');
     expect(html).not.toContain('name="organizationId"');

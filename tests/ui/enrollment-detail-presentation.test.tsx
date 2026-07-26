@@ -85,7 +85,9 @@ describe("EnrollmentDetail read-only presentation (no workflow links)", () => {
     const html = renderToStaticMarkup(<EnrollmentDetail viewModel={baseViewModel} />);
     expect(html.toLowerCase()).toContain("progress");
     expect(html.toLowerCase()).toContain("deferred");
+    expect(html).toContain("Progress tracking within this enrollment is deferred to a later phase.");
     expect(html).not.toContain("Status changes, owner/metadata edits, and archive or restore actions are deferred");
+    expect(html).not.toContain("Lifecycle, owner, and metadata");
   });
 
   it("renders unavailable detail without enumeration hints", () => {

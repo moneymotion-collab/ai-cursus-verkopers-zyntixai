@@ -85,8 +85,8 @@ export function ProgramCreateForm({
       </a>
       <h1>Create program</h1>
       <p className={styles.helpText}>
-        Programs define how you deliver coaching or learning. New programs start as draft.
-        Enrollment management follows in a later phase.
+        Programs define how you deliver coaching or learning. New programs start as draft. When a
+        program is active, enroll customers through the Enrollments workspace.
       </p>
 
       {uiState.kind === "error" ? (
