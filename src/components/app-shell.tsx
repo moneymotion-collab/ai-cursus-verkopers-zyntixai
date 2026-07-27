@@ -12,13 +12,25 @@ import {
   ENROLLMENTS_NAV_VISIBLE,
   ENROLLMENTS_ROUTE,
 } from "@/features/enrollments/domain/enrollments-navigation";
+import {
+  PROGRESS_NAV_LABEL,
+  PROGRESS_NAV_VISIBLE,
+  PROGRESS_ROUTE,
+} from "@/features/progress/domain/progress-navigation";
 
 type AppShellProps = {
   children: React.ReactNode;
   organizationOptions?: OrganizationOption[];
   selectedOrganizationId?: string;
   organizationSelectorAction?: string;
-  activeNav?: "home" | "leads" | "customers" | "programs" | "enrollments" | "tasks";
+  activeNav?:
+    | "home"
+    | "leads"
+    | "customers"
+    | "programs"
+    | "enrollments"
+    | "progress"
+    | "tasks";
 };
 
 export function AppShell({
@@ -74,6 +86,15 @@ export function AppShell({
                   aria-current={activeNav === "enrollments" ? "page" : undefined}
                 >
                   {ENROLLMENTS_NAV_LABEL}
+                </Link>
+              ) : null}
+              {PROGRESS_NAV_VISIBLE ? (
+                <Link
+                  className={styles.navLink}
+                  href={PROGRESS_ROUTE}
+                  aria-current={activeNav === "progress" ? "page" : undefined}
+                >
+                  {PROGRESS_NAV_LABEL}
                 </Link>
               ) : null}
               <Link
