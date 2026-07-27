@@ -14,10 +14,16 @@ export type ProgramWorkflowLinks = {
   restore?: string;
 };
 
+export type ProgramEnrollmentLinks = {
+  viewEnrollmentsHref: string;
+  createEnrollmentHref?: string;
+};
+
 type ProgramDetailProps = {
   viewModel: ProgramDetailViewModel;
   reloadHref?: string;
   workflowLinks?: ProgramWorkflowLinks;
+  enrollmentLinks?: ProgramEnrollmentLinks;
 };
 
 function badgeVariantForStatus(
@@ -41,7 +47,12 @@ export function ProgramUnavailableDetail({ backHref }: { backHref: string }) {
   );
 }
 
-export function ProgramDetail({ viewModel, reloadHref, workflowLinks }: ProgramDetailProps) {
+export function ProgramDetail({
+  viewModel,
+  reloadHref,
+  workflowLinks,
+  enrollmentLinks,
+}: ProgramDetailProps) {
   const { program, history, historyState, descriptionLabel, organizationTimezone, backHref } =
     viewModel;
 
@@ -116,6 +127,14 @@ export function ProgramDetail({ viewModel, reloadHref, workflowLinks }: ProgramD
             Enrollments are managed in the Enrollments workspace. The open enrollment count is shown
             for awareness. Progress tracking remains deferred to a later phase.
           </p>
+          {enrollmentLinks ? (
+            <nav className={styles.enrollmentLinks} aria-label="Enrollment actions">
+              <a href={enrollmentLinks.viewEnrollmentsHref}>View enrollments</a>
+              {enrollmentLinks.createEnrollmentHref ? (
+                <a href={enrollmentLinks.createEnrollmentHref}>New enrollment</a>
+              ) : null}
+            </nav>
+          ) : null}
         </section>
 
         <div className={styles.panels}>

@@ -136,3 +136,89 @@ describe("EnrollmentCreateForm", () => {
     expect(createActionMock).not.toHaveBeenCalled();
   });
 });
+
+describe("EnrollmentCreateForm contextual preselection (B1.5.9)", () => {
+  it("preselects the customer option when initialCustomerId matches an eligible option", () => {
+    const html = renderToStaticMarkup(
+      <EnrollmentCreateForm
+        organizationId={ORG_ID}
+        listState={listState}
+        cancelHref="/enrollments"
+        customers={customers}
+        programs={programs}
+        members={members}
+        initialCustomerId="c1"
+      />,
+    );
+
+    expect(html).toContain('value="c1" selected');
+  });
+
+  it("preselects the program option when initialProgramId matches an eligible option", () => {
+    const html = renderToStaticMarkup(
+      <EnrollmentCreateForm
+        organizationId={ORG_ID}
+        listState={listState}
+        cancelHref="/enrollments"
+        customers={customers}
+        programs={programs}
+        members={members}
+        initialProgramId="p1"
+      />,
+    );
+
+    expect(html).toContain('value="p1" selected');
+  });
+
+  it("renders a contextNotice as a status alert when the raw id is unavailable in options", () => {
+    const html = renderToStaticMarkup(
+      <EnrollmentCreateForm
+        organizationId={ORG_ID}
+        listState={listState}
+        cancelHref="/enrollments"
+        customers={customers}
+        programs={programs}
+        members={members}
+        contextNotice="The selected customer or program is unavailable for enrollment."
+      />,
+    );
+
+    expect(html).toContain("The selected customer or program is unavailable for enrollment.");
+    expect(html).toMatch(/role="status"[^>]*>[\s\S]*unavailable for enrollment/);
+  });
+
+  it("renders a duplicateOpenNotice as a status alert when both are preselected and an open enrollment exists", () => {
+    const html = renderToStaticMarkup(
+      <EnrollmentCreateForm
+        organizationId={ORG_ID}
+        listState={listState}
+        cancelHref="/enrollments"
+        customers={customers}
+        programs={programs}
+        members={members}
+        initialCustomerId="c1"
+        initialProgramId="p1"
+        duplicateOpenNotice="An open enrollment already exists for this customer and program."
+      />,
+    );
+
+    expect(html).toContain("An open enrollment already exists for this customer and program.");
+    expect(html).toMatch(/role="status"[^>]*>[\s\S]*open enrollment already exists/);
+  });
+
+  it("does not preselect and shows no notices when no context props are provided", () => {
+    const html = renderToStaticMarkup(
+      <EnrollmentCreateForm
+        organizationId={ORG_ID}
+        listState={listState}
+        cancelHref="/enrollments"
+        customers={customers}
+        programs={programs}
+        members={members}
+      />,
+    );
+
+    expect(html).not.toContain("unavailable for enrollment");
+    expect(html).not.toContain("open enrollment already exists");
+  });
+});

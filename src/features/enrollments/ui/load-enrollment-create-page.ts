@@ -41,7 +41,17 @@ export type EnrollmentCreatePageResult =
         programs: boolean;
         members: boolean;
       };
+      initialCustomerId?: string;
+      initialProgramId?: string;
+      contextNotice?: string;
+      duplicateOpenNotice?: string;
     };
+
+const CONTEXT_UNAVAILABLE_NOTICE =
+  "The selected customer or program is unavailable for enrollment.";
+const DUPLICATE_OPEN_ENROLLMENT_NOTICE =
+  "An open enrollment already exists for this customer and program.";
+const OPEN_ENROLLMENT_STATUSES = ["pending", "active", "paused"] as const;
 
 export async function loadEnrollmentCreatePage(
   supabase: SupabaseClient<Database>,
@@ -68,6 +78,43 @@ export async function loadEnrollmentCreatePage(
 
   const options = await loadEnrollmentCreateOptions(supabase, orgResult.organizationId);
 
+  let initialCustomerId: string | undefined;
+  let initialProgramId: string | undefined;
+  let contextNotice: string | undefined;
+
+  if (listState.customerId) {
+    if (options.customers.some((customer) => customer.value === listState.customerId)) {
+      initialCustomerId = listState.customerId;
+    } else {
+      contextNotice = CONTEXT_UNAVAILABLE_NOTICE;
+    }
+  }
+
+  if (listState.programId) {
+    if (options.programs.some((program) => program.value === listState.programId)) {
+      initialProgramId = listState.programId;
+    } else {
+      contextNotice = CONTEXT_UNAVAILABLE_NOTICE;
+    }
+  }
+
+  let duplicateOpenNotice: string | undefined;
+  if (initialCustomerId && initialProgramId) {
+    const { data } = await supabase
+      .from("enrollments")
+      .select("id")
+      .eq("organization_id", orgResult.organizationId)
+      .eq("customer_id", initialCustomerId)
+      .eq("program_id", initialProgramId)
+      .is("archived_at", null)
+      .in("status", OPEN_ENROLLMENT_STATUSES)
+      .limit(1);
+
+    if (data && data.length > 0) {
+      duplicateOpenNotice = DUPLICATE_OPEN_ENROLLMENT_NOTICE;
+    }
+  }
+
   return {
     kind: "ready",
     organizationId: orgResult.organizationId,
@@ -80,5 +127,9 @@ export async function loadEnrollmentCreatePage(
     members: options.members,
     optionsError: options.error,
     optionsCapped: options.capped,
+    initialCustomerId,
+    initialProgramId,
+    contextNotice,
+    duplicateOpenNotice,
   };
 }

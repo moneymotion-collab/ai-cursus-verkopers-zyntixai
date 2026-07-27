@@ -53,11 +53,17 @@ describe("B1.5.8 Programs and Enrollments stale-copy remediation", () => {
     );
   });
 
-  it("Program create and detail do not add contextual Enrollment links or CTAs", () => {
+  it("Program create still does not add contextual Enrollment links or CTAs (unchanged by B1.5.9)", () => {
     expect(programCreate).not.toMatch(/href=\{?["'`]\/enrollments/);
-    expect(programDetail).not.toMatch(/href=\{?["'`]\/enrollments/);
     expect(programCreate).not.toMatch(/New enrollment/i);
-    expect(programDetail).not.toMatch(/New enrollment/i);
+  });
+
+  it("Program detail's contextual Enrollment links (B1.5.9) are gated behind an optional prop, not hardcoded", () => {
+    // B1.5.9 intentionally adds an optional `enrollmentLinks` prop rendering
+    // "View enrollments" / "New enrollment" — verify it stays conditional
+    // rather than always-on, so ineligible/viewer contexts render nothing.
+    expect(programDetail).toMatch(/enrollmentLinks/);
+    expect(programDetail).toMatch(/enrollmentLinks\s*\?/);
   });
 
   it("Progress remains accurately deferred where mentioned", () => {

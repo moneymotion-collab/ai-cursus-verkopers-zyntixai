@@ -67,8 +67,6 @@ describe("ProgramDetail mutation controls", () => {
     expect(html).toContain("Enrollments are managed in the Enrollments workspace");
     expect(html).toContain("Progress tracking remains deferred");
     expect(html).not.toContain("Enrollment management and progress tracking will follow");
-    expect(html).not.toContain('href="/enrollments');
-    expect(html).not.toContain("New enrollment");
     expect(html).not.toContain("Progress dashboard");
   });
 
@@ -107,5 +105,44 @@ describe("ProgramDetail mutation controls", () => {
     );
     expect(html).toContain("Program unavailable");
     expect(html).not.toContain("does not exist in another organization");
+  });
+});
+
+describe("ProgramDetail contextual Enrollment links (B1.5.9)", () => {
+  it("omits enrollment links entirely when enrollmentLinks is not provided", () => {
+    const html = renderToStaticMarkup(<ProgramDetail viewModel={baseViewModel} />);
+    expect(html).not.toContain('href="/enrollments');
+    expect(html).not.toContain("New enrollment");
+    expect(html).not.toContain('aria-label="Enrollment actions"');
+  });
+
+  it("renders View enrollments and New enrollment when both hrefs are provided", () => {
+    const html = renderToStaticMarkup(
+      <ProgramDetail
+        viewModel={baseViewModel}
+        enrollmentLinks={{
+          viewEnrollmentsHref: `/enrollments?programId=${sampleProgramDetail.id}`,
+          createEnrollmentHref: `/enrollments/new?programId=${sampleProgramDetail.id}`,
+        }}
+      />,
+    );
+    expect(html).toContain('aria-label="Enrollment actions"');
+    expect(html).toContain("View enrollments");
+    expect(html).toContain(`href="/enrollments?programId=${sampleProgramDetail.id}"`);
+    expect(html).toContain("New enrollment");
+    expect(html).toContain(`href="/enrollments/new?programId=${sampleProgramDetail.id}"`);
+  });
+
+  it("renders View enrollments without New enrollment when createEnrollmentHref is absent (viewer/ineligible)", () => {
+    const html = renderToStaticMarkup(
+      <ProgramDetail
+        viewModel={baseViewModel}
+        enrollmentLinks={{
+          viewEnrollmentsHref: `/enrollments?programId=${sampleProgramDetail.id}`,
+        }}
+      />,
+    );
+    expect(html).toContain("View enrollments");
+    expect(html).not.toContain("New enrollment");
   });
 });

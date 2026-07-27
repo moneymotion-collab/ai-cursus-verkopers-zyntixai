@@ -288,7 +288,10 @@ export async function loadCustomerDetailPage(
     } else if (enrollmentResult.data.length === 0) {
       enrollmentState = { kind: "empty" };
     } else {
-      enrollments = enrollmentResult.data;
+      enrollments = enrollmentResult.data.map((entry) => ({
+        ...entry,
+        detailHref: `/enrollments/${encodeURIComponent(entry.enrollmentId)}?org=${encodeURIComponent(orgResult.organizationId)}`,
+      }));
       enrollmentState = { kind: "ready" };
     }
   }

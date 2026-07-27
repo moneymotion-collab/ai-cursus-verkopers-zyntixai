@@ -7,9 +7,12 @@ import { EnrollmentListPresentation } from "@/features/enrollments/ui/enrollment
 import {
   loadEnrollmentsPage,
   enrollmentsPageRetryHref,
+  type EnrollmentListRelationshipContext,
 } from "@/features/enrollments/ui/load-enrollments-page";
 import {
+  buildClearEnrollmentContextHref,
   buildEnrollmentListQueryString,
+  hasEnrollmentRelationshipContext,
   type EnrollmentListUrlState,
 } from "@/features/enrollments/ui/enrollment-list-search-params";
 import { buildEnrollmentCreateHref } from "@/features/enrollments/ui/enrollment-navigation";
@@ -21,7 +24,7 @@ type EnrollmentsPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-function hasActiveFilters(urlState: EnrollmentListUrlState): boolean {
+function hasOtherFilters(urlState: EnrollmentListUrlState): boolean {
   return Boolean(urlState.q || urlState.status || urlState.archived);
 }
 
@@ -29,8 +32,22 @@ function buildPageHref(urlState: EnrollmentListUrlState, page: number): string {
   return `/enrollments${buildEnrollmentListQueryString({ ...urlState, page })}`;
 }
 
+function buildContextBannerMessage(context: EnrollmentListRelationshipContext): string {
+  if (context.customerLabel && context.programLabel) {
+    return `Showing enrollments for customer ${context.customerLabel} and program ${context.programLabel}.`;
+  }
+  if (context.customerLabel) {
+    return `Showing enrollments for customer ${context.customerLabel}.`;
+  }
+  if (context.programLabel) {
+    return `Showing enrollments for program ${context.programLabel}.`;
+  }
+  return "Showing enrollments for the selected context.";
+}
+
 function resolveEmptyState(
   urlState: EnrollmentListUrlState,
+  context: EnrollmentListRelationshipContext | null,
 ): {
   title: string;
   description: string;
@@ -41,7 +58,7 @@ function resolveEmptyState(
     return {
       title: "No archived enrollments are available.",
       description: "Archived enrollments will appear here when they exist for your organization.",
-      clearHref: hasActiveFilters(urlState)
+      clearHref: hasOtherFilters(urlState) || hasEnrollmentRelationshipContext(urlState)
         ? `/enrollments${buildEnrollmentListQueryString({
             org: urlState.org,
             archived: false,
@@ -54,7 +71,7 @@ function resolveEmptyState(
     };
   }
 
-  if (hasActiveFilters(urlState)) {
+  if (hasOtherFilters(urlState)) {
     return {
       title: "No enrollments match the selected filters.",
       description: "Try adjusting or clearing your filters to see more enrollments.",
@@ -67,6 +84,25 @@ function resolveEmptyState(
         pageSize: urlState.pageSize,
       })}`,
     };
+  }
+
+  if (context && hasEnrollmentRelationshipContext(urlState)) {
+    const hasCustomer = Boolean(urlState.customerId);
+    const hasProgram = Boolean(urlState.programId);
+    const title =
+      hasCustomer && hasProgram
+        ? "No enrollments for this customer and program yet."
+        : hasCustomer
+          ? "No enrollments for this customer yet."
+          : "No enrollments for this program yet.";
+    const description =
+      hasCustomer && hasProgram
+        ? "Enrollments linking this customer and program will appear here once created."
+        : hasCustomer
+          ? "Enrollments for this customer will appear here once created."
+          : "Enrollments for this program will appear here once created.";
+
+    return { title, description, showCreateInEmpty: true };
   }
 
   return {
@@ -158,7 +194,21 @@ export default async function EnrollmentsPage({ searchParams }: EnrollmentsPageP
     );
   }
 
-  const emptyState = resolveEmptyState(result.urlState);
+  if (result.kind === "context_unavailable") {
+    return (
+      <AppShell activeNav="enrollments">
+        <section className={styles.statePanel} aria-labelledby="enrollment-context-unavailable-title">
+          <h1 id="enrollment-context-unavailable-title">Enrollment context unavailable</h1>
+          <p>{result.message}</p>
+          <p>
+            <a href={result.backHref}>Back to enrollments</a>
+          </p>
+        </section>
+      </AppShell>
+    );
+  }
+
+  const emptyState = resolveEmptyState(result.urlState, result.context);
   const canCreate = canShowCreateEnrollmentWorkflow(result.role);
   const createHref = canCreate ? buildEnrollmentCreateHref(result.urlState) : undefined;
   const { pagination } = result.list;
@@ -196,6 +246,13 @@ export default async function EnrollmentsPage({ searchParams }: EnrollmentsPageP
           <Alert title="Filters adjusted" variant="warning">
             {result.filterWarning}
           </Alert>
+        ) : null}
+
+        {result.context && hasEnrollmentRelationshipContext(result.urlState) ? (
+          <p className={styles.contextBanner} role="status">
+            {buildContextBannerMessage(result.context)}{" "}
+            <a href={buildClearEnrollmentContextHref(result.urlState)}>Clear context</a>
+          </p>
         ) : null}
 
         <EnrollmentListFilters urlState={result.urlState} role={result.role} />

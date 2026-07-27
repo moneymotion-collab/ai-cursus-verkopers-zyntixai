@@ -51,7 +51,10 @@ describe("customers UI mutation boundary", () => {
       expect(source).toContain(action);
     }
     expect(source).not.toMatch(/deleteCustomerAction/);
-    expect(source).not.toMatch(/enrollment.*Action/i);
+    // Matches identifier-style references (e.g. `enrollmentCreateAction`,
+    // `createEnrollmentAction`) but not unrelated prose like the
+    // `aria-label="Enrollment actions"` nav landmark (B1.5.9).
+    expect(source).not.toMatch(/enrollment\w*action/i);
   });
 
   it("does not import customer mutation services or RPC adapters in UI", () => {

@@ -11,10 +11,13 @@ import {
 } from "@/features/enrollments/server/load-enrollment-foundations";
 import { resolveMemberLabels } from "@/features/enrollments/server/resolve-enrollment-labels";
 import { loadEnrollmentCreateOptions } from "@/features/enrollments/server/load-enrollment-create-options";
+import { resolveEnrollmentListContext } from "@/features/enrollments/server/resolve-enrollment-list-context";
 import {
+  CUSTOMER_ID,
   ENROLLMENT_ID,
   MEMBER_ID,
   ORG_ID,
+  PROGRAM_ID,
   sampleEnrollmentDetail,
   sampleEnrollmentHistory,
   sampleEnrollmentListItem,
@@ -41,14 +44,33 @@ vi.mock("@/features/enrollments/server/load-enrollment-create-options", () => ({
   loadEnrollmentCreateOptions: vi.fn(),
 }));
 
+vi.mock("@/features/enrollments/server/resolve-enrollment-list-context", () => ({
+  resolveEnrollmentListContext: vi.fn(),
+}));
+
 const pageOrgMock = vi.mocked(resolveEnrollmentPageOrganization);
 const listFoundationMock = vi.mocked(loadEnrollmentsListFoundation);
 const detailFoundationMock = vi.mocked(loadEnrollmentDetailFoundation);
 const resolveMemberLabelsMock = vi.mocked(resolveMemberLabels);
 const createOptionsMock = vi.mocked(loadEnrollmentCreateOptions);
+const listContextMock = vi.mocked(resolveEnrollmentListContext);
 
 function createSupabase() {
   return {} as unknown as SupabaseClient<Database>;
+}
+
+/** Fakes the `enrollments` duplicate-open-enrollment lookup used by loadEnrollmentCreatePage. */
+function createSupabaseWithEnrollmentsQuery(result: { data: Array<{ id: string }> | null }) {
+  const limit = vi.fn().mockResolvedValue(result);
+  const chain = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    is: vi.fn().mockReturnThis(),
+    in: vi.fn().mockReturnValue({ limit }),
+  };
+  return {
+    from: vi.fn().mockReturnValue(chain),
+  } as unknown as SupabaseClient<Database>;
 }
 
 function readyOrg(role: "owner" | "admin" | "staff" | "viewer" = "owner") {
@@ -88,6 +110,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   pageOrgMock.mockResolvedValue(readyOrg("owner"));
   resolveMemberLabelsMock.mockResolvedValue({ [MEMBER_ID]: "Jordan Lee" });
+  listContextMock.mockResolvedValue({ kind: "ok" });
 });
 
 describe("loadEnrollmentsPage", () => {
@@ -193,6 +216,98 @@ describe("loadEnrollmentsPage", () => {
   });
 });
 
+describe("loadEnrollmentsPage — Customer/Program contextual navigation (B1.5.9)", () => {
+  function emptyListResult() {
+    return {
+      ok: true as const,
+      data: {
+        organizationId: ORG_ID,
+        role: "owner" as const,
+        capabilities: fullPermissions(),
+        filters: { includeArchived: false },
+        sort: { field: "enrolled_at" as const, direction: "desc" as const },
+        result: {
+          items: [],
+          pagination: {
+            page: 1,
+            pageSize: 25,
+            total: 0,
+            totalPages: 0,
+            hasPreviousPage: false,
+            hasNextPage: false,
+          },
+        },
+      },
+    };
+  }
+
+  it("does not resolve context when customerId/programId are absent", async () => {
+    listFoundationMock.mockResolvedValue(emptyListResult());
+    const result = await loadEnrollmentsPage(createSupabase(), {});
+    expect(result.kind).toBe("success");
+    expect(listContextMock).not.toHaveBeenCalled();
+    if (result.kind === "success") {
+      expect(result.context).toBeNull();
+    }
+  });
+
+  it("returns success with resolved labels when the context is ok", async () => {
+    listContextMock.mockResolvedValueOnce({
+      kind: "ok",
+      customerLabel: "Acme Corp",
+      programLabel: "Growth Lab",
+    });
+    listFoundationMock.mockResolvedValue(emptyListResult());
+
+    const result = await loadEnrollmentsPage(createSupabase(), {
+      customerId: CUSTOMER_ID,
+      programId: PROGRAM_ID,
+    });
+
+    expect(result.kind).toBe("success");
+    if (result.kind !== "success") return;
+    expect(result.context).toEqual({
+      customerLabel: "Acme Corp",
+      programLabel: "Growth Lab",
+      customerId: CUSTOMER_ID,
+      programId: PROGRAM_ID,
+    });
+    expect(listFoundationMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filters: expect.objectContaining({ customerId: CUSTOMER_ID, programId: PROGRAM_ID }),
+      }),
+    );
+  });
+
+  it("returns context_unavailable with a generic message and a context-free backHref, without querying the list", async () => {
+    listContextMock.mockResolvedValueOnce({ kind: "unavailable" });
+
+    const result = await loadEnrollmentsPage(createSupabase(), { customerId: CUSTOMER_ID });
+
+    expect(result.kind).toBe("context_unavailable");
+    expect(listFoundationMock).not.toHaveBeenCalled();
+    if (result.kind !== "context_unavailable") return;
+    expect(result.message).toBe(
+      "This enrollment context is unavailable. It may have been removed or you may not have access.",
+    );
+    expect(result.backHref).toBe(`/enrollments?org=${ORG_ID}`);
+  });
+
+  it("does not leak whether an unavailable id was missing vs. belonging to another organization", async () => {
+    listContextMock.mockResolvedValueOnce({ kind: "unavailable" });
+    const forOtherOrgId = await loadEnrollmentsPage(createSupabase(), {
+      customerId: CUSTOMER_ID,
+    });
+
+    listContextMock.mockResolvedValueOnce({ kind: "unavailable" });
+    const forMissingId = await loadEnrollmentsPage(createSupabase(), {
+      customerId: PROGRAM_ID,
+    });
+
+    expect(forOtherOrgId).toEqual(forMissingId);
+  });
+});
+
 describe("loadEnrollmentCreatePage", () => {
   beforeEach(() => {
     createOptionsMock.mockResolvedValue({
@@ -236,6 +351,94 @@ describe("loadEnrollmentCreatePage", () => {
     expect(result.programs).toHaveLength(1);
     expect(result.members).toHaveLength(1);
     expect(result.optionsCapped.customers).toBe(true);
+  });
+
+  describe("Customer/Program contextual preselection (B1.5.9)", () => {
+    beforeEach(() => {
+      createOptionsMock.mockResolvedValue({
+        customers: [{ value: CUSTOMER_ID, label: "Acme Corp", status: "active" }],
+        programs: [{ value: PROGRAM_ID, label: "Growth Lab" }],
+        members: [],
+        capped: { customers: false, programs: false, members: false },
+      });
+    });
+
+    it("sets initialCustomerId/initialProgramId when the raw ids match loaded options", async () => {
+      const result = await loadEnrollmentCreatePage(
+        createSupabaseWithEnrollmentsQuery({ data: [] }),
+        { customerId: CUSTOMER_ID, programId: PROGRAM_ID },
+      );
+
+      expect(result.kind).toBe("ready");
+      if (result.kind !== "ready") return;
+      expect(result.initialCustomerId).toBe(CUSTOMER_ID);
+      expect(result.initialProgramId).toBe(PROGRAM_ID);
+      expect(result.contextNotice).toBeUndefined();
+    });
+
+    it("sets a contextNotice and no preselection when the raw customerId is not an eligible option", async () => {
+      const foreignId = "ffffffff-ffff-4fff-8fff-ffffffffffff";
+      const result = await loadEnrollmentCreatePage(
+        createSupabaseWithEnrollmentsQuery({ data: [] }),
+        { customerId: foreignId },
+      );
+
+      expect(result.kind).toBe("ready");
+      if (result.kind !== "ready") return;
+      expect(result.initialCustomerId).toBeUndefined();
+      expect(result.contextNotice).toBe(
+        "The selected customer or program is unavailable for enrollment.",
+      );
+    });
+
+    it("sets a contextNotice and no preselection when the raw programId is not an eligible option", async () => {
+      const foreignId = "ffffffff-ffff-4fff-8fff-ffffffffffff";
+      const result = await loadEnrollmentCreatePage(
+        createSupabaseWithEnrollmentsQuery({ data: [] }),
+        { programId: foreignId },
+      );
+
+      expect(result.kind).toBe("ready");
+      if (result.kind !== "ready") return;
+      expect(result.initialProgramId).toBeUndefined();
+      expect(result.contextNotice).toBe(
+        "The selected customer or program is unavailable for enrollment.",
+      );
+    });
+
+    it("does not run the duplicate-open-enrollment check unless both customer and program are preselected", async () => {
+      const supabase = createSupabaseWithEnrollmentsQuery({ data: [] });
+      const result = await loadEnrollmentCreatePage(supabase, { customerId: CUSTOMER_ID });
+
+      expect(result.kind).toBe("ready");
+      if (result.kind !== "ready") return;
+      expect(result.duplicateOpenNotice).toBeUndefined();
+      expect(supabase.from).not.toHaveBeenCalled();
+    });
+
+    it("sets duplicateOpenNotice when both are preselected and an open enrollment already exists", async () => {
+      const result = await loadEnrollmentCreatePage(
+        createSupabaseWithEnrollmentsQuery({ data: [{ id: ENROLLMENT_ID }] }),
+        { customerId: CUSTOMER_ID, programId: PROGRAM_ID },
+      );
+
+      expect(result.kind).toBe("ready");
+      if (result.kind !== "ready") return;
+      expect(result.duplicateOpenNotice).toBe(
+        "An open enrollment already exists for this customer and program.",
+      );
+    });
+
+    it("does not set duplicateOpenNotice when both are preselected and no open enrollment exists", async () => {
+      const result = await loadEnrollmentCreatePage(
+        createSupabaseWithEnrollmentsQuery({ data: [] }),
+        { customerId: CUSTOMER_ID, programId: PROGRAM_ID },
+      );
+
+      expect(result.kind).toBe("ready");
+      if (result.kind !== "ready") return;
+      expect(result.duplicateOpenNotice).toBeUndefined();
+    });
   });
 });
 

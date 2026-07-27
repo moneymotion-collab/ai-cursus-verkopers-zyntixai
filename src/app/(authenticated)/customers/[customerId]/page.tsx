@@ -11,6 +11,12 @@ import {
   canShowRestoreWorkflow,
   canShowStatusWorkflow,
 } from "@/features/customers/ui/customer-workflow-visibility";
+import {
+  buildEnrollmentCreateHrefFromContext,
+  buildEnrollmentsListHrefFromContext,
+} from "@/features/enrollments/ui/enrollment-navigation";
+import { canShowCreateEnrollmentWorkflow } from "@/features/enrollments/ui/enrollment-workflow-visibility";
+import { isCustomerEligibleForEnrollmentCreate } from "@/features/enrollments/domain/contextual-enrollment";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
 
@@ -103,6 +109,21 @@ export default async function CustomerDetailPage({
       : undefined,
   };
 
+  const enrollmentLinks = {
+    viewEnrollmentsHref: buildEnrollmentsListHrefFromContext({
+      org: result.selectedOrganizationId,
+      customerId,
+    }),
+    createEnrollmentHref:
+      canShowCreateEnrollmentWorkflow(result.role) &&
+      isCustomerEligibleForEnrollmentCreate(result.data.customer)
+        ? buildEnrollmentCreateHrefFromContext({
+            org: result.selectedOrganizationId,
+            customerId,
+          })
+        : undefined,
+  };
+
   return (
     <AppShell
       activeNav="customers"
@@ -115,6 +136,7 @@ export default async function CustomerDetailPage({
           viewModel={result.data}
           reloadHref={reloadHref}
           workflowLinks={workflowLinks}
+          enrollmentLinks={enrollmentLinks}
         />
       </section>
     </AppShell>

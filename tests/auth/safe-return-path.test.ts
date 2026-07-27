@@ -48,6 +48,30 @@ describe("resolveSafeReturnPath", () => {
     );
   });
 
+  it("accepts Enrollment Customer/Program contextual navigation query params (B1.5.9)", () => {
+    expect(
+      resolveSafeReturnPath(
+        "/enrollments?customerId=11111111-1111-4111-8111-111111111111&org=22222222-2222-4222-8222-222222222222",
+      ),
+    ).toBe(
+      "/enrollments?customerId=11111111-1111-4111-8111-111111111111&org=22222222-2222-4222-8222-222222222222",
+    );
+    expect(
+      resolveSafeReturnPath("/enrollments/new?programId=22222222-2222-4222-8222-222222222222"),
+    ).toBe("/enrollments/new?programId=22222222-2222-4222-8222-222222222222");
+  });
+
+  it("rejects protocol-relative and external absolute URLs even with contextual query params (B1.5.9)", () => {
+    expect(
+      resolveSafeReturnPath("//evil?customerId=11111111-1111-4111-8111-111111111111"),
+    ).toBe("/");
+    expect(
+      resolveSafeReturnPath(
+        "https://evil?customerId=11111111-1111-4111-8111-111111111111",
+      ),
+    ).toBe("/");
+  });
+
   it("rejects external absolute URLs", () => {
     expect(resolveSafeReturnPath("https://evil.example/phish")).toBe("/");
     expect(resolveSafeReturnPath("http://evil.example")).toBe("/");

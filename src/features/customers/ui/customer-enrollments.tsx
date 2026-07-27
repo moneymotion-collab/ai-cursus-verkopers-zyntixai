@@ -1,4 +1,5 @@
 import type { CustomerEnrollmentSummary } from "@/features/customers/domain/read-types";
+import type { CustomerEnrollmentLinks } from "@/features/customers/ui/customer-detail";
 import { formatCustomerDate } from "@/features/customers/ui/customer-presentation";
 import styles from "./customer-enrollments.module.css";
 
@@ -11,13 +12,29 @@ type CustomerEnrollmentSectionProps = {
     | { kind: "hidden" };
   reloadHref?: string;
   timeZone?: string;
+  enrollmentLinks?: CustomerEnrollmentLinks;
 };
+
+function EnrollmentLinksNav({ enrollmentLinks }: { enrollmentLinks?: CustomerEnrollmentLinks }) {
+  if (!enrollmentLinks) {
+    return null;
+  }
+  return (
+    <nav className={styles.enrollmentLinks} aria-label="Enrollment actions">
+      <a href={enrollmentLinks.viewEnrollmentsHref}>View enrollments</a>
+      {enrollmentLinks.createEnrollmentHref ? (
+        <a href={enrollmentLinks.createEnrollmentHref}>New enrollment</a>
+      ) : null}
+    </nav>
+  );
+}
 
 export function CustomerEnrollmentSection({
   enrollments,
   enrollmentState,
   reloadHref,
   timeZone = "UTC",
+  enrollmentLinks,
 }: CustomerEnrollmentSectionProps) {
   if (enrollmentState.kind === "hidden") {
     return null;
@@ -27,6 +44,7 @@ export function CustomerEnrollmentSection({
     return (
       <section className={styles.section} aria-labelledby="customer-enrollments-title">
         <h2 id="customer-enrollments-title">Enrollment summary</h2>
+        <EnrollmentLinksNav enrollmentLinks={enrollmentLinks} />
         <div className={styles.error} role="alert">
           <p>{enrollmentState.message}</p>
           {reloadHref ? (
@@ -43,6 +61,7 @@ export function CustomerEnrollmentSection({
     return (
       <section className={styles.section} aria-labelledby="customer-enrollments-title">
         <h2 id="customer-enrollments-title">Enrollment summary</h2>
+        <EnrollmentLinksNav enrollmentLinks={enrollmentLinks} />
         <p className={styles.empty}>No enrollments are linked to this customer.</p>
       </section>
     );
@@ -51,10 +70,17 @@ export function CustomerEnrollmentSection({
   return (
     <section className={styles.section} aria-labelledby="customer-enrollments-title">
       <h2 id="customer-enrollments-title">Enrollment summary</h2>
+      <EnrollmentLinksNav enrollmentLinks={enrollmentLinks} />
       <ul className={styles.list}>
         {enrollments.map((enrollment) => (
           <li key={enrollment.enrollmentId} className={styles.item}>
-            <p className={styles.program}>{enrollment.programName}</p>
+            <p className={styles.program}>
+              {enrollment.detailHref ? (
+                <a href={enrollment.detailHref}>{enrollment.programName}</a>
+              ) : (
+                enrollment.programName
+              )}
+            </p>
             <p className={styles.meta}>
               {enrollment.statusLabel}
               {" · "}

@@ -30,6 +30,12 @@ export function EnrollmentListFilters({ urlState, role }: EnrollmentListFiltersP
       </h2>
       <form className={styles.form} method="get" action="/enrollments">
         {urlState.org ? <input type="hidden" name="org" value={urlState.org} /> : null}
+        {urlState.customerId ? (
+          <input type="hidden" name="customerId" value={urlState.customerId} />
+        ) : null}
+        {urlState.programId ? (
+          <input type="hidden" name="programId" value={urlState.programId} />
+        ) : null}
         <input type="hidden" name="page" value="1" />
 
         <div className={styles.field}>

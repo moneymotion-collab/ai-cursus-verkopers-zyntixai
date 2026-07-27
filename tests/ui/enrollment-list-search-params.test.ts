@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildClearEnrollmentContextHref,
   buildEnrollmentListQueryString,
   canViewArchivedEnrollmentFilter,
+  hasEnrollmentRelationshipContext,
   parseEnrollmentListSearchParams,
 } from "@/features/enrollments/ui/enrollment-list-search-params";
 
 const ORG_ID = "11111111-1111-4111-8111-111111111111";
+const CUSTOMER_ID = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const PROGRAM_ID = "22222222-2222-4222-8222-222222222222";
 
 describe("parseEnrollmentListSearchParams", () => {
   it("applies defaults and normalizes search", () => {
@@ -123,5 +127,138 @@ describe("parseEnrollmentListSearchParams", () => {
     expect(query).not.toContain("direction=");
     expect(query).not.toContain("page=");
     expect(query).not.toContain("pageSize=");
+  });
+});
+
+describe("parseEnrollmentListSearchParams — customerId/programId contextual params (B1.5.9)", () => {
+  it("parses valid customerId and programId into urlState and filters", () => {
+    const parsed = parseEnrollmentListSearchParams(
+      { org: ORG_ID, customerId: CUSTOMER_ID, programId: PROGRAM_ID },
+      { role: "staff" },
+    );
+
+    expect(parsed.urlState.customerId).toBe(CUSTOMER_ID);
+    expect(parsed.urlState.programId).toBe(PROGRAM_ID);
+    expect(parsed.listInput.filters.customerId).toBe(CUSTOMER_ID);
+    expect(parsed.listInput.filters.programId).toBe(PROGRAM_ID);
+    expect(parsed.warnings).toEqual([]);
+  });
+
+  it("omits an invalid customerId/programId from urlState and filters, and warns", () => {
+    const parsed = parseEnrollmentListSearchParams(
+      { org: ORG_ID, customerId: "not-a-uuid", programId: "also-not-a-uuid" },
+      { role: "staff" },
+    );
+
+    expect(parsed.urlState.customerId).toBeUndefined();
+    expect(parsed.urlState.programId).toBeUndefined();
+    expect(parsed.listInput.filters.customerId).toBeUndefined();
+    expect(parsed.listInput.filters.programId).toBeUndefined();
+    expect(parsed.warnings).toEqual(
+      expect.arrayContaining(["invalid_customer_id", "invalid_program_id"]),
+    );
+  });
+
+  it("leaves customerId/programId undefined when absent, with no warnings", () => {
+    const parsed = parseEnrollmentListSearchParams({ org: ORG_ID }, { role: "staff" });
+
+    expect(parsed.urlState.customerId).toBeUndefined();
+    expect(parsed.urlState.programId).toBeUndefined();
+    expect(parsed.warnings).toEqual([]);
+  });
+});
+
+describe("buildEnrollmentListQueryString — customerId/programId (B1.5.9)", () => {
+  it("includes customerId and programId in the query string when present", () => {
+    const query = buildEnrollmentListQueryString({
+      org: ORG_ID,
+      archived: false,
+      sort: "enrolled_at",
+      direction: "desc",
+      page: 1,
+      pageSize: 25,
+      customerId: CUSTOMER_ID,
+      programId: PROGRAM_ID,
+    });
+
+    expect(query).toContain(`customerId=${CUSTOMER_ID}`);
+    expect(query).toContain(`programId=${PROGRAM_ID}`);
+  });
+
+  it("omits customerId/programId from the query string when absent", () => {
+    const query = buildEnrollmentListQueryString({
+      org: ORG_ID,
+      archived: false,
+      sort: "enrolled_at",
+      direction: "desc",
+      page: 1,
+      pageSize: 25,
+    });
+
+    expect(query).not.toContain("customerId=");
+    expect(query).not.toContain("programId=");
+  });
+});
+
+describe("hasEnrollmentRelationshipContext", () => {
+  it("is true when either customerId or programId is present", () => {
+    const base = {
+      org: ORG_ID,
+      archived: false,
+      sort: "enrolled_at" as const,
+      direction: "desc" as const,
+      page: 1,
+      pageSize: 25,
+    };
+    expect(hasEnrollmentRelationshipContext({ ...base, customerId: CUSTOMER_ID })).toBe(true);
+    expect(hasEnrollmentRelationshipContext({ ...base, programId: PROGRAM_ID })).toBe(true);
+    expect(
+      hasEnrollmentRelationshipContext({
+        ...base,
+        customerId: CUSTOMER_ID,
+        programId: PROGRAM_ID,
+      }),
+    ).toBe(true);
+  });
+
+  it("is false when neither customerId nor programId is present", () => {
+    expect(
+      hasEnrollmentRelationshipContext({
+        org: ORG_ID,
+        archived: false,
+        sort: "enrolled_at",
+        direction: "desc",
+        page: 1,
+        pageSize: 25,
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("buildClearEnrollmentContextHref", () => {
+  it("removes customerId/programId while preserving org/status/q/archived/sort/direction/pageSize, and resets page to 1", () => {
+    const href = buildClearEnrollmentContextHref({
+      org: ORG_ID,
+      status: "paused",
+      q: "acme",
+      archived: true,
+      sort: "status",
+      direction: "asc",
+      page: 3,
+      pageSize: 50,
+      customerId: CUSTOMER_ID,
+      programId: PROGRAM_ID,
+    });
+
+    expect(href).toContain(`org=${ORG_ID}`);
+    expect(href).toContain("status=paused");
+    expect(href).toContain("q=acme");
+    expect(href).toContain("archived=true");
+    expect(href).toContain("sort=status");
+    expect(href).toContain("direction=asc");
+    expect(href).toContain("pageSize=50");
+    expect(href).not.toContain("page=3");
+    expect(href).not.toContain("customerId=");
+    expect(href).not.toContain("programId=");
   });
 });

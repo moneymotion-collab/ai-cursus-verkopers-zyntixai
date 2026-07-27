@@ -1,4 +1,5 @@
 import { ENROLLMENTS_ROUTE } from "@/features/enrollments/domain/enrollments-navigation";
+import { DEFAULT_ENROLLMENT_PAGE_SIZE } from "@/features/enrollments/domain/read-types";
 import {
   buildEnrollmentListQueryString,
   type EnrollmentListUrlState,
@@ -28,6 +29,43 @@ export function buildEnrollmentCreateHref(listState?: EnrollmentListUrlState): s
     direction: listState.direction,
     page: 1,
     pageSize: listState.pageSize,
+    customerId: listState.customerId,
+    programId: listState.programId,
+  })}`;
+}
+
+type EnrollmentContextParams = {
+  org?: string;
+  customerId?: string;
+  programId?: string;
+};
+
+/** Preselects a Customer and/or Program on the create form via navigation context only. */
+export function buildEnrollmentCreateHrefFromContext(params: EnrollmentContextParams): string {
+  const base = `${ENROLLMENTS_ROUTE}/new`;
+  return `${base}${buildEnrollmentListQueryString({
+    org: params.org,
+    customerId: params.customerId,
+    programId: params.programId,
+    archived: false,
+    sort: "enrolled_at",
+    direction: "desc",
+    page: 1,
+    pageSize: DEFAULT_ENROLLMENT_PAGE_SIZE,
+  })}`;
+}
+
+/** Scopes the Enrollments list to a Customer and/or Program via navigation context only. */
+export function buildEnrollmentsListHrefFromContext(params: EnrollmentContextParams): string {
+  return `${ENROLLMENTS_ROUTE}${buildEnrollmentListQueryString({
+    org: params.org,
+    customerId: params.customerId,
+    programId: params.programId,
+    archived: false,
+    sort: "enrolled_at",
+    direction: "desc",
+    page: 1,
+    pageSize: DEFAULT_ENROLLMENT_PAGE_SIZE,
   })}`;
 }
 

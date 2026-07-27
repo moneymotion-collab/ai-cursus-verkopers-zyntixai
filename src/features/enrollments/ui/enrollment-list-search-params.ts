@@ -22,6 +22,13 @@ export type EnrollmentListUrlState = {
   direction: EnrollmentSortDirection;
   page: number;
   pageSize: number;
+  /**
+   * Navigation context only (e.g. arriving from a Customer or Program detail
+   * page). Never used for authorization — the server independently verifies
+   * organization membership and record visibility for every request.
+   */
+  customerId?: string;
+  programId?: string;
 };
 
 export type ParsedEnrollmentListSearchParams = {
@@ -142,6 +149,18 @@ export function parseEnrollmentListSearchParams(
     MAX_ENROLLMENT_PAGE_SIZE,
   );
 
+  const customerIdRaw = firstValue(raw.customerId);
+  const customerId = customerIdRaw && UUID_PATTERN.test(customerIdRaw) ? customerIdRaw : undefined;
+  if (customerIdRaw && !customerId) {
+    warnings.push("invalid_customer_id");
+  }
+
+  const programIdRaw = firstValue(raw.programId);
+  const programId = programIdRaw && UUID_PATTERN.test(programIdRaw) ? programIdRaw : undefined;
+  if (programIdRaw && !programId) {
+    warnings.push("invalid_program_id");
+  }
+
   const urlState: EnrollmentListUrlState = {
     org,
     status,
@@ -151,12 +170,16 @@ export function parseEnrollmentListSearchParams(
     direction,
     page,
     pageSize,
+    customerId,
+    programId,
   };
 
   const filters: EnrollmentListFilters = {
     includeArchived: archived,
     search: q,
     status: status ? status : undefined,
+    customerId,
+    programId,
   };
 
   return {
@@ -196,8 +219,37 @@ export function buildEnrollmentListQueryString(state: EnrollmentListUrlState): s
   if (state.pageSize !== DEFAULT_ENROLLMENT_PAGE_SIZE) {
     params.set("pageSize", String(state.pageSize));
   }
+  if (state.customerId) {
+    params.set("customerId", state.customerId);
+  }
+  if (state.programId) {
+    params.set("programId", state.programId);
+  }
   const query = params.toString();
   return query.length > 0 ? `?${query}` : "";
+}
+
+/**
+ * Removes only the Customer/Program relationship context (customerId,
+ * programId) while preserving every other filter/sort/pagination value, and
+ * resets to page 1 so the cleared list starts fresh.
+ */
+export function buildClearEnrollmentContextHref(state: EnrollmentListUrlState): string {
+  return `/enrollments${buildEnrollmentListQueryString({
+    org: state.org,
+    status: state.status,
+    q: state.q,
+    archived: state.archived,
+    sort: state.sort,
+    direction: state.direction,
+    page: 1,
+    pageSize: state.pageSize,
+  })}`;
+}
+
+/** True when the URL state carries Customer/Program relationship context. */
+export function hasEnrollmentRelationshipContext(state: EnrollmentListUrlState): boolean {
+  return Boolean(state.customerId || state.programId);
 }
 
 export function parseEnrollmentListReturnState(

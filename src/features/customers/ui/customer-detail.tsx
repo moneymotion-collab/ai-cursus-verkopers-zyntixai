@@ -15,6 +15,7 @@ type CustomerDetailProps = {
   viewModel: CustomerDetailViewModel;
   reloadHref?: string;
   workflowLinks?: CustomerWorkflowLinks;
+  enrollmentLinks?: CustomerEnrollmentLinks;
 };
 
 export type CustomerWorkflowLinks = {
@@ -22,6 +23,11 @@ export type CustomerWorkflowLinks = {
   status?: string;
   archive?: string;
   restore?: string;
+};
+
+export type CustomerEnrollmentLinks = {
+  viewEnrollmentsHref: string;
+  createEnrollmentHref?: string;
 };
 
 function badgeVariantForStatus(label: string): "neutral" | "success" | "warning" | "danger" | "info" {
@@ -43,7 +49,12 @@ export function CustomerUnavailableDetail({ backHref }: { backHref: string }) {
   );
 }
 
-export function CustomerDetail({ viewModel, reloadHref, workflowLinks }: CustomerDetailProps) {
+export function CustomerDetail({
+  viewModel,
+  reloadHref,
+  workflowLinks,
+  enrollmentLinks,
+}: CustomerDetailProps) {
   const { customer, history, historyState, enrollments, enrollmentState, relatedTasks, relatedTasksState, organizationTimezone, backHref } =
     viewModel;
 
@@ -156,6 +167,7 @@ export function CustomerDetail({ viewModel, reloadHref, workflowLinks }: Custome
             enrollmentState={enrollmentState}
             reloadHref={reloadHref}
             timeZone={organizationTimezone}
+            enrollmentLinks={enrollmentLinks}
           />
         </div>
       </div>

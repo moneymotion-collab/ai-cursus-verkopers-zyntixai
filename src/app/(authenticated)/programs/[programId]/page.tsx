@@ -17,6 +17,12 @@ import {
   canShowRestoreProgramWorkflow,
   canShowStatusProgramWorkflow,
 } from "@/features/programs/ui/program-workflow-visibility";
+import {
+  buildEnrollmentCreateHrefFromContext,
+  buildEnrollmentsListHrefFromContext,
+} from "@/features/enrollments/ui/enrollment-navigation";
+import { canShowCreateEnrollmentWorkflow } from "@/features/enrollments/ui/enrollment-workflow-visibility";
+import { isProgramEligibleForEnrollmentCreate } from "@/features/enrollments/domain/contextual-enrollment";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
 
@@ -109,6 +115,21 @@ export default async function ProgramDetailPage({
       : undefined,
   };
 
+  const enrollmentLinks = {
+    viewEnrollmentsHref: buildEnrollmentsListHrefFromContext({
+      org: result.selectedOrganizationId,
+      programId,
+    }),
+    createEnrollmentHref:
+      canShowCreateEnrollmentWorkflow(result.role) &&
+      isProgramEligibleForEnrollmentCreate(result.data.program)
+        ? buildEnrollmentCreateHrefFromContext({
+            org: result.selectedOrganizationId,
+            programId,
+          })
+        : undefined,
+  };
+
   return (
     <AppShell
       activeNav="programs"
@@ -121,6 +142,7 @@ export default async function ProgramDetailPage({
           viewModel={result.data}
           reloadHref={reloadHref}
           workflowLinks={workflowLinks}
+          enrollmentLinks={enrollmentLinks}
         />
       </section>
     </AppShell>

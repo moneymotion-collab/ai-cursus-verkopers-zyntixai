@@ -70,6 +70,8 @@ export type CustomerEnrollmentSummary = {
   status: string;
   statusLabel: string;
   enrolledAt: string;
+  /** Navigation only — set by the page loader once the organization is known. */
+  detailHref?: string;
 };
 
 export type CustomerListFilters = {

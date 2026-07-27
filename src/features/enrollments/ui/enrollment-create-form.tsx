@@ -29,6 +29,10 @@ type EnrollmentCreateFormProps = {
   programs: EnrollmentProgramOption[];
   members: EnrollmentMemberOption[];
   optionsError?: string;
+  initialCustomerId?: string;
+  initialProgramId?: string;
+  contextNotice?: string;
+  duplicateOpenNotice?: string;
 };
 
 const DEFAULT_INITIAL_STATUS: EnrollmentInitialStatus = "pending";
@@ -42,12 +46,16 @@ export function EnrollmentCreateForm({
   programs,
   members,
   optionsError,
+  initialCustomerId,
+  initialProgramId,
+  contextNotice,
+  duplicateOpenNotice,
 }: EnrollmentCreateFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
   const [uiState, setUiState] = useState<EnrollmentFormUiState>({ kind: "idle" });
-  const [customerId, setCustomerId] = useState("");
-  const [programId, setProgramId] = useState("");
+  const [customerId, setCustomerId] = useState(initialCustomerId ?? "");
+  const [programId, setProgramId] = useState(initialProgramId ?? "");
   const [initialStatus, setInitialStatus] = useState<EnrollmentInitialStatus>(
     DEFAULT_INITIAL_STATUS,
   );
@@ -115,6 +123,18 @@ export function EnrollmentCreateForm({
       {optionsError ? (
         <div className={styles.formError} role="alert">
           <p>{optionsError}</p>
+        </div>
+      ) : null}
+
+      {contextNotice ? (
+        <div className={styles.formNotice} role="status">
+          <p>{contextNotice}</p>
+        </div>
+      ) : null}
+
+      {duplicateOpenNotice ? (
+        <div className={styles.formNotice} role="status">
+          <p>{duplicateOpenNotice}</p>
         </div>
       ) : null}
 

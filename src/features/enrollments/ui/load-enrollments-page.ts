@@ -4,6 +4,7 @@ import type { EnrollmentApplicationError } from "@/features/enrollments/domain/t
 import { loadEnrollmentsListFoundation } from "@/features/enrollments/server/load-enrollment-foundations";
 import { resolveEnrollmentPageOrganization } from "@/features/enrollments/server/resolve-enrollment-page-organization";
 import { resolveMemberLabels } from "@/features/enrollments/server/resolve-enrollment-labels";
+import { resolveEnrollmentListContext } from "@/features/enrollments/server/resolve-enrollment-list-context";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
 import {
   buildEnrollmentListQueryString,
@@ -15,6 +16,13 @@ import type {
   EnrollmentPermissionSet,
   EnrollmentRole,
 } from "@/features/enrollments/domain/types";
+
+export type EnrollmentListRelationshipContext = {
+  customerLabel?: string;
+  programLabel?: string;
+  customerId?: string;
+  programId?: string;
+};
 
 export type EnrollmentsPageSuccess = {
   kind: "success";
@@ -28,6 +36,7 @@ export type EnrollmentsPageSuccess = {
   list: EnrollmentListReadResult;
   ownerLabels: Record<string, string>;
   filterWarning: string | null;
+  context: EnrollmentListRelationshipContext | null;
 };
 
 export type EnrollmentsPageResult =
@@ -41,7 +50,11 @@ export type EnrollmentsPageResult =
       error?: EnrollmentApplicationError;
       retryable?: boolean;
     }
+  | { kind: "context_unavailable"; message: string; backHref: string }
   | EnrollmentsPageSuccess;
+
+const CONTEXT_UNAVAILABLE_MESSAGE =
+  "This enrollment context is unavailable. It may have been removed or you may not have access.";
 
 export async function loadEnrollmentsPage(
   supabase: SupabaseClient<Database>,
@@ -81,6 +94,36 @@ export async function loadEnrollmentsPage(
     ...parsed.urlState,
     org: orgResult.organizationId,
   };
+
+  let context: EnrollmentListRelationshipContext | null = null;
+  if (urlState.customerId || urlState.programId) {
+    const contextResult = await resolveEnrollmentListContext(supabase, orgResult.organizationId, {
+      customerId: urlState.customerId,
+      programId: urlState.programId,
+    });
+
+    if (contextResult.kind === "unavailable") {
+      return {
+        kind: "context_unavailable",
+        message: CONTEXT_UNAVAILABLE_MESSAGE,
+        backHref: `/enrollments${buildEnrollmentListQueryString({
+          org: orgResult.organizationId,
+          archived: false,
+          sort: urlState.sort,
+          direction: urlState.direction,
+          page: 1,
+          pageSize: urlState.pageSize,
+        })}`,
+      };
+    }
+
+    context = {
+      customerLabel: contextResult.customerLabel,
+      programLabel: contextResult.programLabel,
+      customerId: urlState.customerId,
+      programId: urlState.programId,
+    };
+  }
 
   const listResult = await loadEnrollmentsListFoundation({
     supabase,
@@ -123,6 +166,7 @@ export async function loadEnrollmentsPage(
     list: listResult.data.result,
     ownerLabels,
     filterWarning,
+    context,
   };
 }
 

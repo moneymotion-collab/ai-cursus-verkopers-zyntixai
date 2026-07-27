@@ -88,6 +88,10 @@ export default async function EnrollmentCreatePage({ searchParams }: EnrollmentC
           programs={result.programs}
           members={result.members}
           optionsError={result.optionsError}
+          initialCustomerId={result.initialCustomerId}
+          initialProgramId={result.initialProgramId}
+          contextNotice={result.contextNotice}
+          duplicateOpenNotice={result.duplicateOpenNotice}
         />
       </section>
     </AppShell>

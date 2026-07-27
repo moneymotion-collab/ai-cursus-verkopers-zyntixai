@@ -54,6 +54,7 @@ const viewModel: CustomerDetailViewModel = {
       status: "active",
       statusLabel: "Active",
       enrolledAt: "2026-07-14T10:00:00.000Z",
+      detailHref: "/enrollments/enroll-1?org=22222222-2222-4222-8222-222222222222",
     },
   ],
   enrollmentState: { kind: "ready" },
@@ -123,6 +124,74 @@ describe("Customer detail presentation", () => {
     expect(html).toContain("Customer unavailable");
     expect(html).toContain("Back to customers");
     expect(html).not.toContain("not found");
+  });
+});
+
+describe("Customer detail contextual Enrollment links and summary links (B1.5.9)", () => {
+  it("links the enrollment summary program name to the enrollment detail when detailHref is provided", () => {
+    const html = renderToStaticMarkup(<CustomerDetail viewModel={viewModel} />);
+
+    expect(html).toContain(
+      'href="/enrollments/enroll-1?org=22222222-2222-4222-8222-222222222222"',
+    );
+    expect(html).toContain("Trading Foundations");
+  });
+
+  it("renders the program name as plain text when detailHref is absent", () => {
+    const html = renderToStaticMarkup(
+      <CustomerDetail
+        viewModel={{
+          ...viewModel,
+          enrollments: [{ ...viewModel.enrollments[0], detailHref: undefined }],
+        }}
+      />,
+    );
+
+    expect(html).not.toContain('href="/enrollments/enroll-1');
+    expect(html).toContain("Trading Foundations");
+  });
+
+  it("renders View enrollments and New enrollment when enrollmentLinks provides both hrefs", () => {
+    const html = renderToStaticMarkup(
+      <CustomerDetail
+        viewModel={viewModel}
+        enrollmentLinks={{
+          viewEnrollmentsHref: "/enrollments?customerId=11111111-1111-4111-8111-111111111111",
+          createEnrollmentHref:
+            "/enrollments/new?customerId=11111111-1111-4111-8111-111111111111",
+        }}
+      />,
+    );
+
+    expect(html).toContain('aria-label="Enrollment actions"');
+    expect(html).toContain("View enrollments");
+    expect(html).toContain(
+      'href="/enrollments?customerId=11111111-1111-4111-8111-111111111111"',
+    );
+    expect(html).toContain("New enrollment");
+    expect(html).toContain(
+      'href="/enrollments/new?customerId=11111111-1111-4111-8111-111111111111"',
+    );
+  });
+
+  it("renders View enrollments only when createEnrollmentHref is absent (viewer or ineligible customer)", () => {
+    const html = renderToStaticMarkup(
+      <CustomerDetail
+        viewModel={viewModel}
+        enrollmentLinks={{
+          viewEnrollmentsHref: "/enrollments?customerId=11111111-1111-4111-8111-111111111111",
+        }}
+      />,
+    );
+
+    expect(html).toContain("View enrollments");
+    expect(html).not.toContain("New enrollment");
+  });
+
+  it("omits the Enrollment actions nav entirely when enrollmentLinks is not provided", () => {
+    const html = renderToStaticMarkup(<CustomerDetail viewModel={viewModel} />);
+    expect(html).not.toContain('aria-label="Enrollment actions"');
+    expect(html).not.toContain("View enrollments");
   });
 });
 
