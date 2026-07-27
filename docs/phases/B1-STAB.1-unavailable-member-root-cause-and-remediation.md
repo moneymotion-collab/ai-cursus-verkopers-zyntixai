@@ -271,14 +271,15 @@ Earliest B1.6.1 integration remains **after** this stab is pushed, laptop finish
 
 ## 16. Commits / push
 
-Filled after publication:
-
 | Item | Value |
 | --- | --- |
-| Commit SHA | _(see publication block below)_ |
+| Commit SHA | `410fc89d16eb5d81acca27d847a8dfb366b0ef84` |
 | Subject | `fix(enrollments): resolve unavailable owner labels` |
 | Parent | `e1c67536d0b4b08802e36acbb12866d88ab3ddb4` |
 | Push target | `origin/core/platform-readiness-20260707` |
+| Push result | success (`e1c6753..410fc89`) |
+| Post-push divergence | `0 0` |
+| Post-push worktree | clean |
 
 ---
 
