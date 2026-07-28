@@ -1,6 +1,6 @@
 /**
  * Canonical Progress route and navigation metadata.
- * Visible shell activation is deferred until list/detail routes exist (B1.6.2).
+ * B1.6.2 enables visible shell activation for list/detail routes.
  */
 
 export const PROGRESS_ROUTE = "/progress" as const;
@@ -77,6 +77,6 @@ export function buildProgressCorrectHref(
 }
 
 /**
- * Visible primary-nav Progress link — remains hidden until B1.6.2 routes exist.
+ * Visible primary-nav Progress link — enabled for B1.6.2 list/detail routes.
  */
-export const PROGRESS_NAV_VISIBLE = false as const;
+export const PROGRESS_NAV_VISIBLE = true as const;

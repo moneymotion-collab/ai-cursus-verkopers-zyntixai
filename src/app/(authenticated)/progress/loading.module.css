@@ -1,0 +1,55 @@
+.loading {
+  display: grid;
+  gap: 1rem;
+}
+
+.title {
+  margin: 0;
+}
+
+.message {
+  margin: 0;
+  color: var(--muted-text);
+}
+
+.tableSkeleton {
+  display: none;
+  gap: 0.5rem;
+}
+
+.row {
+  height: 2.5rem;
+  border-radius: 0.375rem;
+  background: #e2e8f0;
+}
+
+.cardSkeleton {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.card {
+  height: 7rem;
+  border-radius: 0.75rem;
+  background: #e2e8f0;
+}
+
+@media (min-width: 1024px) {
+  .tableSkeleton {
+    display: grid;
+  }
+
+  .cardSkeleton {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .card {
+    background: #e2e8f0;
+  }
+}

@@ -1,0 +1,156 @@
+.listContainer {
+  width: 100%;
+}
+
+.tableWrap {
+  display: none;
+}
+
+.cardList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.875rem;
+}
+
+.card {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  background: var(--surface-color);
+}
+
+.cardTitle {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  word-break: break-word;
+}
+
+.cardTitle a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.cardBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-bottom: 0.75rem;
+}
+
+.cardMeta {
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.cardMeta div {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr;
+  gap: 0.5rem;
+}
+
+.cardMeta dt {
+  margin: 0;
+  font-weight: 600;
+  color: var(--muted-text);
+}
+
+.cardMeta dd {
+  margin: 0;
+  word-break: break-word;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.table th,
+.table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+  vertical-align: top;
+  word-break: break-word;
+}
+
+.table th {
+  background: #f1f5f9;
+  font-size: 0.875rem;
+}
+
+.titleCell {
+  display: block;
+  font-weight: 600;
+}
+
+.titleLink {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.titleLink:focus-visible {
+  outline: 2px solid var(--focus-color, #2563eb);
+  outline-offset: 2px;
+}
+
+.voidedInline {
+  display: inline-block;
+  margin-left: 0.375rem;
+}
+
+.emptyWrap {
+  border: 1px dashed var(--border-color);
+  border-radius: 0.75rem;
+  padding: 2rem 1.25rem;
+  text-align: center;
+  background: var(--surface-color);
+}
+
+.emptyTitle {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.emptyDescription {
+  margin: 0;
+  color: var(--muted-text);
+}
+
+.clearLink {
+  display: inline-flex;
+  margin-top: 1rem;
+  color: var(--link-color);
+  font-weight: 600;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (min-width: 1024px) {
+  .tableWrap {
+    display: block;
+  }
+
+  .cardList {
+    display: none;
+  }
+}
