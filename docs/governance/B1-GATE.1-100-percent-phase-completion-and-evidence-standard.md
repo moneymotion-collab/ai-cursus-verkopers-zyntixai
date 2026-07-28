@@ -15,13 +15,13 @@
 
 A phase may be treated as fully complete only when:
 
-1. 100% of the pre-agreed **required** scope is executed;  
-2. all required gates pass;  
-3. zero open blockers remain;  
-4. zero open **mandatory** conditions remain;  
-5. browser and production verification are completed when required;  
-6. evidence is present in repository documentation;  
-7. the phase is controlled-published;  
+1. 100% of the pre-agreed **required** scope is executed;
+2. all required gates pass;
+3. zero open blockers remain;
+4. zero open **mandatory** conditions remain;
+5. browser and production verification are completed when required;
+6. evidence is present in repository documentation;
+7. the phase is controlled-published;
 8. Git ends clean with `HEAD = upstream` and divergence `0 0`.
 
 This does **not** claim future software is forever bug-free. It claims every **contractually required** gate for that phase has been demonstrated.
@@ -80,11 +80,11 @@ READY FOR PUBLICATION
 
 ### Gate 1 — Baseline and ownership
 
-- Correct worktree, branch, HEAD  
-- Upstream established; divergence explained  
-- Dirty inventory recorded before changes  
-- Ownership and parallel-work boundaries established  
-- No deletion/overwrite of unexplained existing work  
+- Correct worktree, branch, HEAD
+- Upstream established; divergence explained
+- Dirty inventory recorded before changes
+- Ownership and parallel-work boundaries established
+- No deletion/overwrite of unexplained existing work
 
 ### Gate 2 — Scope contract
 
@@ -161,9 +161,9 @@ Mandatory when: security or tenant isolation unproven; primary journey broken; d
 
 ## 7. Browser and production rules
 
-1. User-visible work without browser evidence cannot close.  
-2. Production-required work without production evidence cannot close.  
-3. Justifying `NOT REQUIRED` for Gates 7–8 must be phase-specific and auditable.  
+1. User-visible work without browser evidence cannot close.
+2. Production-required work without production evidence cannot close.
+3. Justifying `NOT REQUIRED` for Gates 7–8 must be phase-specific and auditable.
 4. Mask credentials; never publish secrets, tokens, emails, or raw PII in reports.
 
 ---
@@ -209,9 +209,9 @@ A `NOT REQUIRED WITH JUSTIFICATION` gate counts as passed only when the justific
 
 ## 9. Publication and rollback rules
 
-- Prefer small, subject-accurate commits.  
-- No amend/rebase/force-push of published history unless a separate emergency procedure is owner-approved (default: forbidden).  
-- Push only to the authoritative branch named in the phase contract.  
+- Prefer small, subject-accurate commits.
+- No amend/rebase/force-push of published history unless a separate emergency procedure is owner-approved (default: forbidden).
+- Push only to the authoritative branch named in the phase contract.
 - Rollback assessment required for production-affecting phases (prior Ready deployment ID when deploy occurred).
 
 ---
@@ -226,13 +226,13 @@ ZERO OPEN CRITICAL DEFECTS
 
 Requires at minimum:
 
-- zero open security defects  
-- zero open tenant-isolation defects  
-- zero open data-integrity defects  
-- zero open broken primary journeys  
-- zero open misleading user-information defects  
-- zero unresolved production-visible defects  
-- zero mandatory verification gaps  
+- zero open security defects
+- zero open tenant-isolation defects
+- zero open data-integrity defects
+- zero open broken primary journeys
+- zero open misleading user-information defects
+- zero unresolved production-visible defects
+- zero mandatory verification gaps
 
 Non-critical accepted polish may remain only with proven zero functional/security/data/tenant impact.
 
@@ -267,30 +267,30 @@ Final verdict: CLOSED WITH EVIDENCE — 100% REQUIRED GATES PASSED
 
 ## 12. Rules for earlier phases (B1.0–B1.5)
 
-1. Do **not** re-run a broad historical audit by default.  
-2. Already closed and evidenced items remain closed.  
-3. Reopen an older phase only with **new concrete evidence**.  
-4. A truly open mandatory condition gets a targeted **B1-STAB** slice.  
-5. Accepted polish is not presented as a defect.  
+1. Do **not** re-run a broad historical audit by default.
+2. Already closed and evidenced items remain closed.
+3. Reopen an older phase only with **new concrete evidence**.
+4. A truly open mandatory condition gets a targeted **B1-STAB** slice.
+5. Accepted polish is not presented as a defect.
 6. Missing historical evidence is not invented or backfilled as if executed.
 
 ---
 
 ## 13. Rules for new phases from B1.6.2
 
-1. This standard is binding.  
-2. Implementation may start only after a scope/readiness contract that maps every gate to concrete PASS criteria.  
-3. Intermediate statuses (`PASS WITH CONDITIONS`, `READY FOR PUBLICATION`, etc.) are allowed mid-flow but **not** as final closure.  
-4. Parallel laptop work requires renewed overlap preflight when shared paths are involved.  
+1. This standard is binding.
+2. Implementation may start only after a scope/readiness contract that maps every gate to concrete PASS criteria.
+3. Intermediate statuses (`PASS WITH CONDITIONS`, `READY FOR PUBLICATION`, etc.) are allowed mid-flow but **not** as final closure.
+4. Parallel laptop work requires renewed overlap preflight when shared paths are involved.
 5. AI / NBA / health / Attention remain out of Progress B1.6 productization unless a new owner-approved contract says otherwise.
 
 ---
 
 ## 14. Consistency checks (self-audit)
 
-- Does not weaken existing Git safety (no amend/rebase/force defaults).  
-- Does not allow skipping required browser/production via vague polish.  
-- Does not reopen B1.0–B1.5 without new evidence.  
+- Does not weaken existing Git safety (no amend/rebase/force defaults).
+- Does not allow skipping required browser/production via vague polish.
+- Does not reopen B1.0–B1.5 without new evidence.
 - Aligns with fail-closed security and tenant isolation norms already used in B1.4/B1.5/B1.6.0.
 
 ---
