@@ -1,43 +1,28 @@
 import { AppShell } from "@/components/app-shell";
-import {
-  ProgressDetail,
-  ProgressUnavailableDetail,
-  type ProgressDetailWorkflowLinks,
-} from "@/features/progress/ui/progress-detail";
 import { ProgressOrganizationRequiredPanel } from "@/features/progress/ui/progress-organization-required-panel";
-import { loadProgressDetailPage } from "@/features/progress/ui/load-progress-detail-page";
-import {
-  buildProgressCorrectHref,
-  buildProgressVoidHref,
-} from "@/features/progress/domain/progress-navigation";
-import {
-  canShowCorrectProgressWorkflow,
-  canShowVoidProgressWorkflow,
-} from "@/features/progress/ui/progress-workflow-visibility";
-import { Alert } from "@/components/ui/alert";
+import { ProgressUnavailableDetail } from "@/features/progress/ui/progress-detail";
+import { ProgressVoidForm } from "@/features/progress/ui/progress-void-form";
+import { loadProgressVoidPage } from "@/features/progress/ui/load-progress-void-page";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import styles from "./page.module.css";
+import styles from "../../page.module.css";
 
-type ProgressDetailPageProps = {
+type ProgressVoidPageProps = {
   params: Promise<{ factId: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function ProgressDetailPage({
-  params,
-  searchParams,
-}: ProgressDetailPageProps) {
+export default async function ProgressVoidPage({ params, searchParams }: ProgressVoidPageProps) {
   const supabase = await createSupabaseServerClient();
   const { factId } = await params;
   const rawSearchParams = await searchParams;
-  const result = await loadProgressDetailPage(supabase, factId, rawSearchParams);
+  const result = await loadProgressVoidPage(supabase, factId, rawSearchParams);
 
   if (result.kind === "auth_required") {
     return (
       <AppShell activeNav="progress">
         <section className={styles.statePanel} aria-labelledby="auth-required-title">
           <h1 id="auth-required-title">Sign in required</h1>
-          <p>Please sign in to view progress details for your organization.</p>
+          <p>Please sign in to void progress records.</p>
         </section>
       </AppShell>
     );
@@ -59,8 +44,8 @@ export default async function ProgressDetailPage({
       <AppShell activeNav="progress" organizationOptions={result.organizations}>
         <ProgressOrganizationRequiredPanel
           organizations={result.organizations}
-          targetPath={`/progress/${factId}`}
-          description="Select an organization to view this progress record."
+          targetPath={`/progress/${factId}/void`}
+          description="Select an organization before voiding this progress record."
         />
       </AppShell>
     );
@@ -69,11 +54,9 @@ export default async function ProgressDetailPage({
   if (result.kind === "org_context_missing" || result.kind === "query_error") {
     return (
       <AppShell activeNav="progress">
-        <section className={styles.page}>
-          <h1>Progress details</h1>
-          <Alert title="Unable to load progress" variant="error">
-            {result.message}
-          </Alert>
+        <section className={styles.statePanel}>
+          <h1>Unable to load void form</h1>
+          <p>{result.message}</p>
         </section>
       </AppShell>
     );
@@ -87,24 +70,31 @@ export default async function ProgressDetailPage({
     );
   }
 
-  const workflowLinks: ProgressDetailWorkflowLinks = {
-    void: canShowVoidProgressWorkflow(result.capabilities)
-      ? buildProgressVoidHref(factId, result.selectedOrganizationId)
-      : undefined,
-    correct: canShowCorrectProgressWorkflow(result.capabilities)
-      ? buildProgressCorrectHref(factId, result.selectedOrganizationId)
-      : undefined,
-  };
+  if (result.kind === "action_unavailable") {
+    return (
+      <AppShell activeNav="progress">
+        <section className={styles.statePanel}>
+          <h1>Void progress unavailable</h1>
+          <p>{result.message}</p>
+          <a href={result.backHref}>Back to progress record</a>
+        </section>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell
       activeNav="progress"
       organizationOptions={result.organizationOptions}
-      selectedOrganizationId={result.selectedOrganizationId}
-      organizationSelectorAction={`/progress/${factId}`}
+      selectedOrganizationId={result.organizationId}
+      organizationSelectorAction={`/progress/${factId}/void`}
     >
       <section className={styles.page}>
-        <ProgressDetail viewModel={result.data} workflowLinks={workflowLinks} />
+        <ProgressVoidForm
+          organizationId={result.organizationId}
+          data={result.data}
+          backHref={result.backHref}
+        />
       </section>
     </AppShell>
   );

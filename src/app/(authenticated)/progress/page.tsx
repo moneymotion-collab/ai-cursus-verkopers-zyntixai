@@ -14,6 +14,8 @@ import {
   hasProgressRelationshipContext,
   type ProgressListUrlState,
 } from "@/features/progress/ui/progress-list-search-params";
+import { buildProgressCreateHref } from "@/features/progress/domain/progress-navigation";
+import { canShowRecordProgressWorkflow } from "@/features/progress/ui/progress-workflow-visibility";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
 
@@ -174,6 +176,14 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
         <header className={styles.pageHeader}>
           <div className={styles.pageHeaderRow}>
             <h1>Progress</h1>
+            {canShowRecordProgressWorkflow(result.role) ? (
+              <a
+                className={styles.recordLink}
+                href={buildProgressCreateHref({ organizationId: result.selectedOrganizationId })}
+              >
+                Record progress
+              </a>
+            ) : null}
           </div>
           <p className={styles.subtitle}>
             Progress workspace for {result.organizationName}. Times shown in {result.timeZone}.

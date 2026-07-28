@@ -2,8 +2,15 @@ import { Badge } from "@/components/ui/badge";
 import type { ProgressDetailViewModel } from "@/features/progress/ui/load-progress-detail-page";
 import styles from "./progress-detail.module.css";
 
+export type ProgressDetailWorkflowLinks = {
+  record?: string;
+  void?: string;
+  correct?: string;
+};
+
 type ProgressDetailProps = {
   viewModel: ProgressDetailViewModel;
+  workflowLinks?: ProgressDetailWorkflowLinks;
 };
 
 export function ProgressUnavailableDetail({ backHref }: { backHref: string }) {
@@ -21,7 +28,7 @@ export function ProgressUnavailableDetail({ backHref }: { backHref: string }) {
   );
 }
 
-export function ProgressDetail({ viewModel }: ProgressDetailProps) {
+export function ProgressDetail({ viewModel, workflowLinks }: ProgressDetailProps) {
   const {
     fact,
     titleLabel,
@@ -42,6 +49,10 @@ export function ProgressDetail({ viewModel }: ProgressDetailProps) {
     organizationTimezone,
   } = viewModel;
 
+  const hasWorkflowActions = Boolean(
+    workflowLinks?.record || workflowLinks?.void || workflowLinks?.correct,
+  );
+
   return (
     <article className={styles.progressDetail}>
       <a className={styles.backLink} href={backHref}>
@@ -57,6 +68,25 @@ export function ProgressDetail({ viewModel }: ProgressDetailProps) {
           {fact.derived.isCorrection ? <Badge variant="warning">Correction</Badge> : null}
         </div>
         <p className={styles.subtitle}>Times shown in {organizationTimezone}.</p>
+        {hasWorkflowActions ? (
+          <div className={styles.actionRow}>
+            {workflowLinks?.record ? (
+              <a className={styles.actionLink} href={workflowLinks.record}>
+                Record progress
+              </a>
+            ) : null}
+            {workflowLinks?.correct ? (
+              <a className={styles.actionLink} href={workflowLinks.correct}>
+                Correct
+              </a>
+            ) : null}
+            {workflowLinks?.void ? (
+              <a className={styles.destructiveActionLink} href={workflowLinks.void}>
+                Void
+              </a>
+            ) : null}
+          </div>
+        ) : null}
       </header>
 
       <div className={styles.layout}>
@@ -173,8 +203,8 @@ export function ProgressDetail({ viewModel }: ProgressDetailProps) {
               ) : null}
             </dl>
             <p className={styles.boundaryNote}>
-              Voided progress is shown read-only. Mutation workflows are not available in this
-              release.
+              Voided progress is shown read-only. Voided records cannot be voided or corrected
+              again.
             </p>
           </section>
         ) : null}

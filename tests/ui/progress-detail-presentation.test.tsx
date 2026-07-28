@@ -12,6 +12,7 @@ import {
   MEMBER_ID,
   ORG_ID,
   PROGRAM_ID,
+  PROGRESS_FACT_ID,
   sampleProgressFactDetailRow,
 } from "../helpers/progress-test-fixtures";
 import type { ProgressDetailViewModel } from "@/features/progress/ui/load-progress-detail-page";
@@ -127,5 +128,38 @@ describe("ProgressDetail presentation", () => {
     expect(html).toContain("Progress unavailable");
     expect(html).toContain("may have been removed or you may not have access");
     expect(html).toContain(`/progress?org=${ORG_ID}`);
+  });
+
+  it("does not render workflow links when none are provided", () => {
+    const html = renderToStaticMarkup(<ProgressDetail viewModel={viewModel} />);
+    expect(html).not.toContain("Void");
+    expect(html).not.toContain("Correct");
+  });
+
+  it("renders void and correct links when provided", () => {
+    const html = renderToStaticMarkup(
+      <ProgressDetail
+        viewModel={viewModel}
+        workflowLinks={{
+          void: `/progress/${PROGRESS_FACT_ID}/void?org=${ORG_ID}`,
+          correct: `/progress/${PROGRESS_FACT_ID}/correct?org=${ORG_ID}`,
+        }}
+      />,
+    );
+    expect(html).toContain(`/progress/${PROGRESS_FACT_ID}/void?org=${ORG_ID}`);
+    expect(html).toContain(`/progress/${PROGRESS_FACT_ID}/correct?org=${ORG_ID}`);
+    expect(html).toContain("Void");
+    expect(html).toContain("Correct");
+  });
+
+  it("renders only the provided workflow link, omitting the other", () => {
+    const html = renderToStaticMarkup(
+      <ProgressDetail
+        viewModel={viewModel}
+        workflowLinks={{ correct: `/progress/${PROGRESS_FACT_ID}/correct?org=${ORG_ID}` }}
+      />,
+    );
+    expect(html).toContain(`/progress/${PROGRESS_FACT_ID}/correct?org=${ORG_ID}`);
+    expect(html).not.toContain(`/progress/${PROGRESS_FACT_ID}/void`);
   });
 });
