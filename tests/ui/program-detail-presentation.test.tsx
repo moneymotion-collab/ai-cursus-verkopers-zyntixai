@@ -165,7 +165,7 @@ describe("ProgramDetail contextual Progress links (B1.6.4)", () => {
       />,
     );
     expect(html).toContain(
-      "Progress records for this program are managed in the Progress workspace.",
+      "Progress for enrollments in this program is recorded and reviewed in the Progress workspace.",
     );
     expect(html).toContain('aria-label="Progress actions"');
     expect(html).toContain("View progress");

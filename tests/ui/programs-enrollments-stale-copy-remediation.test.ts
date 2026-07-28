@@ -72,13 +72,13 @@ describe("B1.5.8 Programs and Enrollments stale-copy remediation", () => {
     );
     expect(enrollmentDetail).not.toContain("deferred to a later phase");
     expect(enrollmentDetail).toContain(
-      "Progress records for this enrollment are managed in the Progress workspace.",
+      "Progress for this enrollment is recorded and reviewed in the Progress workspace.",
     );
 
     expect(programDetail).not.toContain("Progress tracking remains deferred to a later phase");
     expect(programDetail).not.toContain("deferred to a later phase");
     expect(programDetail).toContain(
-      "Progress records for this program are managed in the Progress workspace.",
+      "Progress for enrollments in this program is recorded and reviewed in the Progress workspace.",
     );
   });
 

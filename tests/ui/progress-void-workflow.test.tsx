@@ -30,12 +30,13 @@ describe("ProgressVoidForm", () => {
     );
 
     expect(html).toContain("Void progress record");
-    expect(html).toContain("It is not deletion");
+    expect(html).toContain("It is not a hard delete");
     expect(html).toContain("Reason (required)");
     expect(html).toContain("Module 1 complete");
     expect(html).toContain("Acme Corp");
     expect(html).toContain("Growth Lab");
     expect(html).not.toContain("permanently delete");
+    expect(html).not.toContain("kept unchanged");
     expect(html).not.toContain("cannot be undone");
   });
 

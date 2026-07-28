@@ -73,8 +73,9 @@ export function ProgressVoidForm({ organizationId, data, backHref }: ProgressVoi
       </a>
       <h1>Void progress record</h1>
       <p className={styles.description}>
-        Voiding marks this progress record as no longer valid. It is not deletion — the record
-        stays available in history for owners and admins.
+        Voiding marks this progress record as no longer valid. It is not a hard delete — the record
+        stays in history for owners and admins. After you confirm, you return to this record in its
+        voided state.
       </p>
 
       <section className={styles.summary} aria-labelledby="void-progress-summary-title">
@@ -106,10 +107,10 @@ export function ProgressVoidForm({ organizationId, data, backHref }: ProgressVoi
       <section className={styles.summary} aria-labelledby="void-explanation-title">
         <h2 id="void-explanation-title">What voiding means</h2>
         <ul className={styles.explanationList}>
-          <li>Voiding is not deletion.</li>
-          <li>This progress record remains visible to owners and admins.</li>
-          <li>Staff and viewers will no longer see this record.</li>
-          <li>Voided records cannot be un-voided — record a correction instead if needed.</li>
+          <li>Voiding is not a hard delete.</li>
+          <li>This progress record remains visible to owners and admins in history.</li>
+          <li>Staff and viewers will no longer see this record in the normal list.</li>
+          <li>Voided records cannot be restored — record a correction on another active record if needed.</li>
         </ul>
       </section>
 

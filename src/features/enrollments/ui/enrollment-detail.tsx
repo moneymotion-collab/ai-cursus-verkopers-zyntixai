@@ -158,10 +158,10 @@ export function EnrollmentDetail({
           {progressLinks ? (
             <>
               <p className={styles.boundaryNote}>
-                Progress records for this enrollment are managed in the Progress workspace.
+                Progress for this enrollment is recorded and reviewed in the Progress workspace.
                 {progressLinks.recordProgressHref
-                  ? " You can record progress when this enrollment is eligible."
-                  : null}
+                  ? " You can add a new progress record while this enrollment is active or paused."
+                  : " Recording is available only for eligible roles when the enrollment is active or paused."}
               </p>
               <nav className={styles.progressLinks} aria-label="Progress actions">
                 <a href={progressLinks.viewProgressHref}>View progress</a>

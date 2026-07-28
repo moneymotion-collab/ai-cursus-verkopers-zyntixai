@@ -8,6 +8,7 @@ import {
   loadProgressListPage,
   progressListPageRetryHref,
 } from "@/features/progress/ui/load-progress-list-page";
+import { resolveProgressListEmptyState } from "@/features/progress/ui/progress-list-empty-state";
 import {
   buildClearProgressContextHref,
   buildProgressListQueryString,
@@ -23,58 +24,8 @@ type ProgressPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-function hasOtherFilters(urlState: ProgressListUrlState): boolean {
-  return Boolean(urlState.q || urlState.factType || urlState.includeVoided);
-}
-
 function buildPageHref(urlState: ProgressListUrlState, page: number): string {
   return `/progress${buildProgressListQueryString({ ...urlState, page })}`;
-}
-
-function resolveEmptyState(urlState: ProgressListUrlState): {
-  title: string;
-  description: string;
-  clearHref?: string;
-} {
-  if (urlState.includeVoided) {
-    return {
-      title: "No voided progress records are available.",
-      description:
-        "Voided progress records will appear here when they exist for your organization.",
-      clearHref:
-        hasOtherFilters(urlState) || hasProgressRelationshipContext(urlState)
-          ? `/progress${buildProgressListQueryString({
-              org: urlState.org,
-              includeVoided: false,
-              sort: urlState.sort,
-              direction: urlState.direction,
-              page: 1,
-              pageSize: urlState.pageSize,
-            })}`
-          : undefined,
-    };
-  }
-
-  if (urlState.q || urlState.factType || hasProgressRelationshipContext(urlState)) {
-    return {
-      title: "No progress records match the selected filters.",
-      description: "Try adjusting or clearing your filters to see more progress records.",
-      clearHref: `/progress${buildProgressListQueryString({
-        org: urlState.org,
-        includeVoided: false,
-        sort: urlState.sort,
-        direction: urlState.direction,
-        page: 1,
-        pageSize: urlState.pageSize,
-      })}`,
-    };
-  }
-
-  return {
-    title: "No progress records yet",
-    description:
-      "Progress facts for enrollments in this organization will appear here once recorded.",
-  };
 }
 
 export default async function ProgressPage({ searchParams }: ProgressPageProps) {
@@ -156,7 +107,7 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
     );
   }
 
-  const emptyState = resolveEmptyState(result.urlState);
+  const emptyState = resolveProgressListEmptyState(result.urlState);
   const { pagination } = result.list;
   const previousHref = pagination.hasPreviousPage
     ? buildPageHref(result.urlState, pagination.page - 1)

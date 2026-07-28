@@ -135,7 +135,8 @@ export function ProgressRecordForm({
       </a>
       <h1>Record progress</h1>
       <p className={styles.helpText}>
-        Record a manual progress fact for an enrollment that is active or paused.
+        Adds a new progress record for an enrollment that is active or paused. Earlier records are
+        not changed. After a successful save, you open the new record.
       </p>
 
       {enrollmentOptionsError ? (
@@ -225,6 +226,11 @@ export function ProgressRecordForm({
             onChange={(event) => setFactType(event.target.value as ProgressFactType)}
             required
             aria-invalid={Boolean(fieldErrorMessage(fieldErrors, "factType"))}
+            aria-describedby={
+              fieldErrorMessage(fieldErrors, "factType")
+                ? "record-progress-fact-type-error"
+                : undefined
+            }
             disabled={locked}
           >
             {PROGRESS_FACT_TYPES.map((type) => (
@@ -234,7 +240,9 @@ export function ProgressRecordForm({
             ))}
           </select>
           {fieldErrorMessage(fieldErrors, "factType") ? (
-            <p className={styles.fieldError}>{fieldErrorMessage(fieldErrors, "factType")}</p>
+            <p id="record-progress-fact-type-error" className={styles.fieldError}>
+              {fieldErrorMessage(fieldErrors, "factType")}
+            </p>
           ) : null}
         </div>
 
@@ -248,10 +256,17 @@ export function ProgressRecordForm({
             onChange={(event) => setOccurredAt(event.target.value)}
             required
             aria-invalid={Boolean(fieldErrorMessage(fieldErrors, "occurredAt"))}
+            aria-describedby={
+              fieldErrorMessage(fieldErrors, "occurredAt")
+                ? "record-progress-occurred-at-error"
+                : undefined
+            }
             disabled={locked}
           />
           {fieldErrorMessage(fieldErrors, "occurredAt") ? (
-            <p className={styles.fieldError}>{fieldErrorMessage(fieldErrors, "occurredAt")}</p>
+            <p id="record-progress-occurred-at-error" className={styles.fieldError}>
+              {fieldErrorMessage(fieldErrors, "occurredAt")}
+            </p>
           ) : null}
         </div>
 
@@ -263,10 +278,16 @@ export function ProgressRecordForm({
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             maxLength={200}
+            aria-invalid={Boolean(fieldErrorMessage(fieldErrors, "title"))}
+            aria-describedby={
+              fieldErrorMessage(fieldErrors, "title") ? "record-progress-title-error" : undefined
+            }
             disabled={locked}
           />
           {fieldErrorMessage(fieldErrors, "title") ? (
-            <p className={styles.fieldError}>{fieldErrorMessage(fieldErrors, "title")}</p>
+            <p id="record-progress-title-error" className={styles.fieldError}>
+              {fieldErrorMessage(fieldErrors, "title")}
+            </p>
           ) : null}
         </div>
 
@@ -304,12 +325,19 @@ export function ProgressRecordForm({
               onChange={(event) => setNumericUnit(event.target.value)}
               maxLength={50}
               aria-invalid={Boolean(fieldErrorMessage(fieldErrors, "numericUnit"))}
+              aria-describedby={
+                fieldErrorMessage(fieldErrors, "numericUnit")
+                  ? "record-progress-numeric-unit-error"
+                  : undefined
+              }
               disabled={locked}
             />
           </div>
         </div>
         {fieldErrorMessage(fieldErrors, "numericUnit") ? (
-          <p className={styles.fieldError}>{fieldErrorMessage(fieldErrors, "numericUnit")}</p>
+          <p id="record-progress-numeric-unit-error" className={styles.fieldError}>
+            {fieldErrorMessage(fieldErrors, "numericUnit")}
+          </p>
         ) : null}
 
         <div className={styles.field}>
@@ -348,13 +376,23 @@ export function ProgressRecordForm({
             onChange={(event) => setIdempotencyKey(event.target.value)}
             maxLength={200}
             aria-invalid={Boolean(fieldErrorMessage(fieldErrors, "idempotencyKey"))}
+            aria-describedby={
+              [
+                "record-progress-idempotency-key-help",
+                fieldErrorMessage(fieldErrors, "idempotencyKey")
+                  ? "record-progress-idempotency-key-error"
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" ") || undefined
+            }
             disabled={locked}
           />
-          <p className={styles.helpText}>
-            Provide a unique key to safely retry this submission without recording it twice.
+          <p id="record-progress-idempotency-key-help" className={styles.helpText}>
+            Optional unique key so a safe retry does not record the same progress twice.
           </p>
           {fieldErrorMessage(fieldErrors, "idempotencyKey") ? (
-            <p className={styles.fieldError}>
+            <p id="record-progress-idempotency-key-error" className={styles.fieldError}>
               {fieldErrorMessage(fieldErrors, "idempotencyKey")}
             </p>
           ) : null}

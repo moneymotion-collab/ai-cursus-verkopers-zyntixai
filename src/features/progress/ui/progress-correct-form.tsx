@@ -133,8 +133,9 @@ export function ProgressCorrectForm({ organizationId, data, backHref }: Progress
       </a>
       <h1>Correct progress record</h1>
       <p className={styles.description}>
-        A correction records a new progress fact linked to the original. The original record is
-        kept unchanged for history.
+        Saving a correction adds a new progress record and marks the original as void. The
+        original is not deleted and stays visible in history for owners and admins. This is not a
+        silent overwrite.
       </p>
 
       <section className={styles.summary} aria-labelledby="correct-progress-predecessor-title">
@@ -166,7 +167,8 @@ export function ProgressCorrectForm({ organizationId, data, backHref }: Progress
           </div>
         </dl>
         <p className={styles.boundaryNote}>
-          The enrollment, program, and recorder cannot be changed on a correction.
+          The enrollment, program, and recorder cannot be changed on a correction. After you save,
+          you return to the new corrected record.
         </p>
       </section>
 
@@ -211,6 +213,11 @@ export function ProgressCorrectForm({ organizationId, data, backHref }: Progress
               onChange={(event) => setFactType(event.target.value as ProgressFactType)}
               required
               aria-invalid={Boolean(fieldErrorMessage(fieldErrors, "factType"))}
+              aria-describedby={
+                fieldErrorMessage(fieldErrors, "factType")
+                  ? "correct-progress-fact-type-error"
+                  : undefined
+              }
               disabled={locked}
             >
               {PROGRESS_FACT_TYPES.map((type) => (
@@ -220,7 +227,9 @@ export function ProgressCorrectForm({ organizationId, data, backHref }: Progress
               ))}
             </select>
             {fieldErrorMessage(fieldErrors, "factType") ? (
-              <p className={styles.fieldError}>{fieldErrorMessage(fieldErrors, "factType")}</p>
+              <p id="correct-progress-fact-type-error" className={styles.fieldError}>
+                {fieldErrorMessage(fieldErrors, "factType")}
+              </p>
             ) : null}
           </div>
 
@@ -234,10 +243,17 @@ export function ProgressCorrectForm({ organizationId, data, backHref }: Progress
               onChange={(event) => setOccurredAt(event.target.value)}
               required
               aria-invalid={Boolean(fieldErrorMessage(fieldErrors, "occurredAt"))}
+              aria-describedby={
+                fieldErrorMessage(fieldErrors, "occurredAt")
+                  ? "correct-progress-occurred-at-error"
+                  : undefined
+              }
               disabled={locked}
             />
             {fieldErrorMessage(fieldErrors, "occurredAt") ? (
-              <p className={styles.fieldError}>{fieldErrorMessage(fieldErrors, "occurredAt")}</p>
+              <p id="correct-progress-occurred-at-error" className={styles.fieldError}>
+                {fieldErrorMessage(fieldErrors, "occurredAt")}
+              </p>
             ) : null}
           </div>
 
@@ -287,12 +303,19 @@ export function ProgressCorrectForm({ organizationId, data, backHref }: Progress
                 onChange={(event) => setNumericUnit(event.target.value)}
                 maxLength={50}
                 aria-invalid={Boolean(fieldErrorMessage(fieldErrors, "numericUnit"))}
+                aria-describedby={
+                  fieldErrorMessage(fieldErrors, "numericUnit")
+                    ? "correct-progress-numeric-unit-error"
+                    : undefined
+                }
                 disabled={locked}
               />
             </div>
           </div>
           {fieldErrorMessage(fieldErrors, "numericUnit") ? (
-            <p className={styles.fieldError}>{fieldErrorMessage(fieldErrors, "numericUnit")}</p>
+            <p id="correct-progress-numeric-unit-error" className={styles.fieldError}>
+              {fieldErrorMessage(fieldErrors, "numericUnit")}
+            </p>
           ) : null}
 
           <div className={styles.field}>

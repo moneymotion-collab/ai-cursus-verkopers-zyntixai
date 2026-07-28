@@ -37,6 +37,12 @@ describe("ProgressCorrectForm", () => {
     expect(html).toContain("Fact type (required)");
     expect(html).toContain("Occurred at (required)");
     expect(html).toContain("enrollment, program, and recorder cannot be changed");
+    expect(html).toContain("marks the original as void");
+    expect(html).toContain("not deleted");
+    expect(html).toContain("not a silent overwrite");
+    expect(html).not.toContain("kept unchanged");
+    expect(html).not.toContain("hard delete");
+    expect(html).not.toContain("permanently delete");
   });
 
   it("prefills the form with the original fact's values", () => {

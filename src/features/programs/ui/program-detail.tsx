@@ -131,7 +131,8 @@ export function ProgramDetail({
           </dl>
           <p className={styles.boundaryNote}>
             Enrollments are managed in the Enrollments workspace. The open enrollment count is shown
-            for awareness. Progress records for this program are managed in the Progress workspace.
+            for awareness. Progress for enrollments in this program is recorded and reviewed in the
+            Progress workspace.
           </p>
           {enrollmentLinks ? (
             <nav className={styles.enrollmentLinks} aria-label="Enrollment actions">

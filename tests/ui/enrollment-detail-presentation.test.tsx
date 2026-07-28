@@ -100,9 +100,14 @@ describe("EnrollmentDetail read-only presentation (no workflow links)", () => {
       />,
     );
     expect(withViewOnly).toContain(
-      "Progress records for this enrollment are managed in the Progress workspace.",
+      "Progress for this enrollment is recorded and reviewed in the Progress workspace.",
     );
-    expect(withViewOnly).not.toContain("You can record progress when this enrollment is eligible.");
+    expect(withViewOnly).toContain(
+      "Recording is available only for eligible roles when the enrollment is active or paused.",
+    );
+    expect(withViewOnly).not.toContain(
+      "You can add a new progress record while this enrollment is active or paused.",
+    );
     expect(withViewOnly).toContain('aria-label="Progress actions"');
     expect(withViewOnly).toContain("View progress");
     expect(withViewOnly).toContain('href="/progress?org=org-1&amp;enrollmentId=e1"');
@@ -117,7 +122,9 @@ describe("EnrollmentDetail read-only presentation (no workflow links)", () => {
         }}
       />,
     );
-    expect(withRecord).toContain("You can record progress when this enrollment is eligible.");
+    expect(withRecord).toContain(
+      "You can add a new progress record while this enrollment is active or paused.",
+    );
     expect(withRecord).toContain("Record progress");
     expect(withRecord).toContain('href="/progress/new?org=org-1&amp;enrollmentId=e1"');
   });
