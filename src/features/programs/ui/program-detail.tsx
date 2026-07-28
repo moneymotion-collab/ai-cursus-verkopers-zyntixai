@@ -19,11 +19,16 @@ export type ProgramEnrollmentLinks = {
   createEnrollmentHref?: string;
 };
 
+export type ProgramProgressLinks = {
+  viewProgressHref: string;
+};
+
 type ProgramDetailProps = {
   viewModel: ProgramDetailViewModel;
   reloadHref?: string;
   workflowLinks?: ProgramWorkflowLinks;
   enrollmentLinks?: ProgramEnrollmentLinks;
+  progressLinks?: ProgramProgressLinks;
 };
 
 function badgeVariantForStatus(
@@ -52,6 +57,7 @@ export function ProgramDetail({
   reloadHref,
   workflowLinks,
   enrollmentLinks,
+  progressLinks,
 }: ProgramDetailProps) {
   const { program, history, historyState, descriptionLabel, organizationTimezone, backHref } =
     viewModel;
@@ -125,7 +131,7 @@ export function ProgramDetail({
           </dl>
           <p className={styles.boundaryNote}>
             Enrollments are managed in the Enrollments workspace. The open enrollment count is shown
-            for awareness. Progress tracking remains deferred to a later phase.
+            for awareness. Progress records for this program are managed in the Progress workspace.
           </p>
           {enrollmentLinks ? (
             <nav className={styles.enrollmentLinks} aria-label="Enrollment actions">
@@ -133,6 +139,11 @@ export function ProgramDetail({
               {enrollmentLinks.createEnrollmentHref ? (
                 <a href={enrollmentLinks.createEnrollmentHref}>New enrollment</a>
               ) : null}
+            </nav>
+          ) : null}
+          {progressLinks ? (
+            <nav className={styles.progressLinks} aria-label="Progress actions">
+              <a href={progressLinks.viewProgressHref}>View progress</a>
             </nav>
           ) : null}
         </section>

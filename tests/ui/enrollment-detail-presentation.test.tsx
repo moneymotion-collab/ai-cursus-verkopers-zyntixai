@@ -81,13 +81,45 @@ describe("EnrollmentDetail read-only presentation (no workflow links)", () => {
     expect(html).not.toContain("Archive enrollment");
   });
 
-  it("mentions that progress tracking remains deferred, without claiming lifecycle/edit/archive are deferred", () => {
+  it("mentions Progress workspace management without deferred copy, and omits progress links when not provided", () => {
     const html = renderToStaticMarkup(<EnrollmentDetail viewModel={baseViewModel} />);
-    expect(html.toLowerCase()).toContain("progress");
-    expect(html.toLowerCase()).toContain("deferred");
-    expect(html).toContain("Progress tracking within this enrollment is deferred to a later phase.");
-    expect(html).not.toContain("Status changes, owner/metadata edits, and archive or restore actions are deferred");
-    expect(html).not.toContain("Lifecycle, owner, and metadata");
+    expect(html.toLowerCase()).not.toContain("deferred");
+    expect(html).not.toContain("Progress tracking within this enrollment is deferred to a later phase.");
+    expect(html).not.toContain('aria-label="Progress actions"');
+    expect(html).not.toContain("View progress");
+    expect(html).not.toContain("Record progress");
+  });
+
+  it("renders View progress and optional Record progress when progressLinks are provided", () => {
+    const withViewOnly = renderToStaticMarkup(
+      <EnrollmentDetail
+        viewModel={baseViewModel}
+        progressLinks={{
+          viewProgressHref: "/progress?org=org-1&enrollmentId=e1",
+        }}
+      />,
+    );
+    expect(withViewOnly).toContain(
+      "Progress records for this enrollment are managed in the Progress workspace.",
+    );
+    expect(withViewOnly).not.toContain("You can record progress when this enrollment is eligible.");
+    expect(withViewOnly).toContain('aria-label="Progress actions"');
+    expect(withViewOnly).toContain("View progress");
+    expect(withViewOnly).toContain('href="/progress?org=org-1&amp;enrollmentId=e1"');
+    expect(withViewOnly).not.toContain("Record progress");
+
+    const withRecord = renderToStaticMarkup(
+      <EnrollmentDetail
+        viewModel={baseViewModel}
+        progressLinks={{
+          viewProgressHref: "/progress?org=org-1&enrollmentId=e1",
+          recordProgressHref: "/progress/new?org=org-1&enrollmentId=e1",
+        }}
+      />,
+    );
+    expect(withRecord).toContain("You can record progress when this enrollment is eligible.");
+    expect(withRecord).toContain("Record progress");
+    expect(withRecord).toContain('href="/progress/new?org=org-1&amp;enrollmentId=e1"');
   });
 
   it("renders unavailable detail without enumeration hints", () => {

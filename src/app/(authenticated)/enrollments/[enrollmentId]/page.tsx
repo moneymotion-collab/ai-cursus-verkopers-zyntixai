@@ -20,6 +20,11 @@ import {
   canShowRestoreEnrollmentWorkflow,
   canShowStatusEnrollmentWorkflow,
 } from "@/features/enrollments/ui/enrollment-workflow-visibility";
+import {
+  buildProgressCreateHref,
+  buildProgressListHref,
+} from "@/features/progress/domain/progress-navigation";
+import { canShowEnrollmentRecordProgressEntry } from "@/features/progress/ui/progress-pe-entry-visibility";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
 
@@ -112,6 +117,23 @@ export default async function EnrollmentDetailPage({
       : undefined,
   };
 
+  const progressLinks = {
+    viewProgressHref: buildProgressListHref({
+      organizationId: result.selectedOrganizationId,
+      enrollmentId: result.data.enrollment.id,
+    }),
+    recordProgressHref: canShowEnrollmentRecordProgressEntry({
+      role: result.role,
+      enrollmentStatus: result.data.enrollment.status,
+      isArchived: result.data.enrollment.derived.isArchived,
+    })
+      ? buildProgressCreateHref({
+          organizationId: result.selectedOrganizationId,
+          enrollmentId: result.data.enrollment.id,
+        })
+      : undefined,
+  };
+
   return (
     <AppShell
       activeNav="enrollments"
@@ -124,6 +146,7 @@ export default async function EnrollmentDetailPage({
           viewModel={result.data}
           reloadHref={reloadHref}
           workflowLinks={workflowLinks}
+          progressLinks={progressLinks}
         />
       </section>
     </AppShell>

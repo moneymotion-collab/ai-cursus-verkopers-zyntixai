@@ -21,11 +21,36 @@ export function isProgressPathname(pathname: string): boolean {
   return pathname === "/progress" || pathname.startsWith("/progress/");
 }
 
-export function buildProgressListHref(organizationId?: string): string {
-  if (!organizationId) {
-    return PROGRESS_ROUTE;
+export type ProgressListHrefParams = {
+  organizationId?: string;
+  enrollmentId?: string;
+  programId?: string;
+};
+
+/**
+ * Build Progress list href.
+ * Backward compatible: a string first arg is treated as organizationId.
+ */
+export function buildProgressListHref(
+  organizationIdOrParams?: string | ProgressListHrefParams,
+): string {
+  const params: ProgressListHrefParams =
+    typeof organizationIdOrParams === "string"
+      ? { organizationId: organizationIdOrParams }
+      : (organizationIdOrParams ?? {});
+
+  const search = new URLSearchParams();
+  if (params.organizationId) {
+    search.set("org", params.organizationId);
   }
-  return `${PROGRESS_ROUTE}?org=${encodeURIComponent(organizationId)}`;
+  if (params.enrollmentId) {
+    search.set("enrollmentId", params.enrollmentId);
+  }
+  if (params.programId) {
+    search.set("programId", params.programId);
+  }
+  const query = search.toString();
+  return query.length > 0 ? `${PROGRESS_ROUTE}?${query}` : PROGRESS_ROUTE;
 }
 
 export function buildProgressDetailHref(

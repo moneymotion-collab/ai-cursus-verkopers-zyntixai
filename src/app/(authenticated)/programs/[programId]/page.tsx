@@ -23,6 +23,7 @@ import {
 } from "@/features/enrollments/ui/enrollment-navigation";
 import { canShowCreateEnrollmentWorkflow } from "@/features/enrollments/ui/enrollment-workflow-visibility";
 import { isProgramEligibleForEnrollmentCreate } from "@/features/enrollments/domain/contextual-enrollment";
+import { buildProgressListHref } from "@/features/progress/domain/progress-navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
 
@@ -130,6 +131,13 @@ export default async function ProgramDetailPage({
         : undefined,
   };
 
+  const progressLinks = {
+    viewProgressHref: buildProgressListHref({
+      organizationId: result.selectedOrganizationId,
+      programId,
+    }),
+  };
+
   return (
     <AppShell
       activeNav="programs"
@@ -143,6 +151,7 @@ export default async function ProgramDetailPage({
           reloadHref={reloadHref}
           workflowLinks={workflowLinks}
           enrollmentLinks={enrollmentLinks}
+          progressLinks={progressLinks}
         />
       </section>
     </AppShell>

@@ -65,7 +65,8 @@ describe("ProgramDetail mutation controls", () => {
     expect(html).toContain("Open enrollments");
     expect(html).toContain("Status history");
     expect(html).toContain("Enrollments are managed in the Enrollments workspace");
-    expect(html).toContain("Progress tracking remains deferred");
+    expect(html).not.toContain("Progress tracking remains deferred");
+    expect(html).not.toContain("deferred");
     expect(html).not.toContain("Enrollment management and progress tracking will follow");
     expect(html).not.toContain("Progress dashboard");
   });
@@ -144,5 +145,33 @@ describe("ProgramDetail contextual Enrollment links (B1.5.9)", () => {
     );
     expect(html).toContain("View enrollments");
     expect(html).not.toContain("New enrollment");
+  });
+});
+
+describe("ProgramDetail contextual Progress links (B1.6.4)", () => {
+  it("omits progress links entirely when progressLinks is not provided", () => {
+    const html = renderToStaticMarkup(<ProgramDetail viewModel={baseViewModel} />);
+    expect(html).not.toContain('aria-label="Progress actions"');
+    expect(html).not.toContain("View progress");
+  });
+
+  it("renders View progress when progressLinks are provided", () => {
+    const html = renderToStaticMarkup(
+      <ProgramDetail
+        viewModel={baseViewModel}
+        progressLinks={{
+          viewProgressHref: `/progress?org=11111111-1111-4111-8111-111111111111&programId=${sampleProgramDetail.id}`,
+        }}
+      />,
+    );
+    expect(html).toContain(
+      "Progress records for this program are managed in the Progress workspace.",
+    );
+    expect(html).toContain('aria-label="Progress actions"');
+    expect(html).toContain("View progress");
+    expect(html).toContain(
+      `href="/progress?org=11111111-1111-4111-8111-111111111111&amp;programId=${sampleProgramDetail.id}"`,
+    );
+    expect(html).not.toContain("Record progress");
   });
 });

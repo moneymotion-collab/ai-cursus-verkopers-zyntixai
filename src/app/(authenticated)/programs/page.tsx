@@ -72,7 +72,7 @@ function resolveEmptyState(
   return {
     title: "No programs yet",
     description:
-      "A program is a structured offering your organization delivers—such as a cohort, coaching package, or membership. Create a program to get started. Enrollment and progress tools follow in later phases.",
+      "A program is a structured offering your organization delivers—such as a cohort, coaching package, or membership. Create a program to get started. Manage enrollments and progress from their workspaces.",
     showCreateInEmpty: true,
   };
 }

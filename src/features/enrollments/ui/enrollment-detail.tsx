@@ -14,10 +14,16 @@ export type EnrollmentWorkflowLinks = {
   restore?: string;
 };
 
+export type EnrollmentProgressLinks = {
+  viewProgressHref: string;
+  recordProgressHref?: string;
+};
+
 type EnrollmentDetailProps = {
   viewModel: EnrollmentDetailViewModel;
   reloadHref?: string;
   workflowLinks?: EnrollmentWorkflowLinks;
+  progressLinks?: EnrollmentProgressLinks;
 };
 
 function badgeVariantForStatus(
@@ -42,7 +48,12 @@ export function EnrollmentUnavailableDetail({ backHref }: { backHref: string }) 
   );
 }
 
-export function EnrollmentDetail({ viewModel, reloadHref, workflowLinks }: EnrollmentDetailProps) {
+export function EnrollmentDetail({
+  viewModel,
+  reloadHref,
+  workflowLinks,
+  progressLinks,
+}: EnrollmentDetailProps) {
   const {
     enrollment,
     history,
@@ -144,9 +155,22 @@ export function EnrollmentDetail({ viewModel, reloadHref, workflowLinks }: Enrol
               <dd>{formatOptionalEnrollmentDate(enrollment.archivedAt, organizationTimezone)}</dd>
             </div>
           </dl>
-          <p className={styles.boundaryNote}>
-            Progress tracking within this enrollment is deferred to a later phase.
-          </p>
+          {progressLinks ? (
+            <>
+              <p className={styles.boundaryNote}>
+                Progress records for this enrollment are managed in the Progress workspace.
+                {progressLinks.recordProgressHref
+                  ? " You can record progress when this enrollment is eligible."
+                  : null}
+              </p>
+              <nav className={styles.progressLinks} aria-label="Progress actions">
+                <a href={progressLinks.viewProgressHref}>View progress</a>
+                {progressLinks.recordProgressHref ? (
+                  <a href={progressLinks.recordProgressHref}>Record progress</a>
+                ) : null}
+              </nav>
+            </>
+          ) : null}
         </section>
 
         <div className={styles.panels}>

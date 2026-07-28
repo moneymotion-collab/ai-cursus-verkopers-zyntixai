@@ -66,11 +66,20 @@ describe("B1.5.8 Programs and Enrollments stale-copy remediation", () => {
     expect(programDetail).toMatch(/enrollmentLinks\s*\?/);
   });
 
-  it("Progress remains accurately deferred where mentioned", () => {
-    expect(enrollmentDetail).toContain(
+  it("Progress no longer claims deferred tracking; Progress workspace language is present", () => {
+    expect(enrollmentDetail).not.toContain(
       "Progress tracking within this enrollment is deferred to a later phase.",
     );
-    expect(programDetail).toContain("Progress tracking remains deferred to a later phase");
+    expect(enrollmentDetail).not.toContain("deferred to a later phase");
+    expect(enrollmentDetail).toContain(
+      "Progress records for this enrollment are managed in the Progress workspace.",
+    );
+
+    expect(programDetail).not.toContain("Progress tracking remains deferred to a later phase");
+    expect(programDetail).not.toContain("deferred to a later phase");
+    expect(programDetail).toContain(
+      "Progress records for this program are managed in the Progress workspace.",
+    );
   });
 
   it("retired/cancelled/archived terminology is not collapsed in remediation-surface help copy", () => {
