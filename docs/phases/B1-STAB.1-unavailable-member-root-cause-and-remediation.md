@@ -212,29 +212,29 @@ True co-member display-name resolution remains **blocked by `profiles_select_own
 
 ## 11. Browser evidence
 
-| Journey | Status |
+Completed in follow-on phase **B1-STAB.1-R1-PROD** (2026-07-28) on `https://zyntixai.vercel.app` after controlled deploy/promote of `3df5519…` as `dpl_B4oArrKiKKbtPpqJSZ1UF3WKrCHU`.
+
+| Journey | Result |
 | --- | --- |
-| Original B1.5 Enrollment detail owner label (Owner/Staff/Viewer) | **Not executed in this desktop session** (no authenticated QA browser run authorized/performed here) |
-| Missing-profile / RLS-shaped case | Covered by automated regression modeling empty `profiles` result |
-| Programs / Enrollments smoke | Automated UI/server suites green; no live browser claim |
+| Controlled cancelled Enrollment list owner | **`Team member`** (no longer **`Unavailable member`**) |
+| Controlled cancelled Enrollment detail owner + history actors | **`Team member`** |
+| Pending Enrollment null owner | **`Unassigned`** |
+| Programs list | Loads for Production QA |
+| Enrollments list | Loads; 2 records visible |
 
-Browser classification for this phase:
-
-```text
-MANUAL AUTHENTICATED BROWSER VERIFICATION STILL REQUIRED AFTER DEPLOY
-```
+Details: `docs/phases/B1-STAB.1-R1-PROD-unavailable-member-production-verification.md`.
 
 ---
 
 ## 12. Production evidence
 
-No deployment, promote, or alias change was performed in B1-STAB.1.
-
-```text
-PRODUCTION VERIFICATION REQUIRED on https://zyntixai.vercel.app after controlled deploy of this commit
-```
-
-Expected post-deploy check: Staff-owned Enrollment no longer shows misleading **Unavailable member** when membership resolves; shows **Team member** or a readable self-profile name; no cross-tenant labels; Programs/Enrollments primary flows intact.
+| Item | Result |
+| --- | --- |
+| Deployed SHA | `3df5519e744d6e7668e9ab8aa63e5f449a62495e` |
+| Deployment | `dpl_B4oArrKiKKbtPpqJSZ1UF3WKrCHU` Ready |
+| Alias | `https://zyntixai.vercel.app` → that deployment |
+| Rollback | `dpl_GTK1vF4ERAuC7RC6ziDZke5btQ5M` remains Ready |
+| Original observation | Remediated for known co-member owner (**Team member**) |
 
 ---
 
@@ -286,10 +286,10 @@ Earliest B1.6.1 integration remains **after** this stab is pushed, laptop finish
 ## 17. Final verdict
 
 ```text
-B1-STAB.1 PASS WITH CONDITIONS — PRODUCTION VERIFICATION REQUIRED
+B1-STAB.1 CLOSED WITH EVIDENCE
 ```
 
-Root cause proven; Enrollment misleading fallback remediated and regression-tested; full automated gates green; browser and production verification remain required; true co-member display names still need a separate schema contract.
+Root cause proven; Enrollment misleading fallback remediated and regression-tested; full automated gates green; controlled production deploy + authenticated Enrollment/Programs verification completed in B1-STAB.1-R1-PROD. Residual non-blocking conditions: schema-level co-member display names; Customers/Leads label helpers out of scope; Unavailable dangling-owner path covered by automated tests (no live dangling fixture).
 
 ---
 
