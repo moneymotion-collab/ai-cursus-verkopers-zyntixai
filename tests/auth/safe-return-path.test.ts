@@ -30,6 +30,11 @@ describe("resolveSafeReturnPath", () => {
     expect(
       resolveSafeReturnPath("/enrollments/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/edit"),
     ).toBe("/enrollments/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/edit");
+    expect(resolveSafeReturnPath("/progress")).toBe("/progress");
+    expect(resolveSafeReturnPath("/progress/new")).toBe("/progress/new");
+    expect(
+      resolveSafeReturnPath("/progress/55555555-5555-4555-8555-555555555555/void"),
+    ).toBe("/progress/55555555-5555-4555-8555-555555555555/void");
   });
 
   it("accepts the onboarding path with a safe organization query", () => {
@@ -171,6 +176,8 @@ describe("isProtectedApplicationPath", () => {
     expect(isProtectedApplicationPath("/programs/abc/edit")).toBe(true);
     expect(isProtectedApplicationPath("/enrollments")).toBe(true);
     expect(isProtectedApplicationPath("/enrollments/abc/edit")).toBe(true);
+    expect(isProtectedApplicationPath("/progress")).toBe(true);
+    expect(isProtectedApplicationPath("/progress/abc/correct")).toBe(true);
     expect(isProtectedApplicationPath("/onboarding")).toBe(true);
     expect(isProtectedApplicationPath("/")).toBe(false);
     expect(isProtectedApplicationPath("/login")).toBe(false);
