@@ -13,6 +13,90 @@ export type AttentionSignalOrigin = "manual" | "rule";
 
 export type AttentionRuleKey = "enrollment_no_recent_progress";
 
+export type AttentionEventType =
+  | "created"
+  | "status_changed"
+  | "assigned"
+  | "severity_changed"
+  | "signal_recorded"
+  | "archived"
+  | "detection_updated";
+
+export type AttentionEventSource = "manual" | "rule" | "system";
+
+export type AttentionRole = "owner" | "admin" | "staff" | "viewer";
+
+export type AttentionPermissionSet = {
+  canListItems: boolean;
+  canViewItem: boolean;
+  canViewArchivedItems: boolean;
+  canCreateManualItem: boolean;
+  canRecordSignal: boolean;
+  canAcknowledge: boolean;
+  canAssign: boolean;
+  canUpdateSeverity: boolean;
+  canResolve: boolean;
+  canDismiss: boolean;
+  canArchive: boolean;
+  canEvaluateRules: boolean;
+};
+
+export type AttentionApplicationErrorCode =
+  | "AUTH_REQUIRED"
+  | "ORG_CONTEXT_MISSING"
+  | "INVALID_INPUT"
+  | "ATTENTION_ITEM_UNAVAILABLE"
+  | "ENROLLMENT_UNAVAILABLE"
+  | "PERMISSION_DENIED"
+  | "INSUFFICIENT_ROLE"
+  | "INVALID_STATE"
+  | "CONFLICT"
+  | "NETWORK_ERROR"
+  | "TIMEOUT"
+  | "RATE_LIMITED"
+  | "DATABASE_UNAVAILABLE"
+  | "UNEXPECTED_ERROR";
+
+export type AttentionApplicationError = {
+  code: AttentionApplicationErrorCode;
+  message: string;
+  retryable: boolean;
+  category:
+    | "auth"
+    | "permission"
+    | "validation"
+    | "not_found"
+    | "conflict"
+    | "network"
+    | "server";
+  fieldErrors?: Record<string, string>;
+  cause?: string;
+  refreshRequired?: boolean;
+};
+
+export type AttentionReadQueryResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: AttentionApplicationError };
+
+export type AttentionRpcAdapterResult<T = void> =
+  | { ok: true; data?: T }
+  | { ok: false; error: AttentionApplicationError };
+
+export const EMPTY_ATTENTION_PERMISSIONS: AttentionPermissionSet = {
+  canListItems: false,
+  canViewItem: false,
+  canViewArchivedItems: false,
+  canCreateManualItem: false,
+  canRecordSignal: false,
+  canAcknowledge: false,
+  canAssign: false,
+  canUpdateSeverity: false,
+  canResolve: false,
+  canDismiss: false,
+  canArchive: false,
+  canEvaluateRules: false,
+};
+
 export type AttentionDomainErrorCode =
   | "INVALID_STATUS"
   | "INVALID_SEVERITY"
