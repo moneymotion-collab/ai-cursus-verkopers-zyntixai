@@ -60,6 +60,150 @@ export function isMissingAuthSessionError(error: unknown): boolean {
   return false;
 }
 
+/**
+ * Exact raise-exception messages from B1.7.3 Attention RPCs
+ * (`supabase/migrations/20260805134825_add_attention_helpers_and_rpcs.sql`).
+ */
+const ATTENTION_RPC_MESSAGE_RULES: Array<{
+  pattern: RegExp;
+  code: AttentionApplicationErrorCode;
+  message: string;
+  category: AttentionApplicationError["category"];
+}> = [
+  {
+    pattern: /^not authenticated$/i,
+    code: "AUTH_REQUIRED",
+    message: "Please sign in to continue.",
+    category: "auth",
+  },
+  {
+    pattern: /^organization not found or not active$/i,
+    code: "ORG_CONTEXT_MISSING",
+    message: "Organization not found or access denied.",
+    category: "not_found",
+  },
+  {
+    pattern: /^active organization membership required$/i,
+    code: "ORG_CONTEXT_MISSING",
+    message: "Organization not found or access denied.",
+    category: "not_found",
+  },
+  {
+    pattern: /^insufficient role$/i,
+    code: "INSUFFICIENT_ROLE",
+    message: "You don't have permission for this action.",
+    category: "permission",
+  },
+  {
+    pattern: /^attention item not found$/i,
+    code: "ATTENTION_ITEM_UNAVAILABLE",
+    message: "Attention item not found or access denied.",
+    category: "not_found",
+  },
+  {
+    pattern: /^enrollment not found$/i,
+    code: "ENROLLMENT_UNAVAILABLE",
+    message: "Enrollment not found or access denied.",
+    category: "not_found",
+  },
+  {
+    pattern: /^invalid member assignment for organization$/i,
+    code: "INVALID_INPUT",
+    message: "Select a valid organization member.",
+    category: "validation",
+  },
+  {
+    pattern: /^invalid attention title$/i,
+    code: "INVALID_INPUT",
+    message: "Provide a valid attention title.",
+    category: "validation",
+  },
+  {
+    pattern: /^invalid attention summary$/i,
+    code: "INVALID_INPUT",
+    message: "Provide a valid attention summary.",
+    category: "validation",
+  },
+  {
+    pattern: /^invalid attention severity$/i,
+    code: "INVALID_INPUT",
+    message: "Select a valid attention severity.",
+    category: "validation",
+  },
+  {
+    pattern: /^invalid attention signal explanation$/i,
+    code: "INVALID_INPUT",
+    message: "Provide a valid signal explanation.",
+    category: "validation",
+  },
+  {
+    pattern: /^invalid attention signal evidence$/i,
+    code: "INVALID_INPUT",
+    message: "Provide valid signal evidence.",
+    category: "validation",
+  },
+  {
+    pattern: /^invalid attention signal origin/i,
+    code: "INVALID_INPUT",
+    message: "Provide a valid signal origin.",
+    category: "validation",
+  },
+  {
+    pattern: /^invalid attention rule key$/i,
+    code: "INVALID_INPUT",
+    message: "Provide a valid attention rule key.",
+    category: "validation",
+  },
+  {
+    pattern: /^resolution reason required$/i,
+    code: "INVALID_INPUT",
+    message: "A resolution reason is required.",
+    category: "validation",
+  },
+  {
+    pattern: /^dismissal reason required$/i,
+    code: "INVALID_INPUT",
+    message: "A dismissal reason is required.",
+    category: "validation",
+  },
+  {
+    pattern: /^attention item is archived$/i,
+    code: "INVALID_STATE",
+    message: "This attention item is archived.",
+    category: "conflict",
+  },
+  {
+    pattern: /^attention item is terminal$/i,
+    code: "INVALID_STATE",
+    message: "This attention item is already closed.",
+    category: "conflict",
+  },
+  {
+    pattern: /^invalid attention status transition$/i,
+    code: "INVALID_STATE",
+    message: "This attention status change is not allowed.",
+    category: "conflict",
+  },
+  {
+    pattern: /^only terminal attention items can be archived$/i,
+    code: "INVALID_STATE",
+    message: "Only closed attention items can be archived.",
+    category: "conflict",
+  },
+  {
+    pattern: /^attention item already archived$/i,
+    code: "CONFLICT",
+    message: "This attention item is already archived.",
+    category: "conflict",
+  },
+  {
+    pattern: /^attention item already open for dedupe key$/i,
+    code: "CONFLICT",
+    message: "An open attention item already exists for this enrollment signal.",
+    category: "conflict",
+  },
+];
+
 function mapTransportError(error: PostgrestError | Error): AttentionApplicationError {
   const message = extractMessage(error);
   const lower = message.toLowerCase();
@@ -121,27 +265,16 @@ export function normalizeAttentionError(
 ): AttentionApplicationError {
   const message = extractMessage(error);
 
-  if (/^not authenticated$/i.test(message)) {
-    return authRequiredError();
-  }
-
-  if (
-    /^active organization membership required$/i.test(message) ||
-    /^organization not found or not active$/i.test(message)
-  ) {
-    return orgContextMissingError();
-  }
-
-  if (/^insufficient role$/i.test(message)) {
-    return insufficientRoleError();
-  }
-
-  if (/^attention item not found$/i.test(message)) {
-    return attentionItemUnavailableError();
-  }
-
-  if (/^enrollment not found$/i.test(message)) {
-    return enrollmentUnavailableError();
+  for (const rule of ATTENTION_RPC_MESSAGE_RULES) {
+    if (rule.pattern.test(message)) {
+      return {
+        code: rule.code,
+        message: rule.message,
+        retryable: false,
+        category: rule.category,
+        cause: message,
+      };
+    }
   }
 
   if (
@@ -190,6 +323,12 @@ export function invalidInputError(
     category: "validation",
     fieldErrors,
   };
+}
+
+export function validationErrorFromZod(
+  fieldErrors: Record<string, string>,
+): AttentionApplicationError {
+  return invalidInputError(fieldErrors);
 }
 
 export function insufficientRoleError(): AttentionApplicationError {
