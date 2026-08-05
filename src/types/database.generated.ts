@@ -42,6 +42,207 @@ export type Database = {
   }
   public: {
     Tables: {
+      attention_items: {
+        Row: {
+          acknowledged_at: string | null
+          archived_at: string | null
+          assignee_member_id: string | null
+          created_at: string
+          created_by_member_id: string | null
+          customer_id: string
+          dedupe_key: string
+          detection_count: number
+          dismissal_reason: string | null
+          dismissed_at: string | null
+          enrollment_id: string
+          expired_at: string | null
+          first_detected_at: string
+          id: string
+          last_detected_at: string
+          organization_id: string
+          program_id: string
+          resolution_reason: string | null
+          resolved_at: string | null
+          severity: string
+          status: string
+          summary: string | null
+          title: string
+          updated_at: string
+          updated_by_member_id: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          archived_at?: string | null
+          assignee_member_id?: string | null
+          created_at?: string
+          created_by_member_id?: string | null
+          customer_id: string
+          dedupe_key: string
+          detection_count?: number
+          dismissal_reason?: string | null
+          dismissed_at?: string | null
+          enrollment_id: string
+          expired_at?: string | null
+          first_detected_at?: string
+          id?: string
+          last_detected_at?: string
+          organization_id: string
+          program_id: string
+          resolution_reason?: string | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          summary?: string | null
+          title: string
+          updated_at?: string
+          updated_by_member_id?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          archived_at?: string | null
+          assignee_member_id?: string | null
+          created_at?: string
+          created_by_member_id?: string | null
+          customer_id?: string
+          dedupe_key?: string
+          detection_count?: number
+          dismissal_reason?: string | null
+          dismissed_at?: string | null
+          enrollment_id?: string
+          expired_at?: string | null
+          first_detected_at?: string
+          id?: string
+          last_detected_at?: string
+          organization_id?: string
+          program_id?: string
+          resolution_reason?: string | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          updated_by_member_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attention_items_assignee_member_fk"
+            columns: ["organization_id", "assignee_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "attention_items_created_by_member_fk"
+            columns: ["organization_id", "created_by_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "attention_items_enrollment_tuple_fk"
+            columns: [
+              "organization_id",
+              "enrollment_id",
+              "customer_id",
+              "program_id",
+            ]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: [
+              "organization_id",
+              "id",
+              "customer_id",
+              "program_id",
+            ]
+          },
+          {
+            foreignKeyName: "attention_items_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attention_items_updated_by_member_fk"
+            columns: ["organization_id", "updated_by_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      attention_signals: {
+        Row: {
+          attention_item_id: string
+          created_at: string
+          created_by_member_id: string | null
+          detected_at: string
+          enrollment_id: string
+          evidence: Json
+          explanation: string
+          id: string
+          organization_id: string
+          rule_key: string | null
+          signal_origin: string
+        }
+        Insert: {
+          attention_item_id: string
+          created_at?: string
+          created_by_member_id?: string | null
+          detected_at?: string
+          enrollment_id: string
+          evidence?: Json
+          explanation: string
+          id?: string
+          organization_id: string
+          rule_key?: string | null
+          signal_origin: string
+        }
+        Update: {
+          attention_item_id?: string
+          created_at?: string
+          created_by_member_id?: string | null
+          detected_at?: string
+          enrollment_id?: string
+          evidence?: Json
+          explanation?: string
+          id?: string
+          organization_id?: string
+          rule_key?: string | null
+          signal_origin?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attention_signals_created_by_member_fk"
+            columns: ["organization_id", "created_by_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "attention_signals_enrollment_fk"
+            columns: ["organization_id", "enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "attention_signals_item_enrollment_fk"
+            columns: ["organization_id", "attention_item_id", "enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "attention_items"
+            referencedColumns: ["organization_id", "id", "enrollment_id"]
+          },
+          {
+            foreignKeyName: "attention_signals_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_status_history: {
         Row: {
           changed_at: string
