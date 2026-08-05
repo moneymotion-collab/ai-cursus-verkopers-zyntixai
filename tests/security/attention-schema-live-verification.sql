@@ -257,16 +257,23 @@ begin
     end if;
   end;
 
-  -- Application roles must have no table privileges (deny-by-default)
+  -- Application roles: anon has no access; authenticated may SELECT only (B1.7.3)
   if has_table_privilege('anon', 'public.attention_items', 'select')
     or has_table_privilege('anon', 'public.attention_signals', 'select')
-    or has_table_privilege('authenticated', 'public.attention_items', 'select')
-    or has_table_privilege('authenticated', 'public.attention_signals', 'select')
     or has_table_privilege('authenticated', 'public.attention_signals', 'insert')
     or has_table_privilege('authenticated', 'public.attention_signals', 'update')
     or has_table_privilege('authenticated', 'public.attention_signals', 'delete')
+    or has_table_privilege('authenticated', 'public.attention_items', 'insert')
+    or has_table_privilege('authenticated', 'public.attention_items', 'update')
+    or has_table_privilege('authenticated', 'public.attention_items', 'delete')
   then
-    raise exception 'anon/authenticated must not have Attention table privileges';
+    raise exception 'anon/authenticated must not have Attention mutation privileges';
+  end if;
+
+  if not has_table_privilege('authenticated', 'public.attention_items', 'select')
+    or not has_table_privilege('authenticated', 'public.attention_signals', 'select')
+  then
+    raise exception 'authenticated must have Attention SELECT privileges after B1.7.3';
   end if;
 
   -- Disposable Item+Signal: parent DELETE must CASCADE (admin/reset path)
@@ -373,7 +380,7 @@ begin
     raise exception 'missing nonterminal dedupe index';
   end if;
 
-  -- RLS enabled; no policies
+  -- RLS enabled; B1.7.3 adds SELECT policies only (no mutation policies)
   if not exists (
     select 1 from pg_class c
     join pg_namespace n on n.oid = c.relnamespace
@@ -382,12 +389,22 @@ begin
     raise exception 'attention_items RLS not enabled';
   end if;
 
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'attention_items'
+      and policyname in ('attention_items_select_admin', 'attention_items_select_member')
+  ) then
+    raise exception 'expected Attention SELECT policies missing';
+  end if;
+
   if exists (
     select 1 from pg_policies
     where schemaname = 'public'
-      and tablename in ('attention_items', 'attention_signals')
+      and tablename in ('attention_items', 'attention_signals', 'attention_item_events')
+      and cmd <> 'SELECT'
   ) then
-    raise exception 'unexpected Attention RLS policies present';
+    raise exception 'unexpected non-select Attention RLS policies present';
   end if;
 
   raise notice 'B1.7.2 Attention live schema verification PASS';

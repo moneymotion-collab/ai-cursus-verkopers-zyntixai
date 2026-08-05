@@ -42,6 +42,96 @@ export type Database = {
   }
   public: {
     Tables: {
+      attention_item_events: {
+        Row: {
+          actor_member_id: string | null
+          attention_item_id: string
+          created_at: string
+          event_type: string
+          from_assignee_member_id: string | null
+          from_severity: string | null
+          from_status: string | null
+          id: string
+          organization_id: string
+          payload: Json
+          reason: string | null
+          source: string
+          to_assignee_member_id: string | null
+          to_severity: string | null
+          to_status: string | null
+        }
+        Insert: {
+          actor_member_id?: string | null
+          attention_item_id: string
+          created_at?: string
+          event_type: string
+          from_assignee_member_id?: string | null
+          from_severity?: string | null
+          from_status?: string | null
+          id?: string
+          organization_id: string
+          payload?: Json
+          reason?: string | null
+          source: string
+          to_assignee_member_id?: string | null
+          to_severity?: string | null
+          to_status?: string | null
+        }
+        Update: {
+          actor_member_id?: string | null
+          attention_item_id?: string
+          created_at?: string
+          event_type?: string
+          from_assignee_member_id?: string | null
+          from_severity?: string | null
+          from_status?: string | null
+          id?: string
+          organization_id?: string
+          payload?: Json
+          reason?: string | null
+          source?: string
+          to_assignee_member_id?: string | null
+          to_severity?: string | null
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attention_item_events_actor_member_fk"
+            columns: ["organization_id", "actor_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "attention_item_events_from_assignee_member_fk"
+            columns: ["organization_id", "from_assignee_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "attention_item_events_item_fk"
+            columns: ["organization_id", "attention_item_id"]
+            isOneToOne: false
+            referencedRelation: "attention_items"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "attention_item_events_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attention_item_events_to_assignee_member_fk"
+            columns: ["organization_id", "to_assignee_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
       attention_items: {
         Row: {
           acknowledged_at: string | null
@@ -1538,6 +1628,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      acknowledge_attention_item: {
+        Args: { p_attention_item_id: string; p_organization_id: string }
+        Returns: undefined
+      }
+      archive_attention_item: {
+        Args: { p_attention_item_id: string; p_organization_id: string }
+        Returns: undefined
+      }
       archive_customer: {
         Args: { p_customer_id: string; p_organization_id: string }
         Returns: undefined
@@ -1564,6 +1662,14 @@ export type Database = {
       }
       archive_task: {
         Args: { p_organization_id: string; p_task_id: string }
+        Returns: undefined
+      }
+      assign_attention_item: {
+        Args: {
+          p_assignee_member_id?: string
+          p_attention_item_id: string
+          p_organization_id: string
+        }
         Returns: undefined
       }
       cancel_task: {
@@ -1655,6 +1761,18 @@ export type Database = {
         }
         Returns: string
       }
+      create_manual_attention_item: {
+        Args: {
+          p_enrollment_id: string
+          p_evidence_note?: string
+          p_explanation: string
+          p_organization_id: string
+          p_severity?: string
+          p_summary?: string
+          p_title: string
+        }
+        Returns: string
+      }
       create_organization_with_owner: {
         Args: {
           p_locale?: string
@@ -1710,9 +1828,21 @@ export type Database = {
         }
         Returns: string
       }
+      dismiss_attention_item: {
+        Args: {
+          p_attention_item_id: string
+          p_dismissal_reason: string
+          p_organization_id: string
+        }
+        Returns: undefined
+      }
       ensure_default_pipeline_stages: {
         Args: { p_organization_id: string }
         Returns: undefined
+      }
+      evaluate_attention_rules: {
+        Args: { p_enrollment_id?: string; p_organization_id: string }
+        Returns: Json
       }
       reassign_task: {
         Args: {
@@ -1721,6 +1851,16 @@ export type Database = {
           p_task_id: string
         }
         Returns: undefined
+      }
+      record_attention_signal: {
+        Args: {
+          p_attention_item_id: string
+          p_detected_at?: string
+          p_evidence?: Json
+          p_explanation: string
+          p_organization_id: string
+        }
+        Returns: string
       }
       record_progress_fact: {
         Args: {
@@ -1745,6 +1885,14 @@ export type Database = {
       }
       reschedule_task: {
         Args: { p_due_at: string; p_organization_id: string; p_task_id: string }
+        Returns: undefined
+      }
+      resolve_attention_item: {
+        Args: {
+          p_attention_item_id: string
+          p_organization_id: string
+          p_resolution_reason: string
+        }
         Returns: undefined
       }
       restore_customer: {
@@ -1819,6 +1967,14 @@ export type Database = {
           p_reason?: string
           p_source?: string
           p_to_status: string
+        }
+        Returns: undefined
+      }
+      update_attention_severity: {
+        Args: {
+          p_attention_item_id: string
+          p_organization_id: string
+          p_severity: string
         }
         Returns: undefined
       }

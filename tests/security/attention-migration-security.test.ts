@@ -146,6 +146,7 @@ describe("B1.7.2 Attention database foundation migration security contract", () 
     expect(liveSql).toContain(
       "expected signal row removed by parent Item CASCADE delete",
     );
+    expect(liveSql).toContain("authenticated must have Attention SELECT privileges");
     expect(liveSql).not.toMatch(/expected signal delete denial/);
   });
 });
