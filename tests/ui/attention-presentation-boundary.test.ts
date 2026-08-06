@@ -8,7 +8,7 @@ function readSrc(relativePath: string): string {
   return readFileSync(path.join(process.cwd(), relativePath), "utf8");
 }
 
-describe("attention presentation foundation boundaries (B1.7.5-A)", () => {
+describe("attention presentation foundation boundaries (B1.7.5-A/D)", () => {
   it("keeps navigation and lifecycle actions disabled", () => {
     expect(ATTENTION_NAV_VISIBLE).toBe(false);
     expect(canShowAttentionLifecycleActions()).toBe(false);
@@ -25,6 +25,7 @@ describe("attention presentation foundation boundaries (B1.7.5-A)", () => {
       "src/features/attention/ui/attention-list.tsx",
       "src/features/attention/ui/attention-list-filters.tsx",
       "src/features/attention/ui/attention-list-search-params.ts",
+      "src/features/attention/ui/attention-detail.tsx",
     ];
 
     for (const file of presentationOnlyFiles) {
@@ -34,10 +35,14 @@ describe("attention presentation foundation boundaries (B1.7.5-A)", () => {
         /create_manual_attention_item|acknowledge_attention_item|assign_attention_item|resolve_attention_item|dismiss_attention_item|archive_attention_item/,
       );
       expect(source).not.toContain("ATTENTION_NAV_VISIBLE = true");
+      expect(source).not.toMatch(/createClient|createSupabaseBrowserClient/);
     }
 
     expect(readSrc("src/features/attention/ui/attention-list.tsx")).not.toMatch(
       /listAttentionItems|getAttentionItemById/,
+    );
+    expect(readSrc("src/features/attention/ui/attention-list.tsx")).toMatch(
+      /href=\{row\.detailHref\}/,
     );
     expect(
       readSrc("src/features/attention/ui/load-attention-list-page.ts"),
@@ -47,16 +52,36 @@ describe("attention presentation foundation boundaries (B1.7.5-A)", () => {
     ).toContain("parseAttentionListSearchParams");
     expect(
       readSrc("src/features/attention/ui/attention-list-search-params.ts"),
-    ).toContain('ATTENTION_LIST_DEFAULT_SORT_FIELD');
+    ).toContain("ATTENTION_LIST_DEFAULT_SORT_FIELD");
     expect(
-      readSrc("src/features/attention/ui/attention-list.tsx"),
-    ).not.toMatch(/href=\{[^}]*detailHref/);
+      readSrc("src/features/attention/ui/load-attention-detail-page.ts"),
+    ).toContain("getAttentionItemById");
+    expect(
+      readSrc("src/features/attention/ui/load-attention-detail-page.ts"),
+    ).not.toContain("listAttentionEventsForItem");
+    expect(
+      readSrc("src/features/attention/ui/attention-detail.tsx"),
+    ).not.toMatch(/>Acknowledge<|>Assign<|>Resolve<|>Dismiss<|>Archive</);
+    expect(
+      readSrc("src/features/attention/ui/attention-detail.tsx"),
+    ).not.toMatch(
+      /acknowledge_attention_item|assign_attention_item|resolve_attention_item|dismiss_attention_item|archive_attention_item/,
+    );
 
     const page = readSrc("src/app/(authenticated)/attention/page.tsx");
     expect(page).not.toMatch(/\.from\(["']attention_/);
     expect(page).toContain("AttentionListFilters");
     expect(page).toContain("Pagination");
-    expect(page).not.toMatch(/attention\/\[/);
+
+    const detailPage = readSrc(
+      "src/app/(authenticated)/attention/[attentionItemId]/page.tsx",
+    );
+    expect(detailPage).toContain("loadAttentionDetailPage");
+    expect(detailPage).toContain("AttentionDetail");
+    expect(detailPage).not.toMatch(/\.from\(["']attention_/);
+    expect(detailPage).not.toMatch(
+      /acknowledge_attention_item|assign_attention_item|resolve_attention_item/,
+    );
 
     const schema = readSrc(
       "src/features/attention/validation/read-query-schemas.ts",

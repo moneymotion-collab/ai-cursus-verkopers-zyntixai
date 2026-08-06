@@ -94,8 +94,8 @@ function AttentionListItemBadges({ row }: { row: AttentionListWorkspaceRow }) {
 }
 
 /**
- * Read-only Attention list results (B1.7.5-B/C).
- * No detail links (D) or lifecycle actions (B1.7.6).
+ * Read-only Attention list results (B1.7.5-B/C/D).
+ * Detail links preserve list URL state; lifecycle actions remain deferred.
  */
 export function AttentionListPresentation({
   rows,
@@ -142,7 +142,9 @@ export function AttentionListPresentation({
             {rows.map((row) => (
               <tr key={row.id}>
                 <td>
-                  <span className={styles.titleCell}>{row.titleLabel}</span>
+                  <a className={styles.titleLink} href={row.detailHref}>
+                    <span className={styles.titleCell}>{row.titleLabel}</span>
+                  </a>
                   {row.summaryLabel ? (
                     <span className={styles.summary}>{row.summaryLabel}</span>
                   ) : null}
@@ -178,7 +180,9 @@ export function AttentionListPresentation({
       <ul className={styles.cardList}>
         {rows.map((row) => (
           <li key={row.id} className={styles.card}>
-            <h2 className={styles.cardTitle}>{row.titleLabel}</h2>
+            <h2 className={styles.cardTitle}>
+              <a href={row.detailHref}>{row.titleLabel}</a>
+            </h2>
             {row.summaryLabel ? (
               <p className={styles.cardSummary}>{row.summaryLabel}</p>
             ) : null}

@@ -1,6 +1,8 @@
 import type {
+  AttentionEventReadModel,
   AttentionItemDetailReadModel,
   AttentionItemListItemReadModel,
+  AttentionSignalReadModel,
 } from "@/features/attention/domain/read-types";
 import {
   getAttentionItemStatusLabel,
@@ -12,8 +14,10 @@ import {
 } from "@/features/attention/domain/severity";
 import type {
   AttentionApplicationError,
+  AttentionEventType,
   AttentionItemStatus,
   AttentionSeverity,
+  AttentionSignalOrigin,
 } from "@/features/attention/domain/types";
 import { buildAttentionDetailHref } from "@/features/attention/domain/attention-navigation";
 
@@ -159,8 +163,10 @@ export type AttentionDetailPresentation = {
   summaryLabel: string | null;
   statusLabel: string;
   severityLabel: string;
+  attentionTypeLabel: string;
   customerLabel: string;
   programLabel: string;
+  enrollmentStatusLabel: string | null;
   assigneeLabel: string;
   acknowledgementLabel: string;
   firstDetectedAtLabel: string;
@@ -173,16 +179,39 @@ export type AttentionDetailPresentation = {
   archivedAtLabel: string | null;
   resolutionReasonLabel: string | null;
   dismissalReasonLabel: string | null;
+  detectionCountLabel: string;
   isArchived: boolean;
   isTerminal: boolean;
+  severityKey: AttentionSeverity;
+  statusKey: AttentionItemStatus;
 };
+
+export function resolveAttentionTypeLabelFromDetail(
+  item: AttentionItemDetailReadModel,
+): string {
+  const primarySignal = item.signals[0];
+  if (primarySignal?.ruleKey === "enrollment_no_recent_progress") {
+    return "No recent progress";
+  }
+  if (primarySignal?.signalOrigin === "manual") {
+    return "Manual signal";
+  }
+  if (primarySignal?.signalOrigin === "rule") {
+    return "Rule signal";
+  }
+  return item.sourceType === "enrollment" ? "Enrollment" : "Attention";
+}
 
 export function toAttentionDetailPresentation(
   item: AttentionItemDetailReadModel,
-  options: { timeZone: string },
+  options: {
+    timeZone: string;
+    assigneeDisplayName?: string | null;
+  },
 ): AttentionDetailPresentation {
   const customerName = item.customer?.displayName ?? null;
   const programName = item.program?.name ?? null;
+  const enrollmentStatus = item.enrollment?.status ?? null;
 
   return {
     id: item.id,
@@ -190,10 +219,14 @@ export function toAttentionDetailPresentation(
     summaryLabel: item.summary?.trim() ? item.summary.trim() : null,
     statusLabel: resolveAttentionStatusLabel(item.status),
     severityLabel: resolveAttentionSeverityLabel(item.severity),
+    attentionTypeLabel: resolveAttentionTypeLabelFromDetail(item),
     customerLabel: resolveAttentionCustomerLabel(customerName),
     programLabel: resolveAttentionProgramLabel(programName),
+    enrollmentStatusLabel: enrollmentStatus
+      ? enrollmentStatus.charAt(0).toUpperCase() + enrollmentStatus.slice(1)
+      : null,
     assigneeLabel: resolveAttentionAssigneeLabel(
-      null,
+      options.assigneeDisplayName,
       item.assigneeMemberId,
     ),
     acknowledgementLabel: resolveAttentionAcknowledgementLabel({
@@ -215,8 +248,153 @@ export function toAttentionDetailPresentation(
     dismissalReasonLabel: item.dismissalReason?.trim()
       ? item.dismissalReason.trim()
       : null,
+    detectionCountLabel: String(item.detectionCount),
     isArchived: item.derived.isArchived,
     isTerminal: item.derived.isTerminal,
+    severityKey: item.severity,
+    statusKey: item.status,
+  };
+}
+
+const ATTENTION_EVENT_TYPE_LABELS: Record<AttentionEventType, string> = {
+  created: "Created",
+  status_changed: "Status changed",
+  assigned: "Assigned",
+  severity_changed: "Severity changed",
+  signal_recorded: "Signal recorded",
+  archived: "Archived",
+  detection_updated: "Detection updated",
+};
+
+export function resolveAttentionEventTypeLabel(
+  eventType: AttentionEventType | string,
+): string {
+  if (eventType in ATTENTION_EVENT_TYPE_LABELS) {
+    return ATTENTION_EVENT_TYPE_LABELS[eventType as AttentionEventType];
+  }
+  return "Event";
+}
+
+export function resolveAttentionSignalOriginLabel(
+  origin: AttentionSignalOrigin | string,
+): string {
+  if (origin === "manual") {
+    return "Manual";
+  }
+  if (origin === "rule") {
+    return "Rule";
+  }
+  return "Signal";
+}
+
+export type AttentionTimelineEventPresentation = {
+  id: string;
+  eventTypeLabel: string;
+  createdAt: string;
+  createdAtLabel: string;
+  actorLabel: string | null;
+  summaryLabel: string | null;
+  reasonLabel: string | null;
+  sourceLabel: string;
+};
+
+function appendTransition(
+  parts: string[],
+  label: string,
+  fromLabel: string | null,
+  toLabel: string | null,
+): void {
+  if (!fromLabel && !toLabel) {
+    return;
+  }
+  if (fromLabel && toLabel) {
+    parts.push(`${label}: ${fromLabel} → ${toLabel}`);
+    return;
+  }
+  parts.push(`${label}: ${toLabel ?? fromLabel}`);
+}
+
+/**
+ * Maps authorized event read models to safe timeline rows.
+ * Never includes raw payload / audit JSON.
+ */
+export function toAttentionTimelineEventPresentation(
+  event: AttentionEventReadModel,
+  options: {
+    timeZone: string;
+    actorLabel: string | null;
+    fromAssigneeLabel: string | null;
+    toAssigneeLabel: string | null;
+  },
+): AttentionTimelineEventPresentation {
+  const parts: string[] = [];
+  appendTransition(
+    parts,
+    "Status",
+    event.fromStatus ? resolveAttentionStatusLabel(event.fromStatus) : null,
+    event.toStatus ? resolveAttentionStatusLabel(event.toStatus) : null,
+  );
+  appendTransition(
+    parts,
+    "Severity",
+    event.fromSeverity ? resolveAttentionSeverityLabel(event.fromSeverity) : null,
+    event.toSeverity ? resolveAttentionSeverityLabel(event.toSeverity) : null,
+  );
+  appendTransition(
+    parts,
+    "Assignee",
+    options.fromAssigneeLabel,
+    options.toAssigneeLabel,
+  );
+
+  const reason = event.reason?.trim() ? event.reason.trim() : null;
+
+  return {
+    id: event.id,
+    eventTypeLabel: resolveAttentionEventTypeLabel(event.eventType),
+    createdAt: event.createdAt,
+    createdAtLabel: formatAttentionDate(event.createdAt, options.timeZone),
+    actorLabel: options.actorLabel,
+    summaryLabel: parts.length > 0 ? parts.join(" · ") : null,
+    reasonLabel: reason,
+    sourceLabel:
+      event.source === "manual"
+        ? "Manual"
+        : event.source === "rule"
+          ? "Rule"
+          : "System",
+  };
+}
+
+export type AttentionSignalPresentation = {
+  id: string;
+  originLabel: string;
+  ruleLabel: string | null;
+  explanationLabel: string | null;
+  detectedAt: string;
+  detectedAtLabel: string;
+};
+
+export function toAttentionSignalPresentation(
+  signal: AttentionSignalReadModel,
+  options: { timeZone: string },
+): AttentionSignalPresentation {
+  let ruleLabel: string | null = null;
+  if (signal.ruleKey === "enrollment_no_recent_progress") {
+    ruleLabel = "No recent progress";
+  } else if (signal.ruleKey) {
+    ruleLabel = signal.ruleKey;
+  }
+
+  return {
+    id: signal.id,
+    originLabel: resolveAttentionSignalOriginLabel(signal.signalOrigin),
+    ruleLabel,
+    explanationLabel: signal.explanation?.trim()
+      ? signal.explanation.trim()
+      : null,
+    detectedAt: signal.detectedAt,
+    detectedAtLabel: formatAttentionDate(signal.detectedAt, options.timeZone),
   };
 }
 

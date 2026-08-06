@@ -41,8 +41,8 @@ const defaultUrlState = {
   pageSize: 25,
 };
 
-describe("AttentionListPresentation (B1.7.5-C)", () => {
-  it("renders read-only list fields without detail links or mutations", () => {
+describe("AttentionListPresentation (B1.7.5-C/D)", () => {
+  it("renders read-only list fields with semantic detail links and no mutations", () => {
     const html = renderToStaticMarkup(
       <AttentionListPresentation
         rows={[sampleRow]}
@@ -53,8 +53,7 @@ describe("AttentionListPresentation (B1.7.5-C)", () => {
     expect(html).toContain("No recent progress");
     expect(html).toContain("Open");
     expect(html).toContain("High");
-    expect(html).not.toContain(`href="/attention/${ATTENTION_ITEM_ID}`);
-    expect(html).not.toContain(sampleRow.detailHref);
+    expect(html).toContain(`href="${sampleRow.detailHref}"`);
     expect(html).not.toMatch(/>Acknowledge</);
     expect(html).not.toMatch(/>Assign</);
     expect(html).not.toMatch(/>Resolve</);

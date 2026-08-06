@@ -25,9 +25,11 @@ import {
   attentionListFilterWarningMessage,
   ATTENTION_LIST_DEFAULT_SORT_DIRECTION,
   ATTENTION_LIST_DEFAULT_SORT_FIELD,
+  buildAttentionListQueryString,
   parseAttentionListSearchParams,
   type AttentionListUrlState,
 } from "@/features/attention/ui/attention-list-search-params";
+import { buildAttentionDetailHref } from "@/features/attention/domain/attention-navigation";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
 import type { Database } from "@/types/database";
 
@@ -92,16 +94,20 @@ function resolveAttentionTypeLabel(
 
 export function mapAttentionListWorkspaceRows(
   items: AttentionItemListItemReadModel[],
-  options: { organizationId: string; timeZone: string },
+  options: {
+    organizationId: string;
+    timeZone: string;
+    urlState: AttentionListUrlState;
+  },
 ): AttentionListWorkspaceRow[] {
   return items.map((item) => {
     const base = toAttentionListItemPresentation(item, {
-      organizationId: options.organizationId,
       timeZone: options.timeZone,
     });
     const summary = item.summary?.trim();
     return {
       ...base,
+      detailHref: `${buildAttentionDetailHref(item.id)}${buildAttentionListQueryString(options.urlState)}`,
       summaryLabel: summary && summary.length > 0 ? summary : null,
       attentionTypeLabel: resolveAttentionTypeLabel(item),
       createdAtLabel: formatAttentionDate(item.createdAt, options.timeZone),
@@ -175,6 +181,7 @@ export async function loadAttentionListPage(
   const rows = mapAttentionListWorkspaceRows(listResult.data.items, {
     organizationId: orgResult.organizationId,
     timeZone: orgResult.timezone,
+    urlState,
   });
 
   return {

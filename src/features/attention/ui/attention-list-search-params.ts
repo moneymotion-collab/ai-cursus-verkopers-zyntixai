@@ -328,6 +328,17 @@ export function buildAttentionListHref(state: AttentionListUrlState): string {
   return `${ATTENTION_ROUTE}${buildAttentionListQueryString(state)}`;
 }
 
+/**
+ * Reconstruct list URL state from detail-page search params (safe return).
+ * Only validated Attention list keys are accepted — never an open redirect.
+ */
+export function parseAttentionListReturnState(
+  raw: Record<string, string | string[] | undefined>,
+  role: AttentionRole,
+): AttentionListUrlState {
+  return parseAttentionListSearchParams(raw, { role }).urlState;
+}
+
 export function hasAttentionListActiveFilters(
   state: AttentionListUrlState,
 ): boolean {

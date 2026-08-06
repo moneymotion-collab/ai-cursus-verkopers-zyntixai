@@ -27,7 +27,7 @@ type AttentionPageProps = {
 
 /**
  * B1.7.5-C Attention list workspace with filters, sorting, pagination, and URL state.
- * Detail (D) and nav activation (E) remain deferred.
+ * Detail links (D) preserve list state; nav activation (E) remains deferred.
  */
 export default async function AttentionPage({ searchParams }: AttentionPageProps) {
   const supabase = await createSupabaseServerClient();

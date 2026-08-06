@@ -109,6 +109,10 @@ describe("attention list page loader (B1.7.5-C)", () => {
     expect(result.urlState.status).toBe("open");
     expect(result.urlState.page).toBe(2);
     expect(result.rows[0]?.id).toBe(ATTENTION_ITEM_ID);
+    expect(result.rows[0]?.detailHref).toContain(`/attention/${ATTENTION_ITEM_ID}`);
+    expect(result.rows[0]?.detailHref).toContain(`org=${ORG_ID}`);
+    expect(result.rows[0]?.detailHref).toContain("status=open");
+    expect(result.rows[0]?.detailHref).toContain("page=2");
     expect(result.capabilities.canViewArchivedItems).toBe(false);
     expect(ATTENTION_NAV_VISIBLE).toBe(false);
   });

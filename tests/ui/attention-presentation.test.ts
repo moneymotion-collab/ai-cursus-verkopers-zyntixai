@@ -1,21 +1,35 @@
 import { describe, expect, it } from "vitest";
-import { mapAttentionItemListItem } from "@/features/attention/server/map-attention-read-model";
+import {
+  mapAttentionEvent,
+  mapAttentionItemDetail,
+  mapAttentionItemListItem,
+  mapAttentionSignal,
+} from "@/features/attention/server/map-attention-read-model";
 import {
   resolveAttentionAcknowledgementLabel,
   resolveAttentionAssigneeLabel,
   resolveAttentionCustomerLabel,
+  resolveAttentionEventTypeLabel,
   resolveAttentionSeverityLabel,
   resolveAttentionStatusLabel,
   resolveAttentionTitleLabel,
+  toAttentionDetailPresentation,
   toAttentionListItemPresentation,
   toAttentionSafeErrorPresentation,
+  toAttentionTimelineEventPresentation,
 } from "@/features/attention/ui/attention-presentation";
 import { resolveAttentionEmptyState } from "@/features/attention/ui/attention-empty-state";
 import {
   ATTENTION_ITEM_ID,
+  CUSTOMER_ID,
+  ENROLLMENT_ID,
   MEMBER_ID,
   ORG_ID,
+  PROGRAM_ID,
+  sampleAttentionEventRow,
+  sampleAttentionItemDetailRow,
   sampleAttentionItemListRow,
+  sampleAttentionSignalRow,
 } from "../helpers/attention-test-fixtures";
 import { attentionItemUnavailableError } from "@/features/attention/server/normalize-attention-error";
 
@@ -76,6 +90,66 @@ describe("attention presentation mapping (B1.7.5-A)", () => {
     expect(presentation.message.toLowerCase()).not.toContain("tenant");
     expect(JSON.stringify(presentation)).not.toContain("secret-tenant-leak");
     expect(presentation.retryable).toBe(false);
+  });
+});
+
+describe("attention detail and timeline presentation (B1.7.5-D)", () => {
+  it("maps detail fields and timeline without exposing event payload", () => {
+    const signal = mapAttentionSignal(sampleAttentionSignalRow);
+    const event = mapAttentionEvent({
+      ...sampleAttentionEventRow,
+      payload: { rule_key: "enrollment_no_recent_progress", secret: "x" },
+    });
+    expect(signal.ok).toBe(true);
+    expect(event.ok).toBe(true);
+    if (!signal.ok || !event.ok) return;
+
+    const mapped = mapAttentionItemDetail(sampleAttentionItemDetailRow, {
+      enrollment: {
+        id: ENROLLMENT_ID,
+        status: "active",
+        archivedAt: null,
+        customerId: CUSTOMER_ID,
+        programId: PROGRAM_ID,
+      },
+      customer: {
+        id: CUSTOMER_ID,
+        displayName: "Acme Corp",
+        status: "active",
+        archivedAt: null,
+      },
+      program: {
+        id: PROGRAM_ID,
+        name: "Growth Lab",
+        status: "active",
+        archivedAt: null,
+      },
+      signals: [signal.data],
+      events: [event.data],
+    });
+    expect(mapped.ok).toBe(true);
+    if (!mapped.ok) return;
+
+    const detail = toAttentionDetailPresentation(mapped.data, {
+      timeZone: "UTC",
+      assigneeDisplayName: null,
+    });
+    expect(detail.titleLabel).toBe("No recent progress");
+    expect(detail.attentionTypeLabel).toBe("No recent progress");
+    expect(detail.enrollmentStatusLabel).toBe("Active");
+    expect(detail.detectionCountLabel).toBe("1");
+
+    const timeline = toAttentionTimelineEventPresentation(event.data, {
+      timeZone: "UTC",
+      actorLabel: null,
+      fromAssigneeLabel: null,
+      toAssigneeLabel: null,
+    });
+    expect(timeline.eventTypeLabel).toBe("Created");
+    expect(resolveAttentionEventTypeLabel("assigned")).toBe("Assigned");
+    expect(JSON.stringify(timeline)).not.toContain("payload");
+    expect(JSON.stringify(timeline)).not.toContain("secret");
+    expect(JSON.stringify(timeline)).not.toContain("rule_key");
   });
 });
 
