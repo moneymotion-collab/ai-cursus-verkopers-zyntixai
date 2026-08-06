@@ -1,0 +1,86 @@
+.statePanel {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  background: var(--surface-color);
+  max-width: 40rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.statePanel h1 {
+  margin: 0;
+}
+
+.statePanel p {
+  margin: 0;
+  color: var(--muted-text);
+}
+
+.statePanel a {
+  color: var(--link-color, #1d4ed8);
+  font-weight: 600;
+  width: fit-content;
+}
+
+.statePanel a:focus-visible {
+  outline: 2px solid var(--focus-color, #2563eb);
+  outline-offset: 2px;
+}
+
+.orgList {
+  margin: 0.25rem 0 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.orgList a {
+  color: var(--link-color, #1d4ed8);
+  font-weight: 600;
+}
+
+.emptyPanel {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  background: var(--surface-color);
+  display: grid;
+  gap: 0.5rem;
+  max-width: 40rem;
+}
+
+.emptyPanel h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.emptyPanel p {
+  margin: 0;
+  color: var(--muted-text);
+}
+
+.shellPanel {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  background: var(--surface-color);
+  display: grid;
+  gap: 0.75rem;
+  max-width: 48rem;
+}
+
+.shellPanel h1 {
+  margin: 0;
+}
+
+.shellPanel p {
+  margin: 0;
+  color: var(--muted-text);
+}
+
+.shellMeta {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-text);
+}
