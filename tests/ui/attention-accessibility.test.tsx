@@ -21,6 +21,7 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/features/attention/actions/lifecycle-attention-actions", () => ({
   acknowledgeAttentionItemAction: vi.fn(),
   updateAttentionSeverityAction: vi.fn(),
+  assignAttentionItemAction: vi.fn(),
 }));
 
 const sampleRow: AttentionListWorkspaceRow = {
@@ -80,6 +81,11 @@ const detailViewModel: AttentionDetailViewModel = {
   enrollmentHref: null,
   backHref: `/attention?org=${ORG_ID}`,
   organizationTimezone: "UTC",
+  assigneeMemberId: null,
+  assigneeOptions: [
+    { value: "33333333-3333-4333-8333-333333333333", label: "Alex Owner" },
+  ],
+  assigneeOptionsFailed: false,
 };
 
 describe("Attention accessibility structure (B1.7.5-E)", () => {
@@ -139,6 +145,9 @@ describe("Attention accessibility structure (B1.7.5-E)", () => {
     expect(detail).toContain(">Acknowledge<");
     expect(detail).toContain('id="attention-severity-select"');
     expect(detail).toContain("Save severity");
+    expect(detail).toContain("Assignment");
+    expect(detail).toContain('for="attention-assignee-select"');
+    expect(detail).toContain("Save assignment");
 
     const shell = renderToStaticMarkup(
       <AppShell activeNav="attention">

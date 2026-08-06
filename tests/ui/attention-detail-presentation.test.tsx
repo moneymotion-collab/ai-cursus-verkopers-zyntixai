@@ -6,6 +6,7 @@ import type { AttentionDetailViewModel } from "@/features/attention/ui/load-atte
 import { ATTENTION_NAV_VISIBLE } from "@/features/attention/domain/attention-navigation";
 import {
   canShowAttentionAcknowledgeSeverityActions,
+  canShowAttentionAssignmentActions,
   canShowAttentionLifecycleActions,
 } from "@/features/attention/ui/attention-workflow-visibility";
 import { AttentionUnavailablePanel } from "@/features/attention/ui/attention-state-panels";
@@ -13,6 +14,7 @@ import {
   ATTENTION_ITEM_ID,
   CUSTOMER_ID,
   ENROLLMENT_ID,
+  MEMBER_ID,
   ORG_ID,
   PROGRAM_ID,
 } from "../helpers/attention-test-fixtures";
@@ -28,6 +30,7 @@ vi.mock("@/components/ui/badge", () => ({
 vi.mock("@/features/attention/actions/lifecycle-attention-actions", () => ({
   acknowledgeAttentionItemAction: vi.fn(),
   updateAttentionSeverityAction: vi.fn(),
+  assignAttentionItemAction: vi.fn(),
 }));
 
 const viewModel: AttentionDetailViewModel = {
@@ -97,10 +100,13 @@ const viewModel: AttentionDetailViewModel = {
   enrollmentHref: `/enrollments/${ENROLLMENT_ID}?org=${ORG_ID}`,
   backHref: `/attention?org=${ORG_ID}&status=open&page=2`,
   organizationTimezone: "UTC",
+  assigneeMemberId: null,
+  assigneeOptions: [{ value: MEMBER_ID, label: "Alex Owner" }],
+  assigneeOptionsFailed: false,
 };
 
-describe("AttentionDetail presentation (B1.7.6-B)", () => {
-  it("renders detail timeline and B-scoped acknowledge/severity for owner open items", () => {
+describe("AttentionDetail presentation (B1.7.6-C)", () => {
+  it("renders detail timeline with B and C scoped actions for owner open items", () => {
     const html = renderToStaticMarkup(
       <AttentionDetail viewModel={viewModel} organizationId={ORG_ID} role="owner" />,
     );
@@ -123,27 +129,54 @@ describe("AttentionDetail presentation (B1.7.6-B)", () => {
     expect(html).toContain('aria-current="page"');
     expect(html).toContain(">Acknowledge<");
     expect(html).toContain("Save severity");
-    expect(html).not.toMatch(/>Assign</);
+    expect(html).toContain("Assignment");
+    expect(html).toContain("Save assignment");
+    expect(html).toContain('for="attention-assignee-select"');
+    expect(html).not.toContain(">Unassign<");
     expect(html).not.toMatch(/>Resolve</);
     expect(html).not.toMatch(/>Dismiss</);
     expect(html).not.toMatch(/>Archive</);
     expect(html).not.toContain("payload");
     expect(canShowAttentionLifecycleActions()).toBe(false);
     expect(canShowAttentionAcknowledgeSeverityActions()).toBe(true);
+    expect(canShowAttentionAssignmentActions()).toBe(true);
     expect(ATTENTION_NAV_VISIBLE).toBe(true);
   });
 
-  it("hides acknowledge/severity for viewer and archived items", () => {
+  it("shows Unassign only when currently assigned", () => {
+    const html = renderToStaticMarkup(
+      <AttentionDetail
+        viewModel={{
+          ...viewModel,
+          assigneeMemberId: MEMBER_ID,
+          detail: {
+            ...viewModel.detail,
+            assigneeLabel: "Alex Owner",
+          },
+        }}
+        organizationId={ORG_ID}
+        role="staff"
+      />,
+    );
+    expect(html).toContain(">Unassign<");
+    expect(html).toContain("Save assignment");
+    expect(html).toContain('value="33333333-3333-4333-8333-333333333333"');
+  });
+
+  it("hides B and C actions for viewer and archived items", () => {
     const viewer = renderToStaticMarkup(
       <AttentionDetail viewModel={viewModel} organizationId={ORG_ID} role="viewer" />,
     );
     expect(viewer).not.toMatch(/>Acknowledge</);
     expect(viewer).not.toContain("Save severity");
+    expect(viewer).not.toContain("Save assignment");
+    expect(viewer).not.toContain(">Unassign<");
 
     const archived = renderToStaticMarkup(
       <AttentionDetail
         viewModel={{
           ...viewModel,
+          assigneeMemberId: MEMBER_ID,
           detail: {
             ...viewModel.detail,
             isArchived: true,
@@ -159,6 +192,8 @@ describe("AttentionDetail presentation (B1.7.6-B)", () => {
     );
     expect(archived).not.toMatch(/>Acknowledge</);
     expect(archived).not.toContain("Save severity");
+    expect(archived).not.toContain("Save assignment");
+    expect(archived).not.toContain(">Unassign<");
   });
 
   it("renders empty timeline state", () => {

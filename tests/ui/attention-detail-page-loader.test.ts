@@ -41,6 +41,20 @@ vi.mock("@/features/enrollments/server/resolve-enrollment-labels", () => ({
   }),
 }));
 
+vi.mock("@/features/attention/server/load-attention-assignee-options", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/features/attention/server/load-attention-assignee-options")
+  >("@/features/attention/server/load-attention-assignee-options");
+  return {
+    ...actual,
+    loadAttentionAssigneeOptions: vi.fn(async () => ({
+      members: [{ value: MEMBER_ID, label: "Alex Owner" }],
+      capped: false,
+      failed: false,
+    })),
+  };
+});
+
 const pageOrgMock = vi.mocked(resolveAttentionPageOrganization);
 const detailMock = vi.mocked(getAttentionItemById);
 
@@ -221,8 +235,32 @@ describe("attention detail page loader (B1.7.5-D)", () => {
     expect(JSON.stringify(result.data.timeline)).not.toContain("payload");
     expect(result.data.signals).toHaveLength(1);
     expect(result.data.signals[0]?.explanationLabel).toContain("No progress");
+    expect(result.data.assigneeMemberId).toBeNull();
+    expect(result.data.assigneeOptions).toEqual([
+      { value: MEMBER_ID, label: "Alex Owner" },
+    ]);
+    expect(result.data.assigneeOptionsFailed).toBe(false);
     expect(canShowAttentionLifecycleActions()).toBe(false);
     expect(ATTENTION_NAV_VISIBLE).toBe(true);
+  });
+
+  it("does not load assignee options for viewers", async () => {
+    const { loadAttentionAssigneeOptions } = await import(
+      "@/features/attention/server/load-attention-assignee-options"
+    );
+    pageOrgMock.mockResolvedValue(readyOrg("viewer"));
+    detailMock.mockResolvedValue({ ok: true, data: sampleDetail() });
+
+    const result = await loadAttentionDetailPage(
+      createSupabase(),
+      ATTENTION_ITEM_ID,
+      { org: ORG_ID },
+    );
+
+    expect(result.kind).toBe("success");
+    if (result.kind !== "success") return;
+    expect(result.data.assigneeOptions).toEqual([]);
+    expect(loadAttentionAssigneeOptions).not.toHaveBeenCalled();
   });
 
   it("supports empty timeline and ignores unsafe external return destinations", async () => {

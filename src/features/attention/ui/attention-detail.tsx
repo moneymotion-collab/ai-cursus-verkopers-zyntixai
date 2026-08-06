@@ -5,9 +5,13 @@ import type {
   AttentionRole,
   AttentionSeverity,
 } from "@/features/attention/domain/types";
+import { AttentionAssignmentActions } from "@/features/attention/ui/attention-assignment-actions";
 import { AttentionAcknowledgeSeverityActions } from "@/features/attention/ui/attention-lifecycle-actions";
 import type { AttentionDetailViewModel } from "@/features/attention/ui/load-attention-detail-page";
-import { canShowAttentionAcknowledgeSeverityActions } from "@/features/attention/ui/attention-workflow-visibility";
+import {
+  canShowAttentionAcknowledgeSeverityActions,
+  canShowAttentionAssignmentActions,
+} from "@/features/attention/ui/attention-workflow-visibility";
 import styles from "./attention-detail.module.css";
 
 function severityBadgeVariant(
@@ -50,8 +54,8 @@ type AttentionDetailProps = {
 };
 
 /**
- * Attention detail + timeline (B1.7.5-D) with B1.7.6-B acknowledge/severity actions.
- * Assignment, resolve, dismiss, and archive remain deferred.
+ * Attention detail + timeline (B1.7.5-D) with B1.7.6-B acknowledge/severity
+ * and B1.7.6-C assignment actions. Resolve, dismiss, and archive remain deferred.
  */
 export function AttentionDetail({
   viewModel,
@@ -68,16 +72,23 @@ export function AttentionDetail({
     enrollmentHref,
     backHref,
     organizationTimezone,
+    assigneeMemberId,
+    assigneeOptions,
+    assigneeOptionsFailed,
   } = viewModel;
 
   const bScopedActionsEnabled = canShowAttentionAcknowledgeSeverityActions();
+  const cScopedActionsEnabled = canShowAttentionAssignmentActions();
   const actionVisibility = resolveAttentionLifecycleActionVisibility(role, {
     status: detail.statusKey,
     archivedAt: detail.isArchived ? detail.archivedAtLabel ?? "archived" : null,
+    assigneeMemberId,
   });
   const showAcknowledge = bScopedActionsEnabled && actionVisibility.acknowledge;
   const showUpdateSeverity =
     bScopedActionsEnabled && actionVisibility.updateSeverity;
+  const showAssign = cScopedActionsEnabled && actionVisibility.assign;
+  const showUnassign = cScopedActionsEnabled && actionVisibility.unassign;
   const returnPath = buildAttentionDetailHref(detail.id, organizationId);
 
   return (
@@ -247,6 +258,19 @@ export function AttentionDetail({
           showAcknowledge={showAcknowledge}
           showUpdateSeverity={showUpdateSeverity}
           currentSeverity={detail.severityKey}
+        />
+      ) : null}
+
+      {showAssign || showUnassign ? (
+        <AttentionAssignmentActions
+          organizationId={organizationId}
+          attentionItemId={detail.id}
+          returnPath={returnPath}
+          showAssign={showAssign}
+          showUnassign={showUnassign}
+          currentAssigneeMemberId={assigneeMemberId}
+          assigneeOptions={assigneeOptions}
+          assigneeOptionsFailed={assigneeOptionsFailed}
         />
       ) : null}
 

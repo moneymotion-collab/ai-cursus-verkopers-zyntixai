@@ -18,8 +18,8 @@ type AttentionDetailPageProps = {
 };
 
 /**
- * Attention detail with timeline (B1.7.5) and B1.7.6-B acknowledge/severity actions.
- * Assignment, resolve, dismiss, and archive remain deferred.
+ * Attention detail with timeline (B1.7.5), B1.7.6-B acknowledge/severity,
+ * and B1.7.6-C assignment actions. Resolve, dismiss, and archive remain deferred.
  */
 export default async function AttentionDetailPage({
   params,

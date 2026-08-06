@@ -6,6 +6,11 @@ import type {
 } from "@/features/attention/domain/types";
 import { resolveAttentionPermissions } from "@/features/attention/domain/permissions";
 import { getAttentionItemById } from "@/features/attention/server/attention-read-queries";
+import {
+  ensureCurrentAttentionAssigneeOption,
+  loadAttentionAssigneeOptions,
+  type AttentionAssigneeOption,
+} from "@/features/attention/server/load-attention-assignee-options";
 import { resolveAttentionPageOrganization } from "@/features/attention/server/resolve-attention-page-organization";
 import {
   resolveMemberLabel,
@@ -42,6 +47,9 @@ export type AttentionDetailViewModel = {
   enrollmentHref: string | null;
   backHref: string;
   organizationTimezone: string;
+  assigneeMemberId: string | null;
+  assigneeOptions: AttentionAssigneeOption[];
+  assigneeOptionsFailed: boolean;
 };
 
 export type AttentionDetailPageResult =
@@ -212,6 +220,26 @@ export async function loadAttentionDetailPage(
     toAttentionSignalPresentation(signal, { timeZone: orgResult.timezone }),
   );
 
+  const itemPermissions = resolveAttentionPermissions(orgResult.role, {
+    status: item.status,
+    isArchived: item.derived.isArchived,
+  });
+
+  let assigneeOptions: AttentionAssigneeOption[] = [];
+  let assigneeOptionsFailed = false;
+  if (itemPermissions.canAssign) {
+    const loaded = await loadAttentionAssigneeOptions(
+      supabase,
+      orgResult.organizationId,
+    );
+    assigneeOptionsFailed = loaded.failed;
+    assigneeOptions = ensureCurrentAttentionAssigneeOption(
+      loaded.members,
+      item.assigneeMemberId,
+      assigneeDisplayName,
+    );
+  }
+
   return {
     kind: "success",
     organizationOptions: orgResult.organizationOptions,
@@ -234,6 +262,9 @@ export async function loadAttentionDetailPage(
         : null,
       backHref,
       organizationTimezone: orgResult.timezone,
+      assigneeMemberId: item.assigneeMemberId,
+      assigneeOptions,
+      assigneeOptionsFailed,
     },
   };
 }
