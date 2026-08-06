@@ -41,10 +41,9 @@ function statusBadgeVariant(
 export type AttentionListPresentationProps = {
   rows: AttentionListWorkspaceRow[];
   organizationName: string;
-  timeZone: string;
-  shownCount: number;
-  totalCount: number;
-  pageSize: number;
+  hasActiveFilters?: boolean;
+  outOfRangePage?: boolean;
+  clearHref?: string;
 };
 
 function AttentionListItemMeta({ row }: { row: AttentionListWorkspaceRow }) {
@@ -95,40 +94,32 @@ function AttentionListItemBadges({ row }: { row: AttentionListWorkspaceRow }) {
 }
 
 /**
- * Read-only Attention list workspace (B1.7.5-B).
- * No detail links (D), filters/pagination controls (C), or lifecycle actions (B1.7.6).
+ * Read-only Attention list results (B1.7.5-B/C).
+ * No detail links (D) or lifecycle actions (B1.7.6).
  */
 export function AttentionListPresentation({
   rows,
   organizationName,
-  timeZone,
-  shownCount,
-  totalCount,
-  pageSize,
+  hasActiveFilters = false,
+  outOfRangePage = false,
+  clearHref,
 }: AttentionListPresentationProps) {
   const showLifecycle = canShowAttentionLifecycleActions();
 
   if (rows.length === 0) {
-    return <AttentionEmptyPanel />;
+    return (
+      <AttentionEmptyPanel
+        hasActiveFilters={hasActiveFilters}
+        outOfRangePage={outOfRangePage}
+        clearHref={clearHref}
+      />
+    );
   }
 
-  const countLabel =
-    totalCount > shownCount
-      ? `Showing ${shownCount} of ${totalCount} recent attention items (first page, up to ${pageSize}).`
-      : `Showing ${shownCount} attention item${shownCount === 1 ? "" : "s"}.`;
-
   return (
-    <section className={styles.workspace} aria-labelledby="attention-list-heading">
-      <header className={styles.header}>
-        <h1 id="attention-list-heading">Attention</h1>
-        <p className={styles.intro}>
-          Read-only attention items for {organizationName}. Times shown in {timeZone}.
-        </p>
-        <p className={styles.count}>{countLabel}</p>
-      </header>
-
+    <div className={styles.listContainer}>
       {showLifecycle ? (
-        <p>Lifecycle actions must never render in B1.7.5-B.</p>
+        <p>Lifecycle actions must never render in B1.7.5 list workspace.</p>
       ) : null}
 
       <div className={styles.tableWrap}>
@@ -196,6 +187,6 @@ export function AttentionListPresentation({
           </li>
         ))}
       </ul>
-    </section>
+    </div>
   );
 }

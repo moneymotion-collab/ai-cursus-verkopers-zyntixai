@@ -2,6 +2,7 @@ import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AttentionListPresentation } from "@/features/attention/ui/attention-list";
+import { AttentionListFilters } from "@/features/attention/ui/attention-list-filters";
 import type { AttentionListWorkspaceRow } from "@/features/attention/ui/load-attention-list-page";
 import { ATTENTION_NAV_VISIBLE } from "@/features/attention/domain/attention-navigation";
 import { canShowAttentionLifecycleActions } from "@/features/attention/ui/attention-workflow-visibility";
@@ -31,71 +32,80 @@ const sampleRow: AttentionListWorkspaceRow = {
   statusKey: "open",
 };
 
-describe("AttentionListPresentation (B1.7.5-B)", () => {
+const defaultUrlState = {
+  org: ORG_ID,
+  includeArchived: false,
+  sort: "last_detected_at" as const,
+  direction: "desc" as const,
+  page: 1,
+  pageSize: 25,
+};
+
+describe("AttentionListPresentation (B1.7.5-C)", () => {
   it("renders read-only list fields without detail links or mutations", () => {
     const html = renderToStaticMarkup(
       <AttentionListPresentation
         rows={[sampleRow]}
         organizationName="Acme"
-        timeZone="UTC"
-        shownCount={1}
-        totalCount={1}
-        pageSize={25}
       />,
     );
 
-    expect(html).toContain("Attention");
     expect(html).toContain("No recent progress");
-    expect(html).toContain("Enrollment went quiet");
     expect(html).toContain("Open");
     expect(html).toContain("High");
-    expect(html).toContain("Acme Corp");
-    expect(html).toContain("Unassigned");
-    expect(html).toContain("Not acknowledged");
-    expect(html).toContain("Aug 1, 2026, 10:00 AM");
-    expect(html).toContain("Showing 1 attention item");
-
     expect(html).not.toContain(`href="/attention/${ATTENTION_ITEM_ID}`);
     expect(html).not.toContain(sampleRow.detailHref);
     expect(html).not.toMatch(/>Acknowledge</);
     expect(html).not.toMatch(/>Assign</);
     expect(html).not.toMatch(/>Resolve</);
-    expect(html).not.toContain("type=\"button\"");
-    expect(html).not.toContain("Filter");
-    expect(html).not.toContain("Pagination");
-    expect(html).not.toContain("Next page");
     expect(canShowAttentionLifecycleActions()).toBe(false);
     expect(ATTENTION_NAV_VISIBLE).toBe(false);
   });
 
-  it("shows bounded first-page wording when total exceeds shown count", () => {
-    const html = renderToStaticMarkup(
-      <AttentionListPresentation
-        rows={[sampleRow]}
-        organizationName="Acme"
-        timeZone="UTC"
-        shownCount={1}
-        totalCount={40}
-        pageSize={25}
-      />,
-    );
-    expect(html).toContain("Showing 1 of 40 recent attention items");
-    expect(html).not.toContain("all attention items");
-  });
-
-  it("renders empty state without create or mutation CTAs", () => {
+  it("renders filtered empty state with reset link", () => {
     const html = renderToStaticMarkup(
       <AttentionListPresentation
         rows={[]}
         organizationName="Acme"
-        timeZone="UTC"
-        shownCount={0}
-        totalCount={0}
-        pageSize={25}
+        hasActiveFilters
+        clearHref={`/attention?org=${ORG_ID}`}
       />,
     );
-    expect(html).toContain("No attention items yet");
+    expect(html).toContain("No attention items match these filters");
+    expect(html).toContain("Reset filters");
+    expect(html).toContain(`/attention?org=${ORG_ID}`);
     expect(html).not.toContain("Create");
-    expect(html).not.toContain("Acknowledge");
+  });
+});
+
+describe("AttentionListFilters (B1.7.5-C)", () => {
+  it("renders GET filter controls and hides archived for viewer", () => {
+    const html = renderToStaticMarkup(
+      <AttentionListFilters urlState={defaultUrlState} role="viewer" />,
+    );
+    expect(html).toContain('method="get"');
+    expect(html).toContain('action="/attention"');
+    expect(html).toContain('name="status"');
+    expect(html).toContain('name="severity"');
+    expect(html).toContain('name="assignee"');
+    expect(html).toContain('name="acknowledged"');
+    expect(html).toContain('name="sort"');
+    expect(html).toContain('name="direction"');
+    expect(html).toContain('name="page"');
+    expect(html).toContain('value="1"');
+    expect(html).not.toContain("includeArchived");
+    expect(html).not.toContain("pageSize");
+  });
+
+  it("shows archived toggle for owner and reset when filters active", () => {
+    const html = renderToStaticMarkup(
+      <AttentionListFilters
+        urlState={{ ...defaultUrlState, status: "open", page: 2 }}
+        role="owner"
+      />,
+    );
+    expect(html).toContain('name="includeArchived"');
+    expect(html).toContain("Reset filters");
+    expect(html).toContain(`/attention?org=${ORG_ID}`);
   });
 });

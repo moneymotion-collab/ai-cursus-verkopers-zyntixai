@@ -1,27 +1,37 @@
 /**
  * Foundation empty-state copy for Attention.
- * Full filter/no-results product behavior belongs to B1.7.5-C.
- * This helper only distinguishes workspace-empty vs filtered no-results
- * when callers already know whether filters are active.
+ * Distinguishes workspace-empty vs filtered no-results.
  */
 export type AttentionEmptyState = {
   title: string;
   description: string;
+  clearHref?: string;
 };
 
 export type AttentionEmptyStateInput = {
-  /** True when the caller already applied non-default list filters. */
   hasActiveFilters?: boolean;
+  clearHref?: string;
+  outOfRangePage?: boolean;
 };
 
 export function resolveAttentionEmptyState(
   input: AttentionEmptyStateInput = {},
 ): AttentionEmptyState {
+  if (input.outOfRangePage) {
+    return {
+      title: "No attention items on this page",
+      description:
+        "This page is outside the available results. Return to the first page to continue.",
+      clearHref: input.clearHref,
+    };
+  }
+
   if (input.hasActiveFilters) {
     return {
       title: "No attention items match these filters",
       description:
         "Attention items may still exist for this organization. Clear or adjust filters to see more results.",
+      clearHref: input.clearHref,
     };
   }
 

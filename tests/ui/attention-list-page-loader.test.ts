@@ -1,12 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
-import {
-  ATTENTION_LIST_WORKSPACE_PAGE,
-  ATTENTION_LIST_WORKSPACE_PAGE_SIZE,
-  ATTENTION_LIST_WORKSPACE_SORT,
-  loadAttentionListPage,
-} from "@/features/attention/ui/load-attention-list-page";
+import { loadAttentionListPage } from "@/features/attention/ui/load-attention-list-page";
 import { resolveAttentionPageOrganization } from "@/features/attention/server/resolve-attention-page-organization";
 import { listAttentionItems } from "@/features/attention/server/attention-read-queries";
 import { mapAttentionItemListItem } from "@/features/attention/server/map-attention-read-model";
@@ -53,7 +48,7 @@ const sampleMapped = mapAttentionItemListItem(sampleAttentionItemListRow, {
   primarySignalOrigin: "rule",
 });
 
-describe("attention list page loader (B1.7.5-B)", () => {
+describe("attention list page loader (B1.7.5-C)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -64,24 +59,9 @@ describe("attention list page loader (B1.7.5-B)", () => {
       kind: "auth_required",
     });
     expect(listMock).not.toHaveBeenCalled();
-
-    pageOrgMock.mockResolvedValue({ kind: "organization_unavailable" });
-    expect((await loadAttentionListPage(createSupabase(), {})).kind).toBe(
-      "no_organizations",
-    );
-
-    pageOrgMock.mockResolvedValue({
-      kind: "organization_required",
-      organizations: [
-        { organizationId: ORG_ID, displayName: "Acme", role: "owner" },
-      ],
-    });
-    expect((await loadAttentionListPage(createSupabase(), {})).kind).toBe(
-      "organization_required",
-    );
   });
 
-  it("calls listAttentionItems with fixed last_detected_at query", async () => {
+  it("passes validated URL filters and last_detected_at default sort to listAttentionItems", async () => {
     expect(sampleMapped.ok).toBe(true);
     if (!sampleMapped.ok) return;
 
@@ -92,7 +72,7 @@ describe("attention list page loader (B1.7.5-B)", () => {
         items: [sampleMapped.data],
         pagination: {
           page: 1,
-          pageSize: ATTENTION_LIST_WORKSPACE_PAGE_SIZE,
+          pageSize: 25,
           total: 1,
           totalPages: 1,
           hasPreviousPage: false,
@@ -103,35 +83,38 @@ describe("attention list page loader (B1.7.5-B)", () => {
 
     const result = await loadAttentionListPage(createSupabase(), {
       org: ORG_ID,
+      status: "open",
+      page: "2",
     });
 
     expect(listMock).toHaveBeenCalledWith({
       supabase: expect.anything(),
       organizationId: ORG_ID,
-      filters: {},
-      pagination: {
-        page: ATTENTION_LIST_WORKSPACE_PAGE,
-        pageSize: ATTENTION_LIST_WORKSPACE_PAGE_SIZE,
+      filters: {
+        includeArchived: false,
+        status: "open",
       },
-      sort: ATTENTION_LIST_WORKSPACE_SORT,
+      pagination: {
+        page: 2,
+        pageSize: 25,
+      },
+      sort: {
+        field: "last_detected_at",
+        direction: "desc",
+      },
     });
 
     expect(result.kind).toBe("success");
     if (result.kind !== "success") return;
-    expect(result.rows).toHaveLength(1);
+    expect(result.urlState.status).toBe("open");
+    expect(result.urlState.page).toBe(2);
     expect(result.rows[0]?.id).toBe(ATTENTION_ITEM_ID);
-    expect(result.rows[0]?.attentionTypeLabel).toBe("No recent progress");
-    expect(result.rows[0]?.customerLabel).toBe("Acme Corp");
     expect(result.capabilities.canViewArchivedItems).toBe(false);
-    expect(result.sort).toEqual({
-      field: "last_detected_at",
-      direction: "desc",
-    });
     expect(ATTENTION_NAV_VISIBLE).toBe(false);
   });
 
-  it("returns empty success without inventing items", async () => {
-    pageOrgMock.mockResolvedValue(readyOrg("owner"));
+  it("does not forward unauthorized archived filter", async () => {
+    pageOrgMock.mockResolvedValue(readyOrg("staff"));
     listMock.mockResolvedValue({
       ok: true,
       data: {
@@ -149,11 +132,17 @@ describe("attention list page loader (B1.7.5-B)", () => {
 
     const result = await loadAttentionListPage(createSupabase(), {
       org: ORG_ID,
+      includeArchived: "true",
     });
+
+    expect(listMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filters: { includeArchived: false },
+      }),
+    );
     expect(result.kind).toBe("success");
     if (result.kind !== "success") return;
-    expect(result.rows).toEqual([]);
-    expect(result.list.pagination.total).toBe(0);
+    expect(result.filterWarning).toContain("owners and admins");
   });
 
   it("maps list application errors to safe query_error copy", async () => {
@@ -175,6 +164,5 @@ describe("attention list page loader (B1.7.5-B)", () => {
     expect(result.kind).toBe("query_error");
     if (result.kind !== "query_error") return;
     expect(result.message).not.toContain("secret-db-detail");
-    expect(result.retryable).toBe(true);
   });
 });

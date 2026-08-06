@@ -1,11 +1,18 @@
+import { Alert } from "@/components/ui/alert";
 import { AppShell } from "@/components/app-shell";
+import { Pagination } from "@/components/ui/pagination";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ATTENTION_ROUTE } from "@/features/attention/domain/attention-navigation";
+import { AttentionListFilters } from "@/features/attention/ui/attention-list-filters";
 import { AttentionListPresentation } from "@/features/attention/ui/attention-list";
+import { loadAttentionListPage } from "@/features/attention/ui/load-attention-list-page";
 import {
-  ATTENTION_LIST_WORKSPACE_PAGE_SIZE,
-  loadAttentionListPage,
-} from "@/features/attention/ui/load-attention-list-page";
+  buildAttentionListHref,
+  buildAttentionListPageHref,
+  buildAttentionListResetHref,
+  hasAttentionListActiveFilters,
+  hasAttentionRelationshipContext,
+} from "@/features/attention/ui/attention-list-search-params";
 import {
   AttentionAuthRequiredPanel,
   AttentionOrganizationRequiredPanel,
@@ -19,9 +26,8 @@ type AttentionPageProps = {
 };
 
 /**
- * B1.7.5-B Attention list workspace.
- * Read-only first page via B1.7.4 listAttentionItems.
- * Detail (D), filters/pagination UI (C), and nav activation (E) remain deferred.
+ * B1.7.5-C Attention list workspace with filters, sorting, pagination, and URL state.
+ * Detail (D) and nav activation (E) remain deferred.
  */
 export default async function AttentionPage({ searchParams }: AttentionPageProps) {
   const supabase = await createSupabaseServerClient();
@@ -76,6 +82,26 @@ export default async function AttentionPage({ searchParams }: AttentionPageProps
     );
   }
 
+  const { pagination } = result.list;
+  const hasFilters = hasAttentionListActiveFilters(result.urlState);
+  const outOfRangePage =
+    result.rows.length === 0 &&
+    pagination.total > 0 &&
+    pagination.page > Math.max(pagination.totalPages, 1);
+  const resetHref = buildAttentionListResetHref(result.urlState);
+  const firstPageHref = buildAttentionListPageHref(result.urlState, 1);
+  const previousHref = pagination.hasPreviousPage
+    ? buildAttentionListPageHref(result.urlState, pagination.page - 1)
+    : undefined;
+  const nextHref = pagination.hasNextPage
+    ? buildAttentionListPageHref(result.urlState, pagination.page + 1)
+    : undefined;
+
+  const countLabel =
+    pagination.total === 0
+      ? "No attention items in this view."
+      : `Showing ${result.rows.length} of ${pagination.total} attention items.`;
+
   return (
     <AppShell
       activeNav="attention"
@@ -83,16 +109,58 @@ export default async function AttentionPage({ searchParams }: AttentionPageProps
       selectedOrganizationId={result.selectedOrganizationId}
       organizationSelectorAction={ATTENTION_ROUTE}
     >
-      <div className={styles.page}>
+      <section className={styles.page}>
+        <header className={styles.pageHeader}>
+          <h1>Attention</h1>
+          <p className={styles.subtitle}>
+            Read-only attention items for {result.organizationName}. Times shown in{" "}
+            {result.timeZone}.
+          </p>
+          <p className={styles.summary}>{countLabel}</p>
+        </header>
+
+        {result.filterWarning ? (
+          <Alert title="Filters adjusted" variant="warning">
+            {result.filterWarning}
+          </Alert>
+        ) : null}
+
+        {hasAttentionRelationshipContext(result.urlState) ? (
+          <p className={styles.contextBanner} role="status">
+            Showing attention items for a related enrollment, customer, or program
+            context.{" "}
+            <a
+              href={buildAttentionListHref({
+                ...result.urlState,
+                enrollmentId: undefined,
+                customerId: undefined,
+                programId: undefined,
+                page: 1,
+              })}
+            >
+              Clear context
+            </a>
+          </p>
+        ) : null}
+
+        <AttentionListFilters urlState={result.urlState} role={result.role} />
+
         <AttentionListPresentation
           rows={result.rows}
           organizationName={result.organizationName}
-          timeZone={result.timeZone}
-          shownCount={result.rows.length}
-          totalCount={result.list.pagination.total}
-          pageSize={ATTENTION_LIST_WORKSPACE_PAGE_SIZE}
+          hasActiveFilters={hasFilters}
+          outOfRangePage={outOfRangePage}
+          clearHref={outOfRangePage ? firstPageHref : resetHref}
         />
-      </div>
+
+        <Pagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          previousHref={previousHref}
+          nextHref={nextHref}
+          ariaLabel="Attention list pagination"
+        />
+      </section>
     </AppShell>
   );
 }

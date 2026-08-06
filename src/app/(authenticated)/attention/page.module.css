@@ -2,3 +2,32 @@
   display: grid;
   gap: 1rem;
 }
+
+.pageHeader {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.pageHeader h1 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.subtitle,
+.summary {
+  margin: 0;
+  color: var(--muted-text);
+}
+
+.contextBanner {
+  margin: 0;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background: var(--surface-color);
+}
+
+.contextBanner a {
+  color: var(--link-color, #1d4ed8);
+  font-weight: 600;
+}

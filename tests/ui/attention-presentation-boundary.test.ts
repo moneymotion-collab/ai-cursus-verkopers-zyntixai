@@ -23,6 +23,8 @@ describe("attention presentation foundation boundaries (B1.7.5-A)", () => {
       "src/features/attention/ui/load-attention-shell-page.ts",
       "src/features/attention/ui/attention-workflow-visibility.ts",
       "src/features/attention/ui/attention-list.tsx",
+      "src/features/attention/ui/attention-list-filters.tsx",
+      "src/features/attention/ui/attention-list-search-params.ts",
     ];
 
     for (const file of presentationOnlyFiles) {
@@ -34,7 +36,6 @@ describe("attention presentation foundation boundaries (B1.7.5-A)", () => {
       expect(source).not.toContain("ATTENTION_NAV_VISIBLE = true");
     }
 
-    // Pure presentation/list UI must not call reads directly; loader may.
     expect(readSrc("src/features/attention/ui/attention-list.tsx")).not.toMatch(
       /listAttentionItems|getAttentionItemById/,
     );
@@ -43,14 +44,19 @@ describe("attention presentation foundation boundaries (B1.7.5-A)", () => {
     ).toContain("listAttentionItems");
     expect(
       readSrc("src/features/attention/ui/load-attention-list-page.ts"),
-    ).toContain('field: "last_detected_at"');
+    ).toContain("parseAttentionListSearchParams");
+    expect(
+      readSrc("src/features/attention/ui/attention-list-search-params.ts"),
+    ).toContain('ATTENTION_LIST_DEFAULT_SORT_FIELD');
+    expect(
+      readSrc("src/features/attention/ui/attention-list.tsx"),
+    ).not.toMatch(/href=\{[^}]*detailHref/);
 
     const page = readSrc("src/app/(authenticated)/attention/page.tsx");
     expect(page).not.toMatch(/\.from\(["']attention_/);
-    expect(page).not.toMatch(
-      /create_manual_attention_item|acknowledge_attention_item/,
-    );
-    expect(page).toContain("loadAttentionListPage");
+    expect(page).toContain("AttentionListFilters");
+    expect(page).toContain("Pagination");
+    expect(page).not.toMatch(/attention\/\[/);
 
     const schema = readSrc(
       "src/features/attention/validation/read-query-schemas.ts",

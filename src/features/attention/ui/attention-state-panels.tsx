@@ -90,14 +90,29 @@ export function AttentionUnavailablePanel({
 
 export function AttentionEmptyPanel({
   hasActiveFilters = false,
+  outOfRangePage = false,
+  clearHref,
 }: {
   hasActiveFilters?: boolean;
+  outOfRangePage?: boolean;
+  clearHref?: string;
 }) {
-  const empty = resolveAttentionEmptyState({ hasActiveFilters });
+  const empty = resolveAttentionEmptyState({
+    hasActiveFilters,
+    outOfRangePage,
+    clearHref,
+  });
   return (
     <section className={styles.emptyPanel} aria-labelledby="attention-empty-title">
       <h2 id="attention-empty-title">{empty.title}</h2>
       <p>{empty.description}</p>
+      {empty.clearHref ? (
+        <p>
+          <a href={empty.clearHref}>
+            {outOfRangePage ? "Go to first page" : "Reset filters"}
+          </a>
+        </p>
+      ) : null}
     </section>
   );
 }

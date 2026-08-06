@@ -79,7 +79,7 @@ describe("attention presentation mapping (B1.7.5-A)", () => {
   });
 });
 
-describe("attention empty state (B1.7.5-A)", () => {
+describe("attention empty state (B1.7.5-A/C)", () => {
   it("distinguishes workspace empty from filtered no-results", () => {
     const empty = resolveAttentionEmptyState();
     expect(empty.title).toBe("No attention items yet");
@@ -87,5 +87,11 @@ describe("attention empty state (B1.7.5-A)", () => {
     expect(resolveAttentionEmptyState({ hasActiveFilters: true }).title).toBe(
       "No attention items match these filters",
     );
+    expect(
+      resolveAttentionEmptyState({
+        outOfRangePage: true,
+        clearHref: "/attention",
+      }).clearHref,
+    ).toBe("/attention");
   });
 });

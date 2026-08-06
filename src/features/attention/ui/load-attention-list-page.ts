@@ -3,7 +3,6 @@ import type {
   AttentionItemListItemReadModel,
   AttentionListReadResult,
 } from "@/features/attention/domain/read-types";
-import { DEFAULT_ATTENTION_PAGE_SIZE } from "@/features/attention/domain/read-types";
 import type {
   AttentionApplicationError,
   AttentionPermissionSet,
@@ -22,17 +21,21 @@ import {
   toAttentionSafeErrorPresentation,
   type AttentionListItemPresentation,
 } from "@/features/attention/ui/attention-presentation";
+import {
+  attentionListFilterWarningMessage,
+  ATTENTION_LIST_DEFAULT_SORT_DIRECTION,
+  ATTENTION_LIST_DEFAULT_SORT_FIELD,
+  parseAttentionListSearchParams,
+  type AttentionListUrlState,
+} from "@/features/attention/ui/attention-list-search-params";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
 import type { Database } from "@/types/database";
 
-/** Fixed B1.7.5-B list query — not a product filter/sort UI contract (C). */
+/** @deprecated Prefer ATTENTION_LIST_DEFAULT_SORT_* from search-params (B1.7.5-C). */
 export const ATTENTION_LIST_WORKSPACE_SORT = {
-  field: "last_detected_at" as const,
-  direction: "desc" as const,
+  field: ATTENTION_LIST_DEFAULT_SORT_FIELD,
+  direction: ATTENTION_LIST_DEFAULT_SORT_DIRECTION,
 };
-
-export const ATTENTION_LIST_WORKSPACE_PAGE = 1;
-export const ATTENTION_LIST_WORKSPACE_PAGE_SIZE = DEFAULT_ATTENTION_PAGE_SIZE;
 
 export type AttentionListWorkspaceRow = AttentionListItemPresentation & {
   summaryLabel: string | null;
@@ -53,7 +56,9 @@ export type AttentionListPageSuccess = {
   isMultiOrganization: boolean;
   list: AttentionListReadResult;
   rows: AttentionListWorkspaceRow[];
-  sort: typeof ATTENTION_LIST_WORKSPACE_SORT;
+  urlState: AttentionListUrlState;
+  sort: { field: AttentionListUrlState["sort"]; direction: AttentionListUrlState["direction"] };
+  filterWarning: string | null;
 };
 
 export type AttentionListPageResult =
@@ -107,8 +112,7 @@ export function mapAttentionListWorkspaceRows(
 }
 
 /**
- * B1.7.5-B list loader: org context + fixed authorized listAttentionItems query.
- * No product filter/sort/pagination URL parsing (B1.7.5-C).
+ * B1.7.5-C list loader: org context + validated URL state → listAttentionItems.
  */
 export async function loadAttentionListPage(
   supabase: SupabaseClient<Database>,
@@ -141,16 +145,20 @@ export async function loadAttentionListPage(
   }
 
   const capabilities = resolveAttentionPermissions(orgResult.role);
+  const parsed = parseAttentionListSearchParams(rawSearchParams, {
+    role: orgResult.role,
+  });
+  const urlState: AttentionListUrlState = {
+    ...parsed.urlState,
+    org: orgResult.organizationId,
+  };
 
   const listResult = await listAttentionItems({
     supabase,
     organizationId: orgResult.organizationId,
-    filters: {},
-    pagination: {
-      page: ATTENTION_LIST_WORKSPACE_PAGE,
-      pageSize: ATTENTION_LIST_WORKSPACE_PAGE_SIZE,
-    },
-    sort: ATTENTION_LIST_WORKSPACE_SORT,
+    filters: parsed.listInput.filters,
+    pagination: parsed.listInput.pagination,
+    sort: parsed.listInput.sort,
   });
 
   if (!listResult.ok) {
@@ -180,6 +188,11 @@ export async function loadAttentionListPage(
     isMultiOrganization: orgResult.isMultiOrganization,
     list: listResult.data,
     rows,
-    sort: ATTENTION_LIST_WORKSPACE_SORT,
+    urlState,
+    sort: {
+      field: urlState.sort,
+      direction: urlState.direction,
+    },
+    filterWarning: attentionListFilterWarningMessage(parsed.warnings),
   };
 }
