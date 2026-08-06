@@ -64,7 +64,10 @@ describe("attention presentation foundation boundaries (B1.7.5-E)", () => {
     ).not.toContain("listAttentionEventsForItem");
     expect(
       readSrc("src/features/attention/ui/attention-detail.tsx"),
-    ).not.toMatch(/>Acknowledge<|>Assign<|>Resolve<|>Dismiss<|>Archive</);
+    ).not.toMatch(/>Assign<|>Resolve<|>Dismiss<|>Archive</);
+    expect(
+      readSrc("src/features/attention/ui/attention-detail.tsx"),
+    ).toContain("AttentionAcknowledgeSeverityActions");
     expect(
       readSrc("src/features/attention/ui/attention-detail.tsx"),
     ).toContain('aria-label="Breadcrumb"');
@@ -79,9 +82,11 @@ describe("attention presentation foundation boundaries (B1.7.5-E)", () => {
     );
     expect(detailPage).toContain("loadAttentionDetailPage");
     expect(detailPage).toContain("AttentionDetail");
+    expect(detailPage).toContain("organizationId={result.selectedOrganizationId}");
+    expect(detailPage).toContain("role={result.role}");
     expect(detailPage).not.toMatch(/\.from\(["']attention_/);
     expect(detailPage).not.toMatch(
-      /acknowledge_attention_item|assign_attention_item|resolve_attention_item/,
+      /assignAttentionItemAction|resolveAttentionItemAction|dismissAttentionItemAction|archiveAttentionItemAction/,
     );
 
     const schema = readSrc(

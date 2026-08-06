@@ -14,6 +14,15 @@ vi.mock("@/components/ui/badge", () => ({
   Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
 }));
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
+
+vi.mock("@/features/attention/actions/lifecycle-attention-actions", () => ({
+  acknowledgeAttentionItemAction: vi.fn(),
+  updateAttentionSeverityAction: vi.fn(),
+}));
+
 const sampleRow: AttentionListWorkspaceRow = {
   id: ATTENTION_ITEM_ID,
   detailHref: `/attention/${ATTENTION_ITEM_ID}?org=${ORG_ID}`,
@@ -115,13 +124,21 @@ describe("Attention accessibility structure (B1.7.5-E)", () => {
 
   it("exposes detail breadcrumb, timeline empty state, and active Attention nav", () => {
     const detail = renderToStaticMarkup(
-      <AttentionDetail viewModel={detailViewModel} />,
+      <AttentionDetail
+        viewModel={detailViewModel}
+        organizationId={ORG_ID}
+        role="owner"
+      />,
     );
     expect(detail).toContain('aria-label="Breadcrumb"');
     expect(detail).toContain('aria-current="page"');
     expect(detail).toContain("No timeline events yet");
     expect(detail).toContain("Overview");
     expect(detail).toContain("Timeline");
+    expect(detail).toContain("Lifecycle actions");
+    expect(detail).toContain(">Acknowledge<");
+    expect(detail).toContain('id="attention-severity-select"');
+    expect(detail).toContain("Save severity");
 
     const shell = renderToStaticMarkup(
       <AppShell activeNav="attention">

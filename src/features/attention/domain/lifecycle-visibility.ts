@@ -16,9 +16,9 @@ export type AttentionLifecycleVisibilityItem = {
 };
 
 /**
- * Presentation advice for later detail UX (B1.7.6-B+).
- * Does not grant server rights. Product shells must keep
- * ATTENTION_LIFECYCLE_ACTIONS_VISIBLE = false until authorized.
+ * Presentation advice for detail UX action visibility.
+ * Does not grant server rights. Broad ATTENTION_LIFECYCLE_ACTIONS_VISIBLE
+ * remains false; B1.7.6-B uses a narrow acknowledge/severity product gate.
  */
 export function resolveAttentionLifecycleActionVisibility(
   role: AttentionRole | null | undefined,

@@ -18,8 +18,8 @@ type AttentionDetailPageProps = {
 };
 
 /**
- * B1.7.5 read-only Attention detail with timeline.
- * Navigation is activated in B1.7.5-E; lifecycle actions remain deferred to B1.7.6.
+ * Attention detail with timeline (B1.7.5) and B1.7.6-B acknowledge/severity actions.
+ * Assignment, resolve, dismiss, and archive remain deferred.
  */
 export default async function AttentionDetailPage({
   params,
@@ -98,7 +98,11 @@ export default async function AttentionDetailPage({
       organizationSelectorAction={`${ATTENTION_ROUTE}/${encodeURIComponent(attentionItemId)}`}
     >
       <section className={styles.page}>
-        <AttentionDetail viewModel={result.data} />
+        <AttentionDetail
+          viewModel={result.data}
+          organizationId={result.selectedOrganizationId}
+          role={result.role}
+        />
       </section>
     </AppShell>
   );

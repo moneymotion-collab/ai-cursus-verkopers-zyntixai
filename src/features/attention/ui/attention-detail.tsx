@@ -1,7 +1,13 @@
 import { Badge } from "@/components/ui/badge";
+import { buildAttentionDetailHref } from "@/features/attention/domain/attention-navigation";
+import { resolveAttentionLifecycleActionVisibility } from "@/features/attention/domain/lifecycle-visibility";
+import type {
+  AttentionRole,
+  AttentionSeverity,
+} from "@/features/attention/domain/types";
+import { AttentionAcknowledgeSeverityActions } from "@/features/attention/ui/attention-lifecycle-actions";
 import type { AttentionDetailViewModel } from "@/features/attention/ui/load-attention-detail-page";
-import type { AttentionSeverity } from "@/features/attention/domain/types";
-import { canShowAttentionLifecycleActions } from "@/features/attention/ui/attention-workflow-visibility";
+import { canShowAttentionAcknowledgeSeverityActions } from "@/features/attention/ui/attention-workflow-visibility";
 import styles from "./attention-detail.module.css";
 
 function severityBadgeVariant(
@@ -39,13 +45,19 @@ function statusBadgeVariant(
 
 type AttentionDetailProps = {
   viewModel: AttentionDetailViewModel;
+  organizationId: string;
+  role: AttentionRole;
 };
 
 /**
- * Read-only Attention detail + timeline (B1.7.5-D).
- * Lifecycle mutation controls remain reserved for B1.7.6.
+ * Attention detail + timeline (B1.7.5-D) with B1.7.6-B acknowledge/severity actions.
+ * Assignment, resolve, dismiss, and archive remain deferred.
  */
-export function AttentionDetail({ viewModel }: AttentionDetailProps) {
+export function AttentionDetail({
+  viewModel,
+  organizationId,
+  role,
+}: AttentionDetailProps) {
   const {
     detail,
     signals,
@@ -58,7 +70,15 @@ export function AttentionDetail({ viewModel }: AttentionDetailProps) {
     organizationTimezone,
   } = viewModel;
 
-  const showLifecycle = canShowAttentionLifecycleActions();
+  const bScopedActionsEnabled = canShowAttentionAcknowledgeSeverityActions();
+  const actionVisibility = resolveAttentionLifecycleActionVisibility(role, {
+    status: detail.statusKey,
+    archivedAt: detail.isArchived ? detail.archivedAtLabel ?? "archived" : null,
+  });
+  const showAcknowledge = bScopedActionsEnabled && actionVisibility.acknowledge;
+  const showUpdateSeverity =
+    bScopedActionsEnabled && actionVisibility.updateSeverity;
+  const returnPath = buildAttentionDetailHref(detail.id, organizationId);
 
   return (
     <article className={styles.attentionDetail}>
@@ -91,9 +111,6 @@ export function AttentionDetail({ viewModel }: AttentionDetailProps) {
           <p className={styles.summary}>{detail.summaryLabel}</p>
         ) : null}
         <p className={styles.subtitle}>Times shown in {organizationTimezone}.</p>
-        {showLifecycle ? (
-          <p>Lifecycle actions must never render in B1.7.5 detail workspace.</p>
-        ) : null}
       </header>
 
       <div className={styles.layout}>
@@ -221,6 +238,17 @@ export function AttentionDetail({ viewModel }: AttentionDetailProps) {
           </dl>
         </section>
       </div>
+
+      {showAcknowledge || showUpdateSeverity ? (
+        <AttentionAcknowledgeSeverityActions
+          organizationId={organizationId}
+          attentionItemId={detail.id}
+          returnPath={returnPath}
+          showAcknowledge={showAcknowledge}
+          showUpdateSeverity={showUpdateSeverity}
+          currentSeverity={detail.severityKey}
+        />
+      ) : null}
 
       <section
         className={styles.section}

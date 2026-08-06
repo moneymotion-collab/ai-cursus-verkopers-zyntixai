@@ -4,7 +4,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { AttentionDetail } from "@/features/attention/ui/attention-detail";
 import type { AttentionDetailViewModel } from "@/features/attention/ui/load-attention-detail-page";
 import { ATTENTION_NAV_VISIBLE } from "@/features/attention/domain/attention-navigation";
-import { canShowAttentionLifecycleActions } from "@/features/attention/ui/attention-workflow-visibility";
+import {
+  canShowAttentionAcknowledgeSeverityActions,
+  canShowAttentionLifecycleActions,
+} from "@/features/attention/ui/attention-workflow-visibility";
 import { AttentionUnavailablePanel } from "@/features/attention/ui/attention-state-panels";
 import {
   ATTENTION_ITEM_ID,
@@ -14,8 +17,17 @@ import {
   PROGRAM_ID,
 } from "../helpers/attention-test-fixtures";
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
+
 vi.mock("@/components/ui/badge", () => ({
   Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+}));
+
+vi.mock("@/features/attention/actions/lifecycle-attention-actions", () => ({
+  acknowledgeAttentionItemAction: vi.fn(),
+  updateAttentionSeverityAction: vi.fn(),
 }));
 
 const viewModel: AttentionDetailViewModel = {
@@ -87,9 +99,11 @@ const viewModel: AttentionDetailViewModel = {
   organizationTimezone: "UTC",
 };
 
-describe("AttentionDetail presentation (B1.7.5-D)", () => {
-  it("renders detail, signals, and timeline without mutation controls", () => {
-    const html = renderToStaticMarkup(<AttentionDetail viewModel={viewModel} />);
+describe("AttentionDetail presentation (B1.7.6-B)", () => {
+  it("renders detail timeline and B-scoped acknowledge/severity for owner open items", () => {
+    const html = renderToStaticMarkup(
+      <AttentionDetail viewModel={viewModel} organizationId={ORG_ID} role="owner" />,
+    );
 
     expect(html).toContain("No recent progress");
     expect(html).toContain("Enrollment went quiet");
@@ -107,15 +121,44 @@ describe("AttentionDetail presentation (B1.7.5-D)", () => {
     expect(html).toContain("Breadcrumb");
     expect(html).toContain(">Attention<");
     expect(html).toContain('aria-current="page"');
-    expect(html).not.toMatch(/>Acknowledge</);
+    expect(html).toContain(">Acknowledge<");
+    expect(html).toContain("Save severity");
     expect(html).not.toMatch(/>Assign</);
     expect(html).not.toMatch(/>Resolve</);
     expect(html).not.toMatch(/>Dismiss</);
     expect(html).not.toMatch(/>Archive</);
     expect(html).not.toContain("payload");
-    expect(html).not.toContain(ATTENTION_ITEM_ID);
     expect(canShowAttentionLifecycleActions()).toBe(false);
+    expect(canShowAttentionAcknowledgeSeverityActions()).toBe(true);
     expect(ATTENTION_NAV_VISIBLE).toBe(true);
+  });
+
+  it("hides acknowledge/severity for viewer and archived items", () => {
+    const viewer = renderToStaticMarkup(
+      <AttentionDetail viewModel={viewModel} organizationId={ORG_ID} role="viewer" />,
+    );
+    expect(viewer).not.toMatch(/>Acknowledge</);
+    expect(viewer).not.toContain("Save severity");
+
+    const archived = renderToStaticMarkup(
+      <AttentionDetail
+        viewModel={{
+          ...viewModel,
+          detail: {
+            ...viewModel.detail,
+            isArchived: true,
+            archivedAtLabel: "Aug 3, 2026, 10:00 AM",
+            statusKey: "resolved",
+            statusLabel: "Resolved",
+            isTerminal: true,
+          },
+        }}
+        organizationId={ORG_ID}
+        role="owner"
+      />,
+    );
+    expect(archived).not.toMatch(/>Acknowledge</);
+    expect(archived).not.toContain("Save severity");
   });
 
   it("renders empty timeline state", () => {
@@ -127,6 +170,8 @@ describe("AttentionDetail presentation (B1.7.5-D)", () => {
           timelineEmpty: true,
           signals: [],
         }}
+        organizationId={ORG_ID}
+        role="staff"
       />,
     );
     expect(html).toContain("No timeline events yet");
