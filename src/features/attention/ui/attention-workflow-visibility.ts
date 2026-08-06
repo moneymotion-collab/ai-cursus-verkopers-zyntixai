@@ -1,11 +1,12 @@
 /**
  * Product lifecycle CTA gates.
  *
- * - ATTENTION_LIFECYCLE_ACTIONS_VISIBLE stays false so E actions are never
- *   broadly activated by this flag alone.
+ * - ATTENTION_LIFECYCLE_ACTIONS_VISIBLE stays false so out-of-scope actions are
+ *   never broadly activated by this flag alone.
  * - B1.7.6-B uses a narrow acknowledge/severity gate.
  * - B1.7.6-C uses a narrow assignment gate only.
  * - B1.7.6-D uses a narrow resolve/dismiss gate only.
+ * - B1.7.6-E uses a narrow archive gate only.
  */
 export const ATTENTION_LIFECYCLE_ACTIONS_VISIBLE = false as const;
 
@@ -17,6 +18,9 @@ export const ATTENTION_ASSIGNMENT_ACTIONS_VISIBLE = true as const;
 
 /** Narrow gate for B1.7.6-D Resolve + Dismiss only. */
 export const ATTENTION_RESOLUTION_DISMISS_ACTIONS_VISIBLE = true as const;
+
+/** Narrow gate for B1.7.6-E Archive only. */
+export const ATTENTION_ARCHIVE_ACTION_VISIBLE = true as const;
 
 export function canShowAttentionLifecycleActions(): false {
   return ATTENTION_LIFECYCLE_ACTIONS_VISIBLE;
@@ -32,4 +36,8 @@ export function canShowAttentionAssignmentActions(): boolean {
 
 export function canShowAttentionResolutionDismissActions(): boolean {
   return ATTENTION_RESOLUTION_DISMISS_ACTIONS_VISIBLE;
+}
+
+export function canShowAttentionArchiveAction(): boolean {
+  return ATTENTION_ARCHIVE_ACTION_VISIBLE;
 }

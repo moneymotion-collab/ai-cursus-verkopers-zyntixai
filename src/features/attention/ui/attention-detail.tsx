@@ -5,12 +5,14 @@ import type {
   AttentionRole,
   AttentionSeverity,
 } from "@/features/attention/domain/types";
+import { AttentionArchiveActions } from "@/features/attention/ui/attention-archive-actions";
 import { AttentionAssignmentActions } from "@/features/attention/ui/attention-assignment-actions";
 import { AttentionAcknowledgeSeverityActions } from "@/features/attention/ui/attention-lifecycle-actions";
 import { AttentionResolutionDismissActions } from "@/features/attention/ui/attention-resolution-dismiss-actions";
 import type { AttentionDetailViewModel } from "@/features/attention/ui/load-attention-detail-page";
 import {
   canShowAttentionAcknowledgeSeverityActions,
+  canShowAttentionArchiveAction,
   canShowAttentionAssignmentActions,
   canShowAttentionResolutionDismissActions,
 } from "@/features/attention/ui/attention-workflow-visibility";
@@ -56,9 +58,7 @@ type AttentionDetailProps = {
 };
 
 /**
- * Attention detail + timeline (B1.7.5-D) with B1.7.6-B acknowledge/severity,
- * B1.7.6-C assignment, and B1.7.6-D resolve/dismiss actions.
- * Archive remains deferred.
+ * Attention detail + timeline (B1.7.5-D) with B1.7.6-B/C/D/E lifecycle actions.
  */
 export function AttentionDetail({
   viewModel,
@@ -83,6 +83,7 @@ export function AttentionDetail({
   const bScopedActionsEnabled = canShowAttentionAcknowledgeSeverityActions();
   const cScopedActionsEnabled = canShowAttentionAssignmentActions();
   const dScopedActionsEnabled = canShowAttentionResolutionDismissActions();
+  const eScopedActionsEnabled = canShowAttentionArchiveAction();
   const actionVisibility = resolveAttentionLifecycleActionVisibility(role, {
     status: detail.statusKey,
     archivedAt: detail.isArchived ? detail.archivedAtLabel ?? "archived" : null,
@@ -95,6 +96,7 @@ export function AttentionDetail({
   const showUnassign = cScopedActionsEnabled && actionVisibility.unassign;
   const showResolve = dScopedActionsEnabled && actionVisibility.resolve;
   const showDismiss = dScopedActionsEnabled && actionVisibility.dismiss;
+  const showArchive = eScopedActionsEnabled && actionVisibility.archive;
   const returnPath = buildAttentionDetailHref(detail.id, organizationId);
 
   return (
@@ -288,6 +290,17 @@ export function AttentionDetail({
           itemTitleLabel={detail.titleLabel}
           showResolve={showResolve}
           showDismiss={showDismiss}
+        />
+      ) : null}
+
+      {showArchive ? (
+        <AttentionArchiveActions
+          organizationId={organizationId}
+          attentionItemId={detail.id}
+          returnPath={returnPath}
+          itemTitleLabel={detail.titleLabel}
+          statusLabel={detail.statusLabel}
+          showArchive={showArchive}
         />
       ) : null}
 
