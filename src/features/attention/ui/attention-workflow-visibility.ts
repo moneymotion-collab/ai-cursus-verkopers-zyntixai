@@ -1,6 +1,7 @@
 /**
  * B1.7.5-A forces lifecycle mutation CTAs hidden.
- * Working action UX is reserved for B1.7.6 and must not appear in A–E product shells.
+ * B1.7.6-A may add action foundation modules, but product shells must keep this false
+ * until a later authorized subphase activates visible controls.
  */
 export const ATTENTION_LIFECYCLE_ACTIONS_VISIBLE = false as const;
 
