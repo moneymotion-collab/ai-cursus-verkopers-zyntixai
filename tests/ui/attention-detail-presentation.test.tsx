@@ -104,7 +104,9 @@ describe("AttentionDetail presentation (B1.7.5-D)", () => {
     expect(html).toContain("Alex Owner");
     expect(html).toContain("No progress for 14 days");
     expect(html).toContain(`href="${viewModel.backHref.replace(/&/g, "&amp;")}"`);
-    expect(html).toContain("Back to Attention");
+    expect(html).toContain("Breadcrumb");
+    expect(html).toContain(">Attention<");
+    expect(html).toContain('aria-current="page"');
     expect(html).not.toMatch(/>Acknowledge</);
     expect(html).not.toMatch(/>Assign</);
     expect(html).not.toMatch(/>Resolve</);
@@ -113,7 +115,7 @@ describe("AttentionDetail presentation (B1.7.5-D)", () => {
     expect(html).not.toContain("payload");
     expect(html).not.toContain(ATTENTION_ITEM_ID);
     expect(canShowAttentionLifecycleActions()).toBe(false);
-    expect(ATTENTION_NAV_VISIBLE).toBe(false);
+    expect(ATTENTION_NAV_VISIBLE).toBe(true);
   });
 
   it("renders empty timeline state", () => {

@@ -102,7 +102,7 @@ describe("attention shell page loader (B1.7.5-A)", () => {
     expect(result.capabilities.canViewArchivedItems).toBe(false);
     expect(result.capabilities.canAcknowledge).toBe(false);
     expect(result.timeZone).toBe("UTC");
-    expect(ATTENTION_NAV_VISIBLE).toBe(false);
+    expect(ATTENTION_NAV_VISIBLE).toBe(true);
 
     expect(pageOrgMock).toHaveBeenCalledWith(expect.anything(), ORG_ID);
   });

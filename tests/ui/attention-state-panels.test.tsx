@@ -107,6 +107,6 @@ describe("attention shared state panels (B1.7.5-A)", () => {
     expect(html).not.toContain("Resolve");
     expect(html).not.toContain("Filter");
     expect(canShowAttentionLifecycleActions()).toBe(false);
-    expect(ATTENTION_NAV_VISIBLE).toBe(false);
+    expect(ATTENTION_NAV_VISIBLE).toBe(true);
   });
 });

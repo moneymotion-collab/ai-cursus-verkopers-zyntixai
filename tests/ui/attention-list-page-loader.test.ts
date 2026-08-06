@@ -114,7 +114,7 @@ describe("attention list page loader (B1.7.5-C)", () => {
     expect(result.rows[0]?.detailHref).toContain("status=open");
     expect(result.rows[0]?.detailHref).toContain("page=2");
     expect(result.capabilities.canViewArchivedItems).toBe(false);
-    expect(ATTENTION_NAV_VISIBLE).toBe(false);
+    expect(ATTENTION_NAV_VISIBLE).toBe(true);
   });
 
   it("does not forward unauthorized archived filter", async () => {

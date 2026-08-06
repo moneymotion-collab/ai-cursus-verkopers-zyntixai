@@ -8,9 +8,9 @@ function readSrc(relativePath: string): string {
   return readFileSync(path.join(process.cwd(), relativePath), "utf8");
 }
 
-describe("attention presentation foundation boundaries (B1.7.5-A/D)", () => {
-  it("keeps navigation and lifecycle actions disabled", () => {
-    expect(ATTENTION_NAV_VISIBLE).toBe(false);
+describe("attention presentation foundation boundaries (B1.7.5-E)", () => {
+  it("activates navigation while keeping lifecycle actions disabled", () => {
+    expect(ATTENTION_NAV_VISIBLE).toBe(true);
     expect(canShowAttentionLifecycleActions()).toBe(false);
   });
 
@@ -26,6 +26,7 @@ describe("attention presentation foundation boundaries (B1.7.5-A/D)", () => {
       "src/features/attention/ui/attention-list-filters.tsx",
       "src/features/attention/ui/attention-list-search-params.ts",
       "src/features/attention/ui/attention-detail.tsx",
+      "src/features/attention/ui/attention-pe-entry-visibility.ts",
     ];
 
     for (const file of presentationOnlyFiles) {
@@ -34,7 +35,6 @@ describe("attention presentation foundation boundaries (B1.7.5-A/D)", () => {
       expect(source).not.toMatch(
         /create_manual_attention_item|acknowledge_attention_item|assign_attention_item|resolve_attention_item|dismiss_attention_item|archive_attention_item/,
       );
-      expect(source).not.toContain("ATTENTION_NAV_VISIBLE = true");
       expect(source).not.toMatch(/createClient|createSupabaseBrowserClient/);
     }
 
@@ -43,6 +43,9 @@ describe("attention presentation foundation boundaries (B1.7.5-A/D)", () => {
     );
     expect(readSrc("src/features/attention/ui/attention-list.tsx")).toMatch(
       /href=\{row\.detailHref\}/,
+    );
+    expect(readSrc("src/features/attention/ui/attention-list.tsx")).toContain(
+      "Open attention item:",
     );
     expect(
       readSrc("src/features/attention/ui/load-attention-list-page.ts"),
@@ -64,9 +67,7 @@ describe("attention presentation foundation boundaries (B1.7.5-A/D)", () => {
     ).not.toMatch(/>Acknowledge<|>Assign<|>Resolve<|>Dismiss<|>Archive</);
     expect(
       readSrc("src/features/attention/ui/attention-detail.tsx"),
-    ).not.toMatch(
-      /acknowledge_attention_item|assign_attention_item|resolve_attention_item|dismiss_attention_item|archive_attention_item/,
-    );
+    ).toContain('aria-label="Breadcrumb"');
 
     const page = readSrc("src/app/(authenticated)/attention/page.tsx");
     expect(page).not.toMatch(/\.from\(["']attention_/);
@@ -92,6 +93,6 @@ describe("attention presentation foundation boundaries (B1.7.5-A/D)", () => {
     const navigation = readSrc(
       "src/features/attention/domain/attention-navigation.ts",
     );
-    expect(navigation).toMatch(/ATTENTION_NAV_VISIBLE\s*=\s*false/);
+    expect(navigation).toMatch(/ATTENTION_NAV_VISIBLE\s*=\s*true/);
   });
 });

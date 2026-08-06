@@ -25,6 +25,8 @@ import {
   buildProgressListHref,
 } from "@/features/progress/domain/progress-navigation";
 import { canShowEnrollmentRecordProgressEntry } from "@/features/progress/ui/progress-pe-entry-visibility";
+import { buildAttentionListHref } from "@/features/attention/domain/attention-navigation";
+import { canShowEnrollmentViewAttentionEntry } from "@/features/attention/ui/attention-pe-entry-visibility";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
 
@@ -134,6 +136,17 @@ export default async function EnrollmentDetailPage({
       : undefined,
   };
 
+  const attentionLinks = canShowEnrollmentViewAttentionEntry({
+    role: result.role,
+  })
+    ? {
+        viewAttentionHref: buildAttentionListHref({
+          organizationId: result.selectedOrganizationId,
+          enrollmentId: result.data.enrollment.id,
+        }),
+      }
+    : undefined;
+
   return (
     <AppShell
       activeNav="enrollments"
@@ -147,6 +160,7 @@ export default async function EnrollmentDetailPage({
           reloadHref={reloadHref}
           workflowLinks={workflowLinks}
           progressLinks={progressLinks}
+          attentionLinks={attentionLinks}
         />
       </section>
     </AppShell>

@@ -142,7 +142,11 @@ export function AttentionListPresentation({
             {rows.map((row) => (
               <tr key={row.id}>
                 <td>
-                  <a className={styles.titleLink} href={row.detailHref}>
+                  <a
+                    className={styles.titleLink}
+                    href={row.detailHref}
+                    aria-label={`Open attention item: ${row.titleLabel}`}
+                  >
                     <span className={styles.titleCell}>{row.titleLabel}</span>
                   </a>
                   {row.summaryLabel ? (
@@ -181,7 +185,12 @@ export function AttentionListPresentation({
         {rows.map((row) => (
           <li key={row.id} className={styles.card}>
             <h2 className={styles.cardTitle}>
-              <a href={row.detailHref}>{row.titleLabel}</a>
+              <a
+                href={row.detailHref}
+                aria-label={`Open attention item: ${row.titleLabel}`}
+              >
+                {row.titleLabel}
+              </a>
             </h2>
             {row.summaryLabel ? (
               <p className={styles.cardSummary}>{row.summaryLabel}</p>

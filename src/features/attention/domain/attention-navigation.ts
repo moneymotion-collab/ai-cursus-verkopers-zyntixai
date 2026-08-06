@@ -75,6 +75,7 @@ export function buildAttentionDetailHref(
 }
 
 /**
- * Visible primary-nav Attention link — remains hidden until B1.7.5.
+ * Visible primary-nav Attention link — activated in B1.7.5-E after readiness evidence.
+ * Rollback: set back to `false`.
  */
-export const ATTENTION_NAV_VISIBLE = false as const;
+export const ATTENTION_NAV_VISIBLE = true as const;

@@ -222,7 +222,7 @@ describe("attention detail page loader (B1.7.5-D)", () => {
     expect(result.data.signals).toHaveLength(1);
     expect(result.data.signals[0]?.explanationLabel).toContain("No progress");
     expect(canShowAttentionLifecycleActions()).toBe(false);
-    expect(ATTENTION_NAV_VISIBLE).toBe(false);
+    expect(ATTENTION_NAV_VISIBLE).toBe(true);
   });
 
   it("supports empty timeline and ignores unsafe external return destinations", async () => {

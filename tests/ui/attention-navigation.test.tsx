@@ -10,18 +10,19 @@ import {
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-describe("Attention AppShell hidden wiring (B1.7.4-D)", () => {
-  it("keeps Attention nav hidden while wiring constants into AppShell", () => {
-    expect(ATTENTION_NAV_VISIBLE).toBe(false);
+describe("Attention AppShell navigation (B1.7.5-E)", () => {
+  it("shows Attention nav with active state when visibility is enabled", () => {
+    expect(ATTENTION_NAV_VISIBLE).toBe(true);
 
     const html = renderToStaticMarkup(
-      <AppShell activeNav="tasks">
+      <AppShell activeNav="attention">
         <p>content</p>
       </AppShell>,
     );
 
-    expect(html).not.toContain(`>${ATTENTION_NAV_LABEL}<`);
-    expect(html).not.toContain(`href="${ATTENTION_ROUTE}"`);
+    expect(html).toContain(`>${ATTENTION_NAV_LABEL}<`);
+    expect(html).toContain(`href="${ATTENTION_ROUTE}"`);
+    expect(html).toContain(`aria-current="page"`);
     expect(html).toContain(">Progress<");
     expect(html).toContain(">Tasks<");
 
@@ -36,14 +37,19 @@ describe("Attention AppShell hidden wiring (B1.7.4-D)", () => {
     );
   });
 
-  it("does not mark Attention as current page while visibility remains false", () => {
+  it("keeps Attention inactive when another nav section is active", () => {
     const html = renderToStaticMarkup(
-      <AppShell activeNav="attention">
+      <AppShell activeNav="tasks">
         <p>content</p>
       </AppShell>,
     );
 
-    expect(html).not.toContain(`aria-current="page" href="${ATTENTION_ROUTE}"`);
-    expect(html).not.toContain(`href="${ATTENTION_ROUTE}"`);
+    expect(html).toContain(`href="${ATTENTION_ROUTE}"`);
+    expect(html).toContain(`>${ATTENTION_NAV_LABEL}<`);
+    expect(html).not.toMatch(
+      new RegExp(
+        `aria-current="page"[^>]*href="${ATTENTION_ROUTE}"|href="${ATTENTION_ROUTE}"[^>]*aria-current="page"`,
+      ),
+    );
   });
 });

@@ -19,11 +19,16 @@ export type EnrollmentProgressLinks = {
   recordProgressHref?: string;
 };
 
+export type EnrollmentAttentionLinks = {
+  viewAttentionHref: string;
+};
+
 type EnrollmentDetailProps = {
   viewModel: EnrollmentDetailViewModel;
   reloadHref?: string;
   workflowLinks?: EnrollmentWorkflowLinks;
   progressLinks?: EnrollmentProgressLinks;
+  attentionLinks?: EnrollmentAttentionLinks;
 };
 
 function badgeVariantForStatus(
@@ -53,6 +58,7 @@ export function EnrollmentDetail({
   reloadHref,
   workflowLinks,
   progressLinks,
+  attentionLinks,
 }: EnrollmentDetailProps) {
   const {
     enrollment,
@@ -168,6 +174,18 @@ export function EnrollmentDetail({
                 {progressLinks.recordProgressHref ? (
                   <a href={progressLinks.recordProgressHref}>Record progress</a>
                 ) : null}
+              </nav>
+            </>
+          ) : null}
+          {attentionLinks ? (
+            <>
+              <p className={styles.boundaryNote}>
+                Related Attention items for this enrollment are reviewed in the Attention
+                workspace. No count is shown here; empty results are handled by Attention
+                filters.
+              </p>
+              <nav className={styles.attentionLinks} aria-label="Attention actions">
+                <a href={attentionLinks.viewAttentionHref}>View attention</a>
               </nav>
             </>
           ) : null}

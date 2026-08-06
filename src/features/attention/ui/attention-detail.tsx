@@ -62,9 +62,18 @@ export function AttentionDetail({ viewModel }: AttentionDetailProps) {
 
   return (
     <article className={styles.attentionDetail}>
-      <a className={styles.backLink} href={backHref}>
-        Back to Attention
-      </a>
+      <nav className={styles.breadcrumb} aria-label="Breadcrumb">
+        <ol className={styles.breadcrumbList}>
+          <li>
+            <a className={styles.backLink} href={backHref}>
+              Attention
+            </a>
+          </li>
+          <li aria-current="page">
+            <span className={styles.breadcrumbCurrent}>{detail.titleLabel}</span>
+          </li>
+        </ol>
+      </nav>
 
       <header className={styles.header}>
         <h1 className={styles.title}>{detail.titleLabel}</h1>

@@ -22,9 +22,9 @@ import {
   resolveSafeReturnPath,
 } from "@/features/auth/server/safe-return-path";
 
-describe("attention navigation (B1.7.4-A)", () => {
-  it("keeps Attention nav hidden until B1.7.5", () => {
-    expect(ATTENTION_NAV_VISIBLE).toBe(false);
+describe("attention navigation (B1.7.5-E)", () => {
+  it("activates Attention nav after B1.7.5-E readiness", () => {
+    expect(ATTENTION_NAV_VISIBLE).toBe(true);
     expect(ATTENTION_ROUTE).toBe("/attention");
     expect(ATTENTION_NAV_LABEL).toBe("Attention");
     expect(ATTENTION_NAV_ORDER_AFTER).toBe("progress");
@@ -58,6 +58,8 @@ describe("attention navigation (B1.7.4-A)", () => {
     );
     expect(isAttentionPathname("/attention")).toBe(true);
     expect(isAttentionPathname("/attention/abc")).toBe(true);
+    expect(isAttentionPathname("/attention-evil")).toBe(false);
+    expect(isAttentionPathname("/attentions")).toBe(false);
     expect(isAttentionPathname("/progress")).toBe(false);
   });
 });

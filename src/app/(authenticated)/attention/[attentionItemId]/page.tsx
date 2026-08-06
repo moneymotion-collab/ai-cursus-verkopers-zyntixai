@@ -18,8 +18,8 @@ type AttentionDetailPageProps = {
 };
 
 /**
- * B1.7.5-D read-only Attention detail with timeline.
- * Lifecycle actions and nav activation remain deferred.
+ * B1.7.5 read-only Attention detail with timeline.
+ * Navigation is activated in B1.7.5-E; lifecycle actions remain deferred to B1.7.6.
  */
 export default async function AttentionDetailPage({
   params,

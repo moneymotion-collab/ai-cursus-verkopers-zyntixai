@@ -58,7 +58,7 @@ describe("AttentionListPresentation (B1.7.5-C/D)", () => {
     expect(html).not.toMatch(/>Assign</);
     expect(html).not.toMatch(/>Resolve</);
     expect(canShowAttentionLifecycleActions()).toBe(false);
-    expect(ATTENTION_NAV_VISIBLE).toBe(false);
+    expect(ATTENTION_NAV_VISIBLE).toBe(true);
   });
 
   it("renders filtered empty state with reset link", () => {

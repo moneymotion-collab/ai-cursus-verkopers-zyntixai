@@ -9,6 +9,8 @@ import type { EnrollmentDetailViewModel } from "@/features/enrollments/ui/load-e
 import {
   sampleArchivedEnrollmentDetail,
   sampleEnrollmentDetail,
+  ENROLLMENT_ID,
+  ORG_ID,
 } from "../helpers/enrollment-test-fixtures";
 
 vi.mock("@/components/ui/badge", () => ({
@@ -88,6 +90,7 @@ describe("EnrollmentDetail read-only presentation (no workflow links)", () => {
     expect(html).not.toContain('aria-label="Progress actions"');
     expect(html).not.toContain("View progress");
     expect(html).not.toContain("Record progress");
+    expect(html).not.toContain("View attention");
   });
 
   it("renders View progress and optional Record progress when progressLinks are provided", () => {
@@ -127,6 +130,25 @@ describe("EnrollmentDetail read-only presentation (no workflow links)", () => {
     );
     expect(withRecord).toContain("Record progress");
     expect(withRecord).toContain('href="/progress/new?org=org-1&amp;enrollmentId=e1"');
+  });
+
+  it("renders View attention when attentionLinks are provided without counts", () => {
+    const html = renderToStaticMarkup(
+      <EnrollmentDetail
+        viewModel={baseViewModel}
+        attentionLinks={{
+          viewAttentionHref: `/attention?org=${ORG_ID}&enrollmentId=${ENROLLMENT_ID}`,
+        }}
+      />,
+    );
+    expect(html).toContain('aria-label="Attention actions"');
+    expect(html).toContain("View attention");
+    expect(html).toContain(
+      `href="/attention?org=${ORG_ID}&amp;enrollmentId=${ENROLLMENT_ID}"`,
+    );
+    expect(html).not.toContain("attention items found");
+    expect(html).not.toMatch(/\d+\s+attention/i);
+    expect(html).not.toContain("Attention badge");
   });
 
   it("renders unavailable detail without enumeration hints", () => {

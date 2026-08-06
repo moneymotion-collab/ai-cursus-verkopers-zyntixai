@@ -32,7 +32,12 @@ export function AttentionListFilters({
       <h2 id="attention-filters-heading" className={styles.heading}>
         Filters and sorting
       </h2>
-      <form className={styles.form} method="get" action={ATTENTION_ROUTE}>
+      <form
+        className={styles.form}
+        method="get"
+        action={ATTENTION_ROUTE}
+        aria-labelledby="attention-filters-heading"
+      >
         {urlState.org ? <input type="hidden" name="org" value={urlState.org} /> : null}
         {urlState.enrollmentId ? (
           <input type="hidden" name="enrollmentId" value={urlState.enrollmentId} />
