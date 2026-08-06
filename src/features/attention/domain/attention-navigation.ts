@@ -1,7 +1,7 @@
 /**
  * Canonical Attention route and navigation metadata.
+ * B1.7.4-D wires protected-path / safe-return / AppShell with nav hidden.
  * B1.7.5 enables visible shell activation for list/detail routes.
- * B1.7.4-A ships constants and href builders only (nav remains hidden).
  */
 
 export const ATTENTION_ROUTE = "/attention" as const;

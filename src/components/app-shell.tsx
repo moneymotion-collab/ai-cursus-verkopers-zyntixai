@@ -17,6 +17,11 @@ import {
   PROGRESS_NAV_VISIBLE,
   PROGRESS_ROUTE,
 } from "@/features/progress/domain/progress-navigation";
+import {
+  ATTENTION_NAV_LABEL,
+  ATTENTION_NAV_VISIBLE,
+  ATTENTION_ROUTE,
+} from "@/features/attention/domain/attention-navigation";
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -30,6 +35,7 @@ type AppShellProps = {
     | "programs"
     | "enrollments"
     | "progress"
+    | "attention"
     | "tasks";
 };
 
@@ -95,6 +101,15 @@ export function AppShell({
                   aria-current={activeNav === "progress" ? "page" : undefined}
                 >
                   {PROGRESS_NAV_LABEL}
+                </Link>
+              ) : null}
+              {ATTENTION_NAV_VISIBLE ? (
+                <Link
+                  className={styles.navLink}
+                  href={ATTENTION_ROUTE}
+                  aria-current={activeNav === "attention" ? "page" : undefined}
+                >
+                  {ATTENTION_NAV_LABEL}
                 </Link>
               ) : null}
               <Link

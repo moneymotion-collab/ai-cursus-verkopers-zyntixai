@@ -17,6 +17,10 @@ import type {
   AttentionReadQueryResult,
   AttentionRpcAdapterResult,
 } from "@/features/attention/domain/types";
+import {
+  isProtectedApplicationPath,
+  resolveSafeReturnPath,
+} from "@/features/auth/server/safe-return-path";
 
 describe("attention navigation (B1.7.4-A)", () => {
   it("keeps Attention nav hidden until B1.7.5", () => {
@@ -55,6 +59,27 @@ describe("attention navigation (B1.7.4-A)", () => {
     expect(isAttentionPathname("/attention")).toBe(true);
     expect(isAttentionPathname("/attention/abc")).toBe(true);
     expect(isAttentionPathname("/progress")).toBe(false);
+  });
+});
+
+describe("attention application wiring (B1.7.4-D)", () => {
+  it("allowlists and protects /attention paths for safe return without prefix overmatch", () => {
+    expect(resolveSafeReturnPath("/attention")).toBe("/attention");
+    expect(resolveSafeReturnPath("/attention/")).toBe("/attention/");
+    expect(
+      resolveSafeReturnPath("/attention/55555555-5555-4555-8555-555555555555"),
+    ).toBe("/attention/55555555-5555-4555-8555-555555555555");
+    expect(
+      resolveSafeReturnPath(
+        "/attention?org=11111111-1111-4111-8111-111111111111",
+      ),
+    ).toBe("/attention?org=11111111-1111-4111-8111-111111111111");
+    expect(isProtectedApplicationPath("/attention")).toBe(true);
+    expect(isProtectedApplicationPath("/attention/abc")).toBe(true);
+    expect(resolveSafeReturnPath("/attention-evil")).toBe("/");
+    expect(isProtectedApplicationPath("/attention-evil")).toBe(false);
+    expect(resolveSafeReturnPath("//evil.example/attention")).toBe("/");
+    expect(resolveSafeReturnPath("https://evil.example/attention")).toBe("/");
   });
 });
 
