@@ -1,8 +1,11 @@
 import { AppShell } from "@/components/app-shell";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ATTENTION_ROUTE } from "@/features/attention/domain/attention-navigation";
-import { AttentionFoundationShell } from "@/features/attention/ui/attention-foundation-shell";
-import { loadAttentionShellPage } from "@/features/attention/ui/load-attention-shell-page";
+import { AttentionListPresentation } from "@/features/attention/ui/attention-list";
+import {
+  ATTENTION_LIST_WORKSPACE_PAGE_SIZE,
+  loadAttentionListPage,
+} from "@/features/attention/ui/load-attention-list-page";
 import {
   AttentionAuthRequiredPanel,
   AttentionOrganizationRequiredPanel,
@@ -16,13 +19,14 @@ type AttentionPageProps = {
 };
 
 /**
- * B1.7.5-A Attention route shell.
- * Not a complete list workspace (B1.7.5-B). Navigation remains hidden until E.
+ * B1.7.5-B Attention list workspace.
+ * Read-only first page via B1.7.4 listAttentionItems.
+ * Detail (D), filters/pagination UI (C), and nav activation (E) remain deferred.
  */
 export default async function AttentionPage({ searchParams }: AttentionPageProps) {
   const supabase = await createSupabaseServerClient();
   const rawSearchParams = await searchParams;
-  const result = await loadAttentionShellPage(supabase, rawSearchParams);
+  const result = await loadAttentionListPage(supabase, rawSearchParams);
 
   if (result.kind === "auth_required") {
     return (
@@ -46,7 +50,7 @@ export default async function AttentionPage({ searchParams }: AttentionPageProps
         <AttentionOrganizationRequiredPanel
           organizations={result.organizations}
           targetPath={ATTENTION_ROUTE}
-          description="Select an organization to open Attention."
+          description="Select an organization to view Attention."
         />
       </AppShell>
     );
@@ -64,6 +68,7 @@ export default async function AttentionPage({ searchParams }: AttentionPageProps
     return (
       <AppShell activeNav="attention">
         <AttentionQueryErrorPanel
+          title={result.title}
           message={result.message}
           retryHref={ATTENTION_ROUTE}
         />
@@ -79,7 +84,14 @@ export default async function AttentionPage({ searchParams }: AttentionPageProps
       organizationSelectorAction={ATTENTION_ROUTE}
     >
       <div className={styles.page}>
-        <AttentionFoundationShell page={result} />
+        <AttentionListPresentation
+          rows={result.rows}
+          organizationName={result.organizationName}
+          timeZone={result.timeZone}
+          shownCount={result.rows.length}
+          totalCount={result.list.pagination.total}
+          pageSize={ATTENTION_LIST_WORKSPACE_PAGE_SIZE}
+        />
       </div>
     </AppShell>
   );
