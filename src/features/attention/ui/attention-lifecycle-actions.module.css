@@ -58,8 +58,28 @@
   max-width: 100%;
 }
 
+.field textarea {
+  min-height: 6rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  max-width: 100%;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+.fieldHelp {
+  margin: 0;
+  color: var(--muted-text);
+  font-size: 0.875rem;
+}
+
 .field select:focus-visible,
-.primaryButton:focus-visible {
+.field textarea:focus-visible,
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible,
+.dismissConfirmButton:focus-visible {
   outline: 2px solid var(--focus-color, #2563eb);
   outline-offset: 2px;
 }
@@ -141,6 +161,45 @@
   outline-offset: 2px;
 }
 
+.dismissConfirmButton {
+  justify-self: start;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #7f1d1d;
+  background: #7f1d1d;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dismissConfirmButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.confirmationPanel {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border: 1px dashed var(--border-color);
+  border-radius: 0.5rem;
+  background: var(--surface-muted, #f8fafc);
+}
+
+.confirmationPanel h4 {
+  margin: 0;
+  font-size: 0.975rem;
+}
+
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
 .reloadLink {
   color: var(--link-color, #1d4ed8);
   text-decoration: underline;
@@ -153,8 +212,20 @@
   }
 
   .primaryButton,
-  .secondaryButton {
+  .secondaryButton,
+  .dismissConfirmButton {
     width: 100%;
     justify-self: stretch;
+  }
+
+  .actionRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actionRow .primaryButton,
+  .actionRow .secondaryButton,
+  .actionRow .dismissConfirmButton {
+    width: 100%;
   }
 }

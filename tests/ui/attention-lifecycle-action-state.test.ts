@@ -233,4 +233,42 @@ describe("attention lifecycle action presentation state", () => {
       );
     }
   });
+
+  it("maps resolve and dismiss reason validation to field errors", () => {
+    const resolveState = interpretAttentionLifecycleMutationResult({
+      ok: false,
+      action: "resolve",
+      committed: false,
+      returnPath: "/attention",
+      error: {
+        code: "INVALID_INPUT",
+        message: "Please correct the highlighted fields and try again.",
+        retryable: false,
+        category: "validation",
+        fieldErrors: { resolutionReason: "Required" },
+      },
+    });
+    expect(resolveState.kind).toBe("field_error");
+    if (resolveState.kind === "field_error") {
+      expect(fieldErrorMessage(resolveState.fieldErrors, "resolutionReason")).toBeTruthy();
+    }
+
+    const dismissState = interpretAttentionLifecycleMutationResult({
+      ok: false,
+      action: "dismiss",
+      committed: false,
+      returnPath: "/attention",
+      error: {
+        code: "INVALID_INPUT",
+        message: "Please correct the highlighted fields and try again.",
+        retryable: false,
+        category: "validation",
+        fieldErrors: { dismissalReason: "Required" },
+      },
+    });
+    expect(dismissState.kind).toBe("field_error");
+    if (dismissState.kind === "field_error") {
+      expect(fieldErrorMessage(dismissState.fieldErrors, "dismissalReason")).toBeTruthy();
+    }
+  });
 });

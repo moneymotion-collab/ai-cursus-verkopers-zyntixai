@@ -8,6 +8,7 @@ import {
   canShowAttentionAcknowledgeSeverityActions,
   canShowAttentionAssignmentActions,
   canShowAttentionLifecycleActions,
+  canShowAttentionResolutionDismissActions,
 } from "@/features/attention/ui/attention-workflow-visibility";
 import { AttentionUnavailablePanel } from "@/features/attention/ui/attention-state-panels";
 import {
@@ -31,6 +32,8 @@ vi.mock("@/features/attention/actions/lifecycle-attention-actions", () => ({
   acknowledgeAttentionItemAction: vi.fn(),
   updateAttentionSeverityAction: vi.fn(),
   assignAttentionItemAction: vi.fn(),
+  resolveAttentionItemAction: vi.fn(),
+  dismissAttentionItemAction: vi.fn(),
 }));
 
 const viewModel: AttentionDetailViewModel = {
@@ -105,8 +108,8 @@ const viewModel: AttentionDetailViewModel = {
   assigneeOptionsFailed: false,
 };
 
-describe("AttentionDetail presentation (B1.7.6-C)", () => {
-  it("renders detail timeline with B and C scoped actions for owner open items", () => {
+describe("AttentionDetail presentation (B1.7.6-D)", () => {
+  it("renders detail timeline with B, C, and D scoped actions for owner open items", () => {
     const html = renderToStaticMarkup(
       <AttentionDetail viewModel={viewModel} organizationId={ORG_ID} role="owner" />,
     );
@@ -132,14 +135,17 @@ describe("AttentionDetail presentation (B1.7.6-C)", () => {
     expect(html).toContain("Assignment");
     expect(html).toContain("Save assignment");
     expect(html).toContain('for="attention-assignee-select"');
+    expect(html).toContain(">Resolve<");
+    expect(html).toContain(">Dismiss<");
+    expect(html).not.toContain("Confirm resolve");
     expect(html).not.toContain(">Unassign<");
-    expect(html).not.toMatch(/>Resolve</);
-    expect(html).not.toMatch(/>Dismiss</);
     expect(html).not.toMatch(/>Archive</);
+    expect(html).not.toMatch(/\bClose\b/);
     expect(html).not.toContain("payload");
     expect(canShowAttentionLifecycleActions()).toBe(false);
     expect(canShowAttentionAcknowledgeSeverityActions()).toBe(true);
     expect(canShowAttentionAssignmentActions()).toBe(true);
+    expect(canShowAttentionResolutionDismissActions()).toBe(true);
     expect(ATTENTION_NAV_VISIBLE).toBe(true);
   });
 
@@ -161,9 +167,11 @@ describe("AttentionDetail presentation (B1.7.6-C)", () => {
     expect(html).toContain(">Unassign<");
     expect(html).toContain("Save assignment");
     expect(html).toContain('value="33333333-3333-4333-8333-333333333333"');
+    expect(html).toContain(">Resolve<");
+    expect(html).toContain(">Dismiss<");
   });
 
-  it("hides B and C actions for viewer and archived items", () => {
+  it("hides B, C, and D actions for viewer and archived items", () => {
     const viewer = renderToStaticMarkup(
       <AttentionDetail viewModel={viewModel} organizationId={ORG_ID} role="viewer" />,
     );
@@ -171,6 +179,8 @@ describe("AttentionDetail presentation (B1.7.6-C)", () => {
     expect(viewer).not.toContain("Save severity");
     expect(viewer).not.toContain("Save assignment");
     expect(viewer).not.toContain(">Unassign<");
+    expect(viewer).not.toContain(">Resolve<");
+    expect(viewer).not.toContain(">Dismiss<");
 
     const archived = renderToStaticMarkup(
       <AttentionDetail
@@ -194,6 +204,36 @@ describe("AttentionDetail presentation (B1.7.6-C)", () => {
     expect(archived).not.toContain("Save severity");
     expect(archived).not.toContain("Save assignment");
     expect(archived).not.toContain(">Unassign<");
+    expect(archived).not.toContain(">Resolve<");
+    expect(archived).not.toContain(">Dismiss<");
+    expect(archived).not.toMatch(/>Archive</);
+  });
+
+  it("hides all mutation controls on terminal non-archived items including Archive in D", () => {
+    const resolved = renderToStaticMarkup(
+      <AttentionDetail
+        viewModel={{
+          ...viewModel,
+          detail: {
+            ...viewModel.detail,
+            statusKey: "resolved",
+            statusLabel: "Resolved",
+            isTerminal: true,
+            resolvedAtLabel: "Aug 4, 2026, 10:00 AM",
+            resolutionReasonLabel: "Follow-up completed",
+          },
+        }}
+        organizationId={ORG_ID}
+        role="owner"
+      />,
+    );
+    expect(resolved).not.toMatch(/>Acknowledge</);
+    expect(resolved).not.toContain("Save severity");
+    expect(resolved).not.toContain("Save assignment");
+    expect(resolved).not.toContain(">Resolve<");
+    expect(resolved).not.toContain(">Dismiss<");
+    expect(resolved).not.toMatch(/>Archive</);
+    expect(resolved).toContain("Follow-up completed");
   });
 
   it("renders empty timeline state", () => {

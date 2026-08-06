@@ -7,10 +7,12 @@ import type {
 } from "@/features/attention/domain/types";
 import { AttentionAssignmentActions } from "@/features/attention/ui/attention-assignment-actions";
 import { AttentionAcknowledgeSeverityActions } from "@/features/attention/ui/attention-lifecycle-actions";
+import { AttentionResolutionDismissActions } from "@/features/attention/ui/attention-resolution-dismiss-actions";
 import type { AttentionDetailViewModel } from "@/features/attention/ui/load-attention-detail-page";
 import {
   canShowAttentionAcknowledgeSeverityActions,
   canShowAttentionAssignmentActions,
+  canShowAttentionResolutionDismissActions,
 } from "@/features/attention/ui/attention-workflow-visibility";
 import styles from "./attention-detail.module.css";
 
@@ -54,8 +56,9 @@ type AttentionDetailProps = {
 };
 
 /**
- * Attention detail + timeline (B1.7.5-D) with B1.7.6-B acknowledge/severity
- * and B1.7.6-C assignment actions. Resolve, dismiss, and archive remain deferred.
+ * Attention detail + timeline (B1.7.5-D) with B1.7.6-B acknowledge/severity,
+ * B1.7.6-C assignment, and B1.7.6-D resolve/dismiss actions.
+ * Archive remains deferred.
  */
 export function AttentionDetail({
   viewModel,
@@ -79,6 +82,7 @@ export function AttentionDetail({
 
   const bScopedActionsEnabled = canShowAttentionAcknowledgeSeverityActions();
   const cScopedActionsEnabled = canShowAttentionAssignmentActions();
+  const dScopedActionsEnabled = canShowAttentionResolutionDismissActions();
   const actionVisibility = resolveAttentionLifecycleActionVisibility(role, {
     status: detail.statusKey,
     archivedAt: detail.isArchived ? detail.archivedAtLabel ?? "archived" : null,
@@ -89,6 +93,8 @@ export function AttentionDetail({
     bScopedActionsEnabled && actionVisibility.updateSeverity;
   const showAssign = cScopedActionsEnabled && actionVisibility.assign;
   const showUnassign = cScopedActionsEnabled && actionVisibility.unassign;
+  const showResolve = dScopedActionsEnabled && actionVisibility.resolve;
+  const showDismiss = dScopedActionsEnabled && actionVisibility.dismiss;
   const returnPath = buildAttentionDetailHref(detail.id, organizationId);
 
   return (
@@ -271,6 +277,17 @@ export function AttentionDetail({
           currentAssigneeMemberId={assigneeMemberId}
           assigneeOptions={assigneeOptions}
           assigneeOptionsFailed={assigneeOptionsFailed}
+        />
+      ) : null}
+
+      {showResolve || showDismiss ? (
+        <AttentionResolutionDismissActions
+          organizationId={organizationId}
+          attentionItemId={detail.id}
+          returnPath={returnPath}
+          itemTitleLabel={detail.titleLabel}
+          showResolve={showResolve}
+          showDismiss={showDismiss}
         />
       ) : null}
 

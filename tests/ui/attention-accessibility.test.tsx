@@ -22,6 +22,8 @@ vi.mock("@/features/attention/actions/lifecycle-attention-actions", () => ({
   acknowledgeAttentionItemAction: vi.fn(),
   updateAttentionSeverityAction: vi.fn(),
   assignAttentionItemAction: vi.fn(),
+  resolveAttentionItemAction: vi.fn(),
+  dismissAttentionItemAction: vi.fn(),
 }));
 
 const sampleRow: AttentionListWorkspaceRow = {
@@ -148,6 +150,9 @@ describe("Attention accessibility structure (B1.7.5-E)", () => {
     expect(detail).toContain("Assignment");
     expect(detail).toContain('for="attention-assignee-select"');
     expect(detail).toContain("Save assignment");
+    expect(detail).toContain(">Resolve<");
+    expect(detail).toContain(">Dismiss<");
+    expect(detail).toContain("Resolve or dismiss");
 
     const shell = renderToStaticMarkup(
       <AppShell activeNav="attention">

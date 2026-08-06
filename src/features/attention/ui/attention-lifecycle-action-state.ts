@@ -65,6 +65,7 @@ const SAFE_MESSAGES = {
   conflict:
     "This attention item changed. Refresh the detail page and try again.",
   invalidAssignment: "Select a valid organization member.",
+  reasonRequired: "A reason is required.",
   unexpected: "Something went wrong. Please try again.",
 } as const;
 
@@ -167,6 +168,29 @@ function mapAttentionLifecycleFailure(
             ...fieldErrors,
           },
           message: SAFE_MESSAGES.invalidAssignment,
+        };
+      }
+      if (fieldErrors.resolutionReason || fieldErrors.dismissalReason) {
+        return {
+          kind: "field_error",
+          fieldErrors: {
+            ...fieldErrors,
+            ...(fieldErrors.resolutionReason
+              ? {
+                  resolutionReason: [
+                    fieldErrors.resolutionReason[0] ?? SAFE_MESSAGES.reasonRequired,
+                  ],
+                }
+              : {}),
+            ...(fieldErrors.dismissalReason
+              ? {
+                  dismissalReason: [
+                    fieldErrors.dismissalReason[0] ?? SAFE_MESSAGES.reasonRequired,
+                  ],
+                }
+              : {}),
+          },
+          message: SAFE_MESSAGES.validation,
         };
       }
       return {
