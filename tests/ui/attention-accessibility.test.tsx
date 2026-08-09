@@ -89,6 +89,7 @@ const detailViewModel: AttentionDetailViewModel = {
     { value: "33333333-3333-4333-8333-333333333333", label: "Alex Owner" },
   ],
   assigneeOptionsFailed: false,
+  nextBestAction: null,
 };
 
 describe("Attention accessibility structure (B1.7.5-E)", () => {

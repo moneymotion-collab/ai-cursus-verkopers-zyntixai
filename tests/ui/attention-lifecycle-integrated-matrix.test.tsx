@@ -75,6 +75,7 @@ const baseViewModel: AttentionDetailViewModel = {
   assigneeMemberId: null,
   assigneeOptions: [{ value: MEMBER_ID, label: "Alex Owner" }],
   assigneeOptionsFailed: false,
+  nextBestAction: null,
 };
 
 function renderDetail(

@@ -108,6 +108,7 @@ const viewModel: AttentionDetailViewModel = {
   assigneeMemberId: null,
   assigneeOptions: [{ value: MEMBER_ID, label: "Alex Owner" }],
   assigneeOptionsFailed: false,
+  nextBestAction: null,
 };
 
 describe("AttentionDetail presentation (B1.7.6-E)", () => {

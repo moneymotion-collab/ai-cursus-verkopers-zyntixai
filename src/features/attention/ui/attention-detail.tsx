@@ -16,6 +16,7 @@ import {
   canShowAttentionAssignmentActions,
   canShowAttentionResolutionDismissActions,
 } from "@/features/attention/ui/attention-workflow-visibility";
+import { AttentionNextBestActionPanel } from "@/features/nba/ui/attention-next-best-action-panel";
 import styles from "./attention-detail.module.css";
 
 function severityBadgeVariant(
@@ -78,6 +79,7 @@ export function AttentionDetail({
     assigneeMemberId,
     assigneeOptions,
     assigneeOptionsFailed,
+    nextBestAction,
   } = viewModel;
 
   const bScopedActionsEnabled = canShowAttentionAcknowledgeSeverityActions();
@@ -303,6 +305,19 @@ export function AttentionDetail({
           showArchive={showArchive}
         />
       ) : null}
+
+      <AttentionNextBestActionPanel
+        nextBestAction={nextBestAction}
+        ctaContext={{
+          organizationId,
+          enrollmentHref,
+          customerHref,
+          capabilities: {
+            canAcknowledge: showAcknowledge,
+            canAssign: showAssign,
+          },
+        }}
+      />
 
       <section
         className={styles.section}

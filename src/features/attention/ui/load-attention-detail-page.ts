@@ -54,11 +54,10 @@ export type AttentionDetailViewModel = {
   assigneeOptions: AttentionAssigneeOption[];
   assigneeOptionsFailed: boolean;
   /**
-   * Derived NBA recommendation; always set by loadAttentionDetailPage.
-   * Optional on the type only so existing hand-built presentation fixtures compile
-   * until NBA-U consumes the field. Not rendered during NBA-I.
+   * Derived NBA recommendation from authorized Attention detail assembly.
+   * Always set by loadAttentionDetailPage on success (`NextBestAction` or `null`).
    */
-  nextBestAction?: NextBestAction | null;
+  nextBestAction: NextBestAction | null;
 };
 
 export type AttentionDetailPageResult =

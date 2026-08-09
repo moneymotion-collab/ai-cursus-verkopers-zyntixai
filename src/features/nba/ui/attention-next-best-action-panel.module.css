@@ -1,0 +1,80 @@
+.nbaPanel {
+  display: grid;
+  gap: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  background: var(--surface-color);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.nbaPanel h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.whyLabel {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-text);
+}
+
+.explanation {
+  margin: 0;
+  color: var(--muted-text);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 48rem;
+}
+
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.ctaLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+  background: var(--surface-color);
+  color: var(--link-color, #1d4ed8);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  font: inherit;
+  font-weight: 600;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.ctaLink:focus-visible {
+  outline: 2px solid var(--focus-color, #2563eb);
+  outline-offset: 2px;
+}
+
+.readOnlyNote {
+  margin: 0;
+  color: var(--muted-text);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
