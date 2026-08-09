@@ -18,6 +18,9 @@ import {
 } from "@/features/enrollments/server/resolve-enrollment-labels";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
 import type { AttentionItemDetailReadModel } from "@/features/attention/domain/read-types";
+import { buildAuthorizedNbaContext } from "@/features/nba/application/build-authorized-nba-context";
+import { evaluateNextBestAction } from "@/features/nba/domain/evaluate-next-best-action";
+import type { NextBestAction } from "@/features/nba/domain/types";
 import {
   buildAttentionListHref,
   parseAttentionListReturnState,
@@ -50,6 +53,12 @@ export type AttentionDetailViewModel = {
   assigneeMemberId: string | null;
   assigneeOptions: AttentionAssigneeOption[];
   assigneeOptionsFailed: boolean;
+  /**
+   * Derived NBA recommendation; always set by loadAttentionDetailPage.
+   * Optional on the type only so existing hand-built presentation fixtures compile
+   * until NBA-U consumes the field. Not rendered during NBA-I.
+   */
+  nextBestAction?: NextBestAction | null;
 };
 
 export type AttentionDetailPageResult =
@@ -240,6 +249,13 @@ export async function loadAttentionDetailPage(
     );
   }
 
+  let nextBestAction: NextBestAction | null = null;
+  try {
+    nextBestAction = evaluateNextBestAction(buildAuthorizedNbaContext(item));
+  } catch {
+    nextBestAction = null;
+  }
+
   return {
     kind: "success",
     organizationOptions: orgResult.organizationOptions,
@@ -265,6 +281,7 @@ export async function loadAttentionDetailPage(
       assigneeMemberId: item.assigneeMemberId,
       assigneeOptions,
       assigneeOptionsFailed,
+      nextBestAction,
     },
   };
 }

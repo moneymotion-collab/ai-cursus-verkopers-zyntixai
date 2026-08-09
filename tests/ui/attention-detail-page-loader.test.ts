@@ -11,6 +11,8 @@ import {
 } from "@/features/attention/server/map-attention-read-model";
 import { ATTENTION_NAV_VISIBLE } from "@/features/attention/domain/attention-navigation";
 import { canShowAttentionLifecycleActions } from "@/features/attention/ui/attention-workflow-visibility";
+import { resolveAttentionPermissions } from "@/features/attention/domain/permissions";
+import { evaluateNextBestAction } from "@/features/nba/domain/evaluate-next-best-action";
 import {
   ATTENTION_ITEM_ID,
   CUSTOMER_ID,
@@ -55,8 +57,23 @@ vi.mock("@/features/attention/server/load-attention-assignee-options", async () 
   };
 });
 
+const nbaEvaluateActual = await vi.importActual<
+  typeof import("@/features/nba/domain/evaluate-next-best-action")
+>("@/features/nba/domain/evaluate-next-best-action");
+
+vi.mock("@/features/nba/domain/evaluate-next-best-action", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/features/nba/domain/evaluate-next-best-action")
+  >("@/features/nba/domain/evaluate-next-best-action");
+  return {
+    ...actual,
+    evaluateNextBestAction: vi.fn(actual.evaluateNextBestAction),
+  };
+});
+
 const pageOrgMock = vi.mocked(resolveAttentionPageOrganization);
 const detailMock = vi.mocked(getAttentionItemById);
+const evaluateNbaMock = vi.mocked(evaluateNextBestAction);
 
 function createSupabase() {
   return {} as unknown as SupabaseClient<Database>;
@@ -76,8 +93,46 @@ function readyOrg(role: "owner" | "admin" | "staff" | "viewer" = "owner") {
   };
 }
 
-function sampleDetail(events = true, signals = true) {
-  const signal = mapAttentionSignal(sampleAttentionSignalRow);
+type SampleDetailOptions = {
+  events?: boolean;
+  signals?: boolean;
+  status?: "open" | "acknowledged" | "resolved" | "dismissed" | "expired";
+  archivedAt?: string | null;
+  assigneeMemberId?: string | null;
+  enrollment?: boolean;
+  customer?: boolean;
+  signalMode?: "stale" | "manual" | "none";
+};
+
+function sampleDetail(options: SampleDetailOptions | boolean = true, signalsArg = true) {
+  // Backward-compatible overload used by existing tests: sampleDetail(events, signals)
+  const opts: SampleDetailOptions =
+    typeof options === "boolean"
+      ? { events: options, signals: signalsArg }
+      : options;
+
+  const events = opts.events !== false;
+  const includeSignals = opts.signals !== false && opts.signalMode !== "none";
+  const status = opts.status ?? "open";
+  const archivedAt = opts.archivedAt ?? null;
+  const assigneeMemberId =
+    opts.assigneeMemberId === undefined ? null : opts.assigneeMemberId;
+  const withEnrollment = opts.enrollment !== false;
+  const withCustomer = opts.customer !== false;
+  const signalMode = opts.signalMode ?? (includeSignals ? "stale" : "none");
+
+  const signalRow =
+    signalMode === "manual"
+      ? {
+          ...sampleAttentionSignalRow,
+          signal_origin: "manual",
+          rule_key: null,
+          explanation: "Manual note",
+          evidence: { kind: "manual_note", note: "private" },
+        }
+      : sampleAttentionSignalRow;
+
+  const signal = mapAttentionSignal(signalRow);
   const event = mapAttentionEvent(sampleAttentionEventRow);
   expect(signal.ok).toBe(true);
   expect(event.ok).toBe(true);
@@ -85,43 +140,62 @@ function sampleDetail(events = true, signals = true) {
     throw new Error("fixture map failed");
   }
 
-  const mapped = mapAttentionItemDetail(sampleAttentionItemDetailRow, {
-    enrollment: {
-      id: ENROLLMENT_ID,
-      status: "active",
-      archivedAt: null,
-      customerId: CUSTOMER_ID,
-      programId: PROGRAM_ID,
+  const mapped = mapAttentionItemDetail(
+    {
+      ...sampleAttentionItemDetailRow,
+      status,
+      assignee_member_id: assigneeMemberId,
+      archived_at: archivedAt,
+      acknowledged_at:
+        status === "acknowledged" || status === "resolved"
+          ? "2026-08-02T10:00:00.000Z"
+          : null,
+      resolved_at: status === "resolved" ? "2026-08-03T10:00:00.000Z" : null,
+      dismissed_at: status === "dismissed" ? "2026-08-03T10:00:00.000Z" : null,
+      expired_at: status === "expired" ? "2026-08-03T10:00:00.000Z" : null,
     },
-    customer: {
-      id: CUSTOMER_ID,
-      displayName: "Acme Corp",
-      status: "active",
-      archivedAt: null,
+    {
+      enrollment: withEnrollment
+        ? {
+            id: ENROLLMENT_ID,
+            status: "active",
+            archivedAt: null,
+            customerId: CUSTOMER_ID,
+            programId: PROGRAM_ID,
+          }
+        : null,
+      customer: withCustomer
+        ? {
+            id: CUSTOMER_ID,
+            displayName: "Acme Corp",
+            status: "active",
+            archivedAt: null,
+          }
+        : null,
+      program: {
+        id: PROGRAM_ID,
+        name: "Growth Lab",
+        status: "active",
+        archivedAt: null,
+      },
+      signals: includeSignals ? [signal.data] : [],
+      events: events
+        ? [
+            event.data,
+            {
+              ...event.data,
+              id: "99999999-9999-4999-8999-999999999999",
+              eventType: "status_changed",
+              fromStatus: "open",
+              toStatus: "acknowledged",
+              createdAt: "2026-08-02T10:00:00.000Z",
+              actorMemberId: MEMBER_ID,
+              payload: { secret: "must-not-leak" },
+            },
+          ]
+        : [],
     },
-    program: {
-      id: PROGRAM_ID,
-      name: "Growth Lab",
-      status: "active",
-      archivedAt: null,
-    },
-    signals: signals ? [signal.data] : [],
-    events: events
-      ? [
-          event.data,
-          {
-            ...event.data,
-            id: "99999999-9999-4999-8999-999999999999",
-            eventType: "status_changed",
-            fromStatus: "open",
-            toStatus: "acknowledged",
-            createdAt: "2026-08-02T10:00:00.000Z",
-            actorMemberId: MEMBER_ID,
-            payload: { secret: "must-not-leak" },
-          },
-        ]
-      : [],
-  });
+  );
   expect(mapped.ok).toBe(true);
   if (!mapped.ok) {
     throw new Error("detail map failed");
@@ -132,6 +206,7 @@ function sampleDetail(events = true, signals = true) {
 describe("attention detail page loader (B1.7.5-D)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    evaluateNbaMock.mockImplementation(nbaEvaluateActual.evaluateNextBestAction);
   });
 
   it("maps organization gate states without calling getAttentionItemById", async () => {
@@ -191,6 +266,8 @@ describe("attention detail page loader (B1.7.5-D)", () => {
     expect(denied.kind).toBe("attention_unavailable");
     expect(JSON.stringify(missing)).not.toContain("tenant");
     expect(JSON.stringify(denied)).not.toContain("tenant");
+    expect(JSON.stringify(missing)).not.toContain("nextBestAction");
+    expect(JSON.stringify(denied)).not.toContain("nextBestAction");
   });
 
   it("loads authorized detail with timeline order and safe return list state", async () => {
@@ -321,5 +398,242 @@ describe("attention detail page loader (B1.7.5-D)", () => {
     });
     expect(reads.listAttentionEventsForItem).not.toHaveBeenCalled();
     expect(EVENT_ID).toBeTruthy();
+  });
+});
+
+describe("attention detail page loader NBA-I enrichment", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    evaluateNbaMock.mockImplementation(nbaEvaluateActual.evaluateNextBestAction);
+  });
+
+  it("I1: open Attention yields acknowledge NBA", async () => {
+    pageOrgMock.mockResolvedValue(readyOrg());
+    detailMock.mockResolvedValue({
+      ok: true,
+      data: sampleDetail({ status: "open", signalMode: "stale" }),
+    });
+    const result = await loadAttentionDetailPage(
+      createSupabase(),
+      ATTENTION_ITEM_ID,
+      { org: ORG_ID },
+    );
+    expect(result.kind).toBe("success");
+    if (result.kind !== "success") return;
+    expect(result.data.nextBestAction?.actionType).toBe("acknowledge_attention");
+  });
+
+  it("I2: acknowledged + unassigned yields assign NBA", async () => {
+    pageOrgMock.mockResolvedValue(readyOrg());
+    detailMock.mockResolvedValue({
+      ok: true,
+      data: sampleDetail({
+        status: "acknowledged",
+        assigneeMemberId: null,
+        signalMode: "manual",
+      }),
+    });
+    const result = await loadAttentionDetailPage(
+      createSupabase(),
+      ATTENTION_ITEM_ID,
+      { org: ORG_ID },
+    );
+    expect(result.kind).toBe("success");
+    if (result.kind !== "success") return;
+    expect(result.data.nextBestAction?.actionType).toBe(
+      "assign_attention_owner",
+    );
+  });
+
+  it("I3: acknowledged + assigned + stale yields review_progress", async () => {
+    pageOrgMock.mockResolvedValue(readyOrg());
+    detailMock.mockResolvedValue({
+      ok: true,
+      data: sampleDetail({
+        status: "acknowledged",
+        assigneeMemberId: MEMBER_ID,
+        signalMode: "stale",
+      }),
+    });
+    const result = await loadAttentionDetailPage(
+      createSupabase(),
+      ATTENTION_ITEM_ID,
+      { org: ORG_ID },
+    );
+    expect(result.kind).toBe("success");
+    if (result.kind !== "success") return;
+    expect(result.data.nextBestAction?.actionType).toBe("review_progress");
+  });
+
+  it("I9: terminal Attention yields null NBA", async () => {
+    pageOrgMock.mockResolvedValue(readyOrg());
+    detailMock.mockResolvedValue({
+      ok: true,
+      data: sampleDetail({ status: "resolved", assigneeMemberId: MEMBER_ID }),
+    });
+    const result = await loadAttentionDetailPage(
+      createSupabase(),
+      ATTENTION_ITEM_ID,
+      { org: ORG_ID },
+    );
+    expect(result.kind).toBe("success");
+    if (result.kind !== "success") return;
+    expect(result.data.nextBestAction).toBeNull();
+  });
+
+  it("I10: archived Attention yields null NBA", async () => {
+    pageOrgMock.mockResolvedValue(readyOrg("owner"));
+    detailMock.mockResolvedValue({
+      ok: true,
+      data: sampleDetail({
+        status: "resolved",
+        archivedAt: "2026-08-04T10:00:00.000Z",
+      }),
+    });
+    const result = await loadAttentionDetailPage(
+      createSupabase(),
+      ATTENTION_ITEM_ID,
+      { org: ORG_ID },
+    );
+    expect(result.kind).toBe("success");
+    if (result.kind !== "success") return;
+    expect(result.data.nextBestAction).toBeNull();
+  });
+
+  it("I11: foreign/unavailable source keeps unavailable and leaks no NBA", async () => {
+    pageOrgMock.mockResolvedValue(readyOrg());
+    detailMock.mockResolvedValue({
+      ok: false,
+      error: {
+        code: "ATTENTION_ITEM_UNAVAILABLE",
+        message: "Attention item unavailable.",
+        retryable: false,
+        category: "not_found",
+      },
+    });
+    const result = await loadAttentionDetailPage(
+      createSupabase(),
+      ATTENTION_ITEM_ID,
+      { org: ORG_ID },
+    );
+    expect(result.kind).toBe("attention_unavailable");
+    expect(JSON.stringify(result)).not.toContain("nextBestAction");
+    expect(evaluateNbaMock).not.toHaveBeenCalled();
+  });
+
+  it("I12: Viewer gets semantic NBA without mutation permission increase", async () => {
+    pageOrgMock.mockResolvedValue(readyOrg("viewer"));
+    detailMock.mockResolvedValue({
+      ok: true,
+      data: sampleDetail({ status: "open" }),
+    });
+    const result = await loadAttentionDetailPage(
+      createSupabase(),
+      ATTENTION_ITEM_ID,
+      { org: ORG_ID },
+    );
+    expect(result.kind).toBe("success");
+    if (result.kind !== "success") return;
+    expect(result.data.nextBestAction?.actionType).toBe("acknowledge_attention");
+    expect(result.capabilities.canAcknowledge).toBe(false);
+    expect(result.capabilities.canAssign).toBe(false);
+    expect(resolveAttentionPermissions("viewer").canAcknowledge).toBe(false);
+  });
+
+  it("I13: NBA result exposes no raw signal/evidence payload", async () => {
+    pageOrgMock.mockResolvedValue(readyOrg());
+    detailMock.mockResolvedValue({
+      ok: true,
+      data: sampleDetail({ status: "open", signalMode: "stale" }),
+    });
+    const result = await loadAttentionDetailPage(
+      createSupabase(),
+      ATTENTION_ITEM_ID,
+      { org: ORG_ID },
+    );
+    expect(result.kind).toBe("success");
+    if (result.kind !== "success") return;
+    const nbaJson = JSON.stringify(result.data.nextBestAction);
+    expect(nbaJson).not.toContain("private");
+    expect(nbaJson).not.toContain("citedProgressFactIds");
+    expect(nbaJson).not.toContain("signals");
+    expect(result.data.nextBestAction).not.toHaveProperty("signals");
+    expect(result.data.nextBestAction?.evidenceSummary.staleProgressEvidence).toBe(
+      true,
+    );
+  });
+
+  it("I14/I15: NBA path uses only getAttentionItemById and performs no writes", async () => {
+    const reads = await import("@/features/attention/server/attention-read-queries");
+    pageOrgMock.mockResolvedValue(readyOrg());
+    detailMock.mockResolvedValue({ ok: true, data: sampleDetail() });
+    const result = await loadAttentionDetailPage(
+      createSupabase(),
+      ATTENTION_ITEM_ID,
+      { org: ORG_ID },
+    );
+    expect(result.kind).toBe("success");
+    expect(detailMock).toHaveBeenCalledTimes(1);
+    expect(reads.listAttentionEventsForItem).not.toHaveBeenCalled();
+    expect(evaluateNbaMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("I16: open + stale still yields acknowledge", async () => {
+    pageOrgMock.mockResolvedValue(readyOrg());
+    detailMock.mockResolvedValue({
+      ok: true,
+      data: sampleDetail({
+        status: "open",
+        assigneeMemberId: MEMBER_ID,
+        signalMode: "stale",
+      }),
+    });
+    const result = await loadAttentionDetailPage(
+      createSupabase(),
+      ATTENTION_ITEM_ID,
+      { org: ORG_ID },
+    );
+    expect(result.kind).toBe("success");
+    if (result.kind !== "success") return;
+    expect(result.data.nextBestAction?.actionType).toBe("acknowledge_attention");
+  });
+
+  it("I17: acknowledged + unassigned + stale still yields assign", async () => {
+    pageOrgMock.mockResolvedValue(readyOrg());
+    detailMock.mockResolvedValue({
+      ok: true,
+      data: sampleDetail({
+        status: "acknowledged",
+        assigneeMemberId: null,
+        signalMode: "stale",
+      }),
+    });
+    const result = await loadAttentionDetailPage(
+      createSupabase(),
+      ATTENTION_ITEM_ID,
+      { org: ORG_ID },
+    );
+    expect(result.kind).toBe("success");
+    if (result.kind !== "success") return;
+    expect(result.data.nextBestAction?.actionType).toBe(
+      "assign_attention_owner",
+    );
+  });
+
+  it("I18: NBA evaluation failure yields null while detail succeeds", async () => {
+    pageOrgMock.mockResolvedValue(readyOrg());
+    detailMock.mockResolvedValue({ ok: true, data: sampleDetail() });
+    evaluateNbaMock.mockImplementation(() => {
+      throw new Error("nba boom");
+    });
+    const result = await loadAttentionDetailPage(
+      createSupabase(),
+      ATTENTION_ITEM_ID,
+      { org: ORG_ID },
+    );
+    expect(result.kind).toBe("success");
+    if (result.kind !== "success") return;
+    expect(result.data.nextBestAction).toBeNull();
+    expect(result.data.detail.titleLabel).toBe("No recent progress");
   });
 });
