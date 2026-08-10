@@ -53,6 +53,15 @@ describe("resolveSafeReturnPath", () => {
     ).toBe("/onboarding?org=11111111-1111-4111-8111-111111111111");
   });
 
+  it("accepts exact Invitation continuation path and rejects /invite wildcards", () => {
+    expect(resolveSafeReturnPath("/invite/accept")).toBe("/invite/accept");
+    expect(resolveSafeReturnPath("/invite/accept?x=1")).toBe("/invite/accept?x=1");
+    expect(resolveSafeReturnPath("/invite/accept/exchange")).toBe("/");
+    expect(resolveSafeReturnPath("/invite")).toBe("/");
+    expect(resolveSafeReturnPath("/invite/accept-evil")).toBe("/");
+    expect(resolveSafeReturnPath("/invite/other")).toBe("/");
+  });
+
   it("preserves safe query strings on allowlisted paths", () => {
     expect(resolveSafeReturnPath("/leads?org=11111111-1111-4111-8111-111111111111")).toBe(
       "/leads?org=11111111-1111-4111-8111-111111111111",

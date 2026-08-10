@@ -51,6 +51,11 @@ function isAllowlistedPathname(pathname: string): boolean {
     return true;
   }
 
+  // Invitation continuation confirm surface only (not /invite/* wildcard).
+  if (pathname === "/invite/accept") {
+    return true;
+  }
+
   return false;
 }
 
