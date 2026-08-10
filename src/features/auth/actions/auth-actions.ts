@@ -44,14 +44,18 @@ import {
   INVITE_CONTINUATION_COOKIE_NAME,
   shouldUseSecureInvitationContinuationCookie,
 } from "@/features/invitations/server/continuation";
+import { isInvitationsFeatureEnabled } from "@/features/invitations/server/invitations-feature";
 import {
   buildInvitationRegistrationOriginCookieOptions,
   INVITE_REGISTRATION_ORIGIN_COOKIE_NAME,
-  isBoundInvitationRegistrationOrigin,
   isRealNewAuthIdentity,
   sealInvitationRegistrationOrigin,
 } from "@/features/invitations/server/registration-origin";
-import { readInvitationCookiesFromStore } from "@/features/invitations/server/resolve-invitation-auth-state";
+import {
+  hasTrustedInvitationAuthContext,
+  readInvitationCookiesFromStore,
+  resolveInvitationAuthState,
+} from "@/features/invitations/server/resolve-invitation-auth-state";
 
 export type LoginActionResult =
   | { ok: true; redirectTo: string }
@@ -148,7 +152,9 @@ export async function logoutAction(): Promise<void> {
 export async function registerAction(input: unknown): Promise<RegisterActionResult> {
   const cookieStore = await cookies();
   const continuationCookie = cookieStore.get(INVITE_CONTINUATION_COOKIE_NAME)?.value;
-  const trustedInviteContinuation = hasValidInvitationContinuation(continuationCookie);
+  const trustedInviteContinuation =
+    isInvitationsFeatureEnabled() &&
+    hasValidInvitationContinuation(continuationCookie);
   const publicEnabled = isPublicRegistrationEnabled();
 
   // Mode authority derived server-side only (never trust client registrationMode).
@@ -419,12 +425,14 @@ export async function completeRegistrationAction(): Promise<{
 
     const cookieStore = await cookies();
     const invitationCookies = readInvitationCookiesFromStore(cookieStore);
-    // Invitation priority: do not owner-provision while trusted invite context exists.
+    // Invitation priority only while Invitations feature is available (OD-PR-2).
+    // Feature OFF ignores cookies for routing — does not clear them (OD-PR-G2).
     if (
-      hasValidInvitationContinuation(invitationCookies.continuation) ||
-      isBoundInvitationRegistrationOrigin(
-        invitationCookies.registrationOrigin,
-        user.id,
+      hasTrustedInvitationAuthContext(
+        resolveInvitationAuthState({
+          cookies: invitationCookies,
+          authenticatedUserId: user.id,
+        }),
       )
     ) {
       return {

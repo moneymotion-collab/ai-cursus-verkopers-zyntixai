@@ -56,11 +56,13 @@ describe("acceptInvitationAction", () => {
   const previousSecret = process.env.INVITE_CONTINUATION_SECRET;
   const previousSite = process.env.NEXT_PUBLIC_SITE_URL;
   const previousFlag = process.env.PUBLIC_REGISTRATION_ENABLED;
+  const previousGate = process.env.INVITATIONS_ENABLED;
 
   beforeEach(() => {
     process.env.INVITE_CONTINUATION_SECRET = TEST_SECRET;
     process.env.NEXT_PUBLIC_SITE_URL = "http://127.0.0.1:3000";
     process.env.PUBLIC_REGISTRATION_ENABLED = "false";
+    process.env.INVITATIONS_ENABLED = "true";
     headersGetMock.mockReset();
     cookiesGetMock.mockReset();
     cookiesSetMock.mockReset();
@@ -100,6 +102,11 @@ describe("acceptInvitationAction", () => {
       delete process.env.PUBLIC_REGISTRATION_ENABLED;
     } else {
       process.env.PUBLIC_REGISTRATION_ENABLED = previousFlag;
+    }
+    if (previousGate === undefined) {
+      delete process.env.INVITATIONS_ENABLED;
+    } else {
+      process.env.INVITATIONS_ENABLED = previousGate;
     }
   });
 

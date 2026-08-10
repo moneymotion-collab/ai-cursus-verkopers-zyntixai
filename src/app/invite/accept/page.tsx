@@ -8,6 +8,7 @@ import {
   INVITE_CONTINUATION_CLEARED_VALUE,
   INVITE_CONTINUATION_COOKIE_NAME,
 } from "@/features/invitations/server/continuation";
+import { isInvitationsFeatureEnabled } from "@/features/invitations/server/invitations-feature";
 import { isBoundInvitationRegistrationOrigin } from "@/features/invitations/server/registration-origin";
 import { INVITE_REGISTRATION_ORIGIN_COOKIE_NAME } from "@/features/invitations/server/registration-origin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -35,6 +36,23 @@ function firstParam(value: string | string[] | undefined): string | undefined {
     return value[0];
   }
   return value;
+}
+
+function FeatureDisabledState() {
+  return (
+    <main className={styles.page} aria-labelledby="invite-accept-title">
+      <p className={styles.brand}>ZyntixAI</p>
+      <h1 id="invite-accept-title" className={styles.title}>
+        Invitation unavailable
+      </h1>
+      <p className={styles.copy}>
+        Invitations are currently unavailable. Please try again later.
+      </p>
+      <p className={styles.copy}>
+        <Link href="/login">Sign in</Link>
+      </p>
+    </main>
+  );
 }
 
 function UnavailableState({
@@ -130,6 +148,10 @@ function RecoveryState({
 export default async function InviteAcceptPage({
   searchParams,
 }: InviteAcceptPageProps) {
+  if (!isInvitationsFeatureEnabled()) {
+    return <FeatureDisabledState />;
+  }
+
   const params = await searchParams;
   const clearedAttempt =
     firstParam(params[INVITE_CONTINUATION_CLEARED_QUERY]) ===

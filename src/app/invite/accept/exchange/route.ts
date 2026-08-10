@@ -8,6 +8,7 @@ import {
   sealInvitationContinuation,
   shouldUseSecureInvitationContinuationCookie,
 } from "@/features/invitations/server/continuation";
+import { isInvitationsFeatureEnabled } from "@/features/invitations/server/invitations-feature";
 
 const TOKEN_FREE_ACCEPT_PATH = "/invite/accept";
 const REFERRER_POLICY = "no-referrer";
@@ -41,8 +42,15 @@ function nonCacheableRedirect(destination: URL): NextResponse {
  * GET may only: validate raw-token shape, seal HttpOnly continuation, redirect.
  * MUST NOT invoke Acceptance mutation RPCs or mutate Invitation DB state.
  * Client-controlled redirect parameters are ignored (open-redirect safe).
+ *
+ * OD-PR-2 / OD-PR-G3: when Invitations feature is OFF, do not seal — 303 to
+ * token-free /invite/accept without cookie mutation or token echo.
  */
 export async function GET(request: NextRequest) {
+  if (!isInvitationsFeatureEnabled()) {
+    return nonCacheableRedirect(tokenFreeAcceptUrl(request));
+  }
+
   const secure = shouldUseSecureInvitationContinuationCookie(request.url);
   const rawToken = request.nextUrl.searchParams.get("token");
 

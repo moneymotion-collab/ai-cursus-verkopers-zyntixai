@@ -18,6 +18,7 @@ import {
 } from "@/features/invitations/server/registration-origin";
 import { acceptOrganizationInvitation } from "@/features/invitations/server/accept-invitation";
 import { assertInvitationAcceptSameOrigin } from "@/features/invitations/server/accept-invitation-origin";
+import { isInvitationsFeatureEnabled } from "@/features/invitations/server/invitations-feature";
 import {
   ACCEPT_INVITATION_MESSAGES,
   toAcceptInvitationUiResult,
@@ -32,6 +33,11 @@ import {
  * is never normalized as an unexpected UI result.
  */
 export async function acceptInvitationAction(): Promise<AcceptInvitationActionResult> {
+  // OD-PR-2: availability gate before mutation. Does not clear Invitation cookies.
+  if (!isInvitationsFeatureEnabled()) {
+    return toAcceptInvitationUiResult("feature_disabled");
+  }
+
   const headerStore = await headers();
   if (!assertInvitationAcceptSameOrigin(headerStore)) {
     return toAcceptInvitationUiResult("origin_rejected");

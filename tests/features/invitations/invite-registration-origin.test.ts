@@ -26,12 +26,18 @@ const VALID_TOKEN = "ab".repeat(32);
 
 describe("invitation registration origin", () => {
   const previous = process.env.INVITE_CONTINUATION_SECRET;
+  const previousGate = process.env.INVITATIONS_ENABLED;
 
   afterEach(() => {
     if (previous === undefined) {
       delete process.env.INVITE_CONTINUATION_SECRET;
     } else {
       process.env.INVITE_CONTINUATION_SECRET = previous;
+    }
+    if (previousGate === undefined) {
+      delete process.env.INVITATIONS_ENABLED;
+    } else {
+      process.env.INVITATIONS_ENABLED = previousGate;
     }
   });
 
@@ -162,6 +168,7 @@ describe("invitation registration origin", () => {
 
   it("resolves invitation auth priority raw > bound origin > none", () => {
     process.env.INVITE_CONTINUATION_SECRET = TEST_SECRET;
+    process.env.INVITATIONS_ENABLED = "true";
     const raw = sealInvitationContinuation(VALID_TOKEN, { secret: TEST_SECRET });
     const origin = sealInvitationRegistrationOrigin(USER_A, {
       secret: TEST_SECRET,

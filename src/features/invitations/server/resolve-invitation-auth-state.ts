@@ -8,6 +8,7 @@ import {
   hasValidInvitationContinuation,
   INVITE_CONTINUATION_COOKIE_NAME,
 } from "@/features/invitations/server/continuation";
+import { isInvitationsFeatureEnabled } from "@/features/invitations/server/invitations-feature";
 import {
   INVITE_REGISTRATION_ORIGIN_COOKIE_NAME,
   isBoundInvitationRegistrationOrigin,
@@ -45,6 +46,11 @@ export function resolveInvitationAuthState(options: {
   nowMs?: number;
   env?: Record<string, string | undefined>;
 }): InvitationAuthState {
+  // OD-PR-G2: when feature OFF, ignore cookies for routing — do not clear them.
+  if (!isInvitationsFeatureEnabled(options.env)) {
+    return { kind: "none" };
+  }
+
   if (
     hasValidInvitationContinuation(options.cookies.continuation, {
       nowMs: options.nowMs,

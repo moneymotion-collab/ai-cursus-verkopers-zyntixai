@@ -29,9 +29,11 @@ const acceptPageSource = readFileSync(
 
 describe("invite accept exchange route", () => {
   const previousSecret = process.env.INVITE_CONTINUATION_SECRET;
+  const previousGate = process.env.INVITATIONS_ENABLED;
 
   beforeEach(() => {
     process.env.INVITE_CONTINUATION_SECRET = TEST_SECRET;
+    process.env.INVITATIONS_ENABLED = "true";
   });
 
   afterEach(() => {
@@ -39,6 +41,11 @@ describe("invite accept exchange route", () => {
       delete process.env.INVITE_CONTINUATION_SECRET;
     } else {
       process.env.INVITE_CONTINUATION_SECRET = previousSecret;
+    }
+    if (previousGate === undefined) {
+      delete process.env.INVITATIONS_ENABLED;
+    } else {
+      process.env.INVITATIONS_ENABLED = previousGate;
     }
   });
 
@@ -206,6 +213,20 @@ describe("invite accept exchange route", () => {
 });
 
 describe("invite accept exchange scanner, cache, and loop boundaries", () => {
+  const previousGate = process.env.INVITATIONS_ENABLED;
+
+  beforeEach(() => {
+    process.env.INVITATIONS_ENABLED = "true";
+  });
+
+  afterEach(() => {
+    if (previousGate === undefined) {
+      delete process.env.INVITATIONS_ENABLED;
+    } else {
+      process.env.INVITATIONS_ENABLED = previousGate;
+    }
+  });
+
   it("GET entry source never invokes Acceptance or Supabase", () => {
     expect(exchangeSource).not.toMatch(/\.rpc\s*\(/);
     expect(exchangeSource).not.toMatch(/createSupabase|@\/lib\/supabase|service_role|@supabase/i);

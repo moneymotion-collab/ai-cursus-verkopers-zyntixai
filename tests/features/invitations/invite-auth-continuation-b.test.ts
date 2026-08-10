@@ -36,9 +36,11 @@ vi.mock("@/features/auth/server/complete-owner-provisioning", async () => {
 describe("Slice B owner-provisioning gate", () => {
   const previousFlag = process.env.PUBLIC_REGISTRATION_ENABLED;
   const previousSecret = process.env.INVITE_CONTINUATION_SECRET;
+  const previousGate = process.env.INVITATIONS_ENABLED;
 
   beforeEach(() => {
     process.env.INVITE_CONTINUATION_SECRET = TEST_SECRET;
+    process.env.INVITATIONS_ENABLED = "true";
     listMembershipsMock.mockReset();
     completeOwnerMock.mockReset();
     listMembershipsMock.mockResolvedValue({ ok: true, memberships: [] });
@@ -54,6 +56,11 @@ describe("Slice B owner-provisioning gate", () => {
       delete process.env.INVITE_CONTINUATION_SECRET;
     } else {
       process.env.INVITE_CONTINUATION_SECRET = previousSecret;
+    }
+    if (previousGate === undefined) {
+      delete process.env.INVITATIONS_ENABLED;
+    } else {
+      process.env.INVITATIONS_ENABLED = previousGate;
     }
   });
 

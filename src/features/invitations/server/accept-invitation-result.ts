@@ -72,6 +72,8 @@ export const ACCEPT_INVITATION_MESSAGES = {
     "Your existing membership requires administrator action.",
   invitation_unavailable:
     "This invitation is unavailable. Reopen the latest invitation link if you still need access.",
+  feature_disabled:
+    "Invitations are currently unavailable. Please try again later.",
   auth_required: "Sign in to accept this invitation.",
   origin_rejected: "Unable to accept this invitation. Please try again.",
   unexpected: "Unable to accept this invitation right now. Please try again.",
@@ -119,7 +121,11 @@ export function mapAcceptInvitationRpcRow(
 }
 
 export function toAcceptInvitationUiResult(
-  kind: AcceptInvitationAdapterResult["kind"] | "auth_required" | "origin_rejected",
+  kind:
+    | AcceptInvitationAdapterResult["kind"]
+    | "auth_required"
+    | "origin_rejected"
+    | "feature_disabled",
 ): AcceptInvitationActionResult {
   switch (kind) {
     case "email_mismatch":
@@ -145,6 +151,12 @@ export function toAcceptInvitationUiResult(
         ok: false,
         code: "invitation_unavailable",
         message: ACCEPT_INVITATION_MESSAGES.invitation_unavailable,
+      };
+    case "feature_disabled":
+      return {
+        ok: false,
+        code: "invitation_unavailable",
+        message: ACCEPT_INVITATION_MESSAGES.feature_disabled,
       };
     case "auth_required":
       return {
