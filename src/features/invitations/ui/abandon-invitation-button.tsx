@@ -6,10 +6,12 @@ import { abandonInvitationRegistrationAction } from "@/features/auth/actions/aut
 
 type AbandonInvitationButtonProps = {
   publicRegistrationEnabled: boolean;
+  disabled?: boolean;
 };
 
 export function AbandonInvitationButton({
   publicRegistrationEnabled,
+  disabled = false,
 }: AbandonInvitationButtonProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
@@ -17,7 +19,7 @@ export function AbandonInvitationButton({
   const [message, setMessage] = useState<string | null>(null);
 
   function handleAbandon() {
-    if (pendingRef.current) {
+    if (pendingRef.current || disabled) {
       return;
     }
     pendingRef.current = true;
@@ -32,9 +34,11 @@ export function AbandonInvitationButton({
     });
   }
 
+  const busy = isPending || disabled;
+
   return (
     <div>
-      <button type="button" onClick={handleAbandon} disabled={isPending}>
+      <button type="button" onClick={handleAbandon} disabled={busy}>
         {isPending
           ? "Working…"
           : publicRegistrationEnabled

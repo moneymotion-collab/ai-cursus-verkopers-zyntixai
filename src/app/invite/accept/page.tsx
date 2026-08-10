@@ -12,6 +12,7 @@ import { isBoundInvitationRegistrationOrigin } from "@/features/invitations/serv
 import { INVITE_REGISTRATION_ORIGIN_COOKIE_NAME } from "@/features/invitations/server/registration-origin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isPublicRegistrationEnabled } from "@/features/auth/server/public-registration";
+import { InviteAcceptControls } from "@/features/invitations/ui/accept-invitation-button";
 import { AbandonInvitationButton } from "@/features/invitations/ui/abandon-invitation-button";
 import styles from "./page.module.css";
 
@@ -81,7 +82,7 @@ function ReadyState({
       </h1>
       <p className={styles.copy}>
         {signedIn
-          ? "Your invitation continuation is active. Acceptance will be available in a later step."
+          ? "Your invitation continuation is active. Accept to join the organization."
           : "Your invitation continuation is active. Sign in or create an account with the invited email to continue."}
       </p>
       {!signedIn ? (
@@ -91,8 +92,9 @@ function ReadyState({
           <Link href="/register">Create account</Link>
         </p>
       ) : null}
-      <AbandonInvitationButton
+      <InviteAcceptControls
         publicRegistrationEnabled={publicRegistrationEnabled}
+        showAccept={signedIn}
       />
     </main>
   );
@@ -111,8 +113,8 @@ function RecoveryState({
       </h1>
       <p className={styles.copy}>
         Your invitation session needs the latest invitation link from your email.
-        Open that link again to continue. Acceptance is not available yet from this
-        page.
+        Open that link again to continue. Acceptance requires a valid invitation
+        link.
       </p>
       <AbandonInvitationButton
         publicRegistrationEnabled={publicRegistrationEnabled}
@@ -123,7 +125,7 @@ function RecoveryState({
 
 /**
  * Token-free Invitation continuation surface.
- * Does not call Acceptance. Auth resume and Accept POST belong to later slices.
+ * Acceptance mutates only via explicit Accept server action (Slice C).
  */
 export default async function InviteAcceptPage({
   searchParams,
