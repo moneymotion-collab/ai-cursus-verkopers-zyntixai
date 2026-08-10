@@ -7,6 +7,15 @@ const createServerClientMock = vi.hoisted(() => vi.fn());
 const listMembershipsMock = vi.hoisted(() => vi.fn());
 const ensureIntentMock = vi.hoisted(() => vi.fn());
 const tryProvisionMock = vi.hoisted(() => vi.fn());
+const cookiesGetMock = vi.hoisted(() => vi.fn());
+const cookiesSetMock = vi.hoisted(() => vi.fn());
+
+vi.mock("next/headers", () => ({
+  cookies: async () => ({
+    get: cookiesGetMock,
+    set: cookiesSetMock,
+  }),
+}));
 
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServerClient: createServerClientMock,
@@ -54,6 +63,9 @@ describe("registerAction", () => {
     getUserMock.mockReset();
     createServerClientMock.mockReset();
     listMembershipsMock.mockReset();
+    cookiesGetMock.mockReset();
+    cookiesSetMock.mockReset();
+    cookiesGetMock.mockReturnValue(undefined);
 
     createServerClientMock.mockResolvedValue({
       auth: {
@@ -311,11 +323,13 @@ describe("completeRegistrationAction", () => {
   const originalRegistrationFlag = process.env.PUBLIC_REGISTRATION_ENABLED;
 
   beforeEach(() => {
-    process.env.PUBLIC_REGISTRATION_ENABLED = "false";
+    process.env.PUBLIC_REGISTRATION_ENABLED = "true";
     getUserMock.mockReset();
     ensureIntentMock.mockReset();
     tryProvisionMock.mockReset();
     createServerClientMock.mockReset();
+    cookiesGetMock.mockReset();
+    cookiesGetMock.mockReturnValue(undefined);
     createServerClientMock.mockResolvedValue({
       auth: { getUser: getUserMock },
     });
@@ -329,7 +343,7 @@ describe("completeRegistrationAction", () => {
     }
   });
 
-  it("provisions and returns product landing", async () => {
+  it("provisions and returns product landing when public registration is enabled", async () => {
     getUserMock.mockResolvedValue({
       data: {
         user: {
@@ -352,5 +366,14 @@ describe("completeRegistrationAction", () => {
 
     const result = await completeRegistrationAction();
     expect(result).toEqual({ ok: true, redirectTo: `/leads?org=${ORG_A}` });
+  });
+
+  it("denies owner completion when public registration is disabled", async () => {
+    process.env.PUBLIC_REGISTRATION_ENABLED = "false";
+    const result = await completeRegistrationAction();
+    expect(result.ok).toBe(false);
+    expect(result.redirectTo).toBe("/register/complete");
+    expect(tryProvisionMock).not.toHaveBeenCalled();
+    expect(createServerClientMock).not.toHaveBeenCalled();
   });
 });

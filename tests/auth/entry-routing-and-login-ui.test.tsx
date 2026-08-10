@@ -8,6 +8,13 @@ const redirectMock = vi.hoisted(() => vi.fn());
 const getUserMock = vi.hoisted(() => vi.fn());
 const createServerClientMock = vi.hoisted(() => vi.fn());
 const listMembershipsMock = vi.hoisted(() => vi.fn());
+const cookiesGetMock = vi.hoisted(() => vi.fn());
+
+vi.mock("next/headers", () => ({
+  cookies: async () => ({
+    get: cookiesGetMock,
+  }),
+}));
 
 vi.mock("next/navigation", () => ({
   redirect: redirectMock,
@@ -36,11 +43,16 @@ const ORG_A = "11111111-1111-4111-8111-111111111111";
 const ORG_B = "22222222-2222-4222-8222-222222222222";
 
 describe("root entry redirects", () => {
+  const originalRegistrationFlag = process.env.PUBLIC_REGISTRATION_ENABLED;
+
   beforeEach(() => {
+    process.env.PUBLIC_REGISTRATION_ENABLED = "true";
     redirectMock.mockReset();
     getUserMock.mockReset();
     createServerClientMock.mockReset();
     listMembershipsMock.mockReset();
+    cookiesGetMock.mockReset();
+    cookiesGetMock.mockReturnValue(undefined);
     redirectMock.mockImplementation((path: string) => {
       throw new Error(`NEXT_REDIRECT:${path}`);
     });
@@ -63,6 +75,14 @@ describe("root entry redirects", () => {
         };
       },
     });
+  });
+
+  afterEach(() => {
+    if (originalRegistrationFlag === undefined) {
+      delete process.env.PUBLIC_REGISTRATION_ENABLED;
+    } else {
+      process.env.PUBLIC_REGISTRATION_ENABLED = originalRegistrationFlag;
+    }
   });
 
   it("redirects logged-out root visits to /login", async () => {

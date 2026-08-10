@@ -74,7 +74,7 @@ describe("registration source security boundaries", () => {
     expect(envExample).not.toContain("NEXT_PUBLIC_REGISTRATION_ENABLED");
   });
 
-  it("does not disable recovery actions solely via the public registration flag", () => {
+  it("keeps password/resend recovery ungated while owner completion requires public registration", () => {
     const actions = readFileSync(
       join(process.cwd(), "src/features/auth/actions/auth-actions.ts"),
       "utf8",
@@ -92,7 +92,8 @@ describe("registration source security boundaries", () => {
     expect(actions.slice(resendStart, completeStart)).not.toContain(
       "isPublicRegistrationEnabled",
     );
-    expect(actions.slice(completeStart, requestResetStart)).not.toContain(
+    // OD-APP-B6: explicit owner completion must enforce the public-registration gate.
+    expect(actions.slice(completeStart, requestResetStart)).toContain(
       "isPublicRegistrationEnabled",
     );
     expect(actions.slice(requestResetStart)).not.toContain("isPublicRegistrationEnabled");

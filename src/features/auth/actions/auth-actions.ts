@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { resolvePostLoginDestination } from "@/features/auth/server/resolve-authenticated-landing";
 import { parseLoginInput } from "@/features/auth/server/login-schema";
@@ -12,6 +13,7 @@ import {
   zodFieldErrors,
 } from "@/features/auth/server/normalize-auth-error";
 import {
+  parseInviteRegisterInput,
   parseRegisterInput,
   parseResendVerificationInput,
 } from "@/features/auth/server/register-schema";
@@ -30,12 +32,26 @@ import { tryProvisionAndLand } from "@/features/auth/server/resolve-registration
 import { ensureRegistrationIntent } from "@/features/auth/server/complete-owner-provisioning";
 import {
   isPublicRegistrationEnabled,
+  OWNER_ONBOARDING_UNAVAILABLE_MESSAGE,
   PUBLIC_REGISTRATION_DISABLED_LOGIN_PATH,
 } from "@/features/auth/server/public-registration";
 import {
   buildAuthCallbackUrl,
   resolveSiteOrigin,
 } from "@/lib/env/site-origin";
+import {
+  hasValidInvitationContinuation,
+  INVITE_CONTINUATION_COOKIE_NAME,
+  shouldUseSecureInvitationContinuationCookie,
+} from "@/features/invitations/server/continuation";
+import {
+  buildInvitationRegistrationOriginCookieOptions,
+  INVITE_REGISTRATION_ORIGIN_COOKIE_NAME,
+  isBoundInvitationRegistrationOrigin,
+  isRealNewAuthIdentity,
+  sealInvitationRegistrationOrigin,
+} from "@/features/invitations/server/registration-origin";
+import { readInvitationCookiesFromStore } from "@/features/invitations/server/resolve-invitation-auth-state";
 
 export type LoginActionResult =
   | { ok: true; redirectTo: string }
@@ -104,7 +120,16 @@ export async function loginAction(input: unknown): Promise<LoginActionResult> {
       return { ok: true, redirectTo: "/register/check-email" };
     }
 
-    const redirectTo = await resolvePostLoginDestination(supabase, parsed.data.next);
+    const cookieStore = await cookies();
+    const invitationCookies = readInvitationCookiesFromStore(cookieStore);
+    const redirectTo = await resolvePostLoginDestination(
+      supabase,
+      parsed.data.next,
+      {
+        invitationCookies,
+        authenticatedUserId: user?.id ?? null,
+      },
+    );
     return { ok: true, redirectTo };
   } catch {
     return {
@@ -121,13 +146,96 @@ export async function logoutAction(): Promise<void> {
 }
 
 export async function registerAction(input: unknown): Promise<RegisterActionResult> {
-  if (!isPublicRegistrationEnabled()) {
+  const cookieStore = await cookies();
+  const continuationCookie = cookieStore.get(INVITE_CONTINUATION_COOKIE_NAME)?.value;
+  const trustedInviteContinuation = hasValidInvitationContinuation(continuationCookie);
+  const publicEnabled = isPublicRegistrationEnabled();
+
+  // Mode authority derived server-side only (never trust client registrationMode).
+  const inviteMode = trustedInviteContinuation;
+  const normalMode = publicEnabled && !trustedInviteContinuation;
+
+  if (!inviteMode && !normalMode) {
     return {
       ok: false,
       code: "registration_disabled",
       message: registrationErrorMessage("registration_disabled"),
       redirectTo: PUBLIC_REGISTRATION_DISABLED_LOGIN_PATH,
     };
+  }
+
+  if (inviteMode) {
+    const parsed = parseInviteRegisterInput(input);
+    if (!parsed.success) {
+      return {
+        ok: false,
+        code: "invalid_input",
+        message: registrationErrorMessage("invalid_input"),
+        fieldErrors: zodFieldErrors(parsed.error),
+      };
+    }
+
+    try {
+      const supabase = await createSupabaseServerClient();
+      const {
+        data: { user: existingUser },
+      } = await supabase.auth.getUser();
+
+      if (existingUser) {
+        return {
+          ok: false,
+          code: "authenticated_user_cannot_self_register",
+          message: registrationErrorMessage("authenticated_user_cannot_self_register"),
+          redirectTo: "/invite/accept",
+        };
+      }
+
+      const origin = resolveSiteOrigin();
+      const { data, error } = await supabase.auth.signUp({
+        email: parsed.data.email,
+        password: parsed.data.password,
+        options: {
+          emailRedirectTo: buildAuthCallbackUrl(origin),
+          data: {
+            display_name: parsed.data.name,
+          },
+        },
+      });
+
+      if (error) {
+        const code = normalizeRegistrationAuthError(error);
+        return {
+          ok: false,
+          code,
+          message: registrationErrorMessage(code),
+        };
+      }
+
+      // Only seal registration-origin for real newly created identities.
+      if (isRealNewAuthIdentity(data.user)) {
+        const sealed = sealInvitationRegistrationOrigin(data.user.id);
+        if (sealed.ok) {
+          const secure = shouldUseSecureInvitationContinuationCookie(origin);
+          cookieStore.set(
+            INVITE_REGISTRATION_ORIGIN_COOKIE_NAME,
+            sealed.cookieValue,
+            buildInvitationRegistrationOriginCookieOptions(sealed.maxAge, secure),
+          );
+        }
+      }
+
+      return {
+        ok: true,
+        status: "verification_required",
+        redirectTo: "/register/check-email",
+      };
+    } catch {
+      return {
+        ok: false,
+        code: "temporary_service_failure",
+        message: registrationErrorMessage("temporary_service_failure"),
+      };
+    }
   }
 
   const parsed = parseRegisterInput(input);
@@ -153,7 +261,10 @@ export async function registerAction(input: unknown): Promise<RegisterActionResu
           ok: false,
           code: "authenticated_user_cannot_self_register",
           message: registrationErrorMessage("authenticated_user_cannot_self_register"),
-          redirectTo: await resolvePostLoginDestination(supabase, "/"),
+          redirectTo: await resolvePostLoginDestination(supabase, "/", {
+            invitationCookies: readInvitationCookiesFromStore(cookieStore),
+            authenticatedUserId: existingUser.id,
+          }),
         };
       }
 
@@ -196,7 +307,6 @@ export async function registerAction(input: unknown): Promise<RegisterActionResu
       };
     }
 
-    // Enumeration-safe success: always send the user to check-email.
     return {
       ok: true,
       status: "verification_required",
@@ -277,6 +387,15 @@ export async function completeRegistrationAction(): Promise<{
   message?: string;
 }> {
   try {
+    // OD-APP-B6 Option A: owner completion requires public registration enabled.
+    if (!isPublicRegistrationEnabled()) {
+      return {
+        ok: false,
+        redirectTo: "/register/complete",
+        message: OWNER_ONBOARDING_UNAVAILABLE_MESSAGE,
+      };
+    }
+
     const supabase = await createSupabaseServerClient();
     const {
       data: { user },
@@ -298,6 +417,23 @@ export async function completeRegistrationAction(): Promise<{
       };
     }
 
+    const cookieStore = await cookies();
+    const invitationCookies = readInvitationCookiesFromStore(cookieStore);
+    // Invitation priority: do not owner-provision while trusted invite context exists.
+    if (
+      hasValidInvitationContinuation(invitationCookies.continuation) ||
+      isBoundInvitationRegistrationOrigin(
+        invitationCookies.registrationOrigin,
+        user.id,
+      )
+    ) {
+      return {
+        ok: false,
+        redirectTo: "/invite/accept",
+        message: "Finish your invitation before creating a workspace.",
+      };
+    }
+
     await ensureRegistrationIntent(supabase, user);
     const result = await tryProvisionAndLand(supabase, user);
     if (!result.ok) {
@@ -316,6 +452,49 @@ export async function completeRegistrationAction(): Promise<{
       message: registrationErrorMessage("temporary_service_failure"),
     };
   }
+}
+
+/**
+ * Explicit abandonment of Invitation registration context.
+ * Clears invite cookies; never creates an Organization.
+ */
+export async function abandonInvitationRegistrationAction(): Promise<{
+  ok: true;
+  redirectTo: string;
+  message?: string;
+}> {
+  const secure = shouldUseSecureInvitationContinuationCookie(
+    resolveSiteOrigin(),
+  );
+  const cookieStore = await cookies();
+
+  cookieStore.set(
+    INVITE_CONTINUATION_COOKIE_NAME,
+    "",
+    {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+      secure,
+      expires: new Date(0),
+    },
+  );
+  cookieStore.set(
+    INVITE_REGISTRATION_ORIGIN_COOKIE_NAME,
+    "",
+    buildInvitationRegistrationOriginCookieOptions(0, secure),
+  );
+
+  if (isPublicRegistrationEnabled()) {
+    return { ok: true, redirectTo: "/register/complete" };
+  }
+
+  return {
+    ok: true,
+    redirectTo: "/register/complete",
+    message: OWNER_ONBOARDING_UNAVAILABLE_MESSAGE,
+  };
 }
 
 /**

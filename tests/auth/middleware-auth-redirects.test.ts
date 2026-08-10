@@ -104,15 +104,14 @@ describe("updateSession protected-route redirects", () => {
     expect(location.pathname).toBe("/register/check-email");
   });
 
-  it("redirects anonymous /register to login when public registration is disabled", async () => {
+  it("allows anonymous /register when public registration is disabled so page can enforce invite gate", async () => {
     process.env.PUBLIC_REGISTRATION_ENABLED = "false";
     getUserMock.mockResolvedValue({ data: { user: null }, error: null });
 
     const request = new NextRequest("http://localhost:3000/register");
     const response = await updateSession(request);
-    const location = new URL(response.headers.get("location") ?? "");
-    expect(location.pathname).toBe("/login");
-    expect(location.searchParams.get("registration")).toBe("disabled");
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
   });
 
   it("allows anonymous /register when public registration is enabled", async () => {

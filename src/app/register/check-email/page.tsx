@@ -1,9 +1,12 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { CheckEmailPanel } from "@/features/auth/ui/register-status";
-import { listActiveOrganizationMemberships } from "@/features/organizations/server/resolve-organization-context";
-import { resolveAuthenticatedLanding } from "@/features/auth/server/resolve-authenticated-landing";
+import { resolvePostAuthDestination } from "@/features/auth/server/resolve-registration-destination";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { readInvitationCookiesFromStore } from "@/features/invitations/server/resolve-invitation-auth-state";
 import styles from "../../login/page.module.css";
+
+export const dynamic = "force-dynamic";
 
 export default async function RegisterCheckEmailPage() {
   const supabase = await createSupabaseServerClient();
@@ -12,11 +15,11 @@ export default async function RegisterCheckEmailPage() {
   } = await supabase.auth.getUser();
 
   if (user?.email_confirmed_at) {
-    const memberships = await listActiveOrganizationMemberships(supabase);
-    if (memberships.ok && memberships.memberships.length > 0) {
-      redirect(await resolveAuthenticatedLanding(supabase));
-    }
-    redirect("/register/complete");
+    const cookieStore = await cookies();
+    const destination = await resolvePostAuthDestination(supabase, user, {
+      invitationCookies: readInvitationCookiesFromStore(cookieStore),
+    });
+    redirect(destination.path);
   }
 
   return (

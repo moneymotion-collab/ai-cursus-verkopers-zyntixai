@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/features/auth/ui/login-form";
 import {
@@ -11,6 +12,7 @@ import {
   PUBLIC_REGISTRATION_UNAVAILABLE_MESSAGE,
 } from "@/features/auth/server/public-registration";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { readInvitationCookiesFromStore } from "@/features/invitations/server/resolve-invitation-auth-state";
 import styles from "./page.module.css";
 
 type LoginPageProps = {
@@ -46,7 +48,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   } = await supabase.auth.getUser();
 
   if (user) {
-    redirect(await resolvePostLoginDestination(supabase, safeNext));
+    const cookieStore = await cookies();
+    redirect(
+      await resolvePostLoginDestination(supabase, safeNext, {
+        invitationCookies: readInvitationCookiesFromStore(cookieStore),
+        authenticatedUserId: user.id,
+      }),
+    );
   }
 
   return (

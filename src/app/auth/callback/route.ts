@@ -6,7 +6,11 @@ import {
   isPasswordResetDestination,
   resolveSafeReturnPath,
 } from "@/features/auth/server/safe-return-path";
-import { tryProvisionAndLand } from "@/features/auth/server/resolve-registration-destination";
+import { resolvePostAuthDestination } from "@/features/auth/server/resolve-registration-destination";
+import {
+  INVITE_CONTINUATION_COOKIE_NAME,
+} from "@/features/invitations/server/continuation";
+import { INVITE_REGISTRATION_ORIGIN_COOKIE_NAME } from "@/features/invitations/server/registration-origin";
 
 type CookieToSet = {
   name: string;
@@ -18,6 +22,7 @@ type CookieToSet = {
  * Email verification / password-recovery Auth callback.
  * Accepts only Supabase code exchange; redirects via allowlisted paths.
  * Never logs the authorization code or tokens.
+ * NEVER auto-provisions owner Organizations (OD-APP-B3 / B4).
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -88,8 +93,21 @@ export async function GET(request: NextRequest) {
     return finalize("/register/check-email");
   }
 
-  const provisioned = await tryProvisionAndLand(supabase, user);
-  if (provisioned.ok) {
+  const invitationCookies = {
+    continuation: request.cookies.get(INVITE_CONTINUATION_COOKIE_NAME)?.value,
+    registrationOrigin: request.cookies.get(INVITE_REGISTRATION_ORIGIN_COOKIE_NAME)
+      ?.value,
+  };
+
+  const destination = await resolvePostAuthDestination(supabase, user, {
+    invitationCookies,
+  });
+
+  if (destination.kind === "invite_accept") {
+    return finalize(destination.path);
+  }
+
+  if (destination.kind === "product") {
     if (
       safeNext.startsWith("/leads") ||
       safeNext.startsWith("/customers") ||
@@ -97,8 +115,8 @@ export async function GET(request: NextRequest) {
     ) {
       return finalize(safeNext);
     }
-    return finalize(provisioned.path);
+    return finalize(destination.path);
   }
 
-  return finalize("/register/complete");
+  return finalize(destination.path);
 }

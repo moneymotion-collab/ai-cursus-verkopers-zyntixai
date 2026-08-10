@@ -10,6 +10,11 @@ import {
   buildOnboardingPath,
   buildProductDestination,
 } from "@/features/onboarding/domain/onboarding-steps";
+import {
+  hasTrustedInvitationAuthContext,
+  type InvitationCookieBag,
+  resolveInvitationAuthState,
+} from "@/features/invitations/server/resolve-invitation-auth-state";
 
 async function isOrganizationOnboardingComplete(
   supabase: SupabaseClient<Database>,
@@ -60,12 +65,28 @@ export async function resolveAuthenticatedLanding(
 /**
  * Post-login destination: allowlisted return path, with `/` resolved via org landing.
  * Product return paths for incomplete orgs are rewritten to onboarding.
+ *
+ * Zero-membership users never auto-provision. Trusted Invitation context may
+ * honor safe `/invite/accept`; otherwise route to `/register/complete`.
  */
 export async function resolvePostLoginDestination(
   supabase: SupabaseClient<Database>,
   rawNext: unknown,
+  options?: {
+    invitationCookies?: InvitationCookieBag;
+    authenticatedUserId?: string | null;
+  },
 ): Promise<string> {
   const safeNext = resolveSafeReturnPath(rawNext, DEFAULT_RETURN_PATH);
+
+  const inviteState = resolveInvitationAuthState({
+    cookies: options?.invitationCookies ?? {},
+    authenticatedUserId: options?.authenticatedUserId ?? null,
+  });
+
+  if (hasTrustedInvitationAuthContext(inviteState)) {
+    return "/invite/accept";
+  }
 
   const membershipsResult = await listActiveOrganizationMemberships(supabase);
   if (!membershipsResult.ok || membershipsResult.memberships.length === 0) {
@@ -76,7 +97,12 @@ export async function resolvePostLoginDestination(
     return resolveAuthenticatedLanding(supabase);
   }
 
+  // Do not honor /invite/accept from client next without trusted Invitation context.
   const pathname = safeNext.split("?")[0] ?? safeNext;
+  if (pathname === "/invite/accept") {
+    return resolveAuthenticatedLanding(supabase);
+  }
+
   if (pathname === "/onboarding") {
     return safeNext;
   }

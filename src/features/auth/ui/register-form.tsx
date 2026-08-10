@@ -12,7 +12,11 @@ type RegisterUiState =
   | { kind: "pending" }
   | { kind: "error"; message: string; fieldErrors?: Record<string, string[]> };
 
-export function RegisterForm() {
+type RegisterFormProps = {
+  mode?: "owner" | "invitation";
+};
+
+export function RegisterForm({ mode = "owner" }: RegisterFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
   const [name, setName] = useState("");
@@ -27,6 +31,7 @@ export function RegisterForm() {
   const emailError = fieldErrors?.email?.[0];
   const passwordError = fieldErrors?.password?.[0];
   const companyError = fieldErrors?.companyName?.[0];
+  const invitationMode = mode === "invitation";
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -37,12 +42,11 @@ export function RegisterForm() {
     pendingRef.current = true;
     setUiState({ kind: "pending" });
 
-    const result = await registerAction({
-      name,
-      email,
-      password,
-      companyName,
-    });
+    const result = await registerAction(
+      invitationMode
+        ? { name, email, password }
+        : { name, email, password, companyName },
+    );
 
     if (result.ok) {
       try {
@@ -78,9 +82,13 @@ export function RegisterForm() {
       noValidate
     >
       <div className={styles.header}>
-        <h1 id="register-title">Create your account</h1>
+        <h1 id="register-title">
+          {invitationMode ? "Create your account" : "Create your account"}
+        </h1>
         <p className={styles.subtitle}>
-          Register as the owner of a new organization.
+          {invitationMode
+            ? "Accept an organization invitation after verifying your email."
+            : "Register as the owner of a new organization."}
         </p>
       </div>
 
@@ -155,26 +163,28 @@ export function RegisterForm() {
         ) : null}
       </div>
 
-      <div className={styles.field}>
-        <label htmlFor="register-company">Company name</label>
-        <input
-          id="register-company"
-          name="companyName"
-          type="text"
-          autoComplete="organization"
-          value={companyName}
-          onChange={(event) => setCompanyName(event.target.value)}
-          disabled={isPending}
-          aria-invalid={companyError ? true : undefined}
-          aria-describedby={companyError ? "register-company-error" : undefined}
-          required
-        />
-        {companyError ? (
-          <p id="register-company-error" className={styles.fieldError}>
-            {companyError}
-          </p>
-        ) : null}
-      </div>
+      {!invitationMode ? (
+        <div className={styles.field}>
+          <label htmlFor="register-company">Company name</label>
+          <input
+            id="register-company"
+            name="companyName"
+            type="text"
+            autoComplete="organization"
+            value={companyName}
+            onChange={(event) => setCompanyName(event.target.value)}
+            disabled={isPending}
+            aria-invalid={companyError ? true : undefined}
+            aria-describedby={companyError ? "register-company-error" : undefined}
+            required
+          />
+          {companyError ? (
+            <p id="register-company-error" className={styles.fieldError}>
+              {companyError}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <button type="submit" className={styles.submit} disabled={isPending}>
         {isPending ? "Creating account…" : "Create account"}

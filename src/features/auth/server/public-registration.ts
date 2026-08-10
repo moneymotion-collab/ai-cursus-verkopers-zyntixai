@@ -9,6 +9,9 @@ export const PUBLIC_REGISTRATION_DISABLED_LOGIN_PATH =
 export const PUBLIC_REGISTRATION_UNAVAILABLE_MESSAGE =
   "Public registration is currently unavailable." as const;
 
+export const OWNER_ONBOARDING_UNAVAILABLE_MESSAGE =
+  "Owner workspace creation is currently unavailable." as const;
+
 /** Exact entry path for new owner self-registration (not nested recovery routes). */
 export function isPublicRegistrationEntryPath(pathname: string): boolean {
   return pathname === "/register";

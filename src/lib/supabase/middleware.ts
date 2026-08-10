@@ -8,10 +8,6 @@ import {
   isProtectedApplicationPath,
   isRegistrationPath,
 } from "@/features/auth/server/safe-return-path";
-import {
-  isPublicRegistrationEnabled,
-  isPublicRegistrationEntryPath,
-} from "@/features/auth/server/public-registration";
 
 type CookieToSet = {
   name: string;
@@ -112,22 +108,9 @@ export async function updateSession(request: NextRequest) {
     return redirectResponse;
   }
 
-  // PX2-DARK.1: exact /register only — nested recovery routes stay reachable.
-  if (
-    !user &&
-    isPublicRegistrationEntryPath(pathname) &&
-    !isPublicRegistrationEnabled()
-  ) {
-    const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/login";
-    loginUrl.search = "";
-    loginUrl.searchParams.set("registration", "disabled");
-    const redirectResponse = NextResponse.redirect(loginUrl);
-    applyCookies(redirectResponse, cookiesToSet);
-    return redirectResponse;
-  }
-
-  // Registration flag must never block login, callback, or password recovery.
+  // Public registration flag: page/action enforce invite-gated exception.
+  // Middleware does not decrypt Invitation cookies (Edge/Node crypto boundary).
+  // Exact /register remains reachable so the server page can admit trusted invites.
   if (!user && (isRegister || isCallback || isRecovery)) {
     return supabaseResponse;
   }

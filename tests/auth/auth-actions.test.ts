@@ -6,6 +6,13 @@ const getUserMock = vi.hoisted(() => vi.fn());
 const createServerClientMock = vi.hoisted(() => vi.fn());
 const redirectMock = vi.hoisted(() => vi.fn());
 const listMembershipsMock = vi.hoisted(() => vi.fn());
+const cookiesGetMock = vi.hoisted(() => vi.fn());
+
+vi.mock("next/headers", () => ({
+  cookies: async () => ({
+    get: cookiesGetMock,
+  }),
+}));
 
 vi.mock("next/navigation", () => ({
   redirect: redirectMock,
@@ -30,6 +37,8 @@ describe("loginAction", () => {
     createServerClientMock.mockReset();
     listMembershipsMock.mockReset();
     redirectMock.mockReset();
+    cookiesGetMock.mockReset();
+    cookiesGetMock.mockReturnValue(undefined);
 
     createServerClientMock.mockResolvedValue({
       auth: {

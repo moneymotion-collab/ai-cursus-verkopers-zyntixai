@@ -159,3 +159,20 @@ export function CompleteRegistrationPanel({
     </section>
   );
 }
+
+export function OwnerOnboardingUnavailablePanel() {
+  return (
+    <section className={styles.panel} aria-labelledby="complete-title">
+      <h1 id="complete-title">Workspace creation unavailable</h1>
+      <p className={styles.body}>
+        Owner workspace creation is currently unavailable. If you were invited to
+        an organization, reopen the latest invitation link from your email.
+      </p>
+      <p className={styles.footer}>
+        <Link href="/login" className={styles.link}>
+          Back to sign in
+        </Link>
+      </p>
+    </section>
+  );
+}

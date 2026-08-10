@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   hasValidInvitationContinuation,
@@ -7,6 +8,11 @@ import {
   INVITE_CONTINUATION_CLEARED_VALUE,
   INVITE_CONTINUATION_COOKIE_NAME,
 } from "@/features/invitations/server/continuation";
+import { isBoundInvitationRegistrationOrigin } from "@/features/invitations/server/registration-origin";
+import { INVITE_REGISTRATION_ORIGIN_COOKIE_NAME } from "@/features/invitations/server/registration-origin";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isPublicRegistrationEnabled } from "@/features/auth/server/public-registration";
+import { AbandonInvitationButton } from "@/features/invitations/ui/abandon-invitation-button";
 import styles from "./page.module.css";
 
 /** Cookie-dependent UI must never be statically shared across users. */
@@ -30,7 +36,13 @@ function firstParam(value: string | string[] | undefined): string | undefined {
   return value;
 }
 
-function UnavailableState() {
+function UnavailableState({
+  showAbandon,
+  publicRegistrationEnabled,
+}: {
+  showAbandon: boolean;
+  publicRegistrationEnabled: boolean;
+}) {
   return (
     <main className={styles.page} aria-labelledby="invite-accept-title">
       <p className={styles.brand}>ZyntixAI</p>
@@ -41,11 +53,26 @@ function UnavailableState() {
         This invitation link is unavailable. Request a new invitation from your
         organization administrator if you still need access.
       </p>
+      {showAbandon ? (
+        <AbandonInvitationButton
+          publicRegistrationEnabled={publicRegistrationEnabled}
+        />
+      ) : (
+        <p className={styles.copy}>
+          <Link href="/login">Sign in</Link>
+        </p>
+      )}
     </main>
   );
 }
 
-function ReadyState() {
+function ReadyState({
+  signedIn,
+  publicRegistrationEnabled,
+}: {
+  signedIn: boolean;
+  publicRegistrationEnabled: boolean;
+}) {
   return (
     <main className={styles.page} aria-labelledby="invite-accept-title">
       <p className={styles.brand}>ZyntixAI</p>
@@ -53,17 +80,49 @@ function ReadyState() {
         Invitation ready
       </h1>
       <p className={styles.copy}>
-        Your invitation continuation is active. Sign in with the invited email
-        to continue in a later step.
+        {signedIn
+          ? "Your invitation continuation is active. Acceptance will be available in a later step."
+          : "Your invitation continuation is active. Sign in or create an account with the invited email to continue."}
       </p>
+      {!signedIn ? (
+        <p className={styles.copy}>
+          <Link href="/login?next=/invite/accept">Sign in</Link>
+          {" · "}
+          <Link href="/register">Create account</Link>
+        </p>
+      ) : null}
+      <AbandonInvitationButton
+        publicRegistrationEnabled={publicRegistrationEnabled}
+      />
+    </main>
+  );
+}
+
+function RecoveryState({
+  publicRegistrationEnabled,
+}: {
+  publicRegistrationEnabled: boolean;
+}) {
+  return (
+    <main className={styles.page} aria-labelledby="invite-accept-title">
+      <p className={styles.brand}>ZyntixAI</p>
+      <h1 id="invite-accept-title" className={styles.title}>
+        Reopen your invitation
+      </h1>
+      <p className={styles.copy}>
+        Your invitation session needs the latest invitation link from your email.
+        Open that link again to continue. Acceptance is not available yet from this
+        page.
+      </p>
+      <AbandonInvitationButton
+        publicRegistrationEnabled={publicRegistrationEnabled}
+      />
     </main>
   );
 }
 
 /**
- * Token-free Invitation continuation surface (Slice A).
- *
- * Does not expose organization, role, email, or invitation identifiers.
+ * Token-free Invitation continuation surface.
  * Does not call Acceptance. Auth resume and Accept POST belong to later slices.
  */
 export default async function InviteAcceptPage({
@@ -76,21 +135,43 @@ export default async function InviteAcceptPage({
 
   const cookieStore = await cookies();
   const sealed = cookieStore.get(INVITE_CONTINUATION_COOKIE_NAME)?.value;
+  const originCookie = cookieStore.get(INVITE_REGISTRATION_ORIGIN_COOKIE_NAME)?.value;
+  const publicRegistrationEnabled = isPublicRegistrationEnabled();
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (sealed) {
     const active = hasValidInvitationContinuation(sealed);
     if (active) {
-      return <ReadyState />;
+      return (
+        <ReadyState
+          signedIn={Boolean(user)}
+          publicRegistrationEnabled={publicRegistrationEnabled}
+        />
+      );
     }
 
-    // Loop breaker: after exchange clear redirect (?cleared=1), terminate even
-    // if the browser still presents a stale/invalid cookie.
-    if (clearedAttempt) {
-      return <UnavailableState />;
+    if (!clearedAttempt) {
+      redirect("/invite/accept/exchange");
     }
-
-    redirect("/invite/accept/exchange");
   }
 
-  return <UnavailableState />;
+  if (
+    user &&
+    isBoundInvitationRegistrationOrigin(originCookie, user.id)
+  ) {
+    return (
+      <RecoveryState publicRegistrationEnabled={publicRegistrationEnabled} />
+    );
+  }
+
+  return (
+    <UnavailableState
+      showAbandon={Boolean(user || originCookie)}
+      publicRegistrationEnabled={publicRegistrationEnabled}
+    />
+  );
 }

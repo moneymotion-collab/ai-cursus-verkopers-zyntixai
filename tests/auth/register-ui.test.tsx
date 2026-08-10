@@ -5,6 +5,13 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const redirectMock = vi.hoisted(() => vi.fn());
+const cookiesGetMock = vi.hoisted(() => vi.fn());
+
+vi.mock("next/headers", () => ({
+  cookies: async () => ({
+    get: cookiesGetMock,
+  }),
+}));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -40,6 +47,8 @@ describe("register UI contracts", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.PUBLIC_REGISTRATION_ENABLED = "true";
+    cookiesGetMock.mockReset();
+    cookiesGetMock.mockReturnValue(undefined);
     redirectMock.mockImplementation((path: string) => {
       throw new Error(`NEXT_REDIRECT:${path}`);
     });
@@ -111,19 +120,20 @@ describe("register UI contracts", () => {
     expect(source).toContain("aria-busy");
   });
 
-  it("redirects /register to login when public registration is disabled", () => {
+  it("redirects /register to login when public registration is disabled without invite", async () => {
     process.env.PUBLIC_REGISTRATION_ENABLED = "false";
-    expect(() => RegisterPage()).toThrow(
+    await expect(RegisterPage()).rejects.toThrow(
       "NEXT_REDIRECT:/login?registration=disabled",
     );
   });
 
-  it("renders the registration form when public registration is enabled", () => {
+  it("renders the registration form when public registration is enabled", async () => {
     process.env.PUBLIC_REGISTRATION_ENABLED = "true";
-    const element = RegisterPage();
+    const element = await RegisterPage();
     const html = renderToStaticMarkup(element);
     expect(html).toContain('id="register-name"');
     expect(html).toContain("Create your account");
+    expect(html).toContain('id="register-company"');
     expect(redirectMock).not.toHaveBeenCalled();
   });
 });
