@@ -22,12 +22,25 @@ import {
   ATTENTION_NAV_VISIBLE,
   ATTENTION_ROUTE,
 } from "@/features/attention/domain/attention-navigation";
+import {
+  MEMBERS_NAV_LABEL,
+  MEMBERS_ROUTE,
+  resolveMembersNavVisible,
+} from "@/features/invitations/domain/members-navigation";
 
 type AppShellProps = {
   children: React.ReactNode;
   organizationOptions?: OrganizationOption[];
   selectedOrganizationId?: string;
   organizationSelectorAction?: string;
+  /**
+   * Members nav visibility override.
+   * When omitted: fail-closed derivation from organizationOptions[].role.
+   * Explicit false: always hide. Explicit true: always show.
+   *
+   * Presentation only — /settings/members route authorization remains authoritative.
+   */
+  membersNavVisible?: boolean;
   activeNav?:
     | "home"
     | "leads"
@@ -36,7 +49,8 @@ type AppShellProps = {
     | "enrollments"
     | "progress"
     | "attention"
-    | "tasks";
+    | "tasks"
+    | "members";
 };
 
 export function AppShell({
@@ -44,9 +58,15 @@ export function AppShell({
   organizationOptions = [],
   selectedOrganizationId,
   organizationSelectorAction = "/tasks",
+  membersNavVisible,
   activeNav = "tasks",
 }: AppShellProps) {
   const showOrgSelector = organizationOptions.length > 1;
+  const showMembersNav = resolveMembersNavVisible({
+    explicitVisibility: membersNavVisible,
+    organizationOptions,
+    selectedOrganizationId,
+  });
 
   return (
     <div className={styles.shell}>
@@ -119,6 +139,19 @@ export function AppShell({
               >
                 Tasks
               </Link>
+              {showMembersNav ? (
+                <Link
+                  className={styles.navLink}
+                  href={
+                    selectedOrganizationId
+                      ? `${MEMBERS_ROUTE}?org=${encodeURIComponent(selectedOrganizationId)}`
+                      : MEMBERS_ROUTE
+                  }
+                  aria-current={activeNav === "members" ? "page" : undefined}
+                >
+                  {MEMBERS_NAV_LABEL}
+                </Link>
+              ) : null}
             </nav>
           </div>
           <div className={styles.headerActions}>

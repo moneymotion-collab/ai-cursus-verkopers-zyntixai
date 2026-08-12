@@ -158,7 +158,7 @@ describe("Attention accessibility structure (B1.7.5-E)", () => {
     expect(detail).not.toMatch(/>Archive</);
 
     const shell = renderToStaticMarkup(
-      <AppShell activeNav="attention">
+      <AppShell activeNav="attention" membersNavVisible={false}>
         <p>workspace</p>
       </AppShell>,
     );

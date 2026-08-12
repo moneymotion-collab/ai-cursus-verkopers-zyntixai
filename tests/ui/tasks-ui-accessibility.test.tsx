@@ -36,6 +36,7 @@ describe("tasks UI accessibility landmarks", () => {
   it("renders one main landmark and labelled primary navigation in the shell", () => {
     const html = renderToStaticMarkup(
       <AppShell
+        membersNavVisible={false}
         organizationOptions={[
           { organizationId: "02016e91-7237-4a20-aec3-6275d2e8a67f", role: "owner", displayName: "Org Alpha" },
           { organizationId: "e6e4c376-697c-4863-bb30-fd52b7256ff9", role: "staff", displayName: "Org Beta" },

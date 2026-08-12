@@ -44,6 +44,12 @@ describe("resolveSafeReturnPath", () => {
         "/attention?org=11111111-1111-4111-8111-111111111111&status=open",
       ),
     ).toBe("/attention?org=11111111-1111-4111-8111-111111111111&status=open");
+    expect(resolveSafeReturnPath("/settings/members")).toBe("/settings/members");
+    expect(
+      resolveSafeReturnPath(
+        "/settings/members?org=11111111-1111-4111-8111-111111111111",
+      ),
+    ).toBe("/settings/members?org=11111111-1111-4111-8111-111111111111");
   });
 
   it("accepts the onboarding path with a safe organization query", () => {
@@ -124,6 +130,7 @@ describe("resolveSafeReturnPath", () => {
     expect(resolveSafeReturnPath("/Leads")).toBe("/");
     expect(resolveSafeReturnPath("/attention-evil")).toBe("/");
     expect(resolveSafeReturnPath("/attentions")).toBe("/");
+    expect(resolveSafeReturnPath("/settings/members-evil")).toBe("/");
   });
 
   it("rejects path traversal that escapes allowlisted families", () => {
@@ -201,6 +208,8 @@ describe("isProtectedApplicationPath", () => {
     expect(isProtectedApplicationPath("/attention")).toBe(true);
     expect(isProtectedApplicationPath("/attention/abc")).toBe(true);
     expect(isProtectedApplicationPath("/attention-evil")).toBe(false);
+    expect(isProtectedApplicationPath("/settings/members")).toBe(true);
+    expect(isProtectedApplicationPath("/settings/members-evil")).toBe(false);
     expect(isProtectedApplicationPath("/onboarding")).toBe(true);
     expect(isProtectedApplicationPath("/")).toBe(false);
     expect(isProtectedApplicationPath("/login")).toBe(false);

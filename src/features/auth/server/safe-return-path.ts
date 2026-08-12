@@ -1,4 +1,5 @@
 import { isAttentionPathname } from "@/features/attention/domain/attention-navigation";
+import { isMembersPathname } from "@/features/invitations/domain/members-navigation";
 
 const DEFAULT_RETURN_PATH = "/";
 
@@ -32,6 +33,10 @@ function isAllowlistedPathname(pathname: string): boolean {
   }
 
   if (isAttentionPathname(pathname)) {
+    return true;
+  }
+
+  if (isMembersPathname(pathname)) {
     return true;
   }
 
@@ -163,6 +168,7 @@ export function isProtectedApplicationPath(pathname: string): boolean {
     pathname === "/progress" ||
     pathname.startsWith("/progress/") ||
     isAttentionPathname(pathname) ||
+    isMembersPathname(pathname) ||
     pathname === "/onboarding"
   );
 }

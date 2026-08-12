@@ -230,7 +230,7 @@ describe("login form pending and accessibility contract", () => {
 describe("AppShell logout accessibility", () => {
   it("renders an accessible Log out control", () => {
     const html = renderToStaticMarkup(
-      <AppShell activeNav="leads">
+      <AppShell activeNav="leads" membersNavVisible={false}>
         <h1>Leads</h1>
       </AppShell>,
     );

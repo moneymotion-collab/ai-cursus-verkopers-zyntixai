@@ -15,7 +15,7 @@ describe("Attention AppShell navigation (B1.7.5-E)", () => {
     expect(ATTENTION_NAV_VISIBLE).toBe(true);
 
     const html = renderToStaticMarkup(
-      <AppShell activeNav="attention">
+      <AppShell activeNav="attention" membersNavVisible={false}>
         <p>content</p>
       </AppShell>,
     );
@@ -39,7 +39,7 @@ describe("Attention AppShell navigation (B1.7.5-E)", () => {
 
   it("keeps Attention inactive when another nav section is active", () => {
     const html = renderToStaticMarkup(
-      <AppShell activeNav="tasks">
+      <AppShell activeNav="tasks" membersNavVisible={false}>
         <p>content</p>
       </AppShell>,
     );

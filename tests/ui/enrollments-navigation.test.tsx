@@ -13,7 +13,7 @@ describe("Enrollments navigation activation", () => {
     expect(ENROLLMENTS_NAV_VISIBLE).toBe(true);
 
     const html = renderToStaticMarkup(
-      <AppShell activeNav="enrollments">
+      <AppShell activeNav="enrollments" membersNavVisible={false}>
         <p>content</p>
       </AppShell>,
     );
@@ -34,7 +34,7 @@ describe("Enrollments navigation activation", () => {
 
   it("marks the Enrollments link as the current page when active", () => {
     const html = renderToStaticMarkup(
-      <AppShell activeNav="enrollments">
+      <AppShell activeNav="enrollments" membersNavVisible={false}>
         <p>content</p>
       </AppShell>,
     );

@@ -12,6 +12,7 @@ describe("leads UI accessibility", () => {
     const html = renderToStaticMarkup(
       <AppShell
         activeNav="leads"
+        membersNavVisible={false}
         organizationOptions={[
           { organizationId: "11111111-1111-4111-8111-111111111111", role: "owner", displayName: "Org Alpha" },
         ]}

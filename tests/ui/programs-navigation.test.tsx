@@ -13,7 +13,7 @@ describe("Programs navigation activation", () => {
     expect(PROGRAMS_NAV_VISIBLE).toBe(true);
 
     const html = renderToStaticMarkup(
-      <AppShell activeNav="programs">
+      <AppShell activeNav="programs" membersNavVisible={false}>
         <p>content</p>
       </AppShell>,
     );
