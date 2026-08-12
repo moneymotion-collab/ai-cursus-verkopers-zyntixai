@@ -86,6 +86,9 @@ describe("Member administration list UI", () => {
 
     expect(html).toContain("Pending invitations");
     expect(html).toContain("No pending invitations");
+    expect(html).toContain(
+      "There are no pending invitations for this organization.",
+    );
     expect(html).not.toContain("Create invitation");
     expect(html).not.toContain("Resend");
     expect(html).not.toContain("Revoke");
@@ -126,6 +129,7 @@ describe("Member administration list UI", () => {
     );
 
     expect(html).toContain("admin-invitee@example.com");
+    expect(html).toContain("Owner access required to manage this invitation.");
     expect(html).not.toContain("Resend");
     expect(html).not.toContain("Revoke");
   });

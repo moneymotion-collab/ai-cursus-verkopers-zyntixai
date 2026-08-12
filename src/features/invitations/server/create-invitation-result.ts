@@ -81,7 +81,7 @@ export type CreateInvitationActionResult =
     };
 
 export const CREATE_INVITATION_MESSAGES = {
-  success: "Invitation created. It is pending until accepted.",
+  success: "Invitation created. It is pending.",
   already_member: "This person is already an active member.",
   existing_membership_requires_admin_action:
     "This person already has a membership that requires administrator action before they can be invited again.",

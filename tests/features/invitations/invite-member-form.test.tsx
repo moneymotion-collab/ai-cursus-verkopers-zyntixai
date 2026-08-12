@@ -20,7 +20,11 @@ describe("InviteMemberForm role options", () => {
     expect(roles).toEqual(["admin", "staff", "viewer"]);
 
     const html = renderToStaticMarkup(
-      <InviteMemberForm organizationId={ORG_ID} invitableRoles={roles} />,
+      <InviteMemberForm
+        organizationId={ORG_ID}
+        invitableRoles={roles}
+        invitationAcceptanceEnabled
+      />,
     );
 
     expect(html).toContain("Invite member");
@@ -39,7 +43,11 @@ describe("InviteMemberForm role options", () => {
     expect(roles).toEqual(["staff", "viewer"]);
 
     const html = renderToStaticMarkup(
-      <InviteMemberForm organizationId={ORG_ID} invitableRoles={roles} />,
+      <InviteMemberForm
+        organizationId={ORG_ID}
+        invitableRoles={roles}
+        invitationAcceptanceEnabled
+      />,
     );
 
     expect(html).toContain(">Staff<");
@@ -53,6 +61,7 @@ describe("InviteMemberForm role options", () => {
       <InviteMemberForm
         organizationId={ORG_ID}
         invitableRoles={getInvitableOrganizationRoles("staff", "active")}
+        invitationAcceptanceEnabled
       />,
     );
     expect(html).toBe("");

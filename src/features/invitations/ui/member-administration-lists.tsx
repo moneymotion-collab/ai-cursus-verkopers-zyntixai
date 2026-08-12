@@ -36,7 +36,11 @@ function resolvePendingActionCapabilities(
   invitation: PendingInvitationListItem,
   actorRole: OrganizationRole,
   nowIso: string,
-): { canResend: boolean; canRevoke: boolean } {
+): {
+  canResend: boolean;
+  canRevoke: boolean;
+  showOwnerManageHint: boolean;
+} {
   const mayManage = canManageOrganizationInvitation(
     actorRole,
     "active",
@@ -44,7 +48,11 @@ function resolvePendingActionCapabilities(
   );
 
   if (!mayManage) {
-    return { canResend: false, canRevoke: false };
+    return {
+      canResend: false,
+      canRevoke: false,
+      showOwnerManageHint: true,
+    };
   }
 
   const canResend = isOrganizationInvitationResendable({
@@ -57,7 +65,7 @@ function resolvePendingActionCapabilities(
     status: invitation.status,
   });
 
-  return { canResend, canRevoke };
+  return { canResend, canRevoke, showOwnerManageHint: false };
 }
 
 export function ActiveMembersSection({
@@ -216,7 +224,7 @@ export function PendingInvitationsSection({
             No pending invitations
           </p>
           <p className={styles.emptyDescription}>
-            Pending invitations for this organization will appear here.
+            There are no pending invitations for this organization.
           </p>
         </div>
       ) : (
@@ -253,13 +261,19 @@ export function PendingInvitationsSection({
                     <td>{row.createdAtLabel}</td>
                     <td>{row.expiresAtLabel}</td>
                     <td>
-                      <PendingInvitationActions
-                        organizationId={organizationId}
-                        invitationId={row.invitationId}
-                        emailLabel={row.emailLabel}
-                        canResend={row.canResend}
-                        canRevoke={row.canRevoke}
-                      />
+                      {row.canResend || row.canRevoke ? (
+                        <PendingInvitationActions
+                          organizationId={organizationId}
+                          invitationId={row.invitationId}
+                          emailLabel={row.emailLabel}
+                          canResend={row.canResend}
+                          canRevoke={row.canRevoke}
+                        />
+                      ) : row.showOwnerManageHint ? (
+                        <p className={styles.manageHint}>
+                          Owner access required to manage this invitation.
+                        </p>
+                      ) : null}
                     </td>
                   </tr>
                 ))}
@@ -290,13 +304,19 @@ export function PendingInvitationsSection({
                   </div>
                 </dl>
                 <div className={styles.cardActions}>
-                  <PendingInvitationActions
-                    organizationId={organizationId}
-                    invitationId={row.invitationId}
-                    emailLabel={row.emailLabel}
-                    canResend={row.canResend}
-                    canRevoke={row.canRevoke}
-                  />
+                  {row.canResend || row.canRevoke ? (
+                    <PendingInvitationActions
+                      organizationId={organizationId}
+                      invitationId={row.invitationId}
+                      emailLabel={row.emailLabel}
+                      canResend={row.canResend}
+                      canRevoke={row.canRevoke}
+                    />
+                  ) : row.showOwnerManageHint ? (
+                    <p className={styles.manageHint}>
+                      Owner access required to manage this invitation.
+                    </p>
+                  ) : null}
                 </div>
               </li>
             ))}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createInvitationAction } from "@/features/invitations/actions/create-invitation-action";
 import type { OrganizationInvitationTargetRole } from "@/features/invitations/domain/types";
@@ -10,6 +10,7 @@ import styles from "./invite-member-form.module.css";
 type InviteMemberFormProps = {
   organizationId: string;
   invitableRoles: readonly OrganizationInvitationTargetRole[];
+  invitationAcceptanceEnabled: boolean;
 };
 
 type FormFeedback =
@@ -35,27 +36,54 @@ function defaultRole(
   return roles[0] ?? "";
 }
 
+function toCreateSuccessDisplayMessage(
+  baseMessage: string,
+  invitationAcceptanceEnabled: boolean,
+): string {
+  if (invitationAcceptanceEnabled) {
+    return baseMessage;
+  }
+  return `${baseMessage} Invitation acceptance is currently disabled.`;
+}
+
 export function InviteMemberForm({
   organizationId,
   invitableRoles,
+  invitationAcceptanceEnabled,
 }: InviteMemberFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const roleSelectRef = useRef<HTMLSelectElement>(null);
   const [email, setEmail] = useState("");
   const [targetRole, setTargetRole] = useState<OrganizationInvitationTargetRole | "">(
     () => defaultRole(invitableRoles),
   );
   const [feedback, setFeedback] = useState<FormFeedback>({ kind: "idle" });
 
-  if (invitableRoles.length === 0) {
-    return null;
-  }
-
   const isPending = feedback.kind === "pending";
   const emailError =
     feedback.kind === "error" ? feedback.fieldErrors?.email : undefined;
   const roleError =
     feedback.kind === "error" ? feedback.fieldErrors?.targetRole : undefined;
+  const hasFieldErrors = Boolean(emailError || roleError);
+
+  useEffect(() => {
+    if (feedback.kind !== "error") {
+      return;
+    }
+    if (feedback.fieldErrors?.email) {
+      emailInputRef.current?.focus();
+      return;
+    }
+    if (feedback.fieldErrors?.targetRole) {
+      roleSelectRef.current?.focus();
+    }
+  }, [feedback]);
+
+  if (invitableRoles.length === 0) {
+    return null;
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -83,7 +111,13 @@ export function InviteMemberForm({
     }
 
     if (result.ok) {
-      setFeedback({ kind: "success", message: result.message });
+      setFeedback({
+        kind: "success",
+        message: toCreateSuccessDisplayMessage(
+          result.message,
+          invitationAcceptanceEnabled,
+        ),
+      });
       setEmail("");
       setTargetRole(defaultRole(invitableRoles));
       router.refresh();
@@ -104,13 +138,14 @@ export function InviteMemberForm({
       className={styles.inviteForm}
       onSubmit={handleSubmit}
       aria-busy={isPending}
+      aria-labelledby="invite-member-heading"
       noValidate
     >
       <div className={styles.sectionHeader}>
         <h2 id="invite-member-heading">Invite member</h2>
         <p className={styles.helpText}>
-          Create a pending invitation for this organization. Delivery email is
-          not sent from this screen yet.
+          Create a pending invitation for this organization. Invitation email
+          delivery is not enabled yet.
         </p>
       </div>
 
@@ -120,7 +155,7 @@ export function InviteMemberForm({
         </div>
       ) : null}
 
-      {feedback.kind === "error" ? (
+      {feedback.kind === "error" && !hasFieldErrors ? (
         <div className={styles.formError} role="alert">
           <p>{feedback.message}</p>
         </div>
@@ -130,6 +165,7 @@ export function InviteMemberForm({
         <div className={styles.field}>
           <label htmlFor="invite-member-email">Email</label>
           <input
+            ref={emailInputRef}
             id="invite-member-email"
             name="email"
             type="email"
@@ -142,7 +178,7 @@ export function InviteMemberForm({
             required
           />
           {emailError ? (
-            <p id="invite-member-email-error" className={styles.fieldError}>
+            <p id="invite-member-email-error" className={styles.fieldError} role="alert">
               {emailError}
             </p>
           ) : null}
@@ -151,6 +187,7 @@ export function InviteMemberForm({
         <div className={styles.field}>
           <label htmlFor="invite-member-role">Role</label>
           <select
+            ref={roleSelectRef}
             id="invite-member-role"
             name="targetRole"
             value={targetRole}
@@ -171,7 +208,7 @@ export function InviteMemberForm({
             ))}
           </select>
           {roleError ? (
-            <p id="invite-member-role-error" className={styles.fieldError}>
+            <p id="invite-member-role-error" className={styles.fieldError} role="alert">
               {roleError}
             </p>
           ) : null}
