@@ -1,12 +1,14 @@
 import { Alert } from "@/components/ui/alert";
 import { AppShell } from "@/components/app-shell";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getInvitableOrganizationRoles } from "@/features/invitations/domain/permissions";
 import { buildMembersListHref } from "@/features/invitations/domain/members-navigation";
 import { loadMemberAdministrationPage } from "@/features/invitations/server/load-member-administration-page";
 import {
   ActiveMembersSection,
   PendingInvitationsSection,
 } from "@/features/invitations/ui/member-administration-lists";
+import { InviteMemberForm } from "@/features/invitations/ui/invite-member-form";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
 import styles from "./page.module.css";
 
@@ -130,6 +132,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
   }
 
   const timeZone = "UTC";
+  const invitableRoles = getInvitableOrganizationRoles(result.role, "active");
 
   return (
     <AppShell
@@ -147,6 +150,11 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
           </p>
           <p className={styles.orgName}>{result.organizationName}</p>
         </header>
+
+        <InviteMemberForm
+          organizationId={result.organizationId}
+          invitableRoles={invitableRoles}
+        />
 
         <ActiveMembersSection
           members={result.members}
