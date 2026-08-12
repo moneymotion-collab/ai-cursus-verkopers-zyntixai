@@ -7,26 +7,38 @@ function readSrc(relativePath: string): string {
 }
 
 describe("Member administration Slice 1 boundary", () => {
-  it("does not implement invitation or membership mutations", () => {
+  it("keeps page loader free of invitation/membership mutations and token secrets", () => {
     const page = readSrc(
       "src/app/(authenticated)/settings/members/page.tsx",
-    );
-    const lists = readSrc(
-      "src/features/invitations/ui/member-administration-lists.tsx",
     );
     const loader = readSrc(
       "src/features/invitations/server/load-member-administration-page.ts",
     );
 
-    for (const source of [page, lists, loader]) {
-      expect(source).not.toMatch(/createInvitation/i);
-      expect(source).not.toMatch(/resendInvitation/i);
-      expect(source).not.toMatch(/revokeInvitation/i);
+    for (const source of [page, loader]) {
+      expect(source).not.toMatch(/resend_organization_invitation/);
+      expect(source).not.toMatch(/revoke_organization_invitation/);
       expect(source).not.toMatch(/suspendMembership/i);
       expect(source).not.toMatch(/reactivateMembership/i);
       expect(source).not.toMatch(/removeMembership/i);
       expect(source).not.toMatch(/token_hash/);
+      expect(source).not.toContain("service_role");
     }
+
+    expect(loader).not.toMatch(/createInvitation/i);
+    expect(loader).not.toMatch(/resendInvitation/i);
+    expect(loader).not.toMatch(/revokeInvitation/i);
+  });
+
+  it("lists UI does not expose token_hash or membership mutation controls", () => {
+    const lists = readSrc(
+      "src/features/invitations/ui/member-administration-lists.tsx",
+    );
+    expect(lists).not.toMatch(/token_hash/);
+    expect(lists).not.toMatch(/suspendMembership/i);
+    expect(lists).not.toMatch(/reactivateMembership/i);
+    expect(lists).not.toMatch(/removeMembership/i);
+    expect(lists).not.toContain("service_role");
   });
 
   it("pending loader selects only safe invitation columns", () => {

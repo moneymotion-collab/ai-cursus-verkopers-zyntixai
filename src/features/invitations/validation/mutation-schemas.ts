@@ -36,3 +36,24 @@ export type CreateOrganizationInvitationInput = z.infer<
 export function validateCreateOrganizationInvitationInput(input: unknown) {
   return createOrganizationInvitationInputSchema.safeParse(input);
 }
+
+/**
+ * Manage (resend/revoke) action input.
+ * Client identifies the row by invitation id; organization id is re-verified
+ * against active membership and is never sole authority.
+ * Target email/role/status/token fields are intentionally absent.
+ */
+export const manageOrganizationInvitationInputSchema = z
+  .object({
+    organizationId: uuidSchema,
+    invitationId: uuidSchema,
+  })
+  .strict();
+
+export type ManageOrganizationInvitationInput = z.infer<
+  typeof manageOrganizationInvitationInputSchema
+>;
+
+export function validateManageOrganizationInvitationInput(input: unknown) {
+  return manageOrganizationInvitationInputSchema.safeParse(input);
+}

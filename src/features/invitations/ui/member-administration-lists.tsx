@@ -1,12 +1,19 @@
 import { Badge } from "@/components/ui/badge";
+import type { OrganizationRole } from "@/features/tasks/domain/permissions";
 import type {
   MemberAdminMember,
   PendingInvitationListItem,
 } from "@/features/invitations/domain/member-administration-read-types";
+import { canManageOrganizationInvitation } from "@/features/invitations/domain/permissions";
+import {
+  isOrganizationInvitationResendable,
+  isOrganizationInvitationRevocable,
+} from "@/features/invitations/domain/lifecycle";
 import {
   toMemberAdminMemberPresentation,
   toPendingInvitationPresentation,
 } from "@/features/invitations/ui/member-administration-presentation";
+import { PendingInvitationActions } from "@/features/invitations/ui/pending-invitation-actions";
 import styles from "./member-administration-lists.module.css";
 
 type ActiveMembersSectionProps = {
@@ -21,7 +28,37 @@ type PendingInvitationsSectionProps = {
   timeZone: string;
   loadFailed: boolean;
   errorMessage?: string;
+  organizationId: string;
+  actorRole: OrganizationRole;
 };
+
+function resolvePendingActionCapabilities(
+  invitation: PendingInvitationListItem,
+  actorRole: OrganizationRole,
+  nowIso: string,
+): { canResend: boolean; canRevoke: boolean } {
+  const mayManage = canManageOrganizationInvitation(
+    actorRole,
+    "active",
+    invitation.role,
+  );
+
+  if (!mayManage) {
+    return { canResend: false, canRevoke: false };
+  }
+
+  const canResend = isOrganizationInvitationResendable({
+    status: invitation.status,
+    expiresAt: invitation.expiresAt,
+    now: nowIso,
+  });
+
+  const canRevoke = isOrganizationInvitationRevocable({
+    status: invitation.status,
+  });
+
+  return { canResend, canRevoke };
+}
 
 export function ActiveMembersSection({
   members,
@@ -129,10 +166,19 @@ export function PendingInvitationsSection({
   timeZone,
   loadFailed,
   errorMessage,
+  organizationId,
+  actorRole,
 }: PendingInvitationsSectionProps) {
-  const rows = invitations.map((invitation) =>
-    toPendingInvitationPresentation(invitation, timeZone),
-  );
+  const nowIso = new Date().toISOString();
+  const rows = invitations.map((invitation) => {
+    const presentation = toPendingInvitationPresentation(invitation, timeZone);
+    const capabilities = resolvePendingActionCapabilities(
+      invitation,
+      actorRole,
+      nowIso,
+    );
+    return { ...presentation, ...capabilities };
+  });
 
   return (
     <section aria-labelledby="pending-invitations-heading">
@@ -188,6 +234,7 @@ export function PendingInvitationsSection({
                   <th scope="col">Invited by</th>
                   <th scope="col">Created</th>
                   <th scope="col">Expires</th>
+                  <th scope="col">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -205,6 +252,15 @@ export function PendingInvitationsSection({
                     <td>{row.inviterLabel}</td>
                     <td>{row.createdAtLabel}</td>
                     <td>{row.expiresAtLabel}</td>
+                    <td>
+                      <PendingInvitationActions
+                        organizationId={organizationId}
+                        invitationId={row.invitationId}
+                        emailLabel={row.emailLabel}
+                        canResend={row.canResend}
+                        canRevoke={row.canRevoke}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -233,6 +289,15 @@ export function PendingInvitationsSection({
                     <dd>{row.expiresAtLabel}</dd>
                   </div>
                 </dl>
+                <div className={styles.cardActions}>
+                  <PendingInvitationActions
+                    organizationId={organizationId}
+                    invitationId={row.invitationId}
+                    emailLabel={row.emailLabel}
+                    canResend={row.canResend}
+                    canRevoke={row.canRevoke}
+                  />
+                </div>
               </li>
             ))}
           </ul>

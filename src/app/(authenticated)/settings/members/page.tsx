@@ -168,6 +168,8 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
           timeZone={timeZone}
           loadFailed={result.invitationsLoadFailed}
           errorMessage={result.invitationsErrorMessage}
+          organizationId={result.organizationId}
+          actorRole={result.role}
         />
       </div>
     </AppShell>
