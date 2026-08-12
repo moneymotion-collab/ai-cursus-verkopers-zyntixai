@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { OrganizationRole } from "@/features/tasks/domain/permissions";
 import type {
@@ -169,6 +172,11 @@ export function ActiveMembersSection({
   );
 }
 
+/**
+ * Pending invitations use a single responsive table so each invitation mounts
+ * exactly one PendingInvitationActions owner (no dual table/card controllers).
+ * Below 1024px, CSS stacks rows into card-like blocks.
+ */
 export function PendingInvitationsSection({
   invitations,
   timeZone,
@@ -177,6 +185,7 @@ export function PendingInvitationsSection({
   organizationId,
   actorRole,
 }: PendingInvitationsSectionProps) {
+  const pendingHeadingRef = useRef<HTMLHeadingElement>(null);
   const nowIso = new Date().toISOString();
   const rows = invitations.map((invitation) => {
     const presentation = toPendingInvitationPresentation(invitation, timeZone);
@@ -191,7 +200,14 @@ export function PendingInvitationsSection({
   return (
     <section aria-labelledby="pending-invitations-heading">
       <div className={styles.sectionHeader}>
-        <h2 id="pending-invitations-heading">Pending invitations</h2>
+        <h2
+          id="pending-invitations-heading"
+          ref={pendingHeadingRef}
+          tabIndex={-1}
+          className={styles.focusableHeading}
+        >
+          Pending invitations
+        </h2>
         {!loadFailed ? (
           <p className={styles.count} aria-live="polite">
             {rows.length === 1
@@ -229,98 +245,56 @@ export function PendingInvitationsSection({
         </div>
       ) : (
         <div className={styles.listContainer}>
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <caption className={styles.visuallyHidden}>
-                Pending organization invitations
-              </caption>
-              <thead>
-                <tr>
-                  <th scope="col">Email</th>
-                  <th scope="col">Role</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Invited by</th>
-                  <th scope="col">Created</th>
-                  <th scope="col">Expires</th>
-                  <th scope="col">Actions</th>
+          <table className={styles.pendingTable}>
+            <caption className={styles.visuallyHidden}>
+              Pending organization invitations
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Email</th>
+                <th scope="col">Role</th>
+                <th scope="col">Status</th>
+                <th scope="col">Invited by</th>
+                <th scope="col">Created</th>
+                <th scope="col">Expires</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.invitationId} className={styles.pendingRow}>
+                  <td data-label="Email">
+                    <span className={styles.nameCell}>{row.emailLabel}</span>
+                  </td>
+                  <td data-label="Role">
+                    <Badge variant="info">{row.roleLabel}</Badge>
+                  </td>
+                  <td data-label="Status">
+                    <Badge variant="warning">{row.statusLabel}</Badge>
+                  </td>
+                  <td data-label="Invited by">{row.inviterLabel}</td>
+                  <td data-label="Created">{row.createdAtLabel}</td>
+                  <td data-label="Expires">{row.expiresAtLabel}</td>
+                  <td data-label="Actions" className={styles.pendingActionsCell}>
+                    {row.canResend || row.canRevoke ? (
+                      <PendingInvitationActions
+                        organizationId={organizationId}
+                        invitationId={row.invitationId}
+                        emailLabel={row.emailLabel}
+                        canResend={row.canResend}
+                        canRevoke={row.canRevoke}
+                        pendingHeadingRef={pendingHeadingRef}
+                      />
+                    ) : row.showOwnerManageHint ? (
+                      <p className={styles.manageHint}>
+                        Owner access required to manage this invitation.
+                      </p>
+                    ) : null}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.invitationId}>
-                    <td>
-                      <span className={styles.nameCell}>{row.emailLabel}</span>
-                    </td>
-                    <td>
-                      <Badge variant="info">{row.roleLabel}</Badge>
-                    </td>
-                    <td>
-                      <Badge variant="warning">{row.statusLabel}</Badge>
-                    </td>
-                    <td>{row.inviterLabel}</td>
-                    <td>{row.createdAtLabel}</td>
-                    <td>{row.expiresAtLabel}</td>
-                    <td>
-                      {row.canResend || row.canRevoke ? (
-                        <PendingInvitationActions
-                          organizationId={organizationId}
-                          invitationId={row.invitationId}
-                          emailLabel={row.emailLabel}
-                          canResend={row.canResend}
-                          canRevoke={row.canRevoke}
-                        />
-                      ) : row.showOwnerManageHint ? (
-                        <p className={styles.manageHint}>
-                          Owner access required to manage this invitation.
-                        </p>
-                      ) : null}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <ul className={styles.cardList} aria-label="Pending invitations">
-            {rows.map((row) => (
-              <li key={row.invitationId} className={styles.card}>
-                <h3 className={styles.cardTitle}>{row.emailLabel}</h3>
-                <div className={styles.cardBadges}>
-                  <Badge variant="info">{row.roleLabel}</Badge>
-                  <Badge variant="warning">{row.statusLabel}</Badge>
-                </div>
-                <dl className={styles.cardMeta}>
-                  <div>
-                    <dt>Invited by</dt>
-                    <dd>{row.inviterLabel}</dd>
-                  </div>
-                  <div>
-                    <dt>Created</dt>
-                    <dd>{row.createdAtLabel}</dd>
-                  </div>
-                  <div>
-                    <dt>Expires</dt>
-                    <dd>{row.expiresAtLabel}</dd>
-                  </div>
-                </dl>
-                <div className={styles.cardActions}>
-                  {row.canResend || row.canRevoke ? (
-                    <PendingInvitationActions
-                      organizationId={organizationId}
-                      invitationId={row.invitationId}
-                      emailLabel={row.emailLabel}
-                      canResend={row.canResend}
-                      canRevoke={row.canRevoke}
-                    />
-                  ) : row.showOwnerManageHint ? (
-                    <p className={styles.manageHint}>
-                      Owner access required to manage this invitation.
-                    </p>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-          </ul>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </section>

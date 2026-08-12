@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { useRouter } from "next/navigation";
 import { resendInvitationAction } from "@/features/invitations/actions/resend-invitation-action";
 import { revokeInvitationAction } from "@/features/invitations/actions/revoke-invitation-action";
@@ -12,6 +12,8 @@ export type PendingInvitationActionsProps = {
   emailLabel: string;
   canResend: boolean;
   canRevoke: boolean;
+  /** Stable section heading for revoke-success focus restoration. */
+  pendingHeadingRef?: RefObject<HTMLElement | null>;
 };
 
 type ActionFeedback =
@@ -22,16 +24,34 @@ type ActionFeedback =
   | { kind: "success"; message: string }
   | { kind: "error"; message: string };
 
+/**
+ * Single mutation-state owner for one pending invitation.
+ * Must be mounted once per invitation (no desktop/mobile duplicate controllers).
+ */
 export function PendingInvitationActions({
   organizationId,
   invitationId,
   emailLabel,
   canResend,
   canRevoke,
+  pendingHeadingRef,
 }: PendingInvitationActionsProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
+  const revokeButtonRef = useRef<HTMLButtonElement>(null);
+  const restoreRevokeFocusRef = useRef(false);
   const [feedback, setFeedback] = useState<ActionFeedback>({ kind: "idle" });
+
+  useEffect(() => {
+    if (!restoreRevokeFocusRef.current) {
+      return;
+    }
+    if (feedback.kind !== "idle") {
+      return;
+    }
+    restoreRevokeFocusRef.current = false;
+    revokeButtonRef.current?.focus();
+  }, [feedback]);
 
   if (!canResend && !canRevoke) {
     return null;
@@ -72,6 +92,11 @@ export function PendingInvitationActions({
     }
   }
 
+  function handleRevokeCancel() {
+    restoreRevokeFocusRef.current = true;
+    setFeedback({ kind: "idle" });
+  }
+
   async function handleRevokeConfirm() {
     if (pendingRef.current || busy || !canRevoke) {
       return;
@@ -87,6 +112,8 @@ export function PendingInvitationActions({
       });
 
       if (result.ok) {
+        // Heading persists across row removal / refresh — focus before refresh.
+        pendingHeadingRef?.current?.focus();
         setFeedback({ kind: "success", message: result.message });
         router.refresh();
       } else {
@@ -103,7 +130,7 @@ export function PendingInvitationActions({
   }
 
   return (
-    <div className={styles.actions}>
+    <div className={styles.actions} data-pending-action-owner={invitationId}>
       {showRevokeConfirm ? (
         <div
           className={styles.confirmPanel}
@@ -118,7 +145,7 @@ export function PendingInvitationActions({
               type="button"
               className={styles.secondaryButton}
               disabled={busy}
-              onClick={() => setFeedback({ kind: "idle" })}
+              onClick={handleRevokeCancel}
             >
               Cancel
             </button>
@@ -155,6 +182,7 @@ export function PendingInvitationActions({
           ) : null}
           {canRevoke ? (
             <button
+              ref={revokeButtonRef}
               type="button"
               className={styles.dangerButton}
               disabled={busy}

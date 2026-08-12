@@ -23,7 +23,7 @@
 
 .secondaryButton,
 .dangerButton {
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   padding: 0.375rem 0.75rem;
   border-radius: 0.5rem;
   font: inherit;
@@ -59,12 +59,14 @@
   margin: 0;
   font-size: 0.875rem;
   color: #166534;
+  word-break: break-word;
 }
 
 .error {
   margin: 0;
   font-size: 0.875rem;
   color: #991b1b;
+  word-break: break-word;
 }
 
 .pending {
