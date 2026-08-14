@@ -352,15 +352,22 @@ Do **not** request CB-E1 until CB-R1 production apply is closed per governance.
 | Item | Value |
 | --- | --- |
 | Implementation commit | `2b11250783eaae0b9082a4a0177d28b8288a4cd8` — `feat(invitations): add create/resend mutation rate limiting` |
-| Evidence commit | *(this docs commit)* |
-| Push | to `origin/core/platform-readiness-20260707` after evidence commit |
+| Evidence commit | `560528bf34f7a7fe13b4138f19c4b1d1021a06cb` — `docs(invitations): publish CB-R1 rate limiting evidence` |
+| Push | **DONE** — `origin/core/platform-readiness-20260707` |
+| Divergence after push | `0 0` |
 | Production apply | **NOT DONE** |
 
 ---
 
 ## 19. Final Git state
 
-*(filled after evidence commit + push)*
+| Check | Result |
+| --- | --- |
+| Branch | `core/platform-readiness-20260707` |
+| Final HEAD | `560528bf34f7a7fe13b4138f19c4b1d1021a06cb` |
+| Upstream | `origin/core/platform-readiness-20260707` @ same SHA |
+| Divergence | `0 0` |
+| Worktree | clean after publication (except any follow-up evidence hygiene commit) |
 
 ---
 
