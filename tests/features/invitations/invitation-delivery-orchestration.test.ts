@@ -114,6 +114,7 @@ describe("invitation delivery orchestration in actions (CB-E1-A)", () => {
     });
     expect(JSON.stringify(result)).not.toContain(VALID_TOKEN);
     expect(JSON.stringify(result)).not.toContain("rawToken");
+    expect(JSON.stringify(result)).not.toContain("/invite/accept/exchange");
     expect(revalidatePathMock).toHaveBeenCalledWith(MEMBERS_ROUTE);
   });
 

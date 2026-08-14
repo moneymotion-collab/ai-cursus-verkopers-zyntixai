@@ -3,6 +3,9 @@ import "server-only";
 export {
   buildInvitationAcceptanceUrl,
   INVITATION_ACCEPTANCE_EXCHANGE_PATH,
+  INVITATION_ACCEPTANCE_TOKEN_QUERY,
+  isTrustedInvitationAcceptanceUrl,
+  isTrustedInvitationEmailOrigin,
 } from "@/features/invitations/server/delivery/acceptance-url";
 export {
   isInvitationEmailDeliveryEnabled,
@@ -13,10 +16,19 @@ export {
   resolveInvitationEmailDeliveryRuntimeConfig,
 } from "@/features/invitations/server/delivery/config";
 export {
-  buildMinimalInvitationEmailContent,
   deliverInvitation,
   type DeliverInvitationDeps,
 } from "@/features/invitations/server/delivery/deliver-invitation";
+export {
+  buildInvitationEmailContent,
+  escapeHtmlForInvitationEmail,
+  formatInvitationExpiryLabel,
+  invitationTargetRoleDisplayLabel,
+  sanitizeInvitationEmailSubjectFragment,
+  type BuildInvitationEmailContentResult,
+  type InvitationEmailTemplateContent,
+  type InvitationEmailTemplateInput,
+} from "@/features/invitations/server/delivery/invitation-email-template";
 export { loadOrganizationDisplayNameForDelivery } from "@/features/invitations/server/delivery/load-organization-display-name";
 export {
   orchestrateInvitationDelivery,
