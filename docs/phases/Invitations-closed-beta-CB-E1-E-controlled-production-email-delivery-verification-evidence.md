@@ -2,22 +2,24 @@
 
 ## CB-E1-E — Controlled Production Invitation Email Delivery Verification
 
-### CB-E1-E OWNER ACTION REQUIRED — REVOKE ZERO-SEND PENDING QA INVITE THEN RE-ENTER UNSUBMITTED (DELIVERY REMAINS OFF; ZERO EMAILS SENT)
+### CB-E1-E OWNER ACTION REQUIRED — RE-ENTER CONTROLLED QA ALLOWLIST RECIPIENT UNSUBMITTED (STALE PENDING REVOKED; DELIVERY REMAINS OFF; ZERO EMAILS SENT)
 
 | Field | Value |
 | --- | --- |
 | Official scope | **CB-E1-E — Controlled Production Invitation Email Delivery Verification** |
 | Document type | Continuation checkpoint / safe stop evidence |
 | Date | 2026-08-14 |
-| Continuation authorization | `OWNER APPROVED — RESUME CB-E1-E USING THE NEW CONTROLLED NON-MEMBER QA ALLOWLIST RECIPIENT` |
-| Continuation HEAD | `4aa659fad8da24c89281630812303c4b1f454392` |
-| Formal status | **OWNER ACTION REQUIRED** before delivery ON / first real send |
+| Latest continuation authorization | `OWNER APPROVED — RESUME CB-E1-E AFTER ZERO-SEND PENDING QA INVITATION CLEANUP` |
+| Continuation HEAD | `41893a765a3d7d77caa7166b99ca5c90788e1935` |
+| Formal status | **OWNER ACTION REQUIRED** — form recipient missing before delivery ON |
 | Real emails sent | **0** |
 | Acceptance gate | **OFF** |
 | Delivery gate | remained **OFF** (not activated this continuation) |
+| Stale pending `34235e20-…` | **revoked** (cleanup verified) |
 
 ```text
-CB-E1-E OWNER ACTION REQUIRED — REVOKE ZERO-SEND PENDING QA INVITATION; RE-ENTER ALLOWLISTED RECIPIENT UNSUBMITTED
+CB-E1-E OWNER ACTION REQUIRED — RE-ENTER THE NEW CONTROLLED QA ALLOWLIST RECIPIENT IN /settings/members AND LEAVE UNSUBMITTED
+STALE ZERO-SEND PENDING INVITATION REVOKED
 DELIVERY REMAINS OFF
 ZERO REAL INVITATION EMAILS SENT
 ```
@@ -136,10 +138,64 @@ delivery ON → redeploy → prove acceptance OFF → exactly one create → own
 
 ---
 
-## 9. Verdict
+## 9. Prior verdict (HISTORICAL — superseded below)
 
 ```text
 CB-E1-E BLOCKED — ZERO-SEND PENDING QA INVITATION ALREADY EXISTS (CREATE PATH BLOCKED)
+DELIVERY REMAINS OFF
+ZERO REAL INVITATION EMAILS SENT
+```
+
+---
+
+## 10. Continuation after cleanup authorization (2026-08-14)
+
+**OWNER APPROVED — RESUME CB-E1-E AFTER ZERO-SEND PENDING QA INVITATION CLEANUP**
+
+### 10.1 Git / OFF deploy / DB (VERIFIED)
+
+| Check | Result |
+| --- | --- |
+| HEAD | `41893a765a3d7d77caa7166b99ca5c90788e1935` |
+| Divergence | `0 0` |
+| Worktree | clean |
+| Production deploy | `dpl_4iPddcZCQb3AZbrVq6JLCfNjtcj6` READY → `https://zyntixai.vercel.app` |
+| DB | `dmctinrcjvsgmoxwwodw` / `20260814150000` aligned |
+| Delivery | **OFF** (not activated) |
+| Acceptance | **OFF** (restricted-rollout notice live; `INVITATIONS_ENABLED` unchanged) |
+
+### 10.2 Stale pending cleanup (VERIFIED PASS)
+
+| Check | Result |
+| --- | --- |
+| Invitation `34235e20-5e77-4087-a8d0-a301d5469299` | status **`revoked`**; `revoked_at` set |
+| Pending QA invitations | **0** |
+| Delivery attempts / submitted | **0** / **0** |
+| UI pending list | **0 invitations** |
+
+### 10.3 Owner-prepared form (FAIL — STOP)
+
+| Check | Result |
+| --- | --- |
+| Org | ZyntixAI Production QA |
+| Role default | `Viewer` |
+| Email field | **empty** (recipient not present) |
+| Submitted | **no** |
+| Recipient guessed | **no** (policy forbids) |
+
+### 10.4 Actions NOT performed
+
+- Did **not** enable delivery
+- Did **not** redeploy
+- Did **not** create / resend
+- Did **not** call Resend
+- Did **not** decrypt allowlist
+
+### 10.5 Current verdict
+
+```text
+CB-E1-E OWNER ACTION REQUIRED — RE-ENTER THE NEW CONTROLLED QA ALLOWLIST RECIPIENT IN /settings/members AND LEAVE UNSUBMITTED
+STALE ZERO-SEND PENDING INVITATION REVOKED
 DELIVERY REMAINS OFF
 ZERO REAL INVITATION EMAILS SENT
 ```
