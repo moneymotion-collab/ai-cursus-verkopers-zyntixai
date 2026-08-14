@@ -177,6 +177,7 @@ describe("invitations feature gate OFF", () => {
 
     const result = await acceptInvitationAction();
     expect(result.ok).toBe(false);
+    expect(result.code).toBe("feature_disabled");
     expect(result.message).toBe(ACCEPT_INVITATION_MESSAGES.feature_disabled);
     expect(acceptRpcMock).not.toHaveBeenCalled();
     expect(cookiesSetMock).not.toHaveBeenCalled();

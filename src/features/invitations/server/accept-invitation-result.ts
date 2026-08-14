@@ -52,6 +52,7 @@ export type AcceptInvitationUiCode =
   | "verification_required"
   | "admin_action_required"
   | "invitation_unavailable"
+  | "feature_disabled"
   | "auth_required"
   | "origin_rejected"
   | "unexpected";
@@ -153,9 +154,11 @@ export function toAcceptInvitationUiResult(
         message: ACCEPT_INVITATION_MESSAGES.invitation_unavailable,
       };
     case "feature_disabled":
+      // Distinct from invitation_unavailable so gate-OFF / closed-beta can be
+      // distinguished from invalid/expired/revoked invitation links (CB-G1).
       return {
         ok: false,
-        code: "invitation_unavailable",
+        code: "feature_disabled",
         message: ACCEPT_INVITATION_MESSAGES.feature_disabled,
       };
     case "auth_required":
