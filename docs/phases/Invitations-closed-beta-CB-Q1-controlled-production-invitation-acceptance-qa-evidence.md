@@ -2,23 +2,23 @@
 
 ## CB-Q1 — Controlled Production Invitation Acceptance QA
 
-### CB-Q1 OWNER ACTION REQUIRED — OPTION B SELECTED; UPDATE ALLOWLIST TO EXISTING NON-MEMBER QA AUTH ACCOUNT
+### CB-Q1 OWNER DECISION REQUIRED — NO APPROVED QA MEMBERSHIP CLEANUP PATH EXISTS
 
 | Field | Value |
 | --- | --- |
 | Official scope | **CB-Q1 — Controlled Production Invitation Acceptance QA** |
-| Document type | Pre-QA Phase A verification + Option B checkpoint |
+| Document type | Auth readiness + cleanup preflight (gates remain OFF) |
 | Date | 2026-08-14 |
-| Owner authorization | `OWNER APPROVED — AUTHORIZE CB-Q1 CONTROLLED PRODUCTION INVITATION ACCEPTANCE QA` |
+| Owner continuation | `OWNER APPROVED — RESUME CB-Q1 WITH EXISTING-AUTH-ACCOUNT VERIFICATION, MEMBERSHIP-CLEANUP PREFLIGHT, AND CONTROLLED ACCEPTANCE QA ONLY IF ALL HARD GATES PASS` |
 | Auth-path decision | **Option B** — existing non-member QA auth account |
-| Prior decision HEAD | `8a698c744ec4c63ded7eb148e29bb9f9be9f3250` |
-| Formal status | **STOPPED — OWNER ACTION REQUIRED** (no Production gate mutation performed) |
+| Resume-from HEAD | `b2a86ba9d81df7f9d4ee91aae19cae990c1c2925` |
+| Formal status | **STOPPED — OWNER DECISION REQUIRED** (cleanup disposition unresolved; no gate mutation) |
 | Real emails during CB-Q1 so far | **0** |
 | Invitation creates | **0** |
 | Acceptances | **0** |
 
 ```text
-CB-Q1 OWNER ACTION REQUIRED — OPTION B SELECTED; UPDATE ALLOWLIST TO EXISTING NON-MEMBER QA AUTH ACCOUNT AND CONFIRM READY
+CB-Q1 OWNER DECISION REQUIRED — NO APPROVED QA MEMBERSHIP CLEANUP PATH EXISTS
 ```
 
 ---
@@ -153,8 +153,100 @@ None.
 
 ---
 
-## 11. Next step after allowlist confirmation
+## 11. Next step after allowlist confirmation (superseded by §12–§14)
 
-Resume from the published HEAD after owner confirms Option B allowlist + account readiness, then continue Stage 1 (delivery ON only / acceptance OFF).
+Historical Option B allowlist action remained open; see §12 for current masked auth verification of the prepared Members form target.
 
 Do **not** set `INVITATIONS_ENABLED=true` until after delivery OFF restoration following the single invitation email.
+
+---
+
+## 12. Resume verification — Git / Production / gates (VERIFIED)
+
+| Check | Result |
+| --- | --- |
+| Worktree | authoritative path |
+| Branch | `core/platform-readiness-20260707` |
+| HEAD / upstream | `b2a86ba9d81df7f9d4ee91aae19cae990c1c2925` |
+| Divergence | `0 0` clean |
+| Deploy | `dpl_8pSbXBHpcTyPPASAwWaEFBdQ7xtr` READY · SHA `5d7486b…` |
+| DB | `dmctinrcjvsgmoxwwodw` · latest `20260814150000` |
+| Delivery / Acceptance | both **OFF** (Members restricted-rollout copy) |
+| QA org baseline | **6** active · **0** pending · **2** submitted attempts |
+
+---
+
+## 13. Auth-account readiness (PARTIAL — machine PASS; owner confirms still needed)
+
+Owner-prepared Members form email (not published) was checked against Production auth:
+
+| Check | Result |
+| --- | --- |
+| Matching `auth.users` | exactly **1** |
+| `user_prefix` | `b7be51ce` |
+| `email_fp` | `c221bfd439a3` |
+| Email confirmed | **yes** |
+| Banned / deleted | **no** |
+| QA org active membership | **none** |
+| QA org suspended membership | **none** |
+| QA pending invitation | **0** |
+| Other org memberships | **none** |
+| Form role | Viewer |
+| Form submitted | **no** |
+
+Classification:
+
+- Machine: `AUTH ACCOUNT EXISTS + QA ORG MEMBERSHIP = NONE`
+- Login capability: `OWNER CONFIRMATION REQUIRED — LOGIN CAPABLE` (not yet owner-confirmed in this continuation)
+- UI org context when inspected: **ZyntixAI Production QA Isolation** (wrong org for CB-Q1 create). Owner must switch to **ZyntixAI Production QA** before Stage 1.
+- Allowlist correspondence: Encrypted; not decrypted. Owner must ensure Production allowlist matches this same existing account before Stage 1.
+
+Auth readiness is **not** the current hard stop by itself, but Stage 1 still requires login confirmation + correct org + allowlist match.
+
+---
+
+## 14. Membership cleanup preflight (FAIL — hard stop)
+
+Searched read-only:
+
+- `/settings/members` UI (`ActiveMembersSection` read-only; no member row actions)
+- invitation server actions (create/resend/revoke/accept only)
+- migrations for membership lifecycle RPCs
+- RLS foundation policies
+- design contract §5 / §30 / §32
+- boundary tests asserting absence of `suspendMembership` / `removeMembership`
+
+| Candidate path | Verdict |
+| --- | --- |
+| UI remove/suspend | **absent** (MVP non-goal) |
+| Public RPC suspend/remove member | **absent** |
+| Server action membership mutation | **absent** |
+| Invitation revoke | invitation-only; does **not** remove accepted membership |
+| Direct `organization_members` UPDATE/DELETE | RLS may permit Owner/Admin technically; design contract says **not product authorization** |
+
+```text
+CB-Q1 OWNER DECISION REQUIRED — NO APPROVED QA MEMBERSHIP CLEANUP PATH EXISTS
+```
+
+Why direct DB deletion is not used: Member Administration MVP explicitly excludes destructive member admin; CB-Q1 authorization forbids unapproved/direct table deletion.
+
+### Owner options
+
+1. Authorize leaving the temporary QA Viewer membership after successful acceptance (cleanup-pending closure path).
+2. Authorize a separate Member Administration cleanup capability (new scoped implementation phase; not CB-Q1).
+3. Pause CB-Q1; keep both gates OFF.
+
+Until one option is chosen:
+
+- do **not** enable delivery;
+- do **not** enable acceptance;
+- do **not** create an invitation;
+- do **not** send email.
+
+---
+
+## 15. Stage 1 proceed decision
+
+**NO — Stage 1 blocked.**
+
+Hard pre-Stage-1 gate fails on cleanup disposition (#12 in continuation prompt). Auth candidate looks suitable once login/org/allowlist are confirmed, but invitation creation remains unauthorized until cleanup disposition is resolved.
