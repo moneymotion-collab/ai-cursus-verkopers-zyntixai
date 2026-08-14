@@ -65,6 +65,15 @@ describe("mapCreateInvitationRpcRow", () => {
         raw_token: null,
       }),
     ).toEqual({ kind: "forbidden" });
+
+    expect(
+      mapCreateInvitationRpcRow({
+        result_code: "rate_limited",
+        invitation_id: null,
+        expires_at: null,
+        raw_token: SENTINEL_RAW_TOKEN,
+      }),
+    ).toEqual({ kind: "rate_limited" });
   });
 });
 
@@ -101,15 +110,23 @@ describe("toCreateInvitationActionResult", () => {
     });
 
     expect(
-      toCreateInvitationActionResult({
-        kind: "invite_already_pending",
-        invitationId: null,
-        expiresAt: null,
-      }),
+      toCreateInvitationActionResult({ kind: "invite_already_pending", invitationId: null, expiresAt: null }),
     ).toMatchObject({
       ok: false,
       code: "invite_already_pending",
     });
+
+    expect(toCreateInvitationActionResult({ kind: "rate_limited" })).toEqual({
+      ok: false,
+      code: "rate_limited",
+      message: CREATE_INVITATION_MESSAGES.rate_limited,
+    });
+    expect(CREATE_INVITATION_MESSAGES.rate_limited.toLowerCase()).not.toContain(
+      "email",
+    );
+    expect(CREATE_INVITATION_MESSAGES.rate_limited.toLowerCase()).not.toContain(
+      "remaining",
+    );
 
     expect(
       toCreateInvitationActionResult({ kind: "transport_error" }),

@@ -14,6 +14,7 @@ export const CREATE_INVITATION_RESULT_CODES = [
   "invite_already_pending",
   "forbidden",
   "invalid_input",
+  "rate_limited",
   "unexpected",
 ] as const;
 
@@ -49,6 +50,7 @@ export type CreateInvitationAdapterResult =
         | "existing_membership_requires_admin_action"
         | "forbidden"
         | "invalid_input"
+        | "rate_limited"
         | "unexpected";
     }
   | { kind: "transport_error" };
@@ -61,6 +63,7 @@ export type CreateInvitationUiCode =
   | "invite_already_pending"
   | "forbidden"
   | "invalid_input"
+  | "rate_limited"
   | "auth_required"
   | "unexpected";
 
@@ -89,6 +92,7 @@ export const CREATE_INVITATION_MESSAGES = {
     "A pending invitation already exists for this email address.",
   forbidden: "You do not have permission to invite with that role.",
   invalid_input: "Check the email and role, then try again.",
+  rate_limited: "Too many invitation attempts. Try again later.",
   auth_required: "Sign in to invite a member.",
   unexpected: "Unable to create the invitation right now. Please try again.",
 } as const;
@@ -145,6 +149,7 @@ export function mapCreateInvitationRpcRow(
     case "existing_membership_requires_admin_action":
     case "forbidden":
     case "invalid_input":
+    case "rate_limited":
     case "unexpected":
       return { kind: code };
     default:
@@ -192,6 +197,12 @@ export function toCreateInvitationActionResult(
         ok: false,
         code: "invalid_input",
         message: CREATE_INVITATION_MESSAGES.invalid_input,
+      };
+    case "rate_limited":
+      return {
+        ok: false,
+        code: "rate_limited",
+        message: CREATE_INVITATION_MESSAGES.rate_limited,
       };
     case "transport_error":
     case "unexpected":

@@ -58,6 +58,23 @@ describe("resend invitation result mapping", () => {
       toResendInvitationActionResult({ kind: "invite_expired" }),
     ).toMatchObject({ ok: false, code: "invite_expired" });
 
+    expect(toResendInvitationActionResult({ kind: "rate_limited" })).toEqual({
+      ok: false,
+      code: "rate_limited",
+      message: RESEND_INVITATION_MESSAGES.rate_limited,
+    });
+    expect(RESEND_INVITATION_MESSAGES.rate_limited.toLowerCase()).not.toContain(
+      "remaining",
+    );
+    expect(
+      mapResendInvitationRpcRow({
+        result_code: "rate_limited",
+        invitation_id: null,
+        expires_at: null,
+        raw_token: SENTINEL,
+      }),
+    ).toEqual({ kind: "rate_limited" });
+
     expect(
       toResendInvitationActionResult({ kind: "transport_error" }),
     ).toMatchObject({ ok: false, code: "unexpected" });

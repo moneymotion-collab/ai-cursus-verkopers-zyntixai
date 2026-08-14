@@ -11,6 +11,7 @@ export const RESEND_INVITATION_RESULT_CODES = [
   "invite_not_found_or_unavailable",
   "invite_revoked",
   "invite_expired",
+  "rate_limited",
   "unexpected",
 ] as const;
 
@@ -36,6 +37,7 @@ export type ResendInvitationAdapterResult =
         | "invite_not_found_or_unavailable"
         | "invite_revoked"
         | "invite_expired"
+        | "rate_limited"
         | "unexpected";
     }
   | { kind: "transport_error" };
@@ -45,6 +47,7 @@ export type ResendInvitationUiCode =
   | "invite_not_found_or_unavailable"
   | "invite_revoked"
   | "invite_expired"
+  | "rate_limited"
   | "forbidden"
   | "invalid_input"
   | "auth_required"
@@ -68,6 +71,7 @@ export const RESEND_INVITATION_MESSAGES = {
     "This invitation is unavailable. Refresh the page and try again.",
   invite_revoked: "This invitation has already been revoked.",
   invite_expired: "This invitation has expired. Create a new invitation instead.",
+  rate_limited: "Too many invitation attempts. Try again later.",
   forbidden: "You do not have permission to manage this invitation.",
   invalid_input: "Unable to identify the invitation. Refresh and try again.",
   auth_required: "Sign in to manage invitations.",
@@ -111,6 +115,7 @@ export function mapResendInvitationRpcRow(
     case "invite_not_found_or_unavailable":
     case "invite_revoked":
     case "invite_expired":
+    case "rate_limited":
     case "unexpected":
       return { kind: code };
     default:
@@ -145,6 +150,12 @@ export function toResendInvitationActionResult(
         ok: false,
         code: "invite_expired",
         message: RESEND_INVITATION_MESSAGES.invite_expired,
+      };
+    case "rate_limited":
+      return {
+        ok: false,
+        code: "rate_limited",
+        message: RESEND_INVITATION_MESSAGES.rate_limited,
       };
     case "transport_error":
     case "unexpected":

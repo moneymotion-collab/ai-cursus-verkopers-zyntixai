@@ -356,6 +356,24 @@ describe("resendInvitationAction / revokeInvitationAction", () => {
     expect(revalidatePathMock).not.toHaveBeenCalled();
   });
 
+  it("maps resend rate_limited without revalidation or success", async () => {
+    resolveOrgContextMock.mockResolvedValue(readyContext("owner"));
+    loadInvitationMock.mockResolvedValue(pendingInvitation("viewer"));
+    resendRpcMock.mockResolvedValue({ kind: "rate_limited" });
+
+    const resend = await resendInvitationAction({
+      organizationId: ORG_ID,
+      invitationId: INVITE_ID,
+    });
+
+    expect(resend).toEqual({
+      ok: false,
+      code: "rate_limited",
+      message: RESEND_INVITATION_MESSAGES.rate_limited,
+    });
+    expect(revalidatePathMock).not.toHaveBeenCalled();
+  });
+
   it("source boundary: no service role, console logging, or token_hash in manage path", () => {
     const files = [
       "src/features/invitations/actions/resend-invitation-action.ts",

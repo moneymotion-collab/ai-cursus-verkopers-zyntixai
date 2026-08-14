@@ -41,16 +41,8 @@ begin
       'Refusing invitation RPC live verification: set zyntix.allow_invitation_rpc_live_verify=on in this transaction only. Never run against production.';
   end if;
 
-  if exists (
-    select 1
-    from pg_proc as p
-    join pg_namespace as n on n.oid = p.pronamespace
-    where n.nspname = 'public'
-      and p.proname = 'accept_organization_invitation'
-  ) then
-    raise exception 'accept_organization_invitation must not exist in this slice';
-  end if;
-
+  -- Acceptance RPC may exist (separate acceptance migrations). Operator live
+  -- verification must not assume it is absent after the acceptance foundation.
   if to_regprocedure('public.create_organization_invitation(uuid, text, text)') is null
      or to_regprocedure('public.resend_organization_invitation(uuid, uuid)') is null
      or to_regprocedure('public.revoke_organization_invitation(uuid, uuid)') is null
@@ -293,6 +285,197 @@ begin
     raise exception 'resend token_hash mismatch';
   end if;
 
+  -- CB-R1: resend rate limit denies without rotating token / writing event
+  execute 'reset role';
+  insert into private.organization_invitation_mutation_rate_limits (
+    organization_id,
+    actor_user_id,
+    action,
+    scope_key,
+    window_started_at,
+    attempt_count,
+    updated_at
+  )
+  values (
+    v_org,
+    v_user_owner,
+    'resend',
+    v_invitation_id::text,
+    now(),
+    3,
+    now()
+  )
+  on conflict (organization_id, actor_user_id, action, scope_key)
+  do update set
+    window_started_at = excluded.window_started_at,
+    attempt_count = excluded.attempt_count,
+    updated_at = excluded.updated_at;
+
+  select token_hash, expires_at into v_hash, v_expires_at
+  from public.organization_invitations
+  where id = v_invitation_id;
+
+  select count(*) into v_cnt
+  from public.organization_invitation_events
+  where invitation_id = v_invitation_id
+    and event_type = 'invitation_resent';
+
+  execute 'set local role authenticated';
+  perform set_config(
+    'request.jwt.claims',
+    json_build_object('sub', v_user_owner::text, 'role', 'authenticated')::text,
+    true
+  );
+  perform set_config('request.jwt.claim.sub', v_user_owner::text, true);
+  select result_code, raw_token
+    into v_result_code, v_raw_token
+  from public.resend_organization_invitation(v_org, v_invitation_id);
+  if v_result_code <> 'rate_limited' or v_raw_token is not null then
+    raise exception 'resend rate limit failed: %', v_result_code;
+  end if;
+
+  execute 'reset role';
+  if exists (
+    select 1
+    from public.organization_invitations
+    where id = v_invitation_id
+      and (
+        token_hash is distinct from v_hash
+        or expires_at is distinct from v_expires_at
+      )
+  ) then
+    raise exception 'rate-limited resend must not mutate invitation';
+  end if;
+
+  if (
+    select count(*)
+    from public.organization_invitation_events
+    where invitation_id = v_invitation_id
+      and event_type = 'invitation_resent'
+  ) <> v_cnt then
+    raise exception 'rate-limited resend must not write invitation_resent';
+  end if;
+
+  -- CB-R1: create rate limit denies without inserting invitation / event
+  insert into private.organization_invitation_mutation_rate_limits (
+    organization_id,
+    actor_user_id,
+    action,
+    scope_key,
+    window_started_at,
+    attempt_count,
+    updated_at
+  )
+  values (
+    v_org,
+    v_user_owner,
+    'create',
+    '',
+    now(),
+    10,
+    now()
+  )
+  on conflict (organization_id, actor_user_id, action, scope_key)
+  do update set
+    window_started_at = excluded.window_started_at,
+    attempt_count = excluded.attempt_count,
+    updated_at = excluded.updated_at;
+
+  select count(*) into v_cnt
+  from public.organization_invitations
+  where organization_id = v_org;
+
+  execute 'set local role authenticated';
+  perform set_config(
+    'request.jwt.claims',
+    json_build_object('sub', v_user_owner::text, 'role', 'authenticated')::text,
+    true
+  );
+  perform set_config('request.jwt.claim.sub', v_user_owner::text, true);
+  select result_code, invitation_id, raw_token
+    into v_result_code, v_invitation_id, v_raw_token
+  from public.create_organization_invitation(
+    v_org, 'live-rate-limited@example.test', 'viewer'
+  );
+  if v_result_code <> 'rate_limited'
+     or v_invitation_id is not null
+     or v_raw_token is not null
+  then
+    raise exception 'create rate limit failed: %', v_result_code;
+  end if;
+
+  execute 'reset role';
+  if (
+    select count(*)
+    from public.organization_invitations
+    where organization_id = v_org
+  ) <> v_cnt then
+    raise exception 'rate-limited create must not insert invitation';
+  end if;
+
+  if exists (
+    select 1
+    from public.organization_invitations
+    where organization_id = v_org
+      and email_normalized = 'live-rate-limited@example.test'
+  ) then
+    raise exception 'rate-limited create left invitation row';
+  end if;
+
+  if exists (
+    select 1
+    from public.organization_invitation_events as e
+    join public.organization_invitations as oi on oi.id = e.invitation_id
+    where e.organization_id = v_org
+      and e.event_type = 'invitation_created'
+      and oi.email_normalized = 'live-rate-limited@example.test'
+  ) then
+    raise exception 'rate-limited create must not write invitation_created';
+  end if;
+
+  -- Tenant isolation: org B owner create still allowed under separate counters
+  execute 'set local role authenticated';
+  perform set_config(
+    'request.jwt.claims',
+    json_build_object('sub', v_user_b::text, 'role', 'authenticated')::text,
+    true
+  );
+  perform set_config('request.jwt.claim.sub', v_user_b::text, true);
+  select result_code into v_result_code
+  from public.create_organization_invitation(
+    v_org_b, 'live-org-b@example.test', 'viewer'
+  );
+  if v_result_code <> 'success' then
+    raise exception 'org B create must not inherit org A rate limit: %', v_result_code;
+  end if;
+
+  -- Private consume helper must not be executable by authenticated
+  begin
+    perform private.consume_organization_invitation_mutation_rate_limit(
+      v_org_b,
+      v_user_b,
+      'create',
+      '',
+      10,
+      3600
+    );
+    raise exception 'authenticated must not execute rate-limit helper';
+  exception
+    when insufficient_privilege then
+      null;
+    when raise_exception then
+      get stacked diagnostics v_err = message_text;
+      if v_err like '%must not execute rate-limit helper%' then
+        raise;
+      end if;
+      -- permission denied for schema/function may surface differently
+      if v_err like '%permission denied%' or v_err like '%must not execute%' then
+        null;
+      else
+        raise;
+      end if;
+  end;
+
   -- Revoke clears hash; double revoke safe
   execute 'set local role authenticated';
   perform set_config(
@@ -301,6 +484,15 @@ begin
     true
   );
   perform set_config('request.jwt.claim.sub', v_user_owner::text, true);
+  -- Restore invitation id used by earlier revoke steps (rate-limit create nullified it)
+  select oi.id into v_invitation_id
+  from public.organization_invitations as oi
+  where oi.organization_id = v_org
+    and oi.email_normalized = 'live-new@example.test'
+  limit 1;
+  if v_invitation_id is null then
+    raise exception 'lost invitation id before revoke';
+  end if;
   select result_code into v_result_code
   from public.revoke_organization_invitation(v_org, v_invitation_id);
   if v_result_code <> 'success' then

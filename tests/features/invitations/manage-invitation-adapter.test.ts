@@ -98,4 +98,26 @@ describe("manage invitation adapters", () => {
       }),
     ).resolves.toEqual({ kind: "transport_error" });
   });
+
+  it("maps resend rate_limited without raw_token", async () => {
+    rpcMock.mockResolvedValue({
+      data: [
+        {
+          result_code: "rate_limited",
+          invitation_id: null,
+          expires_at: null,
+          raw_token: SENTINEL,
+        },
+      ],
+      error: null,
+    });
+
+    const result = await resendOrganizationInvitation(createClient(), {
+      organizationId: ORG_ID,
+      invitationId: INVITE_ID,
+    });
+
+    expect(result).toEqual({ kind: "rate_limited" });
+    expect(JSON.stringify(result)).not.toContain(SENTINEL);
+  });
 });

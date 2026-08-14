@@ -65,4 +65,27 @@ describe("createOrganizationInvitation adapter", () => {
 
     expect(result).toEqual({ kind: "transport_error" });
   });
+
+  it("maps rate_limited RPC result without raw_token", async () => {
+    rpcMock.mockResolvedValue({
+      data: [
+        {
+          result_code: "rate_limited",
+          invitation_id: null,
+          expires_at: null,
+          raw_token: SENTINEL,
+        },
+      ],
+      error: null,
+    });
+
+    const result = await createOrganizationInvitation(createClient(), {
+      organizationId: ORG_ID,
+      email: "invitee@example.com",
+      targetRole: "staff",
+    });
+
+    expect(result).toEqual({ kind: "rate_limited" });
+    expect(JSON.stringify(result)).not.toContain(SENTINEL);
+  });
 });

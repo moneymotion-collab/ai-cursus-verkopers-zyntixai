@@ -216,6 +216,7 @@ describe("createInvitationAction", () => {
       "already_member",
       "existing_membership_requires_admin_action",
       "invite_already_pending",
+      "rate_limited",
     ] as const) {
       createRpcMock.mockResolvedValue(
         kind === "invite_already_pending"
@@ -230,6 +231,9 @@ describe("createInvitationAction", () => {
       });
 
       expect(result).toMatchObject({ ok: false, code: kind });
+      if (!result.ok && kind === "rate_limited") {
+        expect(result.message).toBe(CREATE_INVITATION_MESSAGES.rate_limited);
+      }
       expect(revalidatePathMock).not.toHaveBeenCalled();
     }
   });
