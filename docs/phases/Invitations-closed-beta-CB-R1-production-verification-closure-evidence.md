@@ -340,10 +340,21 @@ OWNER ROADMAP DECISION REQUIRED — CB-R1 CLOSED; CB-E1 NOT YET AUTHORIZED
 
 ## 25. Commits / publication
 
-*(filled after docs commit/push)*
+| Item | Value |
+| --- | --- |
+| Closure evidence file | `docs/phases/Invitations-closed-beta-CB-R1-production-verification-closure-evidence.md` |
+| Closure commit | `586c05dbaf2be6601f4e9279dc45dbf6dbd4f064` — `docs(invitations): close CB-R1 production verification` |
+| Push | **DONE** → `origin/core/platform-readiness-20260707` |
+| Divergence | `0 0` |
 
 ---
 
 ## 26. Final Git state
 
-*(filled after docs commit/push)*
+| Check | Result |
+| --- | --- |
+| Branch | `core/platform-readiness-20260707` |
+| Final HEAD | `586c05dbaf2be6601f4e9279dc45dbf6dbd4f064` (+ optional hygiene commit if sections updated) |
+| Upstream / origin | same |
+| Divergence | `0 0` |
+| Worktree | clean after publication |
