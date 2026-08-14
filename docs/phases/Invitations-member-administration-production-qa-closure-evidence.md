@@ -40,6 +40,20 @@ No additional production Invitation mutation QA is required for the **CURRENT** 
 
 This document does **not** claim closed-beta readiness, general-launch readiness, Owner live-matrix PASS, brand-new signup PASS, or complete Member Administration UX.
 
+### Superseding note — operator UI (added 2026-08-14)
+
+At the time this foundation closure was published (2026-08-12), human-facing `/settings/members` operator UI was correctly recorded as **not delivered**.
+
+That historical statement remains accurate for this foundation-closure moment.
+
+**Later status:** Member Administration operator UI Slices 1–6 were subsequently published on branch HEAD `00caf3d0941a2a0ff935b3297bb482b011ea8302`, then controlled-production verified by Slice 7.
+
+Authoritative later evidence:
+
+`docs/phases/Invitations-member-administration-operator-ui-production-verification-closure-evidence.md`
+
+This foundation document is **not** the Slice 7 closure artifact. Closed-beta / general-launch readiness remain **NO**. Email delivery, rate limiting, acceptance rollout, and deferred live actor matrices remain unresolved readiness boundaries unless separately closed with evidence.
+
 ---
 
 ## 1. Purpose
@@ -386,7 +400,7 @@ No emails or passwords.
 | Callback path | **UNKNOWN / unchanged** |
 | Custom Invitation email delivery | **NOT IMPLEMENTED / NOT VERIFIED** |
 | Rate limiting | **DEFERRED / REQUIRED before normal-user readiness** |
-| Normal operator/member UI (`/settings/members`) | **NOT DELIVERED** |
+| Normal operator/member UI (`/settings/members`) | **NOT DELIVERED** at the time of this foundation closure (2026-08-12). **Later superseded:** delivered in Slices 1–6 and controlled-production verified by Slice 7 — see `docs/phases/Invitations-member-administration-operator-ui-production-verification-closure-evidence.md`. |
 
 No fake PASS claims.
 
@@ -400,7 +414,7 @@ Closed-beta blockers include:
 
 - custom Invitation email delivery
 - Invitation rate limiting (required before normal-user production readiness; **not waived**)
-- minimum operator/member UI such as `/settings/members`
+- minimum operator/member UI such as `/settings/members` — **historical at foundation closure**; later delivered and Slice-7 production-verified (see superseding note above). Remaining closed-beta readiness still requires the other items in this list.
 - Owner live matrix production evidence
 - complete live denial actor coverage
 - brand-new signup / callback / verification path
@@ -419,13 +433,25 @@ General launch inherits all closed-beta blockers and remaining broader product /
 
 Controlled RPC Production QA is complete for the verified Admin scope.
 
-Human-facing `/settings/members` minimum operator surface is **not** delivered.
+**Historical status at foundation closure (2026-08-12):**
+
+Human-facing `/settings/members` minimum operator surface was **not** delivered at that time.
 
 ```text
 RPC QA ≠ Member Administration UX completion
 ```
 
-Classification: **NEXT PRODUCT PHASE / CLOSED-BETA BLOCKER**.
+Classification at that time: **NEXT PRODUCT PHASE / CLOSED-BETA BLOCKER**.
+
+**Current superseding status (2026-08-14):**
+
+`/settings/members` was later delivered (Member Administration Slices 1–6) and controlled-production verified by Slice 7.
+
+Authoritative Slice 7 evidence:
+
+`docs/phases/Invitations-member-administration-operator-ui-production-verification-closure-evidence.md`
+
+This section does **not** convert the present foundation document into the Slice 7 closure artifact. Closed-beta readiness remains **NO** (email delivery, rate limiting, acceptance rollout, Owner/Staff/Viewer/non-active live matrices, and related launch boundaries remain deferred).
 
 ---
 
