@@ -394,18 +394,17 @@ OWNER ROADMAP DECISION REQUIRED — CB-E1-C CLOSED; CB-E1-D NOT YET AUTHORIZED
 | Item | Value |
 | --- | --- |
 | Production evidence file | `docs/phases/Invitations-closed-beta-CB-E1-C-production-verification-closure-evidence.md` |
-| Preferred commit subject | `docs(invitations): close CB-E1-C production verification` |
-| Push target | `origin/core/platform-readiness-20260707` |
-
-*(Commit hash / push result filled after publication.)*
+| Closure commit | `df9a333253cedb1ab91be7b729000b848cb53fa1` — `docs(invitations): close CB-E1-C production verification` |
+| Push | **DONE** → `origin/core/platform-readiness-20260707` |
+| Divergence after push | `0 0` |
 
 ---
 
-## 28. Final Git state (expected after publication)
+## 28. Final Git state (VERIFIED after publication)
 
-| Check | Expected |
+| Check | Result |
 | --- | --- |
-| Final HEAD | new docs commit after `514d729…` |
+| Final HEAD | `df9a333253cedb1ab91be7b729000b848cb53fa1` |
 | Upstream / origin | aligned |
 | Divergence | `0 0` |
-| Worktree | clean |
+| Worktree | clean at push; this annotation may add a follow-up docs commit |
