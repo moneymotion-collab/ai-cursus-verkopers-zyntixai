@@ -288,5 +288,6 @@ Do **not** set `INVITATIONS_ENABLED=true` without CB-Q1 authorization.
 | --- | --- |
 | Evidence path | `docs/phases/Invitations-closed-beta-CB-G1-acceptance-gate-hardening-runbook-evidence.md` |
 | Implementation commit | `5d7486b8fa00e6efd3f1ec7108cc8387abd9b87d` |
-| Evidence commit | *(this publish)* |
+| Evidence commit | `47b70ea05a025f52760b81c2e22e13a8c3c5fc99` |
 | Branch | `origin/core/platform-readiness-20260707` |
+| Divergence after publish | `0 0` clean |
