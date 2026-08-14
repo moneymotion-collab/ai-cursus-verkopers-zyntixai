@@ -2,360 +2,361 @@
 
 ## CB-E1-D — Resend Provider / Domain / DNS / Secrets + Controlled Deployment Readiness
 
-### CB-E1-D OWNER ACTION REQUIRED — RESEND DOMAIN + HOSTNET DNS + PRODUCTION SECRETS/ALLOWLIST BEFORE DEPLOY
+### CB-E1-D DEPLOYMENT PASS — OWNER ACTION REQUIRED BEFORE CLOSURE — CONFIRM RESEND CLICK TRACKING OFF
 
 | Field | Value |
 | --- | --- |
 | Official scope | **CB-E1-D — Resend Provider / Domain / DNS / Secrets + Controlled Deployment Readiness** |
-| Document type | Preflight + owner-action gate evidence (deployment **not** performed) |
+| Document type | Controlled production deployment continuation + readiness evidence |
 | Official phase number | **NONE ASSIGNED** |
 | Date | 2026-08-14 |
-| Formal status | `CB-E1-D OWNER ACTION REQUIRED` |
-| Owner authorization | `OWNER APPROVED — AUTHORIZE CB-E1-D RESEND PROVIDER / DOMAIN / DNS / SECRETS + CONTROLLED DEPLOYMENT READINESS` |
-| Starting HEAD | `9f9a037665cc935a6c358e0b8af8e6e7bb044882` |
+| Formal status | `CB-E1-D DEPLOYMENT PASS` — full closure blocked on Resend click-tracking confirmation |
+| Initial owner authorization | `OWNER APPROVED — AUTHORIZE CB-E1-D RESEND PROVIDER / DOMAIN / DNS / SECRETS + CONTROLLED DEPLOYMENT READINESS` |
+| Continuation authorization | `OWNER APPROVED — RE-AUTHORIZE CB-E1-D CONTROLLED DEPLOY CONTINUATION WITH EMAIL DELIVERY OFF AND INVITATION ACCEPTANCE OFF` |
+| Continuation starting HEAD | `c53004e8d21a9311d734e870d889b4d870859137` |
 | Branch | `core/platform-readiness-20260707` |
-| Real email | **NOT SENT** |
-| Deploy | **NOT PERFORMED** (blocked on owner external actions) |
-| `INVITATION_EMAIL_DELIVERY_ENABLED` | Must remain **false** (not flipped ON) |
-| `INVITATIONS_ENABLED` | Must remain **false** (not flipped ON) |
+| Production deployment | `dpl_9r6GuMKiEdSQjg5NpWzgyYvtbnAx` (**READY**) |
+| Rollback target | `dpl_CRe4rhPk2gjNcMB7vh9izMnJEq96` |
+| Production alias | `https://zyntixai.vercel.app` |
+| Deployed from Git HEAD | `c53004e8d21a9311d734e870d889b4d870859137` (clean worktree upload) |
+| Real email | **ZERO SENT** |
+| `INVITATION_EMAIL_DELIVERY_ENABLED` | **OWNER-CONFIRMED `false`** + Production var present |
+| `INVITATIONS_ENABLED` | **OWNER-CONFIRMED `false`** + Production var present + live UI restricted-rollout notice |
 
 ```text
-CB-E1-D — PREFLIGHT COMPLETE; EXTERNAL MANUAL GATES OPEN
-DEPLOY / REAL EMAIL / ACCEPTANCE ON: NOT STARTED
+CB-E1-D DEPLOYMENT PASS
+RESEND DOMAIN/DNS/SECRETS/APP DEPLOYED WITH GATES OFF
+CLICK TRACKING: MANUAL OWNER CONFIRMATION STILL REQUIRED BEFORE CB-E1-E
+REAL EMAIL: NOT SENT
 ```
 
 ---
 
-## 1. Owner authorization (FACT)
+## 0. Prior stop → continuation (FACT)
 
-**OWNER APPROVED — AUTHORIZE CB-E1-D RESEND PROVIDER / DOMAIN / DNS / SECRETS + CONTROLLED DEPLOYMENT READINESS**
+Previous verdict (`c53004e` evidence):
 
-Covered (subject to gates): Resend readiness; MFA/account security; sender domain; DNS from Resend; secrets; allowlist; tracking review; controlled deploy with both gates OFF; evidence.
+`CB-E1-D OWNER ACTION REQUIRED — RESEND DOMAIN + HOSTNET DNS + PRODUCTION SECRETS/ALLOWLIST BEFORE DEPLOY`
 
-**Not** covered: real invitation email; delivery ON; acceptance ON; CB-E1-E; CB-G1; CB-Q1; CB-PUB; webhooks; unrelated DNS/product work.
+Owner then completed Resend domain verify, Hostnet DNS, Production env vars, and re-authorized deploy continuation with both gates OFF.
 
 ---
 
-## 2. Verified starting Git baseline (FACT / VERIFIED)
+## 1. Owner re-authorization (FACT)
+
+**OWNER APPROVED — RE-AUTHORIZE CB-E1-D CONTROLLED DEPLOY CONTINUATION WITH EMAIL DELIVERY OFF AND INVITATION ACCEPTANCE OFF**
+
+Covered: Git/Supabase re-verify; env presence (no secret exposure); DNS verify-only; tests/build; one controlled production deploy; health/no-send smoke; evidence.
+
+**Not** covered: delivery ON; acceptance ON; first real email; CB-E1-E; webhooks; DNS mutation; new migrations; new features.
+
+---
+
+## 2. Verified continuation Git baseline (FACT / VERIFIED)
 
 | Check | Result |
 | --- | --- |
 | Worktree | `D:\project ai cursus verkopers.worktrees\parallel__laptop-product-track-20260707-1` |
 | Branch | `core/platform-readiness-20260707` |
-| Starting HEAD | `9f9a037665cc935a6c358e0b8af8e6e7bb044882` |
-| Upstream / origin | `origin/core/platform-readiness-20260707` |
+| Starting HEAD | `c53004e8d21a9311d734e870d889b4d870859137` |
+| Upstream / origin | aligned |
 | Divergence | `0 0` |
 | Worktree | clean |
 
 ---
 
-## 3. Inherited closed / production state (FACT)
-
-| Slice | Verdict |
-| --- | --- |
-| CB-R1 | `CLOSED AND PRODUCTION VERIFIED` — create 10/3600; resend 3/3600 |
-| CB-E1-A | `CLOSED WITH EVIDENCE` — delivery core + Resend adapter + fail-closed gates |
-| CB-E1-B | `CLOSED WITH EVIDENCE` — template + secure acceptance URL |
-| CB-E1-C | `CLOSED AND PRODUCTION VERIFIED` — DB attempt/idempotency foundation active; **app not live** |
-
----
-
-## 4. Current production application baseline (VERIFIED)
-
-| Item | Result |
-| --- | --- |
-| Production deployment ID | `dpl_CRe4rhPk2gjNcMB7vh9izMnJEq96` |
-| Status | Ready |
-| Primary alias | `https://zyntixai.vercel.app` |
-| Created | 2026-08-13 |
-| Contains CB-R1 `rate_limited` UX mapping? | **NO** (undeployed) |
-| Contains CB-E1-A/B/C application code? | **NO** (undeployed) |
-| Production DB latest migration | `20260814150000` (aligned; dry-run up to date) |
-
----
-
-## 5. Reconstructed production env contract (FACT)
-
-From `.env.example` + `src/features/invitations/server/delivery/config.ts` + invitations feature gate:
-
-| Variable | Required when | Server-only? | Missing / OFF behavior |
-| --- | --- | --- | --- |
-| `INVITATION_EMAIL_DELIVERY_ENABLED` | always present as control | yes (not `NEXT_PUBLIC_`) | fail-closed; only exact `true` enables |
-| `RESEND_API_KEY` | delivery ON | **yes** | when ON → `configuration_error`; when OFF may be absent |
-| `INVITATION_EMAIL_FROM` | delivery ON | **yes** | when ON → `configuration_error`; when OFF may be absent |
-| `INVITATION_EMAIL_RECIPIENT_ALLOWLIST` | delivery ON | **yes** | empty → fail closed when ON |
-| `INVITATIONS_ENABLED` | acceptance control | yes | fail-closed; remains OFF |
-| `NEXT_PUBLIC_SITE_URL` | production origin | public | trusted acceptance/auth origin |
-| `INVITE_CONTINUATION_SECRET` | acceptance continuation | **yes** | fail-closed if short/missing (acceptance path) |
-
-**No** `NEXT_PUBLIC_RESEND_API_KEY`. Resend SDK import is under `server-only` modules.
-
----
-
-## 6. Official Resend provider requirements used (FACT)
-
-Sources (official docs, 2026-08-14):
-
-- https://resend.com/docs/add-a-domain
-- https://resend.com/docs/dashboard/domains/introduction
-- https://resend.com/docs/dashboard/domains/tracking
-- https://resend.com/docs/dashboard/domains/dmarc
-- https://resend.com/docs/knowledge-base/what-if-my-domain-is-not-verifying
-
-Key provider facts:
-
-- Must verify an owned domain before sending.
-- Prefer a **subdomain** for transactional reputation segmentation.
-- DNS records must be **copied exactly from Resend** (DKIM TXT + SPF TXT/MX on Resend return-path host, typically `send.<domain>`).
-- Do not invent SPF/DKIM values.
-- Open/click tracking **disabled by default**; click tracking rewrites links → **must stay OFF** for invitation credential URLs.
-- DMARC is recommended after domain verification; do not blindly change existing strict policies.
-
----
-
-## 7. Sender domain decision (FACT / RECOMMENDATION)
-
-| Item | Result |
-| --- | --- |
-| Owner-controlled domain proven | **`zyntixai.com`** (Vercel team domain inventory + public DNS) |
-| DNS provider | **Hostnet** (`ns01.hostnet.nl`, `ns02.hostnet.nl`) |
-| Vercel intended NS | `ns1/ns2.vercel-dns.com` (**not** active; Hostnet remains authoritative) |
-| Apex A | `76.76.21.21` (Vercel anycast) |
-| Production app host today | `https://zyntixai.vercel.app` (not custom-domain primary) |
-| Recommended transactional send domain | **`invites.zyntixai.com`** |
-| Recommended From identity | **`ZyntixAI <invites@invites.zyntixai.com>`** |
-
-**Why subdomain (not apex):**
-
-- Apex already has Hostnet SPF: `v=spf1 a mx include:_spf.hostnet.nl -all`
-- Apex already has **strict DMARC**: `v=DMARC1; p=reject`
-- Resend return-path SPF typically lives under `send.<sending-domain>` — avoids merging/replacing apex SPF
-- Reputation segmentation for transactional invites
-
-**Owner confirmation still required** for the exact subdomain/From string before DNS mutation.
-
----
-
-## 8. Existing DNS / mail posture (VERIFIED — public)
-
-| Record | Observed | Action for CB-E1-D |
-| --- | --- | --- |
-| Apex SPF TXT | `v=spf1 a mx include:_spf.hostnet.nl -all` | **DO NOT MODIFY** (conflict risk if a second SPF were added) |
-| Apex MX | none observed | leave alone |
-| `_dmarc.zyntixai.com` | `v=DMARC1; p=reject` | **DO NOT CHANGE** without separate owner awareness |
-| `send.zyntixai.com` | absent | will be created only if Resend domain is apex (not recommended) |
-| `invites.zyntixai.com` | absent | intended Resend sending domain (pending) |
-| Resend DKIM | absent | pending Resend-generated values only |
-
-**STOP condition satisfied for speculative DNS:** no Resend-generated record values are available yet → **no DNS mutations performed**.
-
----
-
-## 9. SPF (STATUS)
+## 3. Owner-completed external setup (OWNER-CONFIRMED + partial VERIFIED)
 
 | Item | Status |
 | --- | --- |
-| Apex SPF | existing Hostnet policy — **unchanged** |
-| Resend SPF | **PENDING** — must use Resend dashboard values for chosen send domain only |
-| Conflict risk if apex SPF edited | **HIGH** — forbidden in this phase without merge design |
+| Sending domain | `invites.zyntixai.com` |
+| Resend domain verified | **OWNER-CONFIRMED** (“Domain verified: ready to send”) |
+| Sender identity | `ZyntixAI <invites@invites.zyntixai.com>` (**OWNER-CONFIRMED**) |
+| DNS provider | Hostnet |
+| Production `RESEND_API_KEY` | present, Encrypted, Production-only (**VERIFIED presence**; value not read) |
+| Production `INVITATION_EMAIL_FROM` | present, Production-only |
+| Production allowlist | present, Production-only, non-empty asserted by owner |
+| Gates | owner states both `false` |
 
 ---
 
-## 10. DKIM (STATUS)
-
-**PENDING** — wait for Resend-generated `resend._domainkey…` (or equivalent) for `invites.zyntixai.com`. No cryptographic values invented.
-
----
-
-## 11. DMARC (STATUS)
-
-| Item | Status |
-| --- | --- |
-| Existing | **YES** — `p=reject` on `_dmarc.zyntixai.com` |
-| Changed this phase | **NO** |
-| Recommendation | **leave unchanged**; verify Resend DKIM/SPF alignment under `invites.zyntixai.com` before CB-E1-E |
-| If future change needed | separate owner-aware decision (strict policy can affect other Hostnet mail) |
-
----
-
-## 12. Tracking (STATUS)
-
-| Item | Status |
-| --- | --- |
-| Official default | open/click tracking **OFF** |
-| Required for invites | **click tracking MUST be OFF** |
-| Preferred | open tracking OFF |
-| Account verified in Resend | **MANUAL OWNER ACTION REQUIRED** (no Resend dashboard access from this agent session) |
-
----
-
-## 13. Resend account security (STATUS)
-
-**MANUAL OWNER ACTION REQUIRED**
-
-Cannot verify from Cursor:
-
-- account owner identity
-- MFA enabled
-- recovery methods
-- team membership hygiene
-- API key naming / least privilege
-
-Do not fabricate completion.
-
----
-
-## 14. API key / Vercel secrets (STATUS)
-
-| Item | Status |
-| --- | --- |
-| Production `RESEND_API_KEY` | **not configured by this phase** |
-| Production `INVITATION_EMAIL_FROM` | **not configured by this phase** |
-| Production allowlist | **not configured** — no owner-approved QA recipient email is established in evidence (`*.example.test` aliases are not real inboxes) |
-| Gates | must be set/kept `INVITATION_EMAIL_DELIVERY_ENABLED=false`, `INVITATIONS_ENABLED=false` |
-| Secret handling | **do not paste keys into chat/git** |
-
----
-
-## 15. QA recipient policy (STATUS)
-
-**OWNER/QA RECIPIENT INPUT REQUIRED**
-
-Historical invitation QA used synthetic `…@example.test` addresses (not deliverable). Controlled Production QA org exists, but no authoritative real allowlist recipient is published in repository evidence.
-
----
-
-## 16. Pre-deploy verification performed without deploy (VERIFIED)
+## 4. Resend domain / DNS readiness (VERIFIED public DNS; no mutation)
 
 | Check | Result |
 | --- | --- |
-| Migration alignment | remote up to date at `20260814150000` |
-| `npm run typecheck` | **PASS** |
-| Client/server boundary (static) | Resend adapter + delivery modules use `import "server-only"`; no `NEXT_PUBLIC_RESEND_*` |
-| Lint / full Vitest / production build | **deferred** until owner external gates clear and deploy is re-entered |
-| Deploy | **not started** |
+| DKIM TXT `resend._domainkey.invites.zyntixai.com` | **present** (Resend public key material observed) |
+| MX `send.invites.zyntixai.com` | **present** — priority `10` → `feedback-smtp.eu-west-1.amazonses.com` |
+| SPF TXT `send.invites.zyntixai.com` | **present** — `v=spf1 include:amazonses.com ~all` |
+| Apex SPF `zyntixai.com` | **unchanged** — `v=spf1 a mx include:_spf.hostnet.nl -all` |
+| Apex DMARC `_dmarc.zyntixai.com` | **unchanged** — `v=DMARC1; p=reject` |
+| DNS mutations this continuation | **none** |
 
 ---
 
-## 17. Deployment (NOT PERFORMED)
+## 5. Resend tracking state
+
+| Item | Status |
+| --- | --- |
+| Click tracking | **MANUAL OWNER ACTION REQUIRED — CONFIRM RESEND CLICK TRACKING OFF** |
+| Open tracking | preferred OFF; same manual confirmation |
+| Agent Resend dashboard access | not available this session |
+| Blocks full CB-E1-D closure for CB-E1-E? | **YES** |
+| Blocks deploy while delivery OFF? | **NO** (deploy completed with delivery OFF) |
+
+---
+
+## 6. Production environment state (VERIFIED presence / OWNER-CONFIRMED values)
+
+`vercel env list production` (names/scope only; values Encrypted):
+
+| Variable | Production state |
+| --- | --- |
+| `RESEND_API_KEY` | configured (Encrypted, Production) |
+| `INVITATION_EMAIL_FROM` | configured (Encrypted, Production) |
+| `INVITATION_EMAIL_DELIVERY_ENABLED` | configured (Encrypted, Production) — **OWNER-CONFIRMED `false`** |
+| `INVITATION_EMAIL_RECIPIENT_ALLOWLIST` | configured (Encrypted, Production) |
+| `INVITATIONS_ENABLED` | configured (Encrypted, Production) — **OWNER-CONFIRMED `false`** |
+| `NEXT_PUBLIC_SITE_URL` | configured (Encrypted, Production) — historical/intended `https://zyntixai.vercel.app` |
+| `NEXT_PUBLIC_RESEND_API_KEY` | **absent** |
+
+**Tooling note:** Vercel CLI `env pull` / agent context returns Encrypted values as the placeholder `[sensitive]`, so gate strings cannot be machine-decrypted here. Presence + owner authorization + live acceptance-off UI are the evidence basis.
+
+---
+
+## 7. Production Supabase alignment (VERIFIED)
 
 | Item | Result |
 | --- | --- |
-| Rollback target retained | `dpl_CRe4rhPk2gjNcMB7vh9izMnJEq96` |
-| New deployment | **none** |
-| Reason | provider domain/DNS/API key/allowlist gates incomplete; preferred sequence places these before deploy |
+| Linked project | `dmctinrcjvsgmoxwwodw` (`linked: true`, `ACTIVE_HEALTHY`) |
+| Remote latest | `20260814150000_add_organization_invitation_delivery_attempts` |
+| Local latest | same |
+| Pending / remote-only / drift | **none** (`Remote database is up to date.`) |
+| DB apply this phase | **none** |
 
 ---
 
-## 18. Rollback / kill-switch plan (DOCUMENTED — ready when deploy proceeds)
+## 8. Application source readiness (FACT)
 
-1. **Email kill switch:** keep/set `INVITATION_EMAIL_DELIVERY_ENABLED=false` (Production).
-2. **Acceptance kill switch:** keep/set `INVITATIONS_ENABLED=false` (Production).
-3. **App rollback:** promote previous Ready deployment `dpl_CRe4rhPk2gjNcMB7vh9izMnJEq96` (or later known-good).
-4. **Provider compromise:** revoke/rotate Resend API key in Resend + remove/replace Vercel Production secret.
-5. **Bad sender/domain:** leave delivery OFF; do not rely on DNS deletion as primary incident response.
+Authoritative HEAD includes published CB-R1 app `rate_limited` mapping + CB-E1-A/B/C application code (commits through `514d729` / docs `c53004e`).
 
 ---
 
-## 19. Exact owner manual checklist (MANUAL OWNER ACTION REQUIRED)
+## 9. Server/client security verification (VERIFIED static)
 
-Complete in order. Do **not** paste secrets into chat or commit them.
-
-### A. Confirm sender identity
-
-1. Confirm send domain: **`invites.zyntixai.com`** (recommended) or owner-chosen alternative under `zyntixai.com`.
-2. Confirm From: **`ZyntixAI <invites@invites.zyntixai.com>`** (or owner-approved equivalent on that domain).
-
-### B. Resend account security
-
-1. Sign in to Resend as the production owner.
-2. Enable MFA; secure recovery.
-3. Remove unnecessary team members.
-4. Confirm click tracking remains **OFF** for the invitation domain (do not enable tracking subdomain for invites).
-
-### C. Add domain in Resend
-
-1. Domains → Add **`invites.zyntixai.com`** (region per owner preference; document choice).
-2. Open **Records** tab.
-3. Copy the **exact** Resend-generated DNS table (Type / Name / Value).
-4. Do **not** invent records.
-
-### D. Hostnet DNS (authoritative)
-
-1. Log into Hostnet DNS for `zyntixai.com`.
-2. Add **only** the Resend-provided records for the invites send domain / return-path / DKIM.
-3. **Do not** create a second apex SPF TXT.
-4. **Do not** modify `_dmarc` `p=reject` in this phase.
-5. Wait for propagation; use Resend verify + public DNS checks.
-
-### E. API key (Production only)
-
-1. Create a production Resend API key with a clear name (e.g. `zyntixai-prod-invitations`).
-2. In Vercel project `zyntixai` → Production env only:
-   - `RESEND_API_KEY` = (secret; Production scope)
-   - `INVITATION_EMAIL_FROM` = confirmed From string
-   - `INVITATION_EMAIL_DELIVERY_ENABLED` = `false`
-   - `INVITATIONS_ENABLED` = `false`
-   - `INVITATION_EMAIL_RECIPIENT_ALLOWLIST` = owner-approved QA recipient(s)
-   - Confirm `NEXT_PUBLIC_SITE_URL` = intended production origin (`https://zyntixai.vercel.app` unless custom host is promoted)
-3. Do **not** put the production key in Preview/Development unless explicitly required later.
-
-### F. Re-authorize continuation
-
-After A–E are done, authorize Cursor to:
-
-1. verify DNS/provider status (no real send);
-2. run lint/tests/build;
-3. perform one controlled production deploy with **both gates OFF**;
-4. run no-send smoke;
-5. close CB-E1-D with evidence.
+| Check | Result |
+| --- | --- |
+| Resend SDK | `server-only` adapter only |
+| `NEXT_PUBLIC_RESEND_API_KEY` | absent |
+| Client components referencing `RESEND_API_KEY` / `resend` | none found |
+| Delivery modules | `import "server-only"` |
 
 ---
 
-## 20. Real-email safety (FACT)
+## 10. Typecheck (VERIFIED)
 
-- Zero Resend invitation sends performed.
-- Zero DNS mutations performed.
-- Zero Vercel production env secret writes performed by this agent.
-- CB-E1-E **not** started.
+`npm run typecheck` → **PASS**
 
 ---
 
-## 21. Scope confirmation (FACT)
+## 11. Lint (VERIFIED)
 
-Did **not**: enable delivery/acceptance; invite external users; configure webhooks; alter apex SPF/DMARC; deploy app; start CB-E1-E/G1/Q1/PUB; redesign CB-E1-A/B/C; change CB-R1.
+`npm run lint` → **PASS** (`✔ No ESLint warnings or errors`)
 
 ---
 
-## 22. CB-E1-D closure status
+## 12. Targeted invitation/security tests (VERIFIED)
+
+`npx vitest run tests/features/invitations tests/security`
+
+| Metric | Result |
+| --- | --- |
+| Files | **49 passed** |
+| Tests | **390 passed** |
+
+---
+
+## 13. Full Vitest (VERIFIED)
+
+`npm run test:run`
+
+| Metric | Result |
+| --- | --- |
+| Files | **294 passed** |
+| Tests | **2099 passed** |
+
+---
+
+## 14. Production build (VERIFIED)
+
+`npm run build` → **PASS** (includes `/settings/members`)
+
+---
+
+## 15. Pre-deploy production baseline (VERIFIED)
+
+| Item | Value |
+| --- | --- |
+| Prior production deployment | `dpl_CRe4rhPk2gjNcMB7vh9izMnJEq96` |
+| Alias | `https://zyntixai.vercel.app` |
+| Rollback target | **same** (retained Ready) |
+
+---
+
+## 16. Controlled production deployment (DEPLOYED)
+
+| Item | Value |
+| --- | --- |
+| Command | `npx vercel deploy --prod --yes --project zyntixai --scope guus-projects-ai` with metadata `gitCommitSha=c53004e8d21a9311d734e870d889b4d870859137` |
+| Deployment ID | `dpl_9r6GuMKiEdSQjg5NpWzgyYvtbnAx` |
+| Ready state | **READY** |
+| Deployment URL | `https://zyntixai-2mntpr6pe-guus-projects-ai.vercel.app` |
+| Production alias | **Aliased** `https://zyntixai.vercel.app` |
+| Source | clean worktree at `c53004e…` |
+
+---
+
+## 17. Post-deploy gate verification
+
+| Gate | Evidence |
+| --- | --- |
+| `INVITATIONS_ENABLED=false` | **VERIFIED live** — Members page shows “Invitations are in restricted rollout” / acceptance disabled copy (Acceptance OFF drives notice) |
+| `INVITATION_EMAIL_DELIVERY_ENABLED=false` | **OWNER-CONFIRMED** + Production var present + fail-closed code path; agent cannot decrypt Encrypted value |
+
+---
+
+## 18. Production health smoke (VERIFIED)
+
+Authenticated browser on `https://zyntixai.vercel.app/settings/members` (ZyntixAI Production QA):
+
+| Check | Result |
+| --- | --- |
+| AppShell / nav | present |
+| Members page | loads |
+| Invite form | present |
+| Active members | renders (6) |
+| Pending invitations | 0 |
+| Broad 500 / Resend import crash | **not observed** |
+| Org context | ZyntixAI Production QA |
+
+Unauthenticated `HEAD` to `/settings/members` → `307` → `/login` (expected).
+
+---
+
+## 19. Zero-send verification (VERIFIED)
+
+| Check | Result |
+| --- | --- |
+| Invitation mutations this phase | **none** (read-only smoke) |
+| QA org delivery-attempt rows | **0** |
+| Submitted attempt rows | **0** |
+| Real Resend invitation submissions | **0** |
+
+---
+
+## 20. CB-R1 application deployment state (DEPLOYED)
+
+Friendly `rate_limited` mapping is now in the live production bundle (**DEPLOYED CODE VERIFIED**). Live threshold UX not re-exercised (no limiter spam).
+
+---
+
+## 21. CB-E1-A deployment state (DEPLOYED)
+
+Delivery core, Resend adapter, fail-closed gate, allowlist, server-only boundary are live. **No live provider submission verified** (delivery OFF).
+
+---
+
+## 22. CB-E1-B deployment state (DEPLOYED)
+
+Hardened template + acceptance URL builder are in the deployed app. **No real token/email rendered for evidence.**
+
+---
+
+## 23. CB-E1-C deployment state (DEPLOYED + DB compatible)
+
+Production DB foundation (`20260814150000`) remains aligned. Deployed app includes attempt/idempotency orchestration. With delivery OFF: no false `submitted` attempts created. Provider idempotency live proof → **DEFERRED to CB-E1-E**.
+
+---
+
+## 24. QA allowlist state
+
+Configured, Production-only, Encrypted, server-side. Address **not disclosed**. Send-to-allowlist **not tested**.
+
+---
+
+## 25. Privacy / secret verification
+
+No API key, raw token, invitation URL, email body, or continuation secret printed in evidence. Encrypted env values not decrypted into the report.
+
+---
+
+## 26. Rollback / kill-switch readiness
+
+| Control | State |
+| --- | --- |
+| Email kill switch | keep `INVITATION_EMAIL_DELIVERY_ENABLED=false` |
+| Acceptance kill switch | keep `INVITATIONS_ENABLED=false` |
+| App rollback | promote `dpl_CRe4rhPk2gjNcMB7vh9izMnJEq96` |
+| Provider compromise | revoke/rotate Production `RESEND_API_KEY` |
+| Domain issue | leave delivery OFF (DNS removal not first response) |
+
+---
+
+## 27. Real-email safety
 
 ```text
-CB-E1-D OWNER ACTION REQUIRED — RESEND DOMAIN + HOSTNET DNS FOR invites.zyntixai.com + PRODUCTION API KEY / ALLOWLIST (THEN RE-ENTER DEPLOY)
+ZERO REAL INVITATION EMAILS SENT
 ```
+
+CB-E1-E not started.
 
 ---
 
-## 23. Remaining roadmap (DEFERRED)
+## 28. CB-E1-D closure status
 
-1. Finish CB-E1-D owner actions + controlled deploy (delivery OFF)
+```text
+CB-E1-D DEPLOYMENT PASS — OWNER ACTION REQUIRED BEFORE CLOSURE — CONFIRM RESEND CLICK TRACKING OFF
+```
+
+Meaning:
+
+- Resend domain/DNS public records verified;
+- Production secrets/allowlist/gates present (values owner-confirmed for gates);
+- Application CB-R1 + CB-E1-A/B/C **deployed** with delivery/acceptance OFF;
+- Full “ready for first QA email” closure still requires **click tracking OFF** confirmation in Resend (and preferably open tracking OFF + MFA attestation).
+
+---
+
+## 29. Remaining roadmap (DEFERRED)
+
+1. Owner confirms Resend click tracking OFF → then CB-E1-D can be fully closed
 2. **CB-E1-E** — Controlled Production Invitation Email Delivery Verification
 3. CB-G1 → CB-Q1 → CB-PUB
 
 ---
 
-## 24. Owner decision required
+## 30. Owner decision required
 
 ```text
-OWNER ACTION REQUIRED — CONFIRM invites.zyntixai.com + COMPLETE RESEND/HOSTNET/VERCEL SECRET STEPS; RE-AUTHORIZE CB-E1-D DEPLOY CONTINUATION
+OWNER ACTION REQUIRED — CONFIRM RESEND CLICK TRACKING OFF (AND PREFER OPEN TRACKING OFF) BEFORE AUTHORIZING CB-E1-E
 ```
+
+Optional attestation: Resend account MFA enabled.
+
+Do **not** enable delivery or send email until CB-E1-E is separately authorized.
 
 ---
 
-## 25. Evidence / publication
+## 31. Evidence / publication
 
 | Item | Value |
 | --- | --- |
 | Evidence file | `docs/phases/Invitations-closed-beta-CB-E1-D-resend-domain-dns-secrets-controlled-deployment-readiness-evidence.md` |
-| Preferred commit | `docs(invitations): record CB-E1-D owner-action readiness gate` |
+| Preferred commit | `docs(invitations): close CB-E1-D controlled deployment readiness` |
 
 *(Hash filled after publication.)*
+
+---
+
+## 32. Account security note
+
+Resend MFA/team hygiene: **MANUAL OWNER ACTION REQUIRED / OWNER-ATTESTED** — not independently visible to Cursor this session.
