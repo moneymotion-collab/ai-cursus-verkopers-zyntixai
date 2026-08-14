@@ -2,28 +2,32 @@
 
 ## CB-E1-E — Controlled Production Invitation Email Delivery Verification
 
-### CB-E1-E CREATE AND RESEND PROVIDER SUBMISSION PASS — OWNER RESEND INBOX VERIFICATION REQUIRED
+### CB-E1-E CLOSED AND PRODUCTION VERIFIED — CONTROLLED INVITATION EMAIL DELIVERY VERIFIED END-TO-END
 
 | Field | Value |
 | --- | --- |
 | Official scope | **CB-E1-E — Controlled Production Invitation Email Delivery Verification** |
-| Document type | Resend provider checkpoint / owner inbox gate |
+| Document type | Final production verification / cleanup / closure evidence |
 | Date | 2026-08-14 |
-| Latest continuation authorization | `OWNER APPROVED — RESUME CB-E1-E AFTER FIRST QA EMAIL RECEIPT AND EXECUTE EXACTLY ONE CONTROLLED RESEND` |
-| Starting HEAD | `9baa3233e03a89fb85332fd3102427db2628ffec` |
-| Formal status | **OWNER RESEND INBOX VERIFICATION REQUIRED** before cleanup/closure |
-| Real emails submitted | **2** (create + resend) |
-| Create inbox | **OWNER-VERIFIED** receipt |
-| Resend inbox | awaiting owner confirmation |
-| Acceptance gate | remained **OFF** |
-| Delivery gate during checkpoint | restored **OFF** |
+| Final continuation authorization | `OWNER APPROVED — COMPLETE CB-E1-E FINAL CLEANUP, PRODUCTION VERIFICATION, EVIDENCE PUBLICATION, AND CLOSURE` |
+| Starting HEAD for closure | `e70b595b1167442be0194110c1ac88e10d1ff7b4` |
+| Formal status | **CLOSED AND PRODUCTION VERIFIED** |
+| Real invitation emails sent | **2** |
+| Cleanup emails | **0** |
+| Provider submissions | **2** |
+| Email delivery | **OFF** |
+| Invitation acceptance | **OFF** |
+| Controlled QA invitation | **REVOKED** |
+| QA membership created | **NO** |
+| New application deployment at closure | **NONE** |
 
 ```text
-OWNER ACTION REQUIRED — CONFIRM CB-E1-E RESEND EMAIL RECEIVED EXACTLY ONCE IN QA INBOX
-CB-E1-E CREATE AND RESEND PROVIDER SUBMISSION PASS — OWNER RESEND INBOX VERIFICATION REQUIRED
-2 REAL INVITATION EMAIL SUBMISSIONS
-DELIVERY RESTORED OFF FOR CHECKPOINT
+CB-E1-E CLOSED AND PRODUCTION VERIFIED — CONTROLLED INVITATION EMAIL DELIVERY VERIFIED END-TO-END
+2 REAL INVITATION EMAILS SENT
+DELIVERY OFF
 ACCEPTANCE OFF
+PENDING QA INVITATION REVOKED
+OWNER ROADMAP DECISION REQUIRED — CB-E1-E CLOSED; CB-G1 NOT YET AUTHORIZED
 ```
 
 ---
@@ -416,7 +420,7 @@ Do **not** revoke/cleanup until this confirmation (unless a later safety order).
 
 Do **not** start CB-G1.
 
-### 12.10 Current verdict
+### 12.10 Prior resend-checkpoint verdict (HISTORICAL)
 
 ```text
 CB-E1-E CREATE AND RESEND PROVIDER SUBMISSION PASS — OWNER RESEND INBOX VERIFICATION REQUIRED
@@ -424,3 +428,115 @@ CB-E1-E CREATE AND RESEND PROVIDER SUBMISSION PASS — OWNER RESEND INBOX VERIFI
 DELIVERY RESTORED OFF FOR CHECKPOINT
 INVITATIONS_ENABLED=false
 ```
+
+---
+
+## 13. Final cleanup + closure (2026-08-14)
+
+**OWNER APPROVED — COMPLETE CB-E1-E FINAL CLEANUP, PRODUCTION VERIFICATION, EVIDENCE PUBLICATION, AND CLOSURE**
+
+### 13.1 Owner resend inbox confirmation (OWNER-VERIFIED)
+
+`OWNER-VERIFIED — RESEND EMAIL RECEIVED EXACTLY ONCE; PRESENTATION CORRECT`
+
+Owner statement: resend arrived exactly once; presentation correct; no duplicate resend.
+
+Create inbox remains OWNER-VERIFIED receipt (earlier). Detailed visual attributes not overclaimed beyond owner statements.
+
+### 13.2 Closure Git / production baselines (VERIFIED)
+
+| Check | Result |
+| --- | --- |
+| Starting HEAD | `e70b595b1167442be0194110c1ac88e10d1ff7b4` |
+| Divergence / worktree | `0 0` / clean |
+| Production deploy | `dpl_G3U17mUBayC8s4DCPooNRg2UbuGd` READY → `https://zyntixai.vercel.app` |
+| Delivery | **OFF** (checkpoint OFF deploy still aliased; no re-enable) |
+| Acceptance | **OFF** (`INVITATIONS_ENABLED` unchanged; restricted-rollout notice live) |
+| DB | `dmctinrcjvsgmoxwwodw` / `20260814150000` aligned |
+| New application redeploy | **not performed** |
+
+### 13.3 Dual-email / attempt reconciliation (VERIFIED)
+
+| Item | Result |
+| --- | --- |
+| Create attempt | `548e1f70-…` · `create` · `submitted` · msg `3700d4f7…` |
+| Resend attempt | `f5eb9561-…` · `resend` · `submitted` · msg `a6303993…` |
+| Submitted total | **2** |
+| Distinct provider message IDs | **2** |
+| Third submission | **none** |
+| Retention | **retained** as CB-E1-E controlled production QA delivery evidence |
+
+### 13.4 Token rotation / idempotency / privacy (VERIFIED)
+
+| Item | Result |
+| --- | --- |
+| Hash fingerprints | `2cebb3b85ab5d528` → `7299154ad01fd6e4` |
+| Old generation | `OLD GENERATION INVALIDATION VERIFIED BY TOKEN-HASH ROTATION; LIVE RAW-TOKEN REPLAY OMITTED TO PRESERVE CREDENTIAL CONFIDENTIALITY` |
+| Idempotency | 2 generations · 2 idempotency keys · 1 submitted attempt each · **PRODUCTION VERIFIED WITHOUT DESTRUCTIVE DUPLICATE-SEND TESTING** |
+| Privacy | attempt schema metadata-only; no token/URL/body/recipient/API key/auth secret |
+
+### 13.5 Tracking / acceptance / membership (VERIFIED)
+
+| Item | Result |
+| --- | --- |
+| Click/Open tracking | OFF / not configured (CB-E1-D; unchanged in CB-E1-E) |
+| Acceptance | **OFF** throughout; Accept not clicked |
+| Membership for invitee | **0** before and after revoke |
+
+### 13.6 Controlled invitation revoke (REVOKED)
+
+| Item | Result |
+| --- | --- |
+| Path | `/settings/members` → Revoke confirm once |
+| Invitation | `573da95d-050d-42d7-8f01-4a600f944652` |
+| Result status | `revoked` (`revoked_at` set; `accepted_at` null) |
+| Lifecycle | `invitation_created` + `invitation_resent` + `invitation_revoked` |
+| Pending QA invitations after | **0** |
+| New delivery attempts from revoke | **0** |
+| Provider submissions after revoke | still **2** |
+| Cleanup emails | **0** |
+
+### 13.7 Zero-send security matrix (RECONCILED — no new spam)
+
+| Boundary | Classification |
+| --- | --- |
+| Staff / Viewer / suspended denied create-send | production-verified earlier (CB-R1 / invitations auth) + automated regression |
+| Cross-tenant denied | production-verified earlier + automated regression |
+| Non-allowlisted blocked before provider | CB-E1-A/B/C design + automated; CB-E1-E used allowlisted recipient only |
+| Rate-limited blocked before provider | CB-R1 production-verified + automated |
+| Newly live-verified in CB-E1-E | allowlisted create+resend delivery path; revoke sends zero email |
+
+### 13.8 Final production health (VERIFIED)
+
+| Check | Result |
+| --- | --- |
+| Alias `https://zyntixai.vercel.app` | responds (anon 307 auth redirect expected) |
+| Authenticated `/settings/members` | healthy; 0 pending; restricted rollout |
+| Active members list | 6 (unchanged; no invitee membership) |
+| Delivery attempts for QA invite | 2 submitted retained |
+| Schema/migration | aligned |
+| Gates | delivery OFF · acceptance OFF |
+
+### 13.9 Closure criteria
+
+All required CB-E1-E closure criteria **PASS** (create+resend+inbox×2+rotation+idempotency+privacy+revoke+zero cleanup email+gates OFF+health+evidence).
+
+### 13.10 Final verdict
+
+```text
+CB-E1-E CLOSED AND PRODUCTION VERIFIED — CONTROLLED INVITATION EMAIL DELIVERY VERIFIED END-TO-END
+```
+
+### 13.11 Remaining roadmap / boundary
+
+Next candidates only:
+
+1. CB-G1 — Acceptance Gate Activation Hardening + Runbook
+2. CB-Q1
+3. CB-PUB
+
+```text
+OWNER ROADMAP DECISION REQUIRED — CB-E1-E CLOSED; CB-G1 NOT YET AUTHORIZED
+```
+
+Do **not** set `INVITATIONS_ENABLED=true`. Do **not** start CB-G1 in this closure.
