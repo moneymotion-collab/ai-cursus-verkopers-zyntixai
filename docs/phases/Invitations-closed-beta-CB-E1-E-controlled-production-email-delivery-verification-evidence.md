@@ -2,24 +2,26 @@
 
 ## CB-E1-E — Controlled Production Invitation Email Delivery Verification
 
-### CB-E1-E CREATE PROVIDER SUBMISSION PASS — OWNER INBOX VERIFICATION REQUIRED
+### CB-E1-E CREATE AND RESEND PROVIDER SUBMISSION PASS — OWNER RESEND INBOX VERIFICATION REQUIRED
 
 | Field | Value |
 | --- | --- |
 | Official scope | **CB-E1-E — Controlled Production Invitation Email Delivery Verification** |
-| Document type | Create-email provider checkpoint / owner inbox gate |
+| Document type | Resend provider checkpoint / owner inbox gate |
 | Date | 2026-08-14 |
-| Latest continuation authorization | `OWNER APPROVED — RESUME CB-E1-E FROM PREPARED CONTROLLED QA RECIPIENT AND EXECUTE FIRST CONTROLLED PRODUCTION EMAIL DELIVERY TEST` |
-| Starting HEAD | `5426a0af01011d2113ace0d21f9315f5b3c8e2f9` |
-| Formal status | **OWNER INBOX VERIFICATION REQUIRED** before resend |
-| Real emails sent | **1** (create) |
+| Latest continuation authorization | `OWNER APPROVED — RESUME CB-E1-E AFTER FIRST QA EMAIL RECEIPT AND EXECUTE EXACTLY ONE CONTROLLED RESEND` |
+| Starting HEAD | `9baa3233e03a89fb85332fd3102427db2628ffec` |
+| Formal status | **OWNER RESEND INBOX VERIFICATION REQUIRED** before cleanup/closure |
+| Real emails submitted | **2** (create + resend) |
+| Create inbox | **OWNER-VERIFIED** receipt |
+| Resend inbox | awaiting owner confirmation |
 | Acceptance gate | remained **OFF** |
-| Delivery gate during checkpoint | restored **OFF** (send window closed after create verification) |
+| Delivery gate during checkpoint | restored **OFF** |
 
 ```text
-OWNER ACTION REQUIRED — CONFIRM CB-E1-E CREATE EMAIL RECEIVED IN QA INBOX AND PRESENTATION IS CORRECT
-CB-E1-E CREATE PROVIDER SUBMISSION PASS — OWNER INBOX VERIFICATION REQUIRED
-1 REAL INVITATION EMAIL SENT
+OWNER ACTION REQUIRED — CONFIRM CB-E1-E RESEND EMAIL RECEIVED EXACTLY ONCE IN QA INBOX
+CB-E1-E CREATE AND RESEND PROVIDER SUBMISSION PASS — OWNER RESEND INBOX VERIFICATION REQUIRED
+2 REAL INVITATION EMAIL SUBMISSIONS
 DELIVERY RESTORED OFF FOR CHECKPOINT
 ACCEPTANCE OFF
 ```
@@ -296,11 +298,129 @@ Do **not** resend until this confirmation.
 
 Do **not** start CB-G1.
 
-### 11.9 Current verdict
+### 11.9 Prior create-checkpoint verdict (HISTORICAL)
 
 ```text
 CB-E1-E CREATE PROVIDER SUBMISSION PASS — OWNER INBOX VERIFICATION REQUIRED
 1 REAL INVITATION EMAIL SENT
+DELIVERY RESTORED OFF FOR CHECKPOINT
+INVITATIONS_ENABLED=false
+```
+
+---
+
+## 12. Controlled resend (2026-08-14)
+
+**OWNER APPROVED — RESUME CB-E1-E AFTER FIRST QA EMAIL RECEIPT AND EXECUTE EXACTLY ONE CONTROLLED RESEND**
+
+First create inbox receipt: **OWNER-VERIFIED** (`FIRST QA INVITATION EMAIL RECEIVED`). Presentation details beyond receipt are not overclaimed.
+
+### 12.1 Pre-resend baselines (VERIFIED)
+
+| Check | Result |
+| --- | --- |
+| Starting HEAD | `9baa3233e03a89fb85332fd3102427db2628ffec` |
+| Divergence / worktree | `0 0` / clean |
+| Starting OFF deploy | `dpl_FV1oMVkK73eJwRAy5iWZxKm8EJ5d` READY |
+| DB | `dmctinrcjvsgmoxwwodw` / `20260814150000` aligned |
+| Invitation `573da95d-…` | still `pending` / Viewer / QA org |
+| Lifecycle before resend | exactly one `invitation_created` |
+| Create attempt | `548e1f70-…` submitted / msg prefix `3700d4f7…` |
+| Submitted attempts before | **1** |
+| Active membership for invitee | **0** |
+| Acceptance | **OFF** |
+| Delivery before activation | **OFF** |
+| Pre-resend token-hash fingerprint | `2cebb3b85ab5d528` (sha256 of hash; not raw token) |
+
+### 12.2 Temporary delivery ON for resend (DONE)
+
+| Step | Result |
+| --- | --- |
+| Set `INVITATION_EMAIL_DELIVERY_ENABLED=true` | done |
+| `INVITATIONS_ENABLED` | unchanged (**false**) |
+| Resend-ON deploy | `dpl_9WkQyshDHWNVxQ4WSTeA4BPEkcK2` READY → `https://zyntixai.vercel.app` |
+| UI | pending invite present; Resend available; acceptance OFF |
+
+### 12.3 Controlled resend (PASS)
+
+| Item | Result |
+| --- | --- |
+| Path | `/settings/members` → Resend **once** |
+| UI result | `Invitation refreshed and email submitted.` |
+| Same invitation ID | `573da95d-050d-42d7-8f01-4a600f944652` |
+| Status | remains `pending` |
+| Expiry refreshed | `2026-08-21 16:52:26+00` |
+| Lifecycle | added exactly one `invitation_resent` |
+| Token-hash fingerprint | `7299154ad01fd6e4` (**changed** from pre-resend) |
+| Membership created | **no** |
+
+`OLD GENERATION INVALIDATION VERIFIED BY TOKEN-HASH ROTATION; LIVE RAW-TOKEN REPLAY OMITTED TO PRESERVE CREDENTIAL CONFIDENTIALITY`
+
+### 12.4 Resend delivery attempt (PASS)
+
+| Field | Result |
+| --- | --- |
+| Attempt id | `f5eb9561-1706-4d22-9c4a-0be7e88b9368` |
+| Operation | `resend` |
+| Status | `submitted` |
+| Provider | `resend` |
+| Provider message ID | present (prefix `a6303993…`, length 36) |
+| Differs from create msg | **yes** (`3700d4f7…` ≠ `a6303993…`) |
+| Failure category | **null** |
+
+### 12.5 Provider / idempotency totals (PASS)
+
+| Metric | Result |
+| --- | --- |
+| Submitted attempts | **2** |
+| Create / resend ops | **1** / **1** |
+| Distinct provider message IDs | **2** |
+| Distinct generations | **2** |
+| Distinct idempotency keys | **2** |
+| Idempotency keys contain `@` | **no** |
+| Extra emails to prove idempotency | **none** |
+
+### 12.6 Delivery-attempt privacy (PASS)
+
+Same metadata-only schema as create; no raw token/URL/body/recipient/API key/auth secret in attempt rows.
+
+### 12.7 Tracking / URL (STRUCTURAL)
+
+Canonical acceptance URL builder unchanged; click/open tracking remain OFF/not configured (CB-E1-D). Accept link not clicked. Acceptance remained OFF.
+
+### 12.8 Checkpoint restore OFF (DONE)
+
+| Step | Result |
+| --- | --- |
+| Set `INVITATION_EMAIL_DELIVERY_ENABLED=false` | done |
+| Keep acceptance OFF | yes |
+| Checkpoint OFF deploy | `dpl_G3U17mUBayC8s4DCPooNRg2UbuGd` READY → `https://zyntixai.vercel.app` |
+| Pending invite retained pending cleanup | **yes** |
+
+### 12.9 Owner action required
+
+```text
+OWNER ACTION REQUIRED — CONFIRM CB-E1-E RESEND EMAIL RECEIVED EXACTLY ONCE IN QA INBOX
+```
+
+Confirm:
+
+- exactly one additional email;
+- create + resend only (no duplicate resend);
+- sender/readable/CTA OK;
+- no obvious tracking wrapper.
+
+Do **not** paste token/URL.
+
+Do **not** revoke/cleanup until this confirmation (unless a later safety order).
+
+Do **not** start CB-G1.
+
+### 12.10 Current verdict
+
+```text
+CB-E1-E CREATE AND RESEND PROVIDER SUBMISSION PASS — OWNER RESEND INBOX VERIFICATION REQUIRED
+2 REAL INVITATION EMAIL SUBMISSIONS
 DELIVERY RESTORED OFF FOR CHECKPOINT
 INVITATIONS_ENABLED=false
 ```
