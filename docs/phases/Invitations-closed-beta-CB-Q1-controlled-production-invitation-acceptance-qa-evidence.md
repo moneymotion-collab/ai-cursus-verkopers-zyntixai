@@ -2,22 +2,23 @@
 
 ## CB-Q1 — Controlled Production Invitation Acceptance QA
 
-### CB-Q1 OWNER DECISION REQUIRED — CONTROLLED QA RECIPIENT HAS NO EXISTING AUTH ACCOUNT; CONFIRM INVITE-DRIVEN SIGNUP PATH OR USE EXISTING NON-MEMBER QA ACCOUNT
+### CB-Q1 OWNER ACTION REQUIRED — OPTION B SELECTED; UPDATE ALLOWLIST TO EXISTING NON-MEMBER QA AUTH ACCOUNT
 
 | Field | Value |
 | --- | --- |
 | Official scope | **CB-Q1 — Controlled Production Invitation Acceptance QA** |
-| Document type | Pre-QA Phase A verification + owner decision gate |
+| Document type | Pre-QA Phase A verification + Option B checkpoint |
 | Date | 2026-08-14 |
 | Owner authorization | `OWNER APPROVED — AUTHORIZE CB-Q1 CONTROLLED PRODUCTION INVITATION ACCEPTANCE QA` |
-| Starting HEAD | `a2806dc907e110a7903adb52ce93a0d888135f38` |
-| Formal status | **STOPPED — OWNER DECISION REQUIRED** (no Production gate mutation performed) |
+| Auth-path decision | **Option B** — existing non-member QA auth account |
+| Prior decision HEAD | `8a698c744ec4c63ded7eb148e29bb9f9be9f3250` |
+| Formal status | **STOPPED — OWNER ACTION REQUIRED** (no Production gate mutation performed) |
 | Real emails during CB-Q1 so far | **0** |
 | Invitation creates | **0** |
 | Acceptances | **0** |
 
 ```text
-CB-Q1 OWNER DECISION REQUIRED — CONTROLLED QA RECIPIENT HAS NO EXISTING AUTH ACCOUNT; CONFIRM INVITE-DRIVEN SIGNUP PATH OR USE EXISTING NON-MEMBER QA ACCOUNT
+CB-Q1 OWNER ACTION REQUIRED — OPTION B SELECTED; UPDATE ALLOWLIST TO EXISTING NON-MEMBER QA AUTH ACCOUNT AND CONFIRM READY
 ```
 
 ---
@@ -114,34 +115,33 @@ Member Administration UI currently exposes invite create/revoke only; automated 
 
 ---
 
-## 8. Owner decision options
+## 8. Owner decision — Option B recorded (FACT)
 
-Choose **exactly one** before any gate mutation:
+Owner selected **Option B** (existing non-member QA auth account).
 
-### Option A — Invite-driven signup (new Production auth identity)
+Do **not** use suspended QA memberships as the invite target (`19db8e29…`, `f3ceb423…` remain `viewer/suspended` in ZyntixAI Production QA). Acceptance must not reactivate/override suspension; those are unsafe CB-Q1 fixtures.
 
-Owner confirms CB-Q1 may use the existing invite → register/login continuation for the current allowlisted QA inbox, knowingly creating a new Production auth user if signup completes.
-
-### Option B — Existing non-member QA account
-
-Owner designates an existing confirmed auth account that:
-
-1. is **not** an active member of ZyntixAI Production QA;
-2. is placed on Production `INVITATION_EMAIL_RECIPIENT_ALLOWLIST` (owner updates Encrypted allowlist);
-3. is owner-accessible for login continuation during acceptance.
-
-Do **not** paste full email into chat if avoidable. Confirm only:
-
-- Option A or B;
-- for B: that allowlist was updated and the account exists / is usable.
-
-### Option C — Pause CB-Q1
-
-Leave gates OFF; no invitation; resume later.
+Prefer a confirmed `auth.users` identity with **no** `organization_members` row for ZyntixAI Production QA (or at least not suspended/removed collision), that the owner can log into.
 
 ---
 
-## 9. Mutations performed
+## 9. Owner action required before Stage 1
+
+1. In Vercel Production, set Encrypted `INVITATION_EMAIL_RECIPIENT_ALLOWLIST` to the chosen existing non-member QA account email (exact invite recipient).
+2. Confirm in chat (masked only) that allowlist was updated, e.g. `user_prefix=xxxxxxxx` and/or `email_fp=xxxxxxxxxxxx`, and that login credentials for that account are available.
+3. Optionally leave the email entered (unsubmitted) in `/settings/members` Invite form for the controlled create step.
+
+Do **not** paste raw invitation tokens or full email if avoidable.
+
+Until that confirmation:
+
+- keep both gates OFF;
+- do not create an invitation;
+- do not send email.
+
+---
+
+## 10. Mutations performed
 
 None.
 
@@ -153,8 +153,8 @@ None.
 
 ---
 
-## 10. Next step after owner decision
+## 11. Next step after allowlist confirmation
 
-Resume from this published HEAD with the chosen option, then continue the authorized CB-Q1 sequence starting at Stage 1 (delivery ON only).
+Resume from the published HEAD after owner confirms Option B allowlist + account readiness, then continue Stage 1 (delivery ON only / acceptance OFF).
 
 Do **not** set `INVITATIONS_ENABLED=true` until after delivery OFF restoration following the single invitation email.
