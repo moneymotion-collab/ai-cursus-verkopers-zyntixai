@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   mapResendInvitationRpcRow,
+  toPublicResendInvitationAdapterResult,
   toResendInvitationActionResult,
   RESEND_INVITATION_MESSAGES,
 } from "@/features/invitations/server/resend-invitation-result";
@@ -26,12 +27,15 @@ describe("resend invitation result mapping", () => {
       kind: "success",
       invitationId: INVITE_ID,
       expiresAt: "2026-09-01T00:00:00.000Z",
+      rawToken: null,
     });
     expect(JSON.stringify(mapped)).not.toContain(SENTINEL);
     expect(mapped).not.toHaveProperty("raw_token");
     expect(mapped).not.toHaveProperty("token");
 
-    const action = toResendInvitationActionResult(mapped);
+    const action = toResendInvitationActionResult(
+      toPublicResendInvitationAdapterResult(mapped),
+    );
     expect(action).toEqual({
       ok: true,
       code: "success",

@@ -20,9 +20,27 @@ describe("mapCreateInvitationRpcRow", () => {
       kind: "success",
       invitationId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
       expiresAt: "2026-09-01T00:00:00.000Z",
+      rawToken: null,
     });
     expect(JSON.stringify(mapped)).not.toContain(SENTINEL_RAW_TOKEN);
     expect(JSON.stringify(mapped)).not.toContain("raw_token");
+  });
+
+  it("keeps a valid raw token only on trusted success mapping", () => {
+    const valid =
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    const mapped = mapCreateInvitationRpcRow({
+      result_code: "success",
+      invitation_id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      expires_at: "2026-09-01T00:00:00.000Z",
+      raw_token: valid,
+    });
+    expect(mapped).toEqual({
+      kind: "success",
+      invitationId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      expiresAt: "2026-09-01T00:00:00.000Z",
+      rawToken: valid,
+    });
   });
 
   it("maps collision and error codes without tokens", () => {

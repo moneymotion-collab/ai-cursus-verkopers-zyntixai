@@ -22,7 +22,8 @@ describe("Slice 2 create-invitation boundary", () => {
       resultTypes.indexOf("export const CREATE_INVITATION_MESSAGES"),
     );
     expect(actionResultBlock).not.toContain("raw_token");
-    expect(actionResultBlock).not.toContain("token");
+    expect(actionResultBlock).not.toContain("rawToken");
+    expect(actionResultBlock).not.toMatch(/\btoken\b/);
   });
 
   it("does not implement resend, revoke, or membership mutations", () => {

@@ -1,7 +1,12 @@
 /**
- * Resend-invitation RPC result mapping (Slice 3).
- * Server-only vocabulary — raw_token never appears on action/UI result types.
+ * Resend-invitation RPC result mapping (Slice 3 + CB-E1-A).
+ * Trusted server results may carry rawToken transiently.
+ * Action/UI result types never include bearer material.
+ * Mapper discards raw_token unless it matches the trusted hex shape.
  */
+
+import type { InvitationDeliveryUiStatus } from "@/features/invitations/domain/delivery-status";
+import { isInvitationRawTokenShape } from "@/features/invitations/domain/raw-token-shape";
 
 export const RESEND_ORGANIZATION_INVITATION_RPC =
   "resend_organization_invitation" as const;
@@ -25,6 +30,27 @@ export type ResendInvitationRpcRow = {
   expires_at: string | null;
   raw_token: string | null;
 };
+
+/**
+ * Trusted adapter outcome — success may include rawToken for delivery only.
+ * Never serialize this type to the browser.
+ */
+export type ResendInvitationTrustedAdapterResult =
+  | {
+      kind: "success";
+      invitationId: string;
+      expiresAt: string | null;
+      rawToken: string | null;
+    }
+  | {
+      kind:
+        | "invite_not_found_or_unavailable"
+        | "invite_revoked"
+        | "invite_expired"
+        | "rate_limited"
+        | "unexpected";
+    }
+  | { kind: "transport_error" };
 
 export type ResendInvitationAdapterResult =
   | {
@@ -58,6 +84,7 @@ export type ResendInvitationActionResult =
       ok: true;
       code: "success";
       message: string;
+      delivery?: InvitationDeliveryUiStatus;
     }
   | {
       ok: false;
@@ -67,6 +94,8 @@ export type ResendInvitationActionResult =
 
 export const RESEND_INVITATION_MESSAGES = {
   success: "Invitation refreshed. The pending invitation was updated.",
+  success_delivery_unavailable:
+    "Invitation refreshed, but the invitation email could not be sent. The previous link is no longer valid.",
   invite_not_found_or_unavailable:
     "This invitation is unavailable. Refresh the page and try again.",
   invite_revoked: "This invitation has already been revoked.",
@@ -77,6 +106,13 @@ export const RESEND_INVITATION_MESSAGES = {
   auth_required: "Sign in to manage invitations.",
   unexpected: "Unable to resend the invitation right now. Please try again.",
 } as const;
+
+export type ResendInvitationDeliveryOutcome =
+  | { kind: "submitted"; providerMessageId: string | null }
+  | { kind: "delivery_disabled" }
+  | { kind: "delivery_recipient_not_allowed" }
+  | { kind: "delivery_configuration_error" }
+  | { kind: "delivery_provider_error" };
 
 export function normalizeResendInvitationResultCode(
   value: unknown,
@@ -90,15 +126,38 @@ export function normalizeResendInvitationResultCode(
   return "unexpected";
 }
 
+function takeTrustedRawToken(value: string | null): string | null {
+  if (value === null) {
+    return null;
+  }
+  return isInvitationRawTokenShape(value) ? value : null;
+}
+
+function toDeliveryUiStatus(
+  delivery: ResendInvitationDeliveryOutcome,
+): InvitationDeliveryUiStatus {
+  switch (delivery.kind) {
+    case "submitted":
+      return "submitted";
+    case "delivery_disabled":
+      return "disabled";
+    case "delivery_recipient_not_allowed":
+      return "recipient_not_allowed";
+    case "delivery_configuration_error":
+      return "configuration_error";
+    case "delivery_provider_error":
+      return "provider_error";
+    default:
+      return "provider_error";
+  }
+}
+
 export function mapResendInvitationRpcRow(
   row: ResendInvitationRpcRow | null | undefined,
-): ResendInvitationAdapterResult {
+): ResendInvitationTrustedAdapterResult {
   if (!row || typeof row !== "object") {
     return { kind: "unexpected" };
   }
-
-  // Discard bearer material immediately — never forward it.
-  void row.raw_token;
 
   const code = normalizeResendInvitationResultCode(row.result_code);
   switch (code) {
@@ -110,6 +169,7 @@ export function mapResendInvitationRpcRow(
         kind: "success",
         invitationId: row.invitation_id,
         expiresAt: typeof row.expires_at === "string" ? row.expires_at : null,
+        rawToken: takeTrustedRawToken(row.raw_token),
       };
     }
     case "invite_not_found_or_unavailable":
@@ -117,22 +177,62 @@ export function mapResendInvitationRpcRow(
     case "invite_expired":
     case "rate_limited":
     case "unexpected":
+      void row.raw_token;
       return { kind: code };
     default:
+      void row.raw_token;
       return { kind: "unexpected" };
+  }
+}
+
+export function toPublicResendInvitationAdapterResult(
+  trusted: ResendInvitationTrustedAdapterResult,
+): ResendInvitationAdapterResult {
+  if (trusted.kind !== "success") {
+    return trusted;
+  }
+  return {
+    kind: "success",
+    invitationId: trusted.invitationId,
+    expiresAt: trusted.expiresAt,
+  };
+}
+
+function resendSuccessMessage(
+  delivery: ResendInvitationDeliveryOutcome | undefined,
+): string {
+  if (!delivery) {
+    return RESEND_INVITATION_MESSAGES.success;
+  }
+  switch (delivery.kind) {
+    case "submitted":
+    case "delivery_disabled":
+      return RESEND_INVITATION_MESSAGES.success;
+    case "delivery_recipient_not_allowed":
+    case "delivery_configuration_error":
+    case "delivery_provider_error":
+      return RESEND_INVITATION_MESSAGES.success_delivery_unavailable;
+    default:
+      return RESEND_INVITATION_MESSAGES.success_delivery_unavailable;
   }
 }
 
 export function toResendInvitationActionResult(
   adapter: ResendInvitationAdapterResult,
+  delivery?: ResendInvitationDeliveryOutcome,
 ): ResendInvitationActionResult {
   switch (adapter.kind) {
-    case "success":
+    case "success": {
+      const deliveryStatus = delivery
+        ? toDeliveryUiStatus(delivery)
+        : undefined;
       return {
         ok: true,
         code: "success",
-        message: RESEND_INVITATION_MESSAGES.success,
+        message: resendSuccessMessage(delivery),
+        ...(deliveryStatus ? { delivery: deliveryStatus } : {}),
       };
+    }
     case "invite_not_found_or_unavailable":
       return {
         ok: false,

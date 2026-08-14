@@ -1,6 +1,7 @@
 /**
- * Narrow invitation lookup for manage (resend/revoke) authorization.
+ * Narrow invitation lookup for manage (resend/revoke) authorization + delivery.
  * Selects only safe columns — never invitation credential secrets.
+ * email_normalized is safe recipient identity (not a bearer token).
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -9,13 +10,14 @@ import type { OrganizationInvitationTargetRole } from "@/features/invitations/do
 import { isOrganizationInvitationTargetRole } from "@/features/invitations/domain/permissions";
 
 const MANAGE_INVITATION_SAFE_COLUMNS =
-  "id, role, status, expires_at" as const;
+  "id, role, status, expires_at, email_normalized" as const;
 
 type ManageInvitationRow = {
   id: string;
   role: string;
   status: string;
   expires_at: string;
+  email_normalized: string;
 };
 
 export type ManageableInvitationRecord = {
@@ -23,6 +25,7 @@ export type ManageableInvitationRecord = {
   role: OrganizationInvitationTargetRole;
   status: string;
   expiresAt: string;
+  emailNormalized: string;
 };
 
 export type LoadInvitationForManageResult =
@@ -81,6 +84,8 @@ export async function loadInvitationForManage(
       typeof data.role !== "string" ||
       typeof data.status !== "string" ||
       typeof data.expires_at !== "string" ||
+      typeof data.email_normalized !== "string" ||
+      data.email_normalized.length === 0 ||
       !isOrganizationInvitationTargetRole(data.role)
     ) {
       return { ok: false, kind: "not_found" };
@@ -93,6 +98,7 @@ export async function loadInvitationForManage(
         role: data.role,
         status: data.status,
         expiresAt: data.expires_at,
+        emailNormalized: data.email_normalized,
       },
     };
   } catch {

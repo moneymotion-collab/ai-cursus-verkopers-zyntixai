@@ -68,6 +68,7 @@ function pendingInvitation(role: "admin" | "staff" | "viewer") {
       role,
       status: "pending",
       expiresAt: FUTURE,
+      emailNormalized: "invitee@example.com",
     },
   };
 }
@@ -117,9 +118,11 @@ describe("resendInvitationAction / revokeInvitationAction", () => {
         ok: true,
         code: "success",
         message: RESEND_INVITATION_MESSAGES.success,
+        delivery: "disabled",
       });
       expect(JSON.stringify(result)).not.toContain(SENTINEL);
       expect(JSON.stringify(result)).not.toContain("raw_token");
+      expect(JSON.stringify(result)).not.toContain("rawToken");
       expect(revalidatePathMock).toHaveBeenCalledWith(MEMBERS_ROUTE);
     }
   });
@@ -406,6 +409,7 @@ describe("resendInvitationAction / revokeInvitationAction", () => {
       actionResultTypes.indexOf("export const RESEND_INVITATION_MESSAGES"),
     );
     expect(actionBlock).not.toContain("raw_token");
-    expect(actionBlock).not.toContain("token");
+    expect(actionBlock).not.toContain("rawToken");
+    expect(actionBlock).not.toMatch(/\btoken\b/);
   });
 });

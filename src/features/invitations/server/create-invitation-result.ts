@@ -1,7 +1,12 @@
 /**
- * Create-invitation RPC result mapping (Slice 2).
- * Server-only vocabulary — raw_token never appears on action/UI result types.
+ * Create-invitation RPC result mapping (Slice 2 + CB-E1-A).
+ * Trusted server results may carry rawToken transiently.
+ * Action/UI result types never include bearer material.
+ * Mapper discards raw_token unless it matches the trusted hex shape.
  */
+
+import type { InvitationDeliveryUiStatus } from "@/features/invitations/domain/delivery-status";
+import { isInvitationRawTokenShape } from "@/features/invitations/domain/raw-token-shape";
 
 export const CREATE_ORGANIZATION_INVITATION_RPC =
   "create_organization_invitation" as const;
@@ -23,7 +28,7 @@ export type CreateInvitationResultCode =
 
 /**
  * Raw RPC row shape for server-side parsing only.
- * raw_token must be discarded immediately after classification.
+ * raw_token must not leave trusted server mapping except as typed rawToken.
  */
 export type CreateInvitationRpcRow = {
   result_code: string;
@@ -32,7 +37,34 @@ export type CreateInvitationRpcRow = {
   raw_token: string | null;
 };
 
-/** Adapter outcome after raw_token has been discarded. */
+/**
+ * Trusted adapter outcome — success may include rawToken for delivery orchestration only.
+ * Never serialize this type to the browser.
+ */
+export type CreateInvitationTrustedAdapterResult =
+  | {
+      kind: "success";
+      invitationId: string;
+      expiresAt: string | null;
+      rawToken: string | null;
+    }
+  | {
+      kind: "invite_already_pending";
+      invitationId: string | null;
+      expiresAt: string | null;
+    }
+  | {
+      kind:
+        | "already_member"
+        | "existing_membership_requires_admin_action"
+        | "forbidden"
+        | "invalid_input"
+        | "rate_limited"
+        | "unexpected";
+    }
+  | { kind: "transport_error" };
+
+/** Public adapter outcome after rawToken has been discarded. */
 export type CreateInvitationAdapterResult =
   | {
       kind: "success";
@@ -72,6 +104,7 @@ export type CreateInvitationActionResult =
       ok: true;
       code: "success";
       message: string;
+      delivery?: InvitationDeliveryUiStatus;
     }
   | {
       ok: false;
@@ -85,6 +118,8 @@ export type CreateInvitationActionResult =
 
 export const CREATE_INVITATION_MESSAGES = {
   success: "Invitation created. It is pending.",
+  success_delivery_unavailable:
+    "Invitation created, but the invitation email could not be sent. You can try resending later.",
   already_member: "This person is already an active member.",
   existing_membership_requires_admin_action:
     "This person already has a membership that requires administrator action before they can be invited again.",
@@ -96,6 +131,13 @@ export const CREATE_INVITATION_MESSAGES = {
   auth_required: "Sign in to invite a member.",
   unexpected: "Unable to create the invitation right now. Please try again.",
 } as const;
+
+export type CreateInvitationDeliveryOutcome =
+  | { kind: "submitted"; providerMessageId: string | null }
+  | { kind: "delivery_disabled" }
+  | { kind: "delivery_recipient_not_allowed" }
+  | { kind: "delivery_configuration_error" }
+  | { kind: "delivery_provider_error" };
 
 export function normalizeCreateInvitationResultCode(
   value: unknown,
@@ -109,19 +151,42 @@ export function normalizeCreateInvitationResultCode(
   return "unexpected";
 }
 
+function takeTrustedRawToken(value: string | null): string | null {
+  if (value === null) {
+    return null;
+  }
+  return isInvitationRawTokenShape(value) ? value : null;
+}
+
+function toDeliveryUiStatus(
+  delivery: CreateInvitationDeliveryOutcome,
+): InvitationDeliveryUiStatus {
+  switch (delivery.kind) {
+    case "submitted":
+      return "submitted";
+    case "delivery_disabled":
+      return "disabled";
+    case "delivery_recipient_not_allowed":
+      return "recipient_not_allowed";
+    case "delivery_configuration_error":
+      return "configuration_error";
+    case "delivery_provider_error":
+      return "provider_error";
+    default:
+      return "provider_error";
+  }
+}
+
 /**
- * Map RPC row to adapter result.
- * Intentionally ignores / discards raw_token — never forward it.
+ * Map RPC row to trusted adapter result.
+ * Intentionally discards raw_token values that are not valid invitation credentials.
  */
 export function mapCreateInvitationRpcRow(
   row: CreateInvitationRpcRow | null | undefined,
-): CreateInvitationAdapterResult {
+): CreateInvitationTrustedAdapterResult {
   if (!row || typeof row !== "object") {
     return { kind: "unexpected" };
   }
-
-  // Discard bearer material immediately — do not assign to result.
-  void row.raw_token;
 
   const code = normalizeCreateInvitationResultCode(row.result_code);
 
@@ -135,9 +200,12 @@ export function mapCreateInvitationRpcRow(
         invitationId: row.invitation_id,
         expiresAt:
           typeof row.expires_at === "string" ? row.expires_at : null,
+        rawToken: takeTrustedRawToken(row.raw_token),
       };
     }
     case "invite_already_pending":
+      // Discard any bearer material on non-success paths.
+      void row.raw_token;
       return {
         kind: "invite_already_pending",
         invitationId:
@@ -151,22 +219,62 @@ export function mapCreateInvitationRpcRow(
     case "invalid_input":
     case "rate_limited":
     case "unexpected":
+      void row.raw_token;
       return { kind: code };
     default:
+      void row.raw_token;
       return { kind: "unexpected" };
+  }
+}
+
+export function toPublicCreateInvitationAdapterResult(
+  trusted: CreateInvitationTrustedAdapterResult,
+): CreateInvitationAdapterResult {
+  if (trusted.kind !== "success") {
+    return trusted;
+  }
+  return {
+    kind: "success",
+    invitationId: trusted.invitationId,
+    expiresAt: trusted.expiresAt,
+  };
+}
+
+function createSuccessMessage(
+  delivery: CreateInvitationDeliveryOutcome | undefined,
+): string {
+  if (!delivery) {
+    return CREATE_INVITATION_MESSAGES.success;
+  }
+  switch (delivery.kind) {
+    case "submitted":
+    case "delivery_disabled":
+      return CREATE_INVITATION_MESSAGES.success;
+    case "delivery_recipient_not_allowed":
+    case "delivery_configuration_error":
+    case "delivery_provider_error":
+      return CREATE_INVITATION_MESSAGES.success_delivery_unavailable;
+    default:
+      return CREATE_INVITATION_MESSAGES.success_delivery_unavailable;
   }
 }
 
 export function toCreateInvitationActionResult(
   adapter: CreateInvitationAdapterResult,
+  delivery?: CreateInvitationDeliveryOutcome,
 ): CreateInvitationActionResult {
   switch (adapter.kind) {
-    case "success":
+    case "success": {
+      const deliveryStatus = delivery
+        ? toDeliveryUiStatus(delivery)
+        : undefined;
       return {
         ok: true,
         code: "success",
-        message: CREATE_INVITATION_MESSAGES.success,
+        message: createSuccessMessage(delivery),
+        ...(deliveryStatus ? { delivery: deliveryStatus } : {}),
       };
+    }
     case "already_member":
       return {
         ok: false,

@@ -46,9 +46,39 @@ describe("createOrganizationInvitation adapter", () => {
       kind: "success",
       invitationId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
       expiresAt: "2026-09-01T00:00:00.000Z",
+      rawToken: null,
     });
     expect(JSON.stringify(result)).not.toContain(SENTINEL);
     expect(result).not.toHaveProperty("raw_token");
+  });
+
+  it("preserves a valid raw token on trusted success for delivery orchestration", async () => {
+    const valid =
+      "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+    rpcMock.mockResolvedValue({
+      data: [
+        {
+          result_code: "success",
+          invitation_id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+          expires_at: "2026-09-01T00:00:00.000Z",
+          raw_token: valid,
+        },
+      ],
+      error: null,
+    });
+
+    const result = await createOrganizationInvitation(createClient(), {
+      organizationId: ORG_ID,
+      email: "invitee@example.com",
+      targetRole: "staff",
+    });
+
+    expect(result).toEqual({
+      kind: "success",
+      invitationId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      expiresAt: "2026-09-01T00:00:00.000Z",
+      rawToken: valid,
+    });
   });
 
   it("maps transport errors without leaking payloads", async () => {

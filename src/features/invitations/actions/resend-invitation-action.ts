@@ -11,9 +11,12 @@ import { loadInvitationForManage } from "@/features/invitations/server/load-invi
 import { resendOrganizationInvitation } from "@/features/invitations/server/resend-invitation";
 import {
   RESEND_INVITATION_MESSAGES,
+  toPublicResendInvitationAdapterResult,
   toResendInvitationActionResult,
   type ResendInvitationActionResult,
 } from "@/features/invitations/server/resend-invitation-result";
+import { loadOrganizationDisplayNameForDelivery } from "@/features/invitations/server/delivery/load-organization-display-name";
+import { orchestrateInvitationDelivery } from "@/features/invitations/server/delivery/orchestrate-invitation-delivery";
 
 export type ResendInvitationActionInput = {
   organizationId: string;
@@ -24,6 +27,8 @@ export type ResendInvitationActionInput = {
  * Pending invitation resend action.
  * Organization id is re-verified; invitation state and manage permission are
  * resolved server-side. RPC bearer material never reaches this return type.
+ * Delivery runs only after successful mutation (CB-R1 denials → zero provider calls).
+ * Delivery failure does not roll back token rotation.
  */
 export async function resendInvitationAction(
   input: ResendInvitationActionInput,
@@ -111,12 +116,31 @@ export async function resendInvitationAction(
       };
     }
 
-    const adapterResult = await resendOrganizationInvitation(supabase, {
+    const trustedResult = await resendOrganizationInvitation(supabase, {
       organizationId,
       invitationId: invitation.invitationId,
     });
 
-    const actionResult = toResendInvitationActionResult(adapterResult);
+    if (trustedResult.kind !== "success") {
+      return toResendInvitationActionResult(trustedResult);
+    }
+
+    const { rawToken, invitationId, expiresAt } = trustedResult;
+    const publicResult = toPublicResendInvitationAdapterResult(trustedResult);
+
+    const delivery = await orchestrateInvitationDelivery({
+      rawToken,
+      invitationId,
+      organizationId,
+      recipientEmail: invitation.emailNormalized,
+      targetRole: invitation.role,
+      expiresAt,
+      operation: "resend",
+      loadOrganizationName: () =>
+        loadOrganizationDisplayNameForDelivery(supabase, organizationId),
+    });
+
+    const actionResult = toResendInvitationActionResult(publicResult, delivery);
 
     if (actionResult.ok) {
       revalidatePath(MEMBERS_ROUTE);

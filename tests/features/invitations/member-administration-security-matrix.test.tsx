@@ -273,9 +273,11 @@ describe("CREATE / REVOKE SUCCESS MATRIX", () => {
       ok: true,
       code: "success",
       message: CREATE_INVITATION_MESSAGES.success,
+      delivery: "disabled",
     });
     expect(JSON.stringify(result)).not.toContain(SENTINEL_RAW_TOKEN);
     expect(JSON.stringify(result)).not.toContain("raw_token");
+    expect(JSON.stringify(result)).not.toContain("rawToken");
     expect(revalidatePathMock).toHaveBeenCalledWith(MEMBERS_ROUTE);
   });
 

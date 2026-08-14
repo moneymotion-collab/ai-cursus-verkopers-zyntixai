@@ -19,6 +19,10 @@ import {
   timingSafeEqual,
 } from "node:crypto";
 import type { NextResponse } from "next/server";
+import {
+  INVITATION_RAW_TOKEN_PATTERN,
+  isInvitationRawTokenShape,
+} from "@/features/invitations/domain/raw-token-shape";
 
 export const INVITE_CONTINUATION_COOKIE_NAME = "zyntix_invite_continuation";
 export const INVITE_CONTINUATION_TTL_SECONDS = 1800;
@@ -36,7 +40,9 @@ export const INVITE_CONTINUATION_KEY_PURPOSE =
 /** Minimum length for INVITE_CONTINUATION_SECRET (fail closed if shorter). */
 export const INVITE_CONTINUATION_SECRET_MIN_LENGTH = 32;
 
-export const INVITE_RAW_TOKEN_PATTERN = /^[0-9a-f]{64}$/;
+/** Re-export for existing callers; canonical definition is domain/raw-token-shape. */
+export const INVITE_RAW_TOKEN_PATTERN = INVITATION_RAW_TOKEN_PATTERN;
+export { isInvitationRawTokenShape };
 export const INVITE_CONTINUATION_NONCE_PATTERN = /^[0-9a-f]{32}$/;
 
 const AES_ALGORITHM = "aes-256-gcm";
@@ -85,10 +91,6 @@ export type InvitationContinuationUnsealFailure = {
 export type InvitationContinuationUnsealResult =
   | InvitationContinuationUnsealSuccess
   | InvitationContinuationUnsealFailure;
-
-export function isInvitationRawTokenShape(value: unknown): value is string {
-  return typeof value === "string" && INVITE_RAW_TOKEN_PATTERN.test(value);
-}
 
 /**
  * Derive a 32-byte AES-256 key:

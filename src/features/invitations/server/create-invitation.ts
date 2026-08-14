@@ -1,7 +1,7 @@
 /**
- * Authenticated create-invitation RPC adapter (Slice 2).
+ * Authenticated create-invitation RPC adapter (Slice 2 + CB-E1-A).
  * Server-only: normal user session client; no service role; no generated types.
- * raw_token from RPC is discarded during mapping and never returned.
+ * Success may return rawToken for trusted delivery orchestration only.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -9,8 +9,8 @@ import type { Database } from "@/types/database";
 import {
   CREATE_ORGANIZATION_INVITATION_RPC,
   mapCreateInvitationRpcRow,
-  type CreateInvitationAdapterResult,
   type CreateInvitationRpcRow,
+  type CreateInvitationTrustedAdapterResult,
 } from "@/features/invitations/server/create-invitation-result";
 
 type CreateInvitationRpcArgs = {
@@ -42,7 +42,7 @@ export type CreateOrganizationInvitationParams = {
 export async function createOrganizationInvitation(
   supabase: SupabaseClient<Database>,
   params: CreateOrganizationInvitationParams,
-): Promise<CreateInvitationAdapterResult> {
+): Promise<CreateInvitationTrustedAdapterResult> {
   const client = supabase as unknown as RpcCapableClient;
 
   try {

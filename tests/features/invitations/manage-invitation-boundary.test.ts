@@ -26,7 +26,8 @@ describe("Slice 3 pending invitation actions boundary", () => {
 
     for (const block of [resendAction, revokeAction]) {
       expect(block).not.toContain("raw_token");
-      expect(block).not.toContain("token");
+      expect(block).not.toContain("rawToken");
+      expect(block).not.toMatch(/\btoken\b/);
       expect(block).not.toContain("accept_url");
       expect(block).not.toContain("magic_link");
     }

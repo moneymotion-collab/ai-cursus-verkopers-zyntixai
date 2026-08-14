@@ -10,8 +10,11 @@ import { createOrganizationInvitation } from "@/features/invitations/server/crea
 import {
   CREATE_INVITATION_MESSAGES,
   toCreateInvitationActionResult,
+  toPublicCreateInvitationAdapterResult,
   type CreateInvitationActionResult,
 } from "@/features/invitations/server/create-invitation-result";
+import { loadOrganizationDisplayNameForDelivery } from "@/features/invitations/server/delivery/load-organization-display-name";
+import { orchestrateInvitationDelivery } from "@/features/invitations/server/delivery/orchestrate-invitation-delivery";
 
 export type CreateInvitationActionInput = {
   organizationId: string;
@@ -23,6 +26,7 @@ export type CreateInvitationActionInput = {
  * Invite Member create action.
  * Organization id is re-verified against active membership — never trusted alone.
  * RPC bearer material never reaches this return type.
+ * Delivery runs only after successful mutation (CB-R1 denials → zero provider calls).
  */
 export async function createInvitationAction(
   input: CreateInvitationActionInput,
@@ -94,13 +98,32 @@ export async function createInvitationAction(
       };
     }
 
-    const adapterResult = await createOrganizationInvitation(supabase, {
+    const trustedResult = await createOrganizationInvitation(supabase, {
       organizationId,
       email: parsed.data.email,
       targetRole: parsed.data.targetRole,
     });
 
-    const actionResult = toCreateInvitationActionResult(adapterResult);
+    if (trustedResult.kind !== "success") {
+      return toCreateInvitationActionResult(trustedResult);
+    }
+
+    const { rawToken, invitationId, expiresAt } = trustedResult;
+    const publicResult = toPublicCreateInvitationAdapterResult(trustedResult);
+
+    const delivery = await orchestrateInvitationDelivery({
+      rawToken,
+      invitationId,
+      organizationId,
+      recipientEmail: parsed.data.email,
+      targetRole: parsed.data.targetRole,
+      expiresAt,
+      operation: "create",
+      loadOrganizationName: () =>
+        loadOrganizationDisplayNameForDelivery(supabase, organizationId),
+    });
+
+    const actionResult = toCreateInvitationActionResult(publicResult, delivery);
 
     if (actionResult.ok) {
       revalidatePath(MEMBERS_ROUTE);

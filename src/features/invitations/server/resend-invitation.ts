@@ -1,7 +1,7 @@
 /**
- * Authenticated resend-invitation RPC adapter (Slice 3).
+ * Authenticated resend-invitation RPC adapter (Slice 3 + CB-E1-A).
  * Server-only: session client; no service role.
- * raw_token from RPC is discarded during mapping and never returned.
+ * Success may return rawToken for trusted delivery orchestration only.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -9,8 +9,8 @@ import type { Database } from "@/types/database";
 import {
   RESEND_ORGANIZATION_INVITATION_RPC,
   mapResendInvitationRpcRow,
-  type ResendInvitationAdapterResult,
   type ResendInvitationRpcRow,
+  type ResendInvitationTrustedAdapterResult,
 } from "@/features/invitations/server/resend-invitation-result";
 
 type ResendInvitationRpcArgs = {
@@ -40,7 +40,7 @@ export type ResendOrganizationInvitationParams = {
 export async function resendOrganizationInvitation(
   supabase: SupabaseClient<Database>,
   params: ResendOrganizationInvitationParams,
-): Promise<ResendInvitationAdapterResult> {
+): Promise<ResendInvitationTrustedAdapterResult> {
   const client = supabase as unknown as RpcCapableClient;
 
   try {

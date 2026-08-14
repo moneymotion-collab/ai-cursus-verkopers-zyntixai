@@ -48,6 +48,7 @@ describe("manage invitation adapters", () => {
       kind: "success",
       invitationId: INVITE_ID,
       expiresAt: "2026-09-01T00:00:00.000Z",
+      rawToken: null,
     });
     expect(JSON.stringify(result)).not.toContain(SENTINEL);
     expect(result).not.toHaveProperty("raw_token");

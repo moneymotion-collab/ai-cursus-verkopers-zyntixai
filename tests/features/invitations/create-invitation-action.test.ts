@@ -83,9 +83,11 @@ describe("createInvitationAction", () => {
       ok: true,
       code: "success",
       message: CREATE_INVITATION_MESSAGES.success,
+      delivery: "disabled",
     });
     expect(JSON.stringify(result)).not.toContain(SENTINEL);
     expect(JSON.stringify(result)).not.toContain("raw_token");
+    expect(JSON.stringify(result)).not.toContain("rawToken");
     expect(revalidatePathMock).toHaveBeenCalledWith(MEMBERS_ROUTE);
   });
 
