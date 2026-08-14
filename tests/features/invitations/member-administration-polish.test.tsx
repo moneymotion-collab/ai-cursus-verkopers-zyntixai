@@ -126,10 +126,16 @@ describe("Slice 4 create/resend/revoke message truthfulness", () => {
     expect(html.toLowerCase()).not.toContain("recipient notified");
   });
 
-  it("resend and revoke success copy stay delivery-free", () => {
+  it("resend and revoke base success copy stay free of mailbox-delivery claims", () => {
     expect(RESEND_INVITATION_MESSAGES.success.toLowerCase()).not.toMatch(
-      /\bsent\b|\bdelivered\b|\bnotified\b/,
+      /\bdelivered\b|\bnotified\b|inbox/,
     );
+    expect(RESEND_INVITATION_MESSAGES.success_submitted.toLowerCase()).toContain(
+      "email submitted",
+    );
+    expect(
+      RESEND_INVITATION_MESSAGES.success_submitted.toLowerCase(),
+    ).not.toContain("delivered");
     expect(REVOKE_INVITATION_MESSAGES.success).toBe("Invitation revoked.");
   });
 });

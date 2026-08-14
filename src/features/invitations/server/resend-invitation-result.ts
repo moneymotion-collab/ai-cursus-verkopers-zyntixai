@@ -94,8 +94,15 @@ export type ResendInvitationActionResult =
 
 export const RESEND_INVITATION_MESSAGES = {
   success: "Invitation refreshed. The pending invitation was updated.",
+  success_submitted: "Invitation refreshed and email submitted.",
+  success_delivery_disabled:
+    "Invitation refreshed. Email delivery is currently disabled.",
   success_delivery_unavailable:
-    "Invitation refreshed, but the invitation email could not be sent. The previous link is no longer valid.",
+    "Invitation refreshed, but the email could not be submitted. The previous link is no longer valid. You can try Resend again later.",
+  success_delivery_recipient_not_allowed:
+    "Invitation refreshed, but email delivery is not available for this recipient yet. The previous link is no longer valid.",
+  success_delivery_configuration_error:
+    "Invitation refreshed, but email delivery is not configured. The previous link is no longer valid.",
   invite_not_found_or_unavailable:
     "This invitation is unavailable. Refresh the page and try again.",
   invite_revoked: "This invitation has already been revoked.",
@@ -206,10 +213,13 @@ function resendSuccessMessage(
   }
   switch (delivery.kind) {
     case "submitted":
+      return RESEND_INVITATION_MESSAGES.success_submitted;
     case "delivery_disabled":
-      return RESEND_INVITATION_MESSAGES.success;
+      return RESEND_INVITATION_MESSAGES.success_delivery_disabled;
     case "delivery_recipient_not_allowed":
+      return RESEND_INVITATION_MESSAGES.success_delivery_recipient_not_allowed;
     case "delivery_configuration_error":
+      return RESEND_INVITATION_MESSAGES.success_delivery_configuration_error;
     case "delivery_provider_error":
       return RESEND_INVITATION_MESSAGES.success_delivery_unavailable;
     default:

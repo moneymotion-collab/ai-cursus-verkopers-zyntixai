@@ -35,7 +35,7 @@ describe("Slice 3 pending invitation actions boundary", () => {
     expect(resend).toMatch(/discards raw_token|Discard bearer/i);
   });
 
-  it("does not claim email delivery or expose copy-token UX", () => {
+  it("does not claim mailbox delivery or expose copy-token UX", () => {
     const ui = readSrc(
       "src/features/invitations/ui/pending-invitation-actions.tsx",
     );
@@ -45,8 +45,9 @@ describe("Slice 3 pending invitation actions boundary", () => {
 
     expect(ui).not.toMatch(/Copy (link|token)/i);
     expect(ui).not.toContain("accept_url");
-    expect(messages).not.toMatch(/Email resent|Recipient notified|Message delivered/i);
+    expect(messages).not.toMatch(/Email resent|Recipient notified|Message delivered|inbox/i);
     expect(messages).toContain("Invitation refreshed");
+    expect(messages).toContain("email submitted");
   });
 
   it("wires manage path through authenticated session without service role or SQL", () => {

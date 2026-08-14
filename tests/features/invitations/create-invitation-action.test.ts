@@ -82,7 +82,7 @@ describe("createInvitationAction", () => {
     expect(result).toEqual({
       ok: true,
       code: "success",
-      message: CREATE_INVITATION_MESSAGES.success,
+      message: CREATE_INVITATION_MESSAGES.success_delivery_disabled,
       delivery: "disabled",
     });
     expect(JSON.stringify(result)).not.toContain(SENTINEL);

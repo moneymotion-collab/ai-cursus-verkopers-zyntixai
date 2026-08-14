@@ -14,6 +14,7 @@ import {
   type CreateInvitationActionResult,
 } from "@/features/invitations/server/create-invitation-result";
 import { loadOrganizationDisplayNameForDelivery } from "@/features/invitations/server/delivery/load-organization-display-name";
+import { createSupabaseInvitationDeliveryAttemptStore } from "@/features/invitations/server/delivery/attempt-store";
 import { orchestrateInvitationDelivery } from "@/features/invitations/server/delivery/orchestrate-invitation-delivery";
 
 export type CreateInvitationActionInput = {
@@ -111,17 +112,22 @@ export async function createInvitationAction(
     const { rawToken, invitationId, expiresAt } = trustedResult;
     const publicResult = toPublicCreateInvitationAdapterResult(trustedResult);
 
-    const delivery = await orchestrateInvitationDelivery({
-      rawToken,
-      invitationId,
-      organizationId,
-      recipientEmail: parsed.data.email,
-      targetRole: parsed.data.targetRole,
-      expiresAt,
-      operation: "create",
-      loadOrganizationName: () =>
-        loadOrganizationDisplayNameForDelivery(supabase, organizationId),
-    });
+    const delivery = await orchestrateInvitationDelivery(
+      {
+        rawToken,
+        invitationId,
+        organizationId,
+        recipientEmail: parsed.data.email,
+        targetRole: parsed.data.targetRole,
+        expiresAt,
+        operation: "create",
+        loadOrganizationName: () =>
+          loadOrganizationDisplayNameForDelivery(supabase, organizationId),
+      },
+      {
+        attemptStore: createSupabaseInvitationDeliveryAttemptStore(supabase),
+      },
+    );
 
     const actionResult = toCreateInvitationActionResult(publicResult, delivery);
 

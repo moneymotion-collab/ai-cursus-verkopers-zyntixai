@@ -8,6 +8,18 @@ export {
   isTrustedInvitationEmailOrigin,
 } from "@/features/invitations/server/delivery/acceptance-url";
 export {
+  COMPLETE_ORGANIZATION_INVITATION_DELIVERY_ATTEMPT_RPC,
+  RESOLVE_ORGANIZATION_INVITATION_DELIVERY_ATTEMPT_RPC,
+  createMemoryInvitationDeliveryAttemptStore,
+  createSupabaseInvitationDeliveryAttemptStore,
+  type CompleteDeliveryAttemptParams,
+  type InvitationDeliveryAttemptFailureCategory,
+  type InvitationDeliveryAttemptStatus,
+  type InvitationDeliveryAttemptStore,
+  type ResolveDeliveryAttemptParams,
+  type ResolveDeliveryAttemptResult,
+} from "@/features/invitations/server/delivery/attempt-store";
+export {
   isInvitationEmailDeliveryEnabled,
   isInvitationEmailRecipientAllowlisted,
   parseInvitationEmailDeliveryEnabled,
@@ -19,6 +31,10 @@ export {
   deliverInvitation,
   type DeliverInvitationDeps,
 } from "@/features/invitations/server/delivery/deliver-invitation";
+export {
+  buildInvitationDeliveryGenerationKey,
+  buildInvitationDeliveryIdempotencyKey,
+} from "@/features/invitations/server/delivery/idempotency";
 export {
   buildInvitationEmailContent,
   escapeHtmlForInvitationEmail,
@@ -32,6 +48,7 @@ export {
 export { loadOrganizationDisplayNameForDelivery } from "@/features/invitations/server/delivery/load-organization-display-name";
 export {
   orchestrateInvitationDelivery,
+  type OrchestrateInvitationDeliveryDeps,
   type OrchestrateInvitationDeliveryParams,
 } from "@/features/invitations/server/delivery/orchestrate-invitation-delivery";
 export { createResendInvitationEmailProvider } from "@/features/invitations/server/delivery/resend-adapter";

@@ -362,7 +362,7 @@ describe("deliverInvitation / orchestrateInvitationDelivery", () => {
     expect(args?.html).toContain("ZyntixAI Production QA");
     expect(args?.html).toContain("Staff");
     expect(args?.idempotencyKey).toBe(
-      `invitation-email:create:${INVITE_ID}:2099-01-01T00:00:00.000Z`,
+      `invite-delivery/create:${INVITE_ID}:2099-01-01T00:00:00.000Z`,
     );
     expect(args?.idempotencyKey).not.toContain(VALID_TOKEN);
   });

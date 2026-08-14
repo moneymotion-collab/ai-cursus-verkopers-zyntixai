@@ -118,8 +118,15 @@ export type CreateInvitationActionResult =
 
 export const CREATE_INVITATION_MESSAGES = {
   success: "Invitation created. It is pending.",
+  success_submitted: "Invitation created and email submitted.",
+  success_delivery_disabled:
+    "Invitation created. Email delivery is currently disabled.",
   success_delivery_unavailable:
-    "Invitation created, but the invitation email could not be sent. You can try resending later.",
+    "Invitation created, but the email could not be submitted.",
+  success_delivery_recipient_not_allowed:
+    "Invitation created, but email delivery is not available for this recipient yet.",
+  success_delivery_configuration_error:
+    "Invitation created, but email delivery is not configured.",
   already_member: "This person is already an active member.",
   existing_membership_requires_admin_action:
     "This person already has a membership that requires administrator action before they can be invited again.",
@@ -248,10 +255,13 @@ function createSuccessMessage(
   }
   switch (delivery.kind) {
     case "submitted":
+      return CREATE_INVITATION_MESSAGES.success_submitted;
     case "delivery_disabled":
-      return CREATE_INVITATION_MESSAGES.success;
+      return CREATE_INVITATION_MESSAGES.success_delivery_disabled;
     case "delivery_recipient_not_allowed":
+      return CREATE_INVITATION_MESSAGES.success_delivery_recipient_not_allowed;
     case "delivery_configuration_error":
+      return CREATE_INVITATION_MESSAGES.success_delivery_configuration_error;
     case "delivery_provider_error":
       return CREATE_INVITATION_MESSAGES.success_delivery_unavailable;
     default:

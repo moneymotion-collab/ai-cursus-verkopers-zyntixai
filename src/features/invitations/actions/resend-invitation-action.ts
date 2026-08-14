@@ -16,6 +16,7 @@ import {
   type ResendInvitationActionResult,
 } from "@/features/invitations/server/resend-invitation-result";
 import { loadOrganizationDisplayNameForDelivery } from "@/features/invitations/server/delivery/load-organization-display-name";
+import { createSupabaseInvitationDeliveryAttemptStore } from "@/features/invitations/server/delivery/attempt-store";
 import { orchestrateInvitationDelivery } from "@/features/invitations/server/delivery/orchestrate-invitation-delivery";
 
 export type ResendInvitationActionInput = {
@@ -128,17 +129,22 @@ export async function resendInvitationAction(
     const { rawToken, invitationId, expiresAt } = trustedResult;
     const publicResult = toPublicResendInvitationAdapterResult(trustedResult);
 
-    const delivery = await orchestrateInvitationDelivery({
-      rawToken,
-      invitationId,
-      organizationId,
-      recipientEmail: invitation.emailNormalized,
-      targetRole: invitation.role,
-      expiresAt,
-      operation: "resend",
-      loadOrganizationName: () =>
-        loadOrganizationDisplayNameForDelivery(supabase, organizationId),
-    });
+    const delivery = await orchestrateInvitationDelivery(
+      {
+        rawToken,
+        invitationId,
+        organizationId,
+        recipientEmail: invitation.emailNormalized,
+        targetRole: invitation.role,
+        expiresAt,
+        operation: "resend",
+        loadOrganizationName: () =>
+          loadOrganizationDisplayNameForDelivery(supabase, organizationId),
+      },
+      {
+        attemptStore: createSupabaseInvitationDeliveryAttemptStore(supabase),
+      },
+    );
 
     const actionResult = toResendInvitationActionResult(publicResult, delivery);
 

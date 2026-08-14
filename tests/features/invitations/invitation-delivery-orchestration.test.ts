@@ -109,7 +109,7 @@ describe("invitation delivery orchestration in actions (CB-E1-A)", () => {
     expect(result).toEqual({
       ok: true,
       code: "success",
-      message: CREATE_INVITATION_MESSAGES.success,
+      message: CREATE_INVITATION_MESSAGES.success_submitted,
       delivery: "submitted",
     });
     expect(JSON.stringify(result)).not.toContain(VALID_TOKEN);
@@ -215,7 +215,7 @@ describe("invitation delivery orchestration in actions (CB-E1-A)", () => {
     expect(result).toEqual({
       ok: true,
       code: "success",
-      message: RESEND_INVITATION_MESSAGES.success,
+      message: RESEND_INVITATION_MESSAGES.success_submitted,
       delivery: "submitted",
     });
     expect(JSON.stringify(result)).not.toContain(VALID_TOKEN);
