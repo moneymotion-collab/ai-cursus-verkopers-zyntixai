@@ -2,123 +2,222 @@
 
 ## CB-E1-E — Controlled Production Invitation Email Delivery Verification
 
-### CB-E1-E OWNER ACTION REQUIRED — PROVIDE CONTROLLED QA ALLOWLIST RECIPIENT (DELIVERY RESTORED OFF; ZERO EMAILS SENT)
+### CB-E1-E OWNER ACTION REQUIRED — ALLOWLISTED QA RECIPIENT MUST NOT ALREADY BE AN ACTIVE MEMBER (DELIVERY RESTORED OFF; ZERO EMAILS SENT)
 
 | Field | Value |
 | --- | --- |
 | Official scope | **CB-E1-E — Controlled Production Invitation Email Delivery Verification** |
-| Document type | Pre-send checkpoint / safe stop evidence |
+| Document type | Continuation checkpoint / safe stop evidence |
 | Date | 2026-08-14 |
-| Owner authorization | `OWNER APPROVED — AUTHORIZE CB-E1-E CONTROLLED PRODUCTION INVITATION EMAIL DELIVERY VERIFICATION` |
-| Starting HEAD | `c24d28625fb3082d697e95a92eb653f1e828025c` |
+| Continuation authorization | `OWNER APPROVED — RESUME CB-E1-E CONTROLLED PRODUCTION INVITATION EMAIL DELIVERY VERIFICATION USING THE OWNER-PREPARED ALLOWLISTED QA RECIPIENT` |
+| Continuation HEAD | `6fe6bda407b66eed9a8ef795720ca3cdb6c10667` |
 | Formal status | **OWNER ACTION REQUIRED** before first real send |
 | Real emails sent | **0** |
-| Acceptance gate | remained **OFF** |
+| Acceptance gate | remained **OFF** (`INVITATIONS_ENABLED` unchanged) |
 | Final delivery gate | restored **OFF** |
 
 ```text
-CB-E1-E OWNER ACTION REQUIRED — PROVIDE CONTROLLED QA ALLOWLIST RECIPIENT
+CB-E1-E OWNER ACTION REQUIRED — PROVIDE ALLOWLISTED QA RECIPIENT THAT IS NOT AN ACTIVE MEMBER
 DELIVERY RESTORED OFF
 ZERO REAL INVITATION EMAILS SENT
 ```
 
 ---
 
-## 1. Owner authorization (FACT)
+## 1. Continuation owner authorization (FACT)
 
-**OWNER APPROVED — AUTHORIZE CB-E1-E CONTROLLED PRODUCTION INVITATION EMAIL DELIVERY VERIFICATION**
+**OWNER APPROVED — RESUME CB-E1-E CONTROLLED PRODUCTION INVITATION EMAIL DELIVERY VERIFICATION USING THE OWNER-PREPARED ALLOWLISTED QA RECIPIENT**
 
-Covered: controlled delivery ON window; allowlisted QA recipient only; create/resend verification; cleanup; restore delivery OFF.
+Covered: baseline re-verify; temporary delivery ON; one create; one resend after inbox confirmations; cleanup; restore delivery OFF; evidence publication.
 
-**Not** covered: acceptance ON; external recipients; CB-G1.
+**Not** covered: acceptance ON; allowlist changes; external recipients; CB-G1.
 
 ---
 
-## 2. Starting Git baseline (VERIFIED)
+## 2. Verified continuation Git baseline (VERIFIED)
 
 | Check | Result |
 | --- | --- |
+| Worktree | `D:\project ai cursus verkopers.worktrees\parallel__laptop-product-track-20260707-1` |
 | Branch | `core/platform-readiness-20260707` |
-| HEAD | `c24d28625fb3082d697e95a92eb653f1e828025c` |
+| Upstream / origin | `origin/core/platform-readiness-20260707` |
+| HEAD | `6fe6bda407b66eed9a8ef795720ca3cdb6c10667` |
 | Divergence | `0 0` |
-| Worktree | clean |
+| Worktree | clean at start of continuation |
+| Corresponds to prior evidence commit | **yes** (full SHA derived from Git; not invented from `6fe6bda`) |
 
 ---
 
-## 3. Preflight (VERIFIED)
+## 3. Starting safe production state (VERIFIED)
 
 | Check | Result |
 | --- | --- |
-| Starting deployment | `dpl_9r6GuMKiEdSQjg5NpWzgyYvtbnAx` READY |
-| Supabase | `dmctinrcjvsgmoxwwodw`; latest `20260814150000`; up to date |
-| DNS invites domain | DKIM/MX/SPF present; apex SPF/DMARC untouched |
-| Tracking | CB-E1-D OWNER-VERIFIED OFF / not configured |
-| Env presence | Resend key, From, allowlist, both gates present (Production, Encrypted) |
-| QA pending invitations | **0** |
-| QA delivery attempts | **0** |
-| Acceptance UI | restricted-rollout notice present (**OFF**) |
+| Starting OFF deployment | `dpl_u7sAPqF52xeB99Fweot4yrXGv3Nw` READY |
+| Alias | `https://zyntixai.vercel.app` |
+| Delivery | **OFF** (UI + prior restore; env update then performed only after gates) |
+| Acceptance | **OFF** (restricted-rollout notice; `INVITATIONS_ENABLED` age unchanged throughout) |
+| Real emails before continuation | **0** |
+| Pending QA invitations | **0** |
+| Delivery attempts / submitted | **0** / **0** |
 
 ---
 
-## 4. Delivery activation attempt (CONFIGURED / DEPLOYED)
+## 4. Production DB alignment (VERIFIED)
+
+| Check | Result |
+| --- | --- |
+| Project | `dmctinrcjvsgmoxwwodw` |
+| Latest migration | `20260814150000` |
+| Local / remote | aligned (`supabase db push --linked --dry-run` → remote up to date) |
+| Drift | **none** |
+| Migrations applied this continuation | **none** (not authorized) |
+
+---
+
+## 5. Resend / domain / allowlist (INHERITED + PRESENCE)
+
+| Check | Result |
+| --- | --- |
+| Domain | `invites.zyntixai.com` (CB-E1-D verified) |
+| Sender | `ZyntixAI <invites@invites.zyntixai.com>` |
+| Tracking | OFF / not configured (CB-E1-D OWNER-VERIFIED) |
+| Allowlist env | present Production Encrypted (value **not** read/decrypted by tooling) |
+| Secrets printed | **none** |
+
+---
+
+## 6. Owner-prepared recipient checkpoint (PARTIAL)
+
+| Check | Result |
+| --- | --- |
+| Pre-redeploy form | owner had filled Email + Role `Viewer`; **not** submitted |
+| Org context | ZyntixAI Production QA |
+| After delivery-ON redeploy | form cleared by navigation/refresh (expected) |
+| Re-entry | same owner-observed prepared address restored into Email; Role left `Viewer` |
+| Recipient disclosed in evidence | **no** (masked) |
+
+---
+
+## 7–8. Temporary delivery activation / ON deployment (DONE)
 
 | Step | Result |
 | --- | --- |
-| Set `INVITATION_EMAIL_DELIVERY_ENABLED=true` | **done** (Production) |
-| `INVITATIONS_ENABLED` | **not changed** (remains false) |
-| Temporary ON deploy | `dpl_BFzosXE85XJq45ankQ98xXLPR55h` READY → aliased to `https://zyntixai.vercel.app` |
-| Invitation create during ON window | **not executed** |
+| Set `INVITATION_EMAIL_DELIVERY_ENABLED=true` | **done** |
+| `INVITATIONS_ENABLED` | **not changed** (still false) |
+| Temporary ON deploy | `dpl_46MjgnfvXrybxfpCyd6gQDVsYjoa` READY |
+| Alias | `https://zyntixai.vercel.app` |
+| Deployed app | same reviewed worktree / no source changes |
+| Git SHA at deploy | `6fe6bda407b66eed9a8ef795720ca3cdb6c10667` |
 
 ---
 
-## 5. Stop reason (BLOCKED)
+## 9. Post-activation gates (VERIFIED)
 
-Production allowlist is Encrypted/Sensitive. Vercel agent `env pull` returns placeholder `[sensitive]`, so the controlled QA recipient address **cannot be machine-read** for the Members create form without owner disclosure.
-
-Per CB-E1-E hard gate: recipient must be conclusively the configured allowlisted inbox before first send.
-
-```text
-OWNER ACTION REQUIRED — PROVIDE CONTROLLED QA ALLOWLIST RECIPIENT FOR CREATE FORM
-(or type it into production /settings/members yourself and authorize Cursor to continue)
-```
-
-Do **not** paste secrets. The allowlist email alone is sufficient for continuation.
+| Gate | Result |
+| --- | --- |
+| Acceptance | **OFF** — restricted-rollout notice present (`MemberAdministrationRolloutNotice` only renders when acceptance disabled) |
+| Delivery UI copy | static “not enabled yet” help/notice text is **not** authoritative for delivery ON (hardcoded when acceptance OFF) |
+| Delivery runtime | env set true + ON redeploy completed before submit attempt |
+| Allowlist | unchanged (not modified) |
+| App | Members page healthy; authenticated Production QA session |
 
 ---
 
-## 6. Safe restore (CONFIGURED / DEPLOYED)
+## 10. Controlled create attempt (REJECTED — ZERO SEND)
+
+| Item | Result |
+| --- | --- |
+| Path | `/settings/members` → Create invitation |
+| Role | `Viewer` |
+| Result | **rejected** by application |
+| UI error | `This person is already an active member.` |
+| Invitation created | **no** |
+| Provider submission | **none** |
+| Real emails | **0** |
+
+---
+
+## 11–16. Create delivery / provider / inbox (NOT REACHED)
+
+Create mutation did not succeed. No lifecycle event, no delivery attempt, no provider message, no inbox checkpoint.
+
+---
+
+## 17–24. Resend / idempotency / zero-send matrix (NOT REACHED)
+
+Not started — create did not pass.
+
+Inherited security posture remains as previously published (CB-R1 / CB-E1-A/B/C/D). No new live external-recipient or rate-limit spam tests performed.
+
+---
+
+## 25–27. Safe restore OFF (DONE)
 
 | Step | Result |
 | --- | --- |
 | Set `INVITATION_EMAIL_DELIVERY_ENABLED=false` | **done** |
-| OFF redeploy | `dpl_u7sAPqF52xeB99Fweot4yrXGv3Nw` READY |
+| Keep `INVITATIONS_ENABLED=false` | **yes** |
+| Final OFF deploy | `dpl_4iPddcZCQb3AZbrVq6JLCfNjtcj6` READY |
 | Alias | `https://zyntixai.vercel.app` |
-| Acceptance | still **OFF** |
-| Real emails | **0** |
-| Pending invites / submitted attempts | unchanged baseline (**0** pending observed) |
+| Pending invites | **0** |
+| Delivery attempts | **0** |
+| Submitted attempts | **0** |
 
 ---
 
-## 7. Rollback targets retained
+## 28. Final gates (VERIFIED)
+
+`INVITATION_EMAIL_DELIVERY_ENABLED=false`  
+`INVITATIONS_ENABLED=false`
+
+---
+
+## 29. Real-email count
+
+**0**
+
+---
+
+## 30. Stop reason (BLOCKED)
+
+Owner-prepared / restored create recipient is already an **active member** of the controlled Production QA organization. Invitation create correctly refused membership-duplicate; delivery orchestration was not reached.
+
+Cursor tooling still cannot decrypt Production `INVITATION_EMAIL_RECIPIENT_ALLOWLIST`. Owner must enter (or confirm) an allowlisted QA inbox that:
+
+1. matches the Production allowlist exactly;
+2. is **not** already an active member of ZyntixAI Production QA;
+3. remains unsubmitted until the next authorized ON window.
+
+```text
+OWNER ACTION REQUIRED — CONFIRM/ENTER ALLOWLISTED QA RECIPIENT THAT IS NOT AN ACTIVE MEMBER
+(then authorize resume; do not paste API keys or tokens)
+```
+
+---
+
+## 31. Deployment ledger
 
 | Role | Deployment |
 | --- | --- |
-| CB-E1-D baseline | `dpl_9r6GuMKiEdSQjg5NpWzgyYvtbnAx` |
-| Temporary delivery-ON | `dpl_BFzosXE85XJq45ankQ98xXLPR55h` |
-| Current safe OFF | `dpl_u7sAPqF52xeB99Fweot4yrXGv3Nw` |
+| Prior safe OFF (pre-continuation) | `dpl_u7sAPqF52xeB99Fweot4yrXGv3Nw` |
+| Temporary delivery-ON (this continuation) | `dpl_46MjgnfvXrybxfpCyd6gQDVsYjoa` |
+| Current safe OFF | `dpl_4iPddcZCQb3AZbrVq6JLCfNjtcj6` |
+| CB-E1-D baseline (retained) | `dpl_9r6GuMKiEdSQjg5NpWzgyYvtbnAx` |
 
 ---
 
-## 8. Next continuation
+## 32. Privacy
 
-After owner provides the allowlisted QA recipient (or enters it in the form):
+No raw token, API key, allowlist address, email body, or acceptance URL recorded in this evidence.
 
-1. re-enable delivery ON + redeploy;
-2. one controlled create (viewer);
-3. owner inbox confirmation;
-4. one controlled resend;
-5. cleanup;
-6. restore delivery OFF;
-7. close CB-E1-E with evidence.
+---
 
-Do not start CB-G1.
+## 33. Verdict
+
+```text
+CB-E1-E BLOCKED — OWNER-PREPARED RECIPIENT IS ALREADY AN ACTIVE MEMBER
+DELIVERY RESTORED OFF
+ZERO REAL INVITATION EMAILS SENT
+```
+
+Do **not** start CB-G1.
