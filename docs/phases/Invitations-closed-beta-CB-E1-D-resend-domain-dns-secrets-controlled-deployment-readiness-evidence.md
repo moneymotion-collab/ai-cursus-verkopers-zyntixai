@@ -2,32 +2,38 @@
 
 ## CB-E1-D — Resend Provider / Domain / DNS / Secrets + Controlled Deployment Readiness
 
-### CB-E1-D DEPLOYMENT PASS — OWNER ACTION REQUIRED BEFORE CLOSURE — CONFIRM RESEND CLICK TRACKING OFF
+### CB-E1-D CLOSED WITH EVIDENCE — RESEND INFRASTRUCTURE AND CONTROLLED PRODUCTION DEPLOYMENT READY FOR FIRST QA EMAIL
 
 | Field | Value |
 | --- | --- |
 | Official scope | **CB-E1-D — Resend Provider / Domain / DNS / Secrets + Controlled Deployment Readiness** |
-| Document type | Controlled production deployment continuation + readiness evidence |
+| Document type | Controlled production deployment + tracking-off closure evidence |
 | Official phase number | **NONE ASSIGNED** |
 | Date | 2026-08-14 |
-| Formal status | `CB-E1-D DEPLOYMENT PASS` — full closure blocked on Resend click-tracking confirmation |
+| Formal status | `CB-E1-D CLOSED WITH EVIDENCE` |
 | Initial owner authorization | `OWNER APPROVED — AUTHORIZE CB-E1-D RESEND PROVIDER / DOMAIN / DNS / SECRETS + CONTROLLED DEPLOYMENT READINESS` |
 | Continuation authorization | `OWNER APPROVED — RE-AUTHORIZE CB-E1-D CONTROLLED DEPLOY CONTINUATION WITH EMAIL DELIVERY OFF AND INVITATION ACCEPTANCE OFF` |
-| Continuation starting HEAD | `c53004e8d21a9311d734e870d889b4d870859137` |
+| Closure authorization | `OWNER APPROVED — COMPLETE CB-E1-D CLOSURE AFTER RESEND TRACKING-OFF VERIFICATION` |
+| Closure starting HEAD | `9cfef1a89b5390d031052bde4c6efc8a1545ce01` |
 | Branch | `core/platform-readiness-20260707` |
-| Production deployment | `dpl_9r6GuMKiEdSQjg5NpWzgyYvtbnAx` (**READY**) |
+| Production deployment | `dpl_9r6GuMKiEdSQjg5NpWzgyYvtbnAx` (**READY**; unchanged — no redeploy for docs closure) |
 | Rollback target | `dpl_CRe4rhPk2gjNcMB7vh9izMnJEq96` |
 | Production alias | `https://zyntixai.vercel.app` |
 | Deployed from Git HEAD | `c53004e8d21a9311d734e870d889b4d870859137` (clean worktree upload) |
 | Real email | **ZERO SENT** |
+| Click / open tracking | **OWNER-VERIFIED OFF / NOT CONFIGURED** |
 | `INVITATION_EMAIL_DELIVERY_ENABLED` | **OWNER-CONFIRMED `false`** + Production var present |
 | `INVITATIONS_ENABLED` | **OWNER-CONFIRMED `false`** + Production var present + live UI restricted-rollout notice |
 
 ```text
-CB-E1-D DEPLOYMENT PASS
-RESEND DOMAIN/DNS/SECRETS/APP DEPLOYED WITH GATES OFF
-CLICK TRACKING: MANUAL OWNER CONFIRMATION STILL REQUIRED BEFORE CB-E1-E
+CB-E1-D CLOSED WITH EVIDENCE
+RESEND INFRASTRUCTURE AND CONTROLLED PRODUCTION DEPLOYMENT READY FOR FIRST QA EMAIL
+
+DELIVERY GATE: OFF
+ACCEPTANCE GATE: OFF
+TRACKING: OFF / NOT CONFIGURED
 REAL EMAIL: NOT SENT
+CB-E1-E: NOT AUTHORIZED
 ```
 
 ---
@@ -93,15 +99,26 @@ Covered: Git/Supabase re-verify; env presence (no secret exposure); DNS verify-o
 
 ---
 
-## 5. Resend tracking state
+## 5. Resend tracking state (OWNER-VERIFIED — 2026-08-14)
+
+Owner opened **Resend → Domains → `invites.zyntixai.com` → Configuration**.
+
+Observed:
+
+* section **Enable tracking metrics**;
+* UI showed a **Configure** button;
+* **no** configured tracking subdomain;
+* **no** active tracking configuration.
 
 | Item | Status |
 | --- | --- |
-| Click tracking | **MANUAL OWNER ACTION REQUIRED — CONFIRM RESEND CLICK TRACKING OFF** |
-| Open tracking | preferred OFF; same manual confirmation |
-| Agent Resend dashboard access | not available this session |
-| Blocks full CB-E1-D closure for CB-E1-E? | **YES** |
-| Blocks deploy while delivery OFF? | **NO** (deploy completed with delivery OFF) |
+| Tracking metrics configured? | **NO** (**OWNER-VERIFIED**) |
+| Click tracking | **OFF / NOT CONFIGURED** |
+| Open tracking | **OFF / NOT CONFIGURED** |
+| Owner clicked Configure? | **NO** |
+| Resend configuration mutation this closure | **NONE** |
+
+**Rationale:** invitation acceptance URLs carry a bearer-like credential. Click tracking would rewrite links through a provider redirector; open tracking adds pixels/metadata. CB-E1 requires click tracking OFF; open tracking OFF is preferred and now owner-verified as not configured.
 
 ---
 
@@ -311,52 +328,101 @@ CB-E1-E not started.
 
 ---
 
-## 28. CB-E1-D closure status
+## 28. CB-E1-D closure criteria reconciliation (PASS)
+
+| # | Criterion | Status |
+| --- | --- | --- |
+| 1 | Git authoritative baseline | **PASS** |
+| 2 | Production Supabase migrations aligned (`20260814150000`) | **PASS** (rechecked dry-run up to date) |
+| 3 | Resend sending domain verified | **PASS** |
+| 4 | Required DNS verified | **PASS** |
+| 5 | Production Resend API key configured server-side | **PASS** (presence) |
+| 6 | Sender identity configured | **PASS** |
+| 7 | QA allowlist configured | **PASS** (presence; address not disclosed) |
+| 8 | Email delivery gate OFF | **PASS** (OWNER-CONFIRMED + presence + fail-closed) |
+| 9 | Invitation acceptance gate OFF | **PASS** (OWNER-CONFIRMED + live UI) |
+| 10 | Click tracking OFF | **PASS** (**OWNER-VERIFIED** not configured) |
+| 11 | Open tracking OFF | **PASS** (**OWNER-VERIFIED** not configured) |
+| 12 | Typecheck PASS | **PASS** |
+| 13 | Lint PASS | **PASS** |
+| 14 | Targeted tests PASS (49/390) | **PASS** |
+| 15 | Full Vitest PASS (294/2099) | **PASS** |
+| 16 | Production build PASS | **PASS** |
+| 17 | Controlled production deployment READY | **PASS** (`dpl_9r6GuMKiEdSQjg5NpWzgyYvtbnAx`) |
+| 18 | Deployed app includes CB-R1 + CB-E1-A/B/C | **PASS** |
+| 19 | Production health smoke PASS | **PASS** |
+| 20 | CB-E1-C DB compatibility PASS | **PASS** |
+| 21 | Zero real invitation emails sent | **PASS** |
+| 22 | Rollback / kill switches ready | **PASS** |
+
+---
+
+## 29. CB-E1-D closure status
 
 ```text
-CB-E1-D DEPLOYMENT PASS — OWNER ACTION REQUIRED BEFORE CLOSURE — CONFIRM RESEND CLICK TRACKING OFF
+CB-E1-D CLOSED WITH EVIDENCE — RESEND INFRASTRUCTURE AND CONTROLLED PRODUCTION DEPLOYMENT READY FOR FIRST QA EMAIL
 ```
 
-Meaning:
+Narrow meaning:
 
-- Resend domain/DNS public records verified;
-- Production secrets/allowlist/gates present (values owner-confirmed for gates);
-- Application CB-R1 + CB-E1-A/B/C **deployed** with delivery/acceptance OFF;
-- Full “ready for first QA email” closure still requires **click tracking OFF** confirmation in Resend (and preferably open tracking OFF + MFA attestation).
+- Resend infrastructure prepared;
+- sending domain + DNS verified;
+- production secrets/allowlist/gates prepared;
+- CB-R1 + CB-E1-A/B/C application **deployed**;
+- tracking OFF / not configured (**OWNER-VERIFIED**);
+- delivery remains **OFF**;
+- acceptance remains **OFF**;
+- first QA email is the next **separately authorized** operation (CB-E1-E).
 
----
-
-## 29. Remaining roadmap (DEFERRED)
-
-1. Owner confirms Resend click tracking OFF → then CB-E1-D can be fully closed
-2. **CB-E1-E** — Controlled Production Invitation Email Delivery Verification
-3. CB-G1 → CB-Q1 → CB-PUB
+Does **not** mean: live email verified; inbox proven; provider idempotency live-proven; acceptance enabled; external users invited.
 
 ---
 
-## 30. Owner decision required
+## 30. Remaining roadmap (DEFERRED)
+
+1. **CB-E1-E** — Controlled Production Invitation Email Delivery Verification
+2. CB-G1
+3. CB-Q1
+4. CB-PUB
+
+Do **not** start these here. No delivery ON. No real email.
+
+---
+
+## 31. Owner decision required
 
 ```text
-OWNER ACTION REQUIRED — CONFIRM RESEND CLICK TRACKING OFF (AND PREFER OPEN TRACKING OFF) BEFORE AUTHORIZING CB-E1-E
+OWNER ROADMAP DECISION REQUIRED — CB-E1-D CLOSED; CB-E1-E NOT YET AUTHORIZED
 ```
-
-Optional attestation: Resend account MFA enabled.
-
-Do **not** enable delivery or send email until CB-E1-E is separately authorized.
 
 ---
 
-## 31. Evidence / publication
+## 32. Evidence / publication
 
 | Item | Value |
 | --- | --- |
 | Evidence file | `docs/phases/Invitations-closed-beta-CB-E1-D-resend-domain-dns-secrets-controlled-deployment-readiness-evidence.md` |
-| Preferred commit | `docs(invitations): close CB-E1-D controlled deployment readiness` |
-
-*(Hash filled after publication.)*
+| Deploy evidence commit | `9cfef1a` — `docs(invitations): close CB-E1-D controlled deployment readiness` |
+| Tracking closure commit | *(filled after publication)* — `docs(invitations): finalize CB-E1-D tracking verification closure` |
+| New deployment for docs closure | **NONE** |
 
 ---
 
-## 32. Account security note
+## 33. Account security note
 
-Resend MFA/team hygiene: **MANUAL OWNER ACTION REQUIRED / OWNER-ATTESTED** — not independently visible to Cursor this session.
+Resend MFA/team hygiene remains **OWNER-ATTESTED / not independently visible** to Cursor this session. Not treated as an open CB-E1-D blocker after tracking-off verification; continue as owner operational hygiene into CB-E1-E.
+
+---
+
+## 34. Final production state at CB-E1-D closure (FACT / DEPLOYED / OWNER-VERIFIED)
+
+| Surface | State |
+| --- | --- |
+| Production application | CB-R1 + CB-E1-A/B/C deployed (`dpl_9r6GuMKiEdSQjg5NpWzgyYvtbnAx`) |
+| Production DB | CB-R1 + CB-E1-C foundations active through `20260814150000` |
+| Resend domain | `invites.zyntixai.com` verified |
+| Tracking | click/open **OFF / not configured** |
+| Delivery gate | **OFF** |
+| Acceptance gate | **OFF** |
+| Real emails under CB-E1-D | **ZERO** |
+| External beta users | **NONE** authorized through this phase |
