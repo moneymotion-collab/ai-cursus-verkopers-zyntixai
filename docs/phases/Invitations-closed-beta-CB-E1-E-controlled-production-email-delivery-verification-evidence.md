@@ -2,26 +2,26 @@
 
 ## CB-E1-E — Controlled Production Invitation Email Delivery Verification
 
-### CB-E1-E OWNER ACTION REQUIRED — RE-ENTER CONTROLLED QA ALLOWLIST RECIPIENT UNSUBMITTED (STALE PENDING REVOKED; DELIVERY REMAINS OFF; ZERO EMAILS SENT)
+### CB-E1-E CREATE PROVIDER SUBMISSION PASS — OWNER INBOX VERIFICATION REQUIRED
 
 | Field | Value |
 | --- | --- |
 | Official scope | **CB-E1-E — Controlled Production Invitation Email Delivery Verification** |
-| Document type | Continuation checkpoint / safe stop evidence |
+| Document type | Create-email provider checkpoint / owner inbox gate |
 | Date | 2026-08-14 |
-| Latest continuation authorization | `OWNER APPROVED — RESUME CB-E1-E AFTER ZERO-SEND PENDING QA INVITATION CLEANUP` |
-| Continuation HEAD | `41893a765a3d7d77caa7166b99ca5c90788e1935` |
-| Formal status | **OWNER ACTION REQUIRED** — form recipient missing before delivery ON |
-| Real emails sent | **0** |
-| Acceptance gate | **OFF** |
-| Delivery gate | remained **OFF** (not activated this continuation) |
-| Stale pending `34235e20-…` | **revoked** (cleanup verified) |
+| Latest continuation authorization | `OWNER APPROVED — RESUME CB-E1-E FROM PREPARED CONTROLLED QA RECIPIENT AND EXECUTE FIRST CONTROLLED PRODUCTION EMAIL DELIVERY TEST` |
+| Starting HEAD | `5426a0af01011d2113ace0d21f9315f5b3c8e2f9` |
+| Formal status | **OWNER INBOX VERIFICATION REQUIRED** before resend |
+| Real emails sent | **1** (create) |
+| Acceptance gate | remained **OFF** |
+| Delivery gate during checkpoint | restored **OFF** (send window closed after create verification) |
 
 ```text
-CB-E1-E OWNER ACTION REQUIRED — RE-ENTER THE NEW CONTROLLED QA ALLOWLIST RECIPIENT IN /settings/members AND LEAVE UNSUBMITTED
-STALE ZERO-SEND PENDING INVITATION REVOKED
-DELIVERY REMAINS OFF
-ZERO REAL INVITATION EMAILS SENT
+OWNER ACTION REQUIRED — CONFIRM CB-E1-E CREATE EMAIL RECEIVED IN QA INBOX AND PRESENTATION IS CORRECT
+CB-E1-E CREATE PROVIDER SUBMISSION PASS — OWNER INBOX VERIFICATION REQUIRED
+1 REAL INVITATION EMAIL SENT
+DELIVERY RESTORED OFF FOR CHECKPOINT
+ACCEPTANCE OFF
 ```
 
 ---
@@ -191,7 +191,7 @@ ZERO REAL INVITATION EMAILS SENT
 - Did **not** call Resend
 - Did **not** decrypt allowlist
 
-### 10.5 Current verdict
+### 10.5 Prior verdict at form-empty stop (HISTORICAL)
 
 ```text
 CB-E1-E OWNER ACTION REQUIRED — RE-ENTER THE NEW CONTROLLED QA ALLOWLIST RECIPIENT IN /settings/members AND LEAVE UNSUBMITTED
@@ -200,4 +200,107 @@ DELIVERY REMAINS OFF
 ZERO REAL INVITATION EMAILS SENT
 ```
 
+---
+
+## 11. First controlled create delivery (2026-08-14)
+
+**OWNER APPROVED — RESUME CB-E1-E FROM PREPARED CONTROLLED QA RECIPIENT AND EXECUTE FIRST CONTROLLED PRODUCTION EMAIL DELIVERY TEST**
+
+### 11.1 Pre-send baselines (VERIFIED)
+
+| Check | Result |
+| --- | --- |
+| Starting HEAD | `5426a0af01011d2113ace0d21f9315f5b3c8e2f9` |
+| Divergence / worktree | `0 0` / clean |
+| Rollback OFF deploy | `dpl_4iPddcZCQb3AZbrVq6JLCfNjtcj6` READY |
+| DB | `dmctinrcjvsgmoxwwodw` / `20260814150000` aligned |
+| Pending / submitted attempts | **0** / **0** |
+| Form | email present (masked); role `Viewer`; unsubmitted |
+| Active-member conflict | **false** |
+| Acceptance | **OFF** |
+| Delivery before activation | **OFF** |
+| Allowlist | present Encrypted (not decrypted) |
+
+### 11.2 Temporary delivery ON (DONE)
+
+| Step | Result |
+| --- | --- |
+| Set `INVITATION_EMAIL_DELIVERY_ENABLED=true` | done |
+| `INVITATIONS_ENABLED` | unchanged (**false**) |
+| Temporary ON deploy | `dpl_G3ZR6PXyzCUaJG9JLrC3YJufK7w7` READY → `https://zyntixai.vercel.app` |
+| Post-deploy form | still populated (no navigation/reload; no recipient guess) |
+| Acceptance after ON | still **OFF** (restricted-rollout notice) |
+
+### 11.3 Controlled create (PASS)
+
+| Item | Result |
+| --- | --- |
+| Path | `/settings/members` → Create invitation **once** |
+| Org | ZyntixAI Production QA (`2fc07699-ece5-44b9-bbb3-abbc23e9fffb`) |
+| Role | `viewer` |
+| Invitation id | `573da95d-050d-42d7-8f01-4a600f944652` |
+| Status | `pending` |
+| Expiry | `2026-08-21 16:39:58+00` (~7d) |
+| Lifecycle | exactly one `invitation_created` |
+| Recipient in evidence | **masked** |
+
+### 11.4 Create delivery attempt (PASS)
+
+| Field | Result |
+| --- | --- |
+| Attempt id | `548e1f70-3e8b-4ca0-972c-3e499e77f5e0` |
+| Operation | `create` |
+| Status | `submitted` |
+| Provider | `resend` |
+| Provider message ID | present (prefix `3700d4f7…`, length 36) |
+| Failure category | **null** |
+| Generations / create ops | **1** / **1** |
+| Resend ops | **0** |
+| Distinct provider IDs | **1** |
+
+### 11.5 Delivery-attempt privacy (PASS)
+
+Attempt table columns are metadata-only (`operation`, `generation_key`, `idempotency_key`, `provider`, `status`, `provider_message_id`, `failure_category`, timestamps). No stored raw token, acceptance URL, HTML/text body, recipient email, API key, or auth secret. Idempotency key contains no `@`.
+
+### 11.6 URL / tracking (STRUCTURAL — inherited + code contract)
+
+Canonical builder: `https://{trusted-origin}/invite/accept/exchange?token=<64-hex>` via `buildInvitationAcceptanceUrl` (HTTPS production origin `https://zyntixai.vercel.app`, only `token` query). Tracking remains OFF/not configured per CB-E1-D. Live raw token not inspected/logged.
+
+### 11.7 Checkpoint safety restore OFF (DONE)
+
+| Step | Result |
+| --- | --- |
+| Set `INVITATION_EMAIL_DELIVERY_ENABLED=false` | done |
+| Keep acceptance OFF | yes |
+| Checkpoint OFF deploy | `dpl_FV1oMVkK73eJwRAy5iWZxKm8EJ5d` READY → `https://zyntixai.vercel.app` |
+| Pending invite retained for resend | **yes** (`573da95d-…`) |
+| Real emails | **1** |
+
+### 11.8 Owner action required
+
+```text
+OWNER ACTION REQUIRED — CONFIRM CB-E1-E CREATE EMAIL RECEIVED IN QA INBOX AND PRESENTATION IS CORRECT
+```
+
+Confirm:
+
+- exactly one create email;
+- sender `ZyntixAI <invites@invites.zyntixai.com>`;
+- subject/org/Viewer/CTA/expiry/security copy;
+- no duplicate;
+- no obvious tracking wrapper.
+
+Do **not** paste the invitation token/URL.
+
+Do **not** resend until this confirmation.
+
 Do **not** start CB-G1.
+
+### 11.9 Current verdict
+
+```text
+CB-E1-E CREATE PROVIDER SUBMISSION PASS — OWNER INBOX VERIFICATION REQUIRED
+1 REAL INVITATION EMAIL SENT
+DELIVERY RESTORED OFF FOR CHECKPOINT
+INVITATIONS_ENABLED=false
+```
