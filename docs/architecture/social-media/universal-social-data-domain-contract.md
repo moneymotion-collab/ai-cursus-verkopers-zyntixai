@@ -361,7 +361,10 @@ pending | queued | claimed | processing
 ```
 
 Publication binds exact `variant_version_id` + `social_account_connection_id`. Attempts are race-safe and immutable after completion. System claim/complete RPCs live in `private` (not granted to `authenticated`). Empty publishing adapter registry fails closed (`provider_adapter_unavailable`). Instagram live publishing remains **not implemented** (B1.7).
----
+
+### B1.7 Instagram vertical (additive)
+
+B1.7 attaches the first real `SocialPublishingAdapter` for Instagram Login (`graph.instagram.com`, pinned Graph version in server config). OAuth least-privilege scopes include `instagram_business_content_publish`. Media delivery uses short-lived HMAC-signed HTTPS URLs (no public bucket). Production publishing gate remains OFF; controlled live publish verification is separately authorized.---
 
 ## 15. Provider extension strategy
 
