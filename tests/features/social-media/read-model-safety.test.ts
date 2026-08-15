@@ -48,13 +48,23 @@ describe("type-level secret and provider boundaries", () => {
     expect("refreshToken" in result).toBe(false);
   });
 
-  it("does not add OAuth routes, crypto helpers, or SMM migrations in this slice", () => {
+  it("keeps OAuth callback route free of secret material and client-secret env leakage", () => {
     const root = process.cwd();
-    expect(existsSync(join(root, "src/app/api/social"))).toBe(false);
-    expect(
-      existsSync(join(root, "src/app/api/social/instagram/callback/route.ts")),
-    ).toBe(false);
+    const callbackPath = join(
+      root,
+      "src/app/api/social/instagram/callback/route.ts",
+    );
+    expect(existsSync(callbackPath)).toBe(true);
+    const source = readFileSync(callbackPath, "utf8");
+    expect(source).not.toContain("SOCIAL_INSTAGRAM_CLIENT_SECRET");
+    expect(source).not.toContain("SOCIAL_CREDENTIAL_ENCRYPTION_KEY");
+    expect(source).not.toContain("access_token");
+    expect(source).not.toContain("console.log");
+    expect(source).toContain("no-store");
+  });
 
+  it("keeps domain contracts free of crypto and provider HTTP", () => {
+    const root = process.cwd();
     const domainDir = join(root, "src/features/social-media");
     const scanned = [
       "domain/connection.ts",

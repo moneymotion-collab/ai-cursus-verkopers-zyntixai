@@ -16,6 +16,17 @@ export const SOCIAL_INSTAGRAM_CONNECTIONS_ENABLED_ENV =
 export const SOCIAL_CREDENTIAL_ENCRYPTION_KEY_ENV =
   "SOCIAL_CREDENTIAL_ENCRYPTION_KEY";
 
+/** Server-only Instagram Login app id (never NEXT_PUBLIC_). */
+export const SOCIAL_INSTAGRAM_CLIENT_ID_ENV = "SOCIAL_INSTAGRAM_CLIENT_ID";
+
+/** Server-only Instagram Login app secret (never NEXT_PUBLIC_). */
+export const SOCIAL_INSTAGRAM_CLIENT_SECRET_ENV =
+  "SOCIAL_INSTAGRAM_CLIENT_SECRET";
+
+/** Optional exact redirect URI override; otherwise derived from site origin. */
+export const SOCIAL_INSTAGRAM_OAUTH_REDIRECT_URI_ENV =
+  "SOCIAL_INSTAGRAM_OAUTH_REDIRECT_URI";
+
 export function parseSocialConnectionsEnabled(
   value: string | undefined | null,
 ): boolean {
