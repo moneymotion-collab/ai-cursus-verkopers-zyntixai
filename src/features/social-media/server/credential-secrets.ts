@@ -1,17 +1,14 @@
 /**
- * Server-only secret-bearing Social Connection types (SMM-B1.1-A).
+ * Server-only secret-bearing Social Connection types.
  *
- * Types only — no encryption, no OAuth state generation, no persistence.
+ * Crypto implementation lives in credential-crypto.ts / credential-key.ts.
+ * This module remains the type boundary for envelopes and raw OAuth state.
  *
  * Raw OAuth state:
  * - memory/transit only
  * - never persisted raw
  * - never logged
  * - never returned through ordinary domain models or client read models
- *
- * Encrypted credential material:
- * - B1.1-B implements AES-256-GCM, key parsing, and persistence
- * - this module only names the future ciphertext shape
  *
  * Do not import from Client Components.
  */
@@ -27,8 +24,8 @@ export const SOCIAL_CREDENTIAL_ENCRYPTION_PURPOSE =
 export const SOCIAL_CREDENTIAL_ENCRYPTION_VERSION = 1 as const;
 
 /**
- * Future AES-GCM ciphertext envelope. Values here are opaque strings once
- * B1.1-B implements encoding. This slice does not produce secret values.
+ * AES-256-GCM ciphertext envelope. Values are opaque encoded strings.
+ * Never log, never return through client-safe read models.
  */
 export type EncryptedSocialCredentialMaterial = {
   encryptionVersion: typeof SOCIAL_CREDENTIAL_ENCRYPTION_VERSION;

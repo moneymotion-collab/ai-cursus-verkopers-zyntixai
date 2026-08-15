@@ -168,7 +168,11 @@ export type {
   SocialOAuthIntent,
 } from "@/features/social-media/domain/oauth-intent";
 
-export { SOCIAL_OAUTH_STATE_DOMAIN_FORBIDDEN_KEYS } from "@/features/social-media/domain/oauth-state";
+export {
+  SOCIAL_OAUTH_STATE_DOMAIN_FORBIDDEN_KEYS,
+  SOCIAL_OAUTH_STATE_FINGERPRINT_PATTERN,
+  isSocialOAuthStateFingerprint,
+} from "@/features/social-media/domain/oauth-state";
 export type {
   SocialOAuthStateFingerprint,
   StoredSocialOAuthState,

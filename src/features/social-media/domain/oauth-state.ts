@@ -6,6 +6,17 @@ import type { SocialOAuthIntentId } from "./types";
  */
 export type SocialOAuthStateFingerprint = string;
 
+export const SOCIAL_OAUTH_STATE_FINGERPRINT_PATTERN = /^[0-9a-f]{64}$/;
+
+export function isSocialOAuthStateFingerprint(
+  value: unknown,
+): value is SocialOAuthStateFingerprint {
+  return (
+    typeof value === "string" &&
+    SOCIAL_OAUTH_STATE_FINGERPRINT_PATTERN.test(value)
+  );
+}
+
 export type StoredSocialOAuthState = {
   intentId: SocialOAuthIntentId;
   stateFingerprint: SocialOAuthStateFingerprint;
