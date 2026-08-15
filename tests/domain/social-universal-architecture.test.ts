@@ -80,6 +80,7 @@ describe("SMM-B1.1-D universal social planning contracts", () => {
       "20260815162306_add_social_workspace_foundation.sql",
       "20260815182703_add_social_brand_brain_campaign_foundation.sql",
       "20260815184059_add_social_master_content_variants_media_foundation.sql",
+      "20260815185612_add_social_versioning_review_approval_calendar_foundation.sql",
     ]);
   });
 

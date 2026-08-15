@@ -116,10 +116,13 @@ export function resolveSocialWorkspacePermissions(
 }
 
 /**
- * Operational content domain (B1.4): Owner/Admin/Staff may mutate
- * Master Content, Variants, and Media metadata when membership is active.
- * Brand Brain / Workspace structural mutations remain Owner/Admin-only.
+ * Operational content domain (B1.4/B1.5): Owner/Admin/Staff may mutate
+ * Master Content, Variants, Media, versions, reviews, and schedules when
+ * membership is active. Brand Brain / Workspace structural mutations and
+ * approval-policy settings remain Owner/Admin-only.
  * Viewer is read-only. Invited/suspended/removed never mutate.
+ *
+ * Beta 1 internal approval (D): Staff may approve. Self-approval allowed.
  */
 export function canManageSocialContent(
   role: OrganizationRole | string | null | undefined,
@@ -132,6 +135,13 @@ export function canManageSocialContent(
     return false;
   }
   return role === "owner" || role === "admin" || role === "staff";
+}
+
+export function canApproveSocialContent(
+  role: OrganizationRole | string | null | undefined,
+  membershipStatus: MembershipStatus | string | null | undefined,
+): boolean {
+  return canManageSocialContent(role, membershipStatus);
 }
 
 export function canViewSocialContent(
@@ -149,6 +159,7 @@ export function resolveSocialContentPermissions(
     return EMPTY_SOCIAL_CONTENT_PERMISSIONS;
   }
   const canMutate = canManageSocialContent(role, membershipStatus);
+  const canApprove = canApproveSocialContent(role, membershipStatus);
   return {
     canViewContent: true,
     canCreateContent: canMutate,
@@ -156,5 +167,10 @@ export function resolveSocialContentPermissions(
     canArchiveContent: canMutate,
     canManageVariants: canMutate,
     canManageMedia: canMutate,
+    canCreateVersions: canMutate,
+    canRequestReview: canMutate,
+    canCommentOnReview: canMutate,
+    canApproveContent: canApprove,
+    canManageSchedule: canMutate,
   };
 }

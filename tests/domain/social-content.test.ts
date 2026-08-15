@@ -107,6 +107,11 @@ describe("SMM-B1.4 content role matrix", () => {
         canArchiveContent: true,
         canManageVariants: true,
         canManageMedia: true,
+        canCreateVersions: true,
+        canRequestReview: true,
+        canCommentOnReview: true,
+        canApproveContent: true,
+        canManageSchedule: true,
       });
     }
     expect(canManageSocialContent("viewer", "active")).toBe(false);
@@ -118,6 +123,11 @@ describe("SMM-B1.4 content role matrix", () => {
       canArchiveContent: false,
       canManageVariants: false,
       canManageMedia: false,
+      canCreateVersions: false,
+      canRequestReview: false,
+      canCommentOnReview: false,
+      canApproveContent: false,
+      canManageSchedule: false,
     });
   });
 

@@ -51,6 +51,11 @@ export type SocialContentPermissionSet = {
   canArchiveContent: boolean;
   canManageVariants: boolean;
   canManageMedia: boolean;
+  canCreateVersions: boolean;
+  canRequestReview: boolean;
+  canCommentOnReview: boolean;
+  canApproveContent: boolean;
+  canManageSchedule: boolean;
 };
 
 export const EMPTY_SOCIAL_CONTENT_PERMISSIONS: SocialContentPermissionSet = {
@@ -60,6 +65,11 @@ export const EMPTY_SOCIAL_CONTENT_PERMISSIONS: SocialContentPermissionSet = {
   canArchiveContent: false,
   canManageVariants: false,
   canManageMedia: false,
+  canCreateVersions: false,
+  canRequestReview: false,
+  canCommentOnReview: false,
+  canApproveContent: false,
+  canManageSchedule: false,
 };
 
 export type SocialConnectionOrgStatus = "active" | "suspended" | "archived";

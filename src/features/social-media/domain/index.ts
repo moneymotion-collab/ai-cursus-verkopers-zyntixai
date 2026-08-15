@@ -110,6 +110,7 @@ export {
   canViewSocialWorkspaces,
   resolveSocialWorkspacePermissions,
   canManageSocialContent,
+  canApproveSocialContent,
   canViewSocialContent,
   resolveSocialContentPermissions,
 } from "@/features/social-media/domain/permissions";
@@ -329,3 +330,31 @@ export type {
   SocialMediaAsset,
   SocialMediaAttachment,
 } from "@/features/social-media/domain/content";
+
+export {
+  SOCIAL_REVIEW_REQUEST_STATUSES,
+  SOCIAL_APPROVAL_CONTEXTS,
+  SOCIAL_APPROVAL_DECISIONS,
+  SOCIAL_SCHEDULE_SLOT_STATUSES,
+  SOCIAL_CLIENT_APPROVAL_B15_DECISION,
+  SOCIAL_SELF_APPROVAL_B15_POLICY,
+  SOCIAL_WORKFLOW_FORBIDDEN_PUBLICATION_STATES,
+  isSocialReviewRequestStatus,
+  isSocialApprovalContext,
+  isSocialApprovalDecisionKind,
+  isSocialScheduleSlotStatus,
+  isReviewOverdue,
+  computeWorkflowReady,
+} from "@/features/social-media/domain/workflow";
+export type {
+  SocialReviewRequestStatus,
+  SocialApprovalContext,
+  SocialApprovalDecisionKind,
+  SocialScheduleSlotStatus,
+  SocialVariantVersionWorkflowReadiness,
+  SocialContentItemVersion,
+  SocialContentVariantVersion,
+  SocialReviewRequest,
+  SocialApprovalDecision,
+  SocialContentScheduleSlot,
+} from "@/features/social-media/domain/workflow";
