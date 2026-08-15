@@ -350,6 +350,17 @@ Suggested publication lifecycle (refine in B1.6 if needed):
 draft → ready → scheduled → queued → processing → published | failed | cancelled
 ```
 
+### B1.6 implementation refinement (additive)
+
+B1.6 implements provider-neutral Publication / Attempt / Event infrastructure with lifecycle:
+
+```text
+pending | queued | claimed | processing
+→ succeeded | cancelled | failed_retryable | failed_terminal
+| manual_intervention | unknown_external_outcome
+```
+
+Publication binds exact `variant_version_id` + `social_account_connection_id`. Attempts are race-safe and immutable after completion. System claim/complete RPCs live in `private` (not granted to `authenticated`). Empty publishing adapter registry fails closed (`provider_adapter_unavailable`). Instagram live publishing remains **not implemented** (B1.7).
 ---
 
 ## 15. Provider extension strategy
