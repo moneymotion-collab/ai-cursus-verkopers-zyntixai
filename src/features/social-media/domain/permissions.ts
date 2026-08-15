@@ -172,5 +172,8 @@ export function resolveSocialContentPermissions(
     canCommentOnReview: canMutate,
     canApproveContent: canApprove,
     canManageSchedule: canMutate,
+    canCreatePublication: canMutate,
+    canCancelPublication: canMutate,
+    canRetryPublication: canMutate,
   };
 }

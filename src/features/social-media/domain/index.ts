@@ -358,3 +358,35 @@ export type {
   SocialApprovalDecision,
   SocialContentScheduleSlot,
 } from "@/features/social-media/domain/workflow";
+
+export {
+  SOCIAL_PUBLISHING_ENABLED_ENV,
+  SOCIAL_PUBLICATION_STATUSES,
+  SOCIAL_PUBLICATION_EXECUTION_MODES,
+  SOCIAL_PUBLICATION_ATTEMPT_OUTCOMES,
+  SOCIAL_PUBLICATION_FAILURE_CLASSES,
+  SOCIAL_PROVIDER_READINESS_STATES,
+  SOCIAL_INSTAGRAM_PUBLISHING_ADAPTER_STATUS,
+  SOCIAL_PUBLICATION_CLIENT_FORBIDDEN_KEYS,
+  parseSocialPublishingEnabled,
+  isSocialPublishingExecutionEnabled,
+  isSocialPublicationStatus,
+  requiredCapabilityForContentFormat,
+  createEmptySocialPublishingAdapterRegistry,
+  resolvePublishingAdapterOrUnavailable,
+  isRetryableFailureClass,
+  computePublicationBackoffSeconds,
+} from "@/features/social-media/domain/publishing";
+export type {
+  SocialPublicationStatus,
+  SocialPublicationExecutionMode,
+  SocialPublicationAttemptOutcome,
+  SocialPublicationFailureClass,
+  SocialProviderReadinessState,
+  SocialPublicationMediaReference,
+  SocialPublicationExecutionInput,
+  SocialPublishingAdapterResult,
+  SocialPublishingAdapter,
+  SocialPublishingAdapterRegistry,
+  SocialPublicationClientReadModel,
+} from "@/features/social-media/domain/publishing";
