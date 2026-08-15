@@ -244,6 +244,29 @@ export type {
 } from "@/features/social-media/domain/universal-contracts";
 
 export {
+  SOCIAL_BRAND_TRUTH_SOURCE_KINDS,
+  SOCIAL_BRAND_RULE_KINDS,
+  SOCIAL_GOAL_KINDS,
+  SOCIAL_CAMPAIGN_STATUSES,
+  SOCIAL_OFFERS_B13_DECISION,
+  isSocialBrandTruthSourceKind,
+  isCanonicalBrandTruthSourceKind,
+} from "@/features/social-media/domain/brand-brain";
+export type {
+  SocialBrandTruthSourceKind,
+  SocialBrandRuleKind,
+  SocialGoalKind,
+  SocialCampaignStatus,
+  SocialBrandVoiceConfig,
+  SocialBrandProfile,
+  SocialAudience,
+  SocialContentPillar,
+  SocialGoal,
+  SocialPlatformStrategy,
+  SocialCampaign,
+} from "@/features/social-media/domain/brand-brain";
+
+export {
   toSocialWorkspaceClientReadModel,
   isSocialWorkspaceArchived,
   isSocialWorkspaceEligibleForConnection,
