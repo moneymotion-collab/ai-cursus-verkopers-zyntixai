@@ -10,11 +10,13 @@ export type {
   SocialExternalAccountId,
   SocialConnectionPermissionSet,
   SocialWorkspacePermissionSet,
+  SocialContentPermissionSet,
   SocialConnectionOrgStatus,
 } from "@/features/social-media/domain/types";
 export {
   EMPTY_SOCIAL_CONNECTION_PERMISSIONS,
   EMPTY_SOCIAL_WORKSPACE_PERMISSIONS,
+  EMPTY_SOCIAL_CONTENT_PERMISSIONS,
 } from "@/features/social-media/domain/types";
 
 export {
@@ -107,6 +109,9 @@ export {
   canManageSocialWorkspaces,
   canViewSocialWorkspaces,
   resolveSocialWorkspacePermissions,
+  canManageSocialContent,
+  canViewSocialContent,
+  resolveSocialContentPermissions,
 } from "@/features/social-media/domain/permissions";
 
 export {
@@ -288,3 +293,39 @@ export type {
   SocialWorkspaceEventType,
   SocialWorkspaceEventActorSource,
 } from "@/features/social-media/domain/workspace-events";
+
+export {
+  SOCIAL_CONTENT_ORIGIN_KINDS,
+  SOCIAL_CONTENT_LIFECYCLE_STATUSES,
+  SOCIAL_CONTENT_FORMATS,
+  SOCIAL_MEDIA_CATEGORIES,
+  SOCIAL_MEDIA_PROCESSING_STATES,
+  SOCIAL_MEDIA_ASSET_ROLES,
+  SOCIAL_MEDIA_DERIVATION_KINDS,
+  SOCIAL_VARIANT_PROVIDER_CONFIG_KEYS,
+  SOCIAL_MEDIA_STORAGE_DECISION,
+  SOCIAL_CONTENT_FORBIDDEN_LIFECYCLE_STATES,
+  isSocialContentOriginKind,
+  isSocialContentLifecycleStatus,
+  isSocialContentFormat,
+  isSocialMediaCategory,
+  isSocialMediaProcessingState,
+  isSocialMediaAssetRole,
+  isSocialVariantProviderConfig,
+  assertVariantProviderIsPlanned,
+} from "@/features/social-media/domain/content";
+export type {
+  SocialContentOriginKind,
+  SocialContentLifecycleStatus,
+  SocialContentFormat,
+  SocialMediaCategory,
+  SocialMediaProcessingState,
+  SocialMediaAssetRole,
+  SocialMediaDerivationKind,
+  SocialVariantProviderConfigKey,
+  SocialVariantProviderConfig,
+  SocialContentItem,
+  SocialContentVariant,
+  SocialMediaAsset,
+  SocialMediaAttachment,
+} from "@/features/social-media/domain/content";

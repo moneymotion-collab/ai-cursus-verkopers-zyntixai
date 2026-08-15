@@ -6,9 +6,11 @@ import { isKnownOrganizationRole } from "@/features/tasks/domain/permissions";
 import { isActiveOrganizationMembershipStatus } from "@/features/invitations/domain/permissions";
 import {
   EMPTY_SOCIAL_CONNECTION_PERMISSIONS,
+  EMPTY_SOCIAL_CONTENT_PERMISSIONS,
   EMPTY_SOCIAL_WORKSPACE_PERMISSIONS,
   type SocialConnectionOrgStatus,
   type SocialConnectionPermissionSet,
+  type SocialContentPermissionSet,
   type SocialWorkspacePermissionSet,
 } from "./types";
 
@@ -110,5 +112,49 @@ export function resolveSocialWorkspacePermissions(
     canCreateWorkspace: canMutate,
     canUpdateWorkspace: canMutate,
     canArchiveWorkspace: canMutate,
+  };
+}
+
+/**
+ * Operational content domain (B1.4): Owner/Admin/Staff may mutate
+ * Master Content, Variants, and Media metadata when membership is active.
+ * Brand Brain / Workspace structural mutations remain Owner/Admin-only.
+ * Viewer is read-only. Invited/suspended/removed never mutate.
+ */
+export function canManageSocialContent(
+  role: OrganizationRole | string | null | undefined,
+  membershipStatus: MembershipStatus | string | null | undefined,
+): boolean {
+  if (typeof role !== "string" || !isKnownOrganizationRole(role)) {
+    return false;
+  }
+  if (!isActiveMembershipForSocialConnections(membershipStatus)) {
+    return false;
+  }
+  return role === "owner" || role === "admin" || role === "staff";
+}
+
+export function canViewSocialContent(
+  role: OrganizationRole | string | null | undefined,
+  membershipStatus: MembershipStatus | string | null | undefined,
+): boolean {
+  return canViewSocialConnections(role, membershipStatus);
+}
+
+export function resolveSocialContentPermissions(
+  role: OrganizationRole | string | null | undefined,
+  membershipStatus: MembershipStatus | string | null | undefined,
+): SocialContentPermissionSet {
+  if (!canViewSocialContent(role, membershipStatus)) {
+    return EMPTY_SOCIAL_CONTENT_PERMISSIONS;
+  }
+  const canMutate = canManageSocialContent(role, membershipStatus);
+  return {
+    canViewContent: true,
+    canCreateContent: canMutate,
+    canUpdateContent: canMutate,
+    canArchiveContent: canMutate,
+    canManageVariants: canMutate,
+    canManageMedia: canMutate,
   };
 }

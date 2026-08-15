@@ -44,4 +44,22 @@ export const EMPTY_SOCIAL_WORKSPACE_PERMISSIONS: SocialWorkspacePermissionSet = 
   canArchiveWorkspace: false,
 };
 
+export type SocialContentPermissionSet = {
+  canViewContent: boolean;
+  canCreateContent: boolean;
+  canUpdateContent: boolean;
+  canArchiveContent: boolean;
+  canManageVariants: boolean;
+  canManageMedia: boolean;
+};
+
+export const EMPTY_SOCIAL_CONTENT_PERMISSIONS: SocialContentPermissionSet = {
+  canViewContent: false,
+  canCreateContent: false,
+  canUpdateContent: false,
+  canArchiveContent: false,
+  canManageVariants: false,
+  canManageMedia: false,
+};
+
 export type SocialConnectionOrgStatus = "active" | "suspended" | "archived";
