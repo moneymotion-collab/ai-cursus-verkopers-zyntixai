@@ -141,6 +141,12 @@ export type SocialPublicationExecutionInput = {
   contentFormat: SocialContentFormat | string;
   mediaSnapshot: readonly SocialPublicationMediaReference[];
   operationId: string;
+  /** Provider external account id (e.g. IG professional user id). Server-loaded. */
+  externalAccountId: string;
+  /** Exact version caption; format-specific adapter may omit from provider payload. */
+  caption: string | null;
+  /** Exact version alt text when present. */
+  altText: string | null;
 };
 
 export type SocialPublishingAdapterResult =
@@ -194,9 +200,12 @@ export function resolvePublishingAdapterOrUnavailable(
   return { ok: true, adapter };
 }
 
-/** B1.6: no live Instagram publishing adapter is registered. */
+/**
+ * B1.7: Instagram adapter is implemented and may be registered.
+ * Production execution still requires SOCIAL_PUBLISHING_ENABLED=true + worker GUC.
+ */
 export const SOCIAL_INSTAGRAM_PUBLISHING_ADAPTER_STATUS =
-  "not_implemented_b16" as const;
+  "implemented_b17_gated" as const;
 
 export const SOCIAL_PUBLICATION_CLIENT_FORBIDDEN_KEYS = [
   "accessToken",

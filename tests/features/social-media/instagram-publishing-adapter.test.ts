@@ -1,0 +1,375 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  INSTAGRAM_GRAPH_API_VERSION,
+  INSTAGRAM_GRAPH_BASE_URL,
+} from "@/features/social-media/server/instagram-oauth-config";
+import { createInstagramPublishingAdapter } from "@/features/social-media/server/instagram-publishing/adapter";
+import {
+  buildInstagramCreateContainerBody,
+  assertOfficialInstagramGraphHost,
+} from "@/features/social-media/server/instagram-publishing/requests";
+import {
+  mapInstagramHttpFailure,
+} from "@/features/social-media/server/instagram-publishing/errors";
+import {
+  mintSocialMediaProviderDeliveryUrl,
+  verifySocialMediaProviderDeliveryToken,
+} from "@/features/social-media/server/instagram-publishing/media-delivery";
+import {
+  deriveInstagramCapabilitiesFromGrantedPermissions,
+  connectionHasInstagramPublishPermission,
+} from "@/features/social-media/server/instagram-publishing/permissions";
+import { INSTAGRAM_LOGIN_CONNECT_SCOPES } from "@/features/social-media/server/instagram-oauth-config";
+import { SOCIAL_INSTAGRAM_PUBLISHING_ADAPTER_STATUS } from "@/features/social-media/domain/publishing";
+import type { SocialPublicationExecutionInput } from "@/features/social-media/domain/publishing";
+
+const deliveryEnv = {
+  SOCIAL_MEDIA_PROVIDER_DELIVERY_SIGNING_SECRET: "a".repeat(48),
+  NEXT_PUBLIC_SITE_URL: "https://zyntix.example",
+};
+
+const baseInput: SocialPublicationExecutionInput = {
+  publicationId: "pub-1",
+  organizationId: "org-1",
+  workspaceId: "ws-1",
+  connectionId: "conn-1",
+  provider: "instagram",
+  variantVersionId: "ver-1",
+  contentFormat: "image",
+  mediaSnapshot: [
+    {
+      assetId: "asset-1",
+      sortOrder: 0,
+      assetRole: "primary",
+      storageObjectKey: "org-1/ws-1/asset-1.jpg",
+      mimeType: "image/jpeg",
+      mediaCategory: "image",
+    },
+  ],
+  operationId: "op-1",
+  externalAccountId: "17841400000000000",
+  caption: "Hello",
+  altText: "Alt",
+};
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
+}
+
+function adapterDeps(
+  fetchImpl: ReturnType<typeof vi.fn>,
+  overrides?: Partial<Parameters<typeof createInstagramPublishingAdapter>[0]>,
+) {
+  return createInstagramPublishingAdapter({
+    accessToken: "test-access-token-not-real",
+    fetchImpl: fetchImpl as never,
+    env: deliveryEnv,
+    connectionCapabilities: [
+      "publish_image",
+      "publish_video",
+      "publish_carousel",
+      "publish_story",
+      "publish_short",
+    ],
+    connectionStatus: "connected",
+    connectionHealth: "healthy",
+    reauthorizationRequired: false,
+    skipQuotaPreflight: true,
+    pollIntervalMs: 0,
+    pollMaxAttempts: 3,
+    sleep: async () => undefined,
+    ...overrides,
+  });
+}
+
+describe("SMM-B1.7 Instagram publishing adapter", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("records implemented gated adapter status and least-privilege publish scopes", () => {
+    expect(SOCIAL_INSTAGRAM_PUBLISHING_ADAPTER_STATUS).toBe(
+      "implemented_b17_gated",
+    );
+    expect(INSTAGRAM_LOGIN_CONNECT_SCOPES).toEqual([
+      "instagram_business_basic",
+      "instagram_business_content_publish",
+    ]);
+    expect(INSTAGRAM_GRAPH_API_VERSION).toBe("v26.0");
+    expect(INSTAGRAM_GRAPH_BASE_URL).toBe("https://graph.instagram.com");
+  });
+
+  it("derives capabilities only from granted publish permission", () => {
+    expect(
+      deriveInstagramCapabilitiesFromGrantedPermissions([
+        "instagram_business_basic",
+      ]),
+    ).toEqual([]);
+    expect(
+      connectionHasInstagramPublishPermission([
+        "instagram_business_basic",
+        "instagram_business_content_publish",
+      ]),
+    ).toBe(true);
+    expect(
+      deriveInstagramCapabilitiesFromGrantedPermissions([
+        "instagram_business_basic",
+        "instagram_business_content_publish",
+      ]),
+    ).toContain("publish_image");
+  });
+
+  it("rejects non-official Graph hosts", () => {
+    expect(assertOfficialInstagramGraphHost("http://graph.instagram.com/x")).toBe(
+      false,
+    );
+    expect(
+      assertOfficialInstagramGraphHost("https://evil.example/graph"),
+    ).toBe(false);
+    expect(
+      assertOfficialInstagramGraphHost("https://graph.instagram.com/v26.0/x"),
+    ).toBe(true);
+  });
+
+  it("publishes a single image container then media_publish", async () => {
+    const createBodies: unknown[] = [];
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      expect(url).toContain("graph.instagram.com");
+      expect(url).toContain("/v26.0/");
+      if (url.includes("/media_publish")) {
+        return jsonResponse({ id: "media_999" });
+      }
+      if (url.includes("/media")) {
+        createBodies.push(JSON.parse(String(init?.body)));
+        return jsonResponse({ id: "container_1" });
+      }
+      return jsonResponse({}, 404);
+    });
+    const adapter = adapterDeps(fetchImpl);
+    const result = await adapter.publish(baseInput);
+    expect(result).toEqual({
+      outcome: "succeeded",
+      externalPublicationId: "media_999",
+    });
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    const createBody = createBodies[0] as {
+      image_url: string;
+      caption: string;
+      alt_text: string;
+    };
+    expect(createBody.image_url).toContain("/api/social/media-delivery/");
+    expect(createBody.caption).toBe("Hello");
+    expect(createBody.alt_text).toBe("Alt");
+  });
+
+  it("maps ambiguous media_publish timeout to unknown_external_outcome without retry", async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url.includes("/media_publish")) {
+        const err = new Error("aborted");
+        err.name = "AbortError";
+        throw err;
+      }
+      return jsonResponse({ id: "container_1" });
+    });
+    const adapter = adapterDeps(fetchImpl);
+    const result = await adapter.publish(baseInput);
+    expect(result).toEqual({
+      outcome: "unknown_external_outcome",
+      failureClass: "unknown_external_outcome",
+      safeErrorCode: "instagram_publish_ambiguous_timeout",
+    });
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it("publishes reels with status polling before media_publish", async () => {
+    let statusCalls = 0;
+    const createBodies: unknown[] = [];
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("fields=status_code")) {
+        statusCalls += 1;
+        return jsonResponse({
+          status_code: statusCalls === 1 ? "IN_PROGRESS" : "FINISHED",
+        });
+      }
+      if (url.includes("/media_publish")) {
+        return jsonResponse({ id: "media_reel" });
+      }
+      createBodies.push(JSON.parse(String(init?.body)));
+      return jsonResponse({ id: "container_reel" });
+    });
+    const adapter = adapterDeps(fetchImpl);
+    const result = await adapter.publish({
+      ...baseInput,
+      contentFormat: "short_video",
+      mediaSnapshot: [
+        {
+          ...baseInput.mediaSnapshot[0],
+          mediaCategory: "video",
+          mimeType: "video/mp4",
+          storageObjectKey: "org-1/ws-1/reel.mp4",
+        },
+      ],
+    });
+    expect(result).toEqual({
+      outcome: "succeeded",
+      externalPublicationId: "media_reel",
+    });
+    expect((createBodies[0] as { media_type: string }).media_type).toBe("REELS");
+  });
+
+  it("publishes carousel with ordered children and no reorder", async () => {
+    const createBodies: unknown[] = [];
+    let n = 0;
+    const fetch2 = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/media_publish")) {
+        return jsonResponse({ id: "media_car" });
+      }
+      if (url.includes("/media")) {
+        n += 1;
+        createBodies.push(JSON.parse(String(init?.body)));
+        return jsonResponse({ id: `c_${n}` });
+      }
+      return jsonResponse({}, 404);
+    });
+    const adapter = adapterDeps(fetch2);
+    const result = await adapter.publish({
+      ...baseInput,
+      contentFormat: "carousel",
+      mediaSnapshot: [
+        {
+          assetId: "a2",
+          sortOrder: 1,
+          assetRole: "carousel_item",
+          storageObjectKey: "k2.jpg",
+          mimeType: "image/jpeg",
+          mediaCategory: "image",
+        },
+        {
+          assetId: "a1",
+          sortOrder: 0,
+          assetRole: "carousel_item",
+          storageObjectKey: "k1.jpg",
+          mimeType: "image/jpeg",
+          mediaCategory: "image",
+        },
+      ],
+    });
+    expect(result).toEqual({
+      outcome: "succeeded",
+      externalPublicationId: "media_car",
+    });
+    expect(createBodies).toHaveLength(3);
+    const parent = createBodies[2] as { children: string; media_type: string };
+    expect(parent.media_type).toBe("CAROUSEL");
+    expect(parent.children).toBe("c_1,c_2");
+  });
+
+  it("publishes story image without caption parameter", async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/media_publish")) {
+        return jsonResponse({ id: "media_story" });
+      }
+      if (url.includes("/media")) {
+        const body = JSON.parse(String(init?.body));
+        expect(body.media_type).toBe("STORIES");
+        expect(body.caption).toBeUndefined();
+        expect(body.image_url).toBeTruthy();
+        return jsonResponse({ id: "container_story" });
+      }
+      return jsonResponse({}, 404);
+    });
+    const adapter = adapterDeps(fetchImpl);
+    const result = await adapter.publish({
+      ...baseInput,
+      contentFormat: "story",
+      caption: "should-not-send",
+    });
+    expect(result).toEqual({
+      outcome: "succeeded",
+      externalPublicationId: "media_story",
+    });
+  });
+
+  it("fails closed on missing capability and text format", async () => {
+    const fetchImpl = vi.fn();
+    const adapter = adapterDeps(fetchImpl, {
+      connectionCapabilities: ["publish_image"],
+    });
+    expect(
+      await adapter.preflight({ ...baseInput, contentFormat: "story" }),
+    ).toBe("unsupported_capability");
+    expect(
+      await adapter.preflight({ ...baseInput, contentFormat: "text" }),
+    ).toBe("unsupported_capability");
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("requires reauthorization when connection flag is set", async () => {
+    const adapter = adapterDeps(vi.fn(), {
+      reauthorizationRequired: true,
+    });
+    expect(await adapter.preflight(baseInput)).toBe(
+      "reauthorization_required",
+    );
+  });
+
+  it("maps container expired and rate limit classes", () => {
+    expect(mapInstagramHttpFailure({ reason: "container_expired" }).outcome).toBe(
+      "failed_terminal",
+    );
+    expect(mapInstagramHttpFailure({ reason: "quota_exhausted" }).failureClass).toBe(
+      "rate_limit",
+    );
+  });
+
+  it("builds typed container bodies", () => {
+    expect(
+      buildInstagramCreateContainerBody({
+        kind: "carousel",
+        children: ["1", "2"],
+        caption: "c",
+      }),
+    ).toEqual({
+      media_type: "CAROUSEL",
+      children: "1,2",
+      caption: "c",
+    });
+  });
+
+  it("mints and verifies signed media delivery tokens; rejects tamper/expiry", () => {
+    const minted = mintSocialMediaProviderDeliveryUrl({
+      organizationId: "org-1",
+      assetId: "asset-1",
+      storageObjectKey: "path/a.jpg",
+      env: deliveryEnv,
+    });
+    expect(minted.ok).toBe(true);
+    if (!minted.ok) {
+      return;
+    }
+    const token = minted.url.split("/").pop()!;
+    expect(
+      verifySocialMediaProviderDeliveryToken({
+        token,
+        env: deliveryEnv,
+        expectedStorageObjectKey: "path/a.jpg",
+      }).ok,
+    ).toBe(true);
+    expect(
+      verifySocialMediaProviderDeliveryToken({
+        token: token.slice(0, -2) + "xx",
+        env: deliveryEnv,
+      }).ok,
+    ).toBe(false);
+    expect(
+      verifySocialMediaProviderDeliveryToken({
+        token,
+        env: deliveryEnv,
+        now: new Date(Date.now() + 2 * 60 * 60 * 1000),
+      }).ok,
+    ).toBe(false);
+  });
+});

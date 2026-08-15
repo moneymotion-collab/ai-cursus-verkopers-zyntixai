@@ -94,7 +94,8 @@ function mockProviderFetch(): typeof fetch {
             {
               access_token: "short-lived-token",
               user_id: externalAccountId,
-              permissions: "instagram_business_basic",
+              permissions:
+                "instagram_business_basic,instagram_business_content_publish",
             },
           ],
         }),
@@ -162,6 +163,19 @@ describe("SMM-B1.1-C Instagram OAuth callback orchestration", () => {
     )?.[1] as Record<string, string>;
     expect(upsertArgs.p_ciphertext).toBeTruthy();
     expect(upsertArgs.p_ciphertext).not.toContain("long-lived-token");
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      "finalize_social_connection",
+      expect.objectContaining({
+        p_connection_id: connectionId,
+        p_capabilities: expect.arrayContaining([
+          "publish_image",
+          "publish_carousel",
+          "publish_story",
+          "publish_short",
+          "publish_video",
+        ]),
+      }),
+    );
   });
 
   it("handles provider denial, missing code/state, and missing cookie", async () => {

@@ -30,6 +30,7 @@ import {
   type InstagramProviderFetch,
 } from "@/features/social-media/server/instagram-provider-client";
 import { upsertEncryptedSocialProviderCredential } from "@/features/social-media/server/credential-repository";
+import { deriveInstagramCapabilitiesFromGrantedPermissions } from "@/features/social-media/server/instagram-publishing/permissions";
 import {
   buildDefaultSocialOAuthFailurePath,
   buildSocialOAuthContinuationPath,
@@ -234,7 +235,9 @@ export async function handleInstagramOAuthCallback(
     externalAccountId: identity.value.externalAccountId,
     displayName: identity.value.username,
     professionalAccountType: identity.value.accountType,
-    capabilities: [],
+    capabilities: deriveInstagramCapabilitiesFromGrantedPermissions(
+      shortLived.value.permissions,
+    ),
   });
   if (!finalized.ok) {
     switch (finalized.reason) {

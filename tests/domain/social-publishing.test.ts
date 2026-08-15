@@ -24,7 +24,7 @@ describe("SMM-B1.6 publishing domain contracts", () => {
       isSocialPublishingExecutionEnabled({ publishingEnabled: null }),
     ).toBe(false);
     expect(SOCIAL_INSTAGRAM_PUBLISHING_ADAPTER_STATUS).toBe(
-      "not_implemented_b16",
+      "implemented_b17_gated",
     );
     expect(IMPLEMENTED_SOCIAL_PROVIDERS).toEqual(["instagram"]);
   });

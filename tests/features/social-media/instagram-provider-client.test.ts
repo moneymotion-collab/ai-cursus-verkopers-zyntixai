@@ -11,11 +11,14 @@ const config: InstagramOAuthConfig = {
   clientId: "client-id",
   clientSecret: "client-secret-value",
   redirectUri: "https://zyntix.example/api/social/instagram/callback",
-  scopes: ["instagram_business_basic"],
+  scopes: [
+    "instagram_business_basic",
+    "instagram_business_content_publish",
+  ],
   authorizeEndpoint: "https://www.instagram.com/oauth/authorize",
   tokenEndpoint: "https://api.instagram.com/oauth/access_token",
   graphBaseUrl: "https://graph.instagram.com",
-  graphApiVersion: "v22.0",
+  graphApiVersion: "v26.0",
 };
 
 function jsonResponse(body: unknown, status = 200): Response {

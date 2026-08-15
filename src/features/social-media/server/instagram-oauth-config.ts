@@ -22,10 +22,21 @@ export {
 export const INSTAGRAM_OAUTH_CALLBACK_PATH =
   "/api/social/instagram/callback" as const;
 
-/** Least-privilege B1.1 connect scope (identity). Publish scopes are B1.6+. */
+/**
+ * Least-privilege Instagram Login scopes for connect + content publishing (SMM-B1.7).
+ * Official Meta: instagram_business_basic + instagram_business_content_publish.
+ * No messages/comments/insights.
+ */
 export const INSTAGRAM_LOGIN_CONNECT_SCOPES = [
   "instagram_business_basic",
+  "instagram_business_content_publish",
 ] as const;
+
+/** Alias used by publishing/permission evidence helpers. */
+export const INSTAGRAM_LOGIN_PUBLISHING_SCOPES = INSTAGRAM_LOGIN_CONNECT_SCOPES;
+
+export const INSTAGRAM_BUSINESS_CONTENT_PUBLISH_PERMISSION =
+  "instagram_business_content_publish" as const;
 
 export const INSTAGRAM_OAUTH_AUTHORIZE_ENDPOINT =
   "https://www.instagram.com/oauth/authorize" as const;
@@ -36,8 +47,11 @@ export const INSTAGRAM_OAUTH_TOKEN_ENDPOINT =
 export const INSTAGRAM_GRAPH_BASE_URL =
   "https://graph.instagram.com" as const;
 
-/** Pin Graph API version for identity reads. */
-export const INSTAGRAM_GRAPH_API_VERSION = "v22.0" as const;
+/**
+ * Pin Graph API version (Instagram API with Instagram Login).
+ * Verified against Meta Content Publishing docs (examples use v26.0; updated 2026-06-30).
+ */
+export const INSTAGRAM_GRAPH_API_VERSION = "v26.0" as const;
 
 export const INSTAGRAM_PROVIDER_HTTP_TIMEOUT_MS = 15_000;
 

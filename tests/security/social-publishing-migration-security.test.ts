@@ -83,7 +83,7 @@ describe("SMM-B1.6 publishing migration security", () => {
     expect(migration).toContain("provider = 'instagram'");
     expect(IMPLEMENTED_SOCIAL_PROVIDERS).toEqual(["instagram"]);
     expect(SOCIAL_INSTAGRAM_PUBLISHING_ADAPTER_STATUS).toBe(
-      "not_implemented_b16",
+      "implemented_b17_gated",
     );
     expect(SOCIAL_PUBLISHING_ENABLED_ENV).toBe("SOCIAL_PUBLISHING_ENABLED");
     expect(migration).not.toMatch(/access_token\s+text/i);

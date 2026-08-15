@@ -84,8 +84,17 @@ describe("SMM-B1.1-C Instagram OAuth config and authorization URL", () => {
     );
     expect(parsed.searchParams.get("response_type")).toBe("code");
     expect(parsed.searchParams.get("state")).toBe(rawState.value);
-    expect(parsed.searchParams.get("scope")).not.toContain(
+    expect(parsed.searchParams.get("scope")).toContain(
       "instagram_business_content_publish",
+    );
+    expect(parsed.searchParams.get("scope")).toContain(
+      "instagram_business_basic",
+    );
+    expect(parsed.searchParams.get("scope")).not.toContain(
+      "instagram_manage_messages",
+    );
+    expect(parsed.searchParams.get("scope")).not.toContain(
+      "instagram_manage_insights",
     );
   });
 
@@ -104,7 +113,9 @@ describe("SMM-B1.1-C Instagram OAuth config and authorization URL", () => {
       rawState: createRawSocialOAuthStateSecret("cd".repeat(32)),
     });
     const parsed = new URL(url);
-    expect(parsed.searchParams.get("scope")).toBe("instagram_business_basic");
+    expect(parsed.searchParams.get("scope")).toBe(
+      "instagram_business_basic,instagram_business_content_publish",
+    );
     expect(parsed.searchParams.get("redirect_uri")).toContain(
       INSTAGRAM_OAUTH_CALLBACK_PATH,
     );

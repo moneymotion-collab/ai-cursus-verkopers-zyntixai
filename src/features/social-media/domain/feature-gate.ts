@@ -27,6 +27,10 @@ export const SOCIAL_INSTAGRAM_CLIENT_SECRET_ENV =
 export const SOCIAL_INSTAGRAM_OAUTH_REDIRECT_URI_ENV =
   "SOCIAL_INSTAGRAM_OAUTH_REDIRECT_URI";
 
+/** HMAC secret for temporary Instagram provider media delivery URLs (SMM-B1.7). */
+export const SOCIAL_MEDIA_PROVIDER_DELIVERY_SIGNING_SECRET_ENV =
+  "SOCIAL_MEDIA_PROVIDER_DELIVERY_SIGNING_SECRET";
+
 export function parseSocialConnectionsEnabled(
   value: string | undefined | null,
 ): boolean {
