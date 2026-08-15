@@ -1,14 +1,14 @@
 /**
- * Temporary signed Instagram provider media delivery (SMM-B1.7).
+ * Temporary signed Instagram provider media delivery (SMM-B1.7 / R1).
  * Private-by-default: Meta fetches a short-lived HMAC-signed HTTPS URL.
  * No permanent public bucket. Possession of storage_object_key alone is not auth.
  */
 
 import "server-only";
 
-import { createHmac, timingSafeEqual } from "node:crypto";
-import { createHash } from "node:crypto";
+import { createHmac, timingSafeEqual, createHash } from "node:crypto";
 import { resolveSiteOrigin } from "@/lib/env/site-origin";
+import { isSafeSocialMediaStorageObjectKey } from "@/features/social-media/server/instagram-publishing/storage-paths";
 
 export const SOCIAL_MEDIA_PROVIDER_DELIVERY_SIGNING_SECRET_ENV =
   "SOCIAL_MEDIA_PROVIDER_DELIVERY_SIGNING_SECRET";
@@ -23,10 +23,11 @@ export const SOCIAL_MEDIA_PROVIDER_DELIVERY_PATH_PREFIX =
 export const SOCIAL_MEDIA_PROVIDER_DELIVERY_TTL_SECONDS = 60 * 60;
 
 export type SocialMediaProviderDeliveryClaims = {
-  v: 1;
+  v: 2;
   purpose: typeof SOCIAL_MEDIA_PROVIDER_DELIVERY_PURPOSE;
   organizationId: string;
   assetId: string;
+  storageObjectKey: string;
   objectKeyHash: string;
   exp: number;
 };
@@ -84,8 +85,17 @@ export function mintSocialMediaProviderDeliveryUrl(input: {
   env?: Record<string, string | undefined>;
 }):
   | { ok: true; url: string; expiresAt: number }
-  | { ok: false; reason: "missing_signing_secret" | "invalid_origin" } {
+  | {
+      ok: false;
+      reason: "missing_signing_secret" | "invalid_origin" | "unsafe_object_key";
+    } {
   const env = input.env ?? process.env;
+  if (!isSafeSocialMediaStorageObjectKey(input.storageObjectKey)) {
+    return { ok: false, reason: "unsafe_object_key" };
+  }
+  if (!input.storageObjectKey.startsWith(`${input.organizationId}/`)) {
+    return { ok: false, reason: "unsafe_object_key" };
+  }
   const secret = readDeliverySigningSecret(env);
   if (!secret) {
     return { ok: false, reason: "missing_signing_secret" };
@@ -94,7 +104,6 @@ export function mintSocialMediaProviderDeliveryUrl(input: {
   try {
     const parsed = new URL(origin);
     if (parsed.protocol !== "https:" && parsed.hostname !== "localhost") {
-      // Production Meta fetch requires HTTPS; allow localhost only for local tests.
       if (parsed.protocol !== "http:" || parsed.hostname !== "localhost") {
         return { ok: false, reason: "invalid_origin" };
       }
@@ -107,10 +116,11 @@ export function mintSocialMediaProviderDeliveryUrl(input: {
   const ttl = input.ttlSeconds ?? SOCIAL_MEDIA_PROVIDER_DELIVERY_TTL_SECONDS;
   const exp = Math.floor(nowMs / 1000) + ttl;
   const claims: SocialMediaProviderDeliveryClaims = {
-    v: 1,
+    v: 2,
     purpose: SOCIAL_MEDIA_PROVIDER_DELIVERY_PURPOSE,
     organizationId: input.organizationId,
     assetId: input.assetId,
+    storageObjectKey: input.storageObjectKey,
     objectKeyHash: hashStorageObjectKey(input.storageObjectKey),
     exp,
   };
@@ -139,7 +149,8 @@ export function verifySocialMediaProviderDeliveryToken(input: {
         | "bad_signature"
         | "expired"
         | "purpose_mismatch"
-        | "object_key_mismatch";
+        | "object_key_mismatch"
+        | "unsafe_object_key";
     } {
   const env = input.env ?? process.env;
   const secret = readDeliverySigningSecret(env);
@@ -161,9 +172,10 @@ export function verifySocialMediaProviderDeliveryToken(input: {
       Buffer.from(payloadB64, "base64url").toString("utf8"),
     ) as SocialMediaProviderDeliveryClaims;
     if (
-      parsed.v !== 1 ||
+      parsed.v !== 2 ||
       typeof parsed.organizationId !== "string" ||
       typeof parsed.assetId !== "string" ||
+      typeof parsed.storageObjectKey !== "string" ||
       typeof parsed.objectKeyHash !== "string" ||
       typeof parsed.exp !== "number"
     ) {
@@ -175,6 +187,17 @@ export function verifySocialMediaProviderDeliveryToken(input: {
   }
   if (claims.purpose !== SOCIAL_MEDIA_PROVIDER_DELIVERY_PURPOSE) {
     return { ok: false, reason: "purpose_mismatch" };
+  }
+  if (!isSafeSocialMediaStorageObjectKey(claims.storageObjectKey)) {
+    return { ok: false, reason: "unsafe_object_key" };
+  }
+  if (
+    hashStorageObjectKey(claims.storageObjectKey) !== claims.objectKeyHash
+  ) {
+    return { ok: false, reason: "object_key_mismatch" };
+  }
+  if (!claims.storageObjectKey.startsWith(`${claims.organizationId}/`)) {
+    return { ok: false, reason: "unsafe_object_key" };
   }
   const nowSec = Math.floor((input.now ?? new Date()).getTime() / 1000);
   if (claims.exp < nowSec) {
@@ -189,7 +212,7 @@ export function verifySocialMediaProviderDeliveryToken(input: {
   return { ok: true, claims };
 }
 
-/** Fail-closed production byte source until a private storage backend is wired. */
+/** Fail-closed fallback when storage credentials are absent. */
 export function createUnavailableSocialMediaByteSource(): SocialMediaByteSource {
   return {
     async getObject() {

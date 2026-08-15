@@ -1,12 +1,9 @@
 /**
- * Short-lived signed media delivery for Instagram provider fetch (SMM-B1.7).
+ * Short-lived signed media delivery for Instagram provider fetch (SMM-B1.7-R1).
  * Meta servers fetch this URL — no session cookies. HMAC + purpose + expiry.
  */
 
-import {
-  createUnavailableSocialMediaByteSource,
-  verifySocialMediaProviderDeliveryToken,
-} from "@/features/social-media/server/instagram-publishing/media-delivery";
+import { verifySocialMediaProviderDeliveryToken } from "@/features/social-media/server/instagram-publishing/media-delivery";
 import { getSocialMediaByteSource } from "@/features/social-media/server/instagram-publishing/media-byte-source";
 
 export const runtime = "nodejs";
@@ -39,7 +36,7 @@ export async function GET(
   const object = await getSocialMediaByteSource().getObject({
     organizationId: verified.claims.organizationId,
     assetId: verified.claims.assetId,
-    storageObjectKey: "",
+    storageObjectKey: verified.claims.storageObjectKey,
   });
   if (!object.ok) {
     if (object.reason === "not_found") {
@@ -57,6 +54,7 @@ export async function GET(
       "content-type": object.contentType,
       "cache-control": "private, no-store",
       "x-content-type-options": "nosniff",
+      "content-length": String(object.bytes.byteLength),
     },
   });
 }

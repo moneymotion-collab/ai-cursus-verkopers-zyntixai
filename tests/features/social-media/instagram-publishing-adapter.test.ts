@@ -243,7 +243,7 @@ describe("SMM-B1.7 Instagram publishing adapter", () => {
           assetId: "a2",
           sortOrder: 1,
           assetRole: "carousel_item",
-          storageObjectKey: "k2.jpg",
+          storageObjectKey: "org-1/k2.jpg",
           mimeType: "image/jpeg",
           mediaCategory: "image",
         },
@@ -251,7 +251,7 @@ describe("SMM-B1.7 Instagram publishing adapter", () => {
           assetId: "a1",
           sortOrder: 0,
           assetRole: "carousel_item",
-          storageObjectKey: "k1.jpg",
+          storageObjectKey: "org-1/k1.jpg",
           mimeType: "image/jpeg",
           mediaCategory: "image",
         },
@@ -339,11 +339,11 @@ describe("SMM-B1.7 Instagram publishing adapter", () => {
     });
   });
 
-  it("mints and verifies signed media delivery tokens; rejects tamper/expiry", () => {
+  it("mints and verifies signed media delivery tokens; rejects tamper/expiry/unsafe keys", () => {
     const minted = mintSocialMediaProviderDeliveryUrl({
       organizationId: "org-1",
       assetId: "asset-1",
-      storageObjectKey: "path/a.jpg",
+      storageObjectKey: "org-1/path/a.jpg",
       env: deliveryEnv,
     });
     expect(minted.ok).toBe(true);
@@ -355,7 +355,7 @@ describe("SMM-B1.7 Instagram publishing adapter", () => {
       verifySocialMediaProviderDeliveryToken({
         token,
         env: deliveryEnv,
-        expectedStorageObjectKey: "path/a.jpg",
+        expectedStorageObjectKey: "org-1/path/a.jpg",
       }).ok,
     ).toBe(true);
     expect(
@@ -369,6 +369,22 @@ describe("SMM-B1.7 Instagram publishing adapter", () => {
         token,
         env: deliveryEnv,
         now: new Date(Date.now() + 2 * 60 * 60 * 1000),
+      }).ok,
+    ).toBe(false);
+    expect(
+      mintSocialMediaProviderDeliveryUrl({
+        organizationId: "org-1",
+        assetId: "asset-1",
+        storageObjectKey: "../etc/passwd",
+        env: deliveryEnv,
+      }).ok,
+    ).toBe(false);
+    expect(
+      mintSocialMediaProviderDeliveryUrl({
+        organizationId: "org-1",
+        assetId: "asset-1",
+        storageObjectKey: "other-org/path.jpg",
+        env: deliveryEnv,
       }).ok,
     ).toBe(false);
   });

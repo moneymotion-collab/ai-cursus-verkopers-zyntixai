@@ -18,6 +18,11 @@ export {
   SOCIAL_MEDIA_PROVIDER_DELIVERY_SIGNING_SECRET_ENV,
   type SocialMediaByteSource,
 } from "@/features/social-media/server/instagram-publishing/media-delivery";
+export { createSupabaseSocialMediaByteSource } from "@/features/social-media/server/instagram-publishing/supabase-byte-source";
+export {
+  SOCIAL_MEDIA_PRIVATE_BUCKET_ID,
+  isSafeSocialMediaStorageObjectKey,
+} from "@/features/social-media/server/instagram-publishing/storage-paths";
 export {
   createInstagramMediaContainer,
   publishInstagramMediaContainer,
