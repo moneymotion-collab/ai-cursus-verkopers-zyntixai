@@ -205,3 +205,32 @@ export {
 
 export { provesSocialTenantAuthority } from "@/features/social-media/domain/tenant";
 export type { SocialTenantAuthorityProof } from "@/features/social-media/domain/tenant";
+
+export {
+  PLANNED_SOCIAL_PROVIDERS,
+  SOCIAL_PROVIDER_ROLLOUT_WAVES,
+  isPlannedSocialProvider,
+} from "@/features/social-media/domain/planned-providers";
+export type {
+  PlannedSocialProvider,
+  SocialProviderRolloutWave,
+  SocialAuthorizationProduct,
+} from "@/features/social-media/domain/planned-providers";
+
+export {
+  SOCIAL_CAPABILITY_AVAILABILITY_STATES,
+  SOCIAL_UNIVERSAL_CAPABILITY_CATALOG,
+  SOCIAL_ACTION_AUTHORIZATION_CLASSES,
+  SOCIAL_DATA_PROVENANCE_KINDS,
+  SOCIAL_SCOPE_CLASSIFICATIONS,
+  isSocialCapabilityAvailabilityState,
+} from "@/features/social-media/domain/universal-contracts";
+export type {
+  SocialCapabilityAvailabilityState,
+  SocialUniversalCapabilityId,
+  SocialCapabilityResolution,
+  SocialProviderAdapterSegment,
+  SocialActionAuthorizationClass,
+  SocialDataProvenanceKind,
+  SocialScopeClassification,
+} from "@/features/social-media/domain/universal-contracts";

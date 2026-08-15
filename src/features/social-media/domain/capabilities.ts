@@ -44,7 +44,9 @@ export function isDeferredSocialCapability(
 
 /**
  * Discovery snapshot. Ordinary callers must not mutate this as authorization.
- * Browser cannot grant `publish_story=true`. Discovery is B1.1-D.
+ * Browser cannot grant `publish_story=true`.
+ * Runtime capability discovery remains a later implementation phase;
+ * SMM-B1.1-D defines the universal capability architecture only.
  */
 export type SocialCapabilitySnapshot = {
   provider: ImplementedSocialProvider;

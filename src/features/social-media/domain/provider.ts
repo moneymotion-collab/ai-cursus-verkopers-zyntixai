@@ -1,6 +1,11 @@
 /**
  * Known provider family vs implemented/connectable provider.
  * Adding a family name must not enable connections.
+ *
+ * Planned multi-provider catalog (SMM-B1.1-D) lives in planned-providers.ts.
+ * This known-family list remains the A-era catalog used by existing guards;
+ * Threads/Pinterest are planned but not yet in this known-family array until
+ * a later additive implementation phase deliberately expands it.
  */
 
 export const KNOWN_SOCIAL_PROVIDER_FAMILIES = [
