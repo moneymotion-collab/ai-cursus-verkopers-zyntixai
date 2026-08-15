@@ -6,8 +6,10 @@ import { isKnownOrganizationRole } from "@/features/tasks/domain/permissions";
 import { isActiveOrganizationMembershipStatus } from "@/features/invitations/domain/permissions";
 import {
   EMPTY_SOCIAL_CONNECTION_PERMISSIONS,
+  EMPTY_SOCIAL_WORKSPACE_PERMISSIONS,
   type SocialConnectionOrgStatus,
   type SocialConnectionPermissionSet,
+  type SocialWorkspacePermissionSet,
 } from "./types";
 
 /**
@@ -77,5 +79,36 @@ export function resolveSocialConnectionPermissions(
     canConnect: canMutate,
     canReauthorize: canMutate,
     canDisconnect: canMutate,
+  };
+}
+
+/** Workspace structural mutations: Owner/Admin + active membership only. */
+export function canManageSocialWorkspaces(
+  role: OrganizationRole | string | null | undefined,
+  membershipStatus: MembershipStatus | string | null | undefined,
+): boolean {
+  return canManageSocialConnections(role, membershipStatus);
+}
+
+export function canViewSocialWorkspaces(
+  role: OrganizationRole | string | null | undefined,
+  membershipStatus: MembershipStatus | string | null | undefined,
+): boolean {
+  return canViewSocialConnections(role, membershipStatus);
+}
+
+export function resolveSocialWorkspacePermissions(
+  role: OrganizationRole | string | null | undefined,
+  membershipStatus: MembershipStatus | string | null | undefined,
+): SocialWorkspacePermissionSet {
+  if (!canViewSocialWorkspaces(role, membershipStatus)) {
+    return EMPTY_SOCIAL_WORKSPACE_PERMISSIONS;
+  }
+  const canMutate = canManageSocialWorkspaces(role, membershipStatus);
+  return {
+    canViewWorkspace: true,
+    canCreateWorkspace: canMutate,
+    canUpdateWorkspace: canMutate,
+    canArchiveWorkspace: canMutate,
   };
 }

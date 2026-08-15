@@ -161,6 +161,24 @@ describe("SMM-B1.1-C Instagram connection initiation authorization", () => {
     expect(result).toEqual({ ok: false, code: "rate_limited" });
   });
 
+  it("maps workspace_not_found from RPC", async () => {
+    const supabase = createSupabaseMock({
+      rpcResult: [
+        {
+          result_code: "workspace_not_found",
+          connection_id: null,
+          intent_id: null,
+        },
+      ],
+    });
+    const result = await initiateInstagramConnection(
+      supabase,
+      { organizationId: orgId, workspaceId, provider: "instagram" },
+      { env: enabledEnv },
+    );
+    expect(result).toEqual({ ok: false, code: "workspace_not_found" });
+  });
+
   it("fail-closes when Instagram client configuration is missing", async () => {
     const supabase = createSupabaseMock({});
     const result = await initiateInstagramConnection(

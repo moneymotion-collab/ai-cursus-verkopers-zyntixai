@@ -52,6 +52,8 @@ function mapCreateIntentFailure(
       return { ok: false, code: "provider_unsupported" };
     case "forbidden":
       return { ok: false, code: "forbidden" };
+    case "workspace_not_found":
+      return { ok: false, code: "workspace_not_found" };
     case "rate_limited":
       return { ok: false, code: "rate_limited" };
     case "invalid_input":

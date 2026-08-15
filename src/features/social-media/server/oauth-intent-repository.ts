@@ -45,6 +45,7 @@ export type CreateSocialConnectionIntentFailure = {
     | "invalid_input"
     | "provider_unsupported"
     | "forbidden"
+    | "workspace_not_found"
     | "rate_limited"
     | "transport_error"
     | "unexpected";
@@ -88,6 +89,7 @@ export async function createSocialConnectionIntent(
       resultCode === "invalid_input" ||
       resultCode === "provider_unsupported" ||
       resultCode === "forbidden" ||
+      resultCode === "workspace_not_found" ||
       resultCode === "rate_limited"
     ) {
       return { ok: false, reason: resultCode };

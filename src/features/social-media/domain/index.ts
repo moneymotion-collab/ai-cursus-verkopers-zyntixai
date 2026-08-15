@@ -1,6 +1,7 @@
 export type {
   SocialOrganizationId,
   SocialWorkspaceId,
+  SocialBrandId,
   SocialConnectionId,
   SocialMemberId,
   SocialUserId,
@@ -8,9 +9,13 @@ export type {
   SocialOAuthIntentId,
   SocialExternalAccountId,
   SocialConnectionPermissionSet,
+  SocialWorkspacePermissionSet,
   SocialConnectionOrgStatus,
 } from "@/features/social-media/domain/types";
-export { EMPTY_SOCIAL_CONNECTION_PERMISSIONS } from "@/features/social-media/domain/types";
+export {
+  EMPTY_SOCIAL_CONNECTION_PERMISSIONS,
+  EMPTY_SOCIAL_WORKSPACE_PERMISSIONS,
+} from "@/features/social-media/domain/types";
 
 export {
   isSocialUuid,
@@ -99,6 +104,9 @@ export {
   canManageSocialConnections,
   canViewSocialConnections,
   resolveSocialConnectionPermissions,
+  canManageSocialWorkspaces,
+  canViewSocialWorkspaces,
+  resolveSocialWorkspacePermissions,
 } from "@/features/social-media/domain/permissions";
 
 export {
@@ -234,3 +242,26 @@ export type {
   SocialDataProvenanceKind,
   SocialScopeClassification,
 } from "@/features/social-media/domain/universal-contracts";
+
+export {
+  toSocialWorkspaceClientReadModel,
+  isSocialWorkspaceArchived,
+  isSocialWorkspaceEligibleForConnection,
+  SOCIAL_WORKSPACE_CLIENT_FORBIDDEN_KEYS,
+} from "@/features/social-media/domain/workspace";
+export type {
+  SocialBrand,
+  SocialWorkspace,
+  SocialWorkspaceClientReadModel,
+  SocialWorkspaceClientForbiddenKey,
+} from "@/features/social-media/domain/workspace";
+
+export {
+  SOCIAL_WORKSPACE_EVENT_TYPES,
+  SOCIAL_WORKSPACE_EVENT_ACTOR_SOURCES,
+  isSocialWorkspaceEventType,
+} from "@/features/social-media/domain/workspace-events";
+export type {
+  SocialWorkspaceEventType,
+  SocialWorkspaceEventActorSource,
+} from "@/features/social-media/domain/workspace-events";

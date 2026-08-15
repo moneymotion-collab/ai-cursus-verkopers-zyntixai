@@ -81,6 +81,26 @@ begin
     (v_member_suspended, v_org, v_user_suspended, 'owner', 'suspended'),
     (v_member_b, v_org_b, v_user_b, 'owner', 'active');
 
+  -- SMM-B1.2: physical workspace required before connection intents
+  insert into public.social_brands (
+    id, organization_id, display_name, created_by_member_id
+  ) values (
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaad01',
+    v_org,
+    'SMM Live Brand',
+    v_member_owner
+  );
+
+  insert into public.social_workspaces (
+    id, organization_id, brand_id, display_name, created_by_member_id
+  ) values (
+    v_workspace,
+    v_org,
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaad01',
+    'SMM Live Workspace',
+    v_member_owner
+  );
+
   -- Staff cannot manage connections
   execute 'set local role authenticated';
   perform set_config('request.jwt.claims', json_build_object('sub', v_user_staff::text, 'role', 'authenticated')::text, true);

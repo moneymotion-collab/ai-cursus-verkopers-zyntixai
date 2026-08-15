@@ -7,6 +7,7 @@
 
 export type SocialOrganizationId = string;
 export type SocialWorkspaceId = string;
+export type SocialBrandId = string;
 export type SocialConnectionId = string;
 export type SocialMemberId = string;
 export type SocialUserId = string;
@@ -28,5 +29,19 @@ export const EMPTY_SOCIAL_CONNECTION_PERMISSIONS: SocialConnectionPermissionSet 
     canReauthorize: false,
     canDisconnect: false,
   };
+
+export type SocialWorkspacePermissionSet = {
+  canViewWorkspace: boolean;
+  canCreateWorkspace: boolean;
+  canUpdateWorkspace: boolean;
+  canArchiveWorkspace: boolean;
+};
+
+export const EMPTY_SOCIAL_WORKSPACE_PERMISSIONS: SocialWorkspacePermissionSet = {
+  canViewWorkspace: false,
+  canCreateWorkspace: false,
+  canUpdateWorkspace: false,
+  canArchiveWorkspace: false,
+};
 
 export type SocialConnectionOrgStatus = "active" | "suspended" | "archived";

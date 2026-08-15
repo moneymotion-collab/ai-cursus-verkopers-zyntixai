@@ -42,14 +42,19 @@ describe("SMM-B1.1-C client-safe and secret scan", () => {
     expect(results).not.toContain("clientSecret");
   });
 
-  it("documents no database migration for B1.1-C by absence of new SMM migration after B", async () => {
+  it("keeps B1.1-B connection migration and documents B1.2 workspace foundation only as later social SQL", async () => {
     const migrationsDir = join(process.cwd(), "supabase/migrations");
     const { readdirSync } = await import("node:fs");
-    const names = readdirSync(migrationsDir).filter((name) =>
-      name.includes("social"),
-    );
+    const names = readdirSync(migrationsDir)
+      .filter((name) => name.includes("social"))
+      .sort();
     expect(names).toEqual([
       "20260815130220_add_social_connection_credential_foundation.sql",
+      "20260815161759_add_social_workspace_foundation.sql",
+      "20260815162306_add_social_workspace_foundation.sql",
     ]);
+    expect(names.some((name) => name.includes("oauth") && name.includes("instagram"))).toBe(
+      false,
+    );
   });
 });

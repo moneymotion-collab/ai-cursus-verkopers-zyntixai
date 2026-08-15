@@ -71,11 +71,13 @@ describe("SMM-B1.1-D universal social planning contracts", () => {
     );
   });
 
-  it("does not add a database migration in D", () => {
+  it("preserves B1.1-B connection migration and allows B1.2 workspace foundation", () => {
     const migrations = readdirSync(join(process.cwd(), "supabase/migrations"));
-    const social = migrations.filter((name) => name.includes("social"));
+    const social = migrations.filter((name) => name.includes("social")).sort();
     expect(social).toEqual([
       "20260815130220_add_social_connection_credential_foundation.sql",
+      "20260815161759_add_social_workspace_foundation.sql",
+      "20260815162306_add_social_workspace_foundation.sql",
     ]);
   });
 
