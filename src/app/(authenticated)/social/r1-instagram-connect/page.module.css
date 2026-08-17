@@ -1,0 +1,84 @@
+.page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.pageHeader {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.pageHeader h1 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.subtitle,
+.orgName,
+.notice {
+  margin: 0;
+  color: var(--muted-text);
+}
+
+.statePanel {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  background: var(--surface-color);
+  max-width: 40rem;
+}
+
+.statePanel h1 {
+  margin-top: 0;
+}
+
+.orgList {
+  margin: 1rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.orgList a {
+  color: var(--link-color);
+  font-weight: 600;
+}
+
+.outcome {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  max-width: 40rem;
+  background: var(--surface-color);
+}
+
+.outcomeStrong {
+  margin: 0 0 0.35rem;
+  font-weight: 700;
+}
+
+.connections,
+.workspaces {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 40rem;
+}
+
+.connections h2,
+.workspaces h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.connections ul,
+.workspaces ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.retryLink {
+  display: inline-flex;
+  margin-top: 1rem;
+  min-height: 2.75rem;
+  align-items: center;
+  color: var(--link-color);
+  font-weight: 600;
+}

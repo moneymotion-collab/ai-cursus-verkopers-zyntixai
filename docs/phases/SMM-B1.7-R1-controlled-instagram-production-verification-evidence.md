@@ -10,13 +10,12 @@
 ## 1. Executive verdict
 
 ```text
-SMM-B1.7-R1 OWNER ACTION REQUIRED
+SMM-B1.7-R1 OWNER ACTION REQUIRED — CONTROLLED INSTAGRAM OAUTH
 ```
 
-Automated R1 enablement completed for private media byte-source + Production private bucket.  
-Pre-OAuth gate remains **FAIL** until owner provisions Production secrets, confirms Meta App Dashboard / test Professional account eligibility, and redeploys Production with gates still OFF.
-
-No Instagram OAuth, no live provider write, and no publishing gate activation have been performed.
+Minimal Owner/Admin connect surface shipped at `/social/r1-instagram-connect`.  
+Connection gates ON + publishing OFF: owner-attested.  
+No Instagram OAuth and no live provider write have been performed yet — waiting for owner-controlled OAuth.
 
 ---
 
@@ -362,42 +361,169 @@ Final PASS evidence commit is deferred until live verification completes.
 ## 51. Final verdict (this stop)
 
 ```text
-SMM-B1.7-R1 OWNER ACTION REQUIRED
+SMM-B1.7-R1 OWNER ACTION REQUIRED — CONNECTION GATE ACTIVATION
 ```
 
-Completed automated gates:
+### Owner attestation received (2026-08-17) — connection gates
 
-- Git baseline aligned at R1 start  
-- Meta contract re-verified; no material delta  
-- Production Social rows = 0  
-- Private media bucket migration applied (`public=false`)  
-- Media byte-source wiring + signed delivery automated tests PASS  
-- Full Vitest / typecheck / lint / build PASS  
-- Gates remain OFF  
+```text
+R1 CONNECTION GATES ON; PUBLISHING OFF; PRODUCTION REDEPLOYED
+```
 
-Exact next human actions (do **not** paste secret values into Cursor):
+### Post-connection-gate automated check
 
-1. **Meta App Dashboard**
-   - Confirm Instagram Login product / app
-   - Add dedicated Professional (Business/Creator) **test** account with an app role
-   - Confirm Standard Access is sufficient for that own/managed account
-   - Register Production OAuth redirect URI matching `SOCIAL_INSTAGRAM_OAUTH_REDIRECT_URI`
+| Check | Result |
+| --- | --- |
+| Git HEAD | `7892e17` (local evidence doc dirty, uncommitted) |
+| `social_account_connections` | 0 |
+| `social_provider_credentials` | 0 |
+| `social_oauth_authorization_intents` | 0 |
+| `social_connection_events` | 0 |
+| `social_publications` | 0 |
+| `social_brands` | 0 |
+| `social_workspaces` | 0 |
+| Publishing gate | OFF (owner-attested; do not turn ON) |
+| Connection gates | ON (owner-attested) |
 
-2. **Vercel Production environment** (names only)
-   - `SOCIAL_INSTAGRAM_CLIENT_ID`
-   - `SOCIAL_INSTAGRAM_CLIENT_SECRET`
-   - `SOCIAL_INSTAGRAM_OAUTH_REDIRECT_URI`
-   - `SOCIAL_CREDENTIAL_ENCRYPTION_KEY`
-   - `SOCIAL_MEDIA_PROVIDER_DELIVERY_SIGNING_SECRET`
-   - `SOCIAL_PRIVATE_MEDIA_STORAGE_KEY` (narrow private-bucket download credential)
-   - Keep `SOCIAL_CONNECTIONS_ENABLED` / `SOCIAL_INSTAGRAM_CONNECTIONS_ENABLED` / `SOCIAL_PUBLISHING_ENABLED` **unset or false** until Cursor re-opens the connection-gate stage
+### OAuth start blocker (discovered before issuing OAuth owner gate)
 
-3. **Deploy** Production with the R1 enablement commit (gates still OFF)
+```text
+SMM-B1.7-R1 OWNER ACTION REQUIRED — MINIMAL CONNECT SURFACE MISSING
+```
 
-4. Reply in chat when complete:
+Findings:
+
+1. Server path exists: `initiateInstagramConnectionAction` + `/api/social/instagram/callback`.
+2. **No Production App Router page/UI** imports or calls the connect action (B1.1-E Connect UI was never shipped).
+3. Production has **0** Social Brands and **0** Social Workspaces; connection initiation requires a real `workspaceId` under an Owner/Admin session.
+4. Issuing “open ZyntixAI and Start Instagram connection” would be false — there is no controlled UI entrypoint yet.
+
+Exact next human decision (choose one; do not paste secrets):
+
+**A (preferred for R1):** Authorize a narrowly scoped R1 enablement UI/page (Owner/Admin only) that can:
+- create Brand + Workspace via existing RPCs if none exist;
+- call `initiateInstagramConnectionAction` and redirect to Meta;
+- keep publishing gate OFF.
+
+**B:** Confirm an already-approved alternate controlled initiation path (if any exists outside this repo UI).
+
+Reply with:
+
+```text
+R1 AUTHORIZE MINIMAL INSTAGRAM CONNECT SURFACE
+```
+
+or describe alternate path **B**.
+
+### Resolution (2026-08-17)
+
+Owner replied:
+
+```text
+R1 AUTHORIZE MINIMAL INSTAGRAM CONNECT SURFACE
+```
+
+Implemented:
+
+- Route `/social/r1-instagram-connect` (Owner/Admin, connection gates required)
+- `startR1InstagramConnectAction` → `create_social_workspace` if needed → existing Instagram OAuth initiation
+- OAuth return path `social_workspace` → `/social/r1-instagram-connect`
+- Publishing gate untouched / remains OFF
+- Tests: **330 files / 2315 PASS**; typecheck/lint/build PASS
+
+---
+
+## OWNER ACTION REQUIRED — CONTROLLED INSTAGRAM OAUTH
+
+```text
+OWNER ACTION REQUIRED — CONTROLLED INSTAGRAM OAUTH
+```
+
+1. Confirm Production redeploy includes the R1 connect-surface commit.
+2. Keep `SOCIAL_PUBLISHING_ENABLED` **OFF**.
+3. Open Production: `/social/r1-instagram-connect` (add `?org=<org-uuid>` if multi-org).
+4. Sign in as authorized Owner/Admin.
+5. Click **Connect Instagram test account**.
+6. Sign into the dedicated Professional (Business/Creator) test account.
+7. Review requested permissions (`instagram_business_basic`, `instagram_business_content_publish`).
+8. Approve only the expected permissions.
+9. Return to ZyntixAI (`/social/r1-instagram-connect?social_oauth=connected` expected on success).
+10. Reply exactly:
+
+```text
+R1 INSTAGRAM OAUTH COMPLETED
+```
+
+What must **NOT** be shared:
+
+- password, access token, authorization code, app secret, encryption/signing/storage keys
+
+What Cursor will verify next:
+
+- exactly one expected Social connection (where inspectable);
+- provider `instagram`; encrypted credential presence (no plaintext);
+- publish permission / capability evidence;
+- no Publication / provider write occurred;
+- then stop before any live publish.
+
+What Cursor will do after A:
+- implement minimal Owner/Admin connect surface only;
+- tests + typecheck/lint/build;
+- commit/push/deploy with publishing still OFF;
+- then re-issue `OWNER ACTION REQUIRED — CONTROLLED INSTAGRAM OAUTH`.
+
+---
+
+## 51b. Prior stop (secrets ready) — superseded by § above
+
+```text
+SMM-B1.7-R1 OWNER ACTION REQUIRED — CONNECTION GATE ACTIVATION
+```
+
+### Owner attestation received (2026-08-17)
 
 ```text
 R1 PRODUCTION SECRETS + META TEST ACCOUNT READY
+```
+
+### Re-check after attestation
+
+| Check | Result |
+| --- | --- |
+| Git HEAD / upstream / origin | `7892e17` / divergence `0 0` / clean |
+| Production Social rows | still 0 (connections, credentials, intents, publications, attempts) |
+| Private bucket `zyntix-social-media` | present, `public=false` |
+| Vercel Production env mask-inspect from worktree | **NOT POSSIBLE** (`.vercel/project.json` ABSENT; CLI unlinked) |
+| Local `.env.local` Social secrets | NOT CONFIGURED (expected — Production is Vercel) |
+| Secret presence | **OWNER-ATTESTED** (values never requested/shown) |
+| Meta dedicated Professional test account | **OWNER-ATTESTED** |
+| Publishing gate | must remain **OFF** |
+| Connection gates | still **OFF** until this owner step |
+
+### Pre-OAuth gate (post-attestation)
+
+Treated as **PASS for progression to connection-gate stage** on owner attestation + automated Production DB/git checks. Cursor could not independently list Vercel Production env names from this worktree.
+
+Completed automated gates:
+
+- Git aligned at `7892e17`  
+- Production Social rows = 0  
+- Private media bucket present  
+- Media enablement committed/pushed earlier  
+- Gates still OFF in code defaults  
+
+Exact next human action (do **not** paste secret values into Cursor):
+
+1. Confirm Production deployment includes commit `7892e17` (or later on this branch).  
+2. In **Vercel → Project → Settings → Environment Variables → Production**, set **only**:
+   - `SOCIAL_CONNECTIONS_ENABLED` = `true`
+   - `SOCIAL_INSTAGRAM_CONNECTIONS_ENABLED` = `true`
+3. Leave **`SOCIAL_PUBLISHING_ENABLED` unset or `false`** (must stay OFF for OAuth verification).  
+4. Redeploy Production so the gate env takes effect.  
+5. Reply exactly:
+
+```text
+R1 CONNECTION GATES ON; PUBLISHING OFF; PRODUCTION REDEPLOYED
 ```
 
 What must **NOT** be shared:
@@ -406,9 +532,8 @@ What must **NOT** be shared:
 
 What Cursor will verify next:
 
-- masked Production config presence  
-- Pre-OAuth gate  
-- then only if PASS: connection-gate instructions (publishing still OFF) → controlled OAuth owner gate  
+- Production Social rows still 0  
+- then issue `OWNER ACTION REQUIRED — CONTROLLED INSTAGRAM OAUTH` (still no publish)  
 
 ---
 

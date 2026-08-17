@@ -9,8 +9,7 @@ import type {
 
 /**
  * Closed return-path identifiers for OAuth continuation.
- * Not a raw URL. Maps through existing safe-return-path architecture later.
- * No SMM UI route is added in this slice; identifier maps to `/` until B1.1-E.
+ * Not a raw URL. Maps through existing safe-return-path architecture.
  */
 export const SOCIAL_OAUTH_RETURN_PATH_IDS = ["social_workspace"] as const;
 
@@ -25,14 +24,13 @@ export function isSocialOAuthReturnPathId(
 
 /**
  * Maps a closed return-path ID to an allowlisted internal path.
- * Never returns an open redirect. B1.1-E may replace `/` with a real workspace route
- * only after that route is added to `resolveSafeReturnPath`.
+ * Never returns an open redirect.
  */
 export function mapSocialOAuthReturnPathId(
   id: SocialOAuthReturnPathId,
-): "/" {
+): "/social/r1-instagram-connect" {
   void id;
-  return "/";
+  return "/social/r1-instagram-connect";
 }
 
 export const SOCIAL_OAUTH_INTENT_STATUSES = [

@@ -22,7 +22,7 @@ describe("SMM-B1.1-C OAuth continuation redirects", () => {
       "social_workspace",
       "connected",
     );
-    expect(path).toBe("/?social_oauth=connected");
+    expect(path).toBe("/social/r1-instagram-connect?social_oauth=connected");
     expect(resolveSafeReturnPath(path)).toBe(path);
     expect(path).not.toContain("code=");
     expect(path).not.toContain("state=");
