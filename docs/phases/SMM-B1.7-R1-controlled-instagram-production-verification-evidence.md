@@ -10,28 +10,27 @@
 ## 1. Executive verdict
 
 ```text
-SMM-B1.7-R1 OWNER ACTION REQUIRED — DEPLOY GRANULAR IDENTITY STAGES THEN ONE RETRY
+SMM-B1.7-R1 OWNER ACTION REQUIRED — DEPLOY REMOVE UNDOCUMENTED TOKEN-ID EQUALITY CHECK THEN ONE RETRY
 ```
 
 ### Production deploy SHA verification (2026-08-18)
 
 | Check | Result |
 | --- | --- |
-| Live Production alias | `www.zyntixai.com` → `dpl_DCaLF7eMbkU73p6LP1yxPisAAMWV` |
-| Production `gitCommitSha` | `55e1a560638c5f20626b3b0d67e16da2cf39b2fa` |
-| Contained ID-mapping fix? | **Yes** |
-| Prior Production SHA | `dacac847cb82231f6a641f774b04442cb4a2a715` (docs-only) |
+| Live Production (granular stages) | confirmed on `d9310e0` |
+| Owner retry stage | `professional_identity_token_id_mismatch` |
 
-Owner retry while Production already contained `55e1a56` still returned:
+### Root cause (token identity model)
 
-```text
-social_oauth=connection_failed
-social_oauth_stage=professional_identity_fetch
-```
+Official Instagram API with Instagram Login (`v26.0`):
 
-So short-lived + long-lived token exchange succeeded, and failure remains inside professional identity — but the coarse stage is insufficient. Next patch adds finer allowlisted stages (HTTP / JSON / missing id|user_id|username / account_type / token id mismatch) without logging provider bodies.
+| Identifier | Documented meaning |
+| --- | --- |
+| Token-exchange `user_id` | Instagram-scoped / Instagram App-scoped user ID returned with the short-lived token |
+| `/me.id` | App user's app-scoped ID |
+| `/me.user_id` | Instagram professional account ID (`<IG_ID>`); webhook `id` value |
 
-Official Instagram Login `/me` fields `id`, `user_id`, `username`, `account_type` remain valid for `graph.instagram.com` + `v26.0`.
+Meta does **not** document a required equality between token-exchange `user_id` and `/me.id`. Production proved they can differ after a successful `/me` read. Identity must be established from the authenticated `/me` response; persist `/me.user_id` as `external_account_id`.
 
 ### Production row state after diagnostic retry (safe)
 

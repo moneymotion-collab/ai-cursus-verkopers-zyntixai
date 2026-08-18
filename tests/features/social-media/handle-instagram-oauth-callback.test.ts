@@ -622,7 +622,10 @@ describe("SMM-B1.1-C Instagram OAuth callback orchestration", () => {
     );
   });
 
-  it("still fail-closes when app-scoped ids disagree", async () => {
+  it("does not invent a token user_id === /me.id equality check", async () => {
+    const tokenUserId = "10200000000000001";
+    const meAppScopedId = "10200000000000002";
+    const professionalId = "17841400000000000";
     const supabase = createSupabaseMock({});
     const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
@@ -632,7 +635,9 @@ describe("SMM-B1.1-C Instagram OAuth callback orchestration", () => {
             data: [
               {
                 access_token: "short-lived-token",
-                user_id: "10200000000000001",
+                user_id: tokenUserId,
+                permissions:
+                  "instagram_business_basic,instagram_business_content_publish",
               },
             ],
           }),
@@ -650,8 +655,8 @@ describe("SMM-B1.1-C Instagram OAuth callback orchestration", () => {
       }
       return new Response(
         JSON.stringify({
-          id: "10200000000000002",
-          user_id: "17841400000000000",
+          id: meAppScopedId,
+          user_id: professionalId,
           username: "zyntix_demo",
           account_type: "BUSINESS",
         }),
@@ -667,8 +672,15 @@ describe("SMM-B1.1-C Instagram OAuth callback orchestration", () => {
       },
       { env: enabledEnv, fetchImpl },
     );
-    expect(result.outcome).toBe("connection_failed");
-    expect(result.failureStage).toBe("professional_identity_token_id_mismatch");
+    expect(result.outcome).toBe("connected");
+    expect(result.redirectPath).not.toContain("social_oauth_stage=");
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      "finalize_social_connection",
+      expect.objectContaining({
+        p_connection_id: connectionId,
+        p_external_account_id: professionalId,
+      }),
+    );
   });
 
   it("marks provider_unavailable with the same opaque stage on non_2xx", async () => {

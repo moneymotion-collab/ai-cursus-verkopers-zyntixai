@@ -193,6 +193,11 @@ export async function handleInstagramOAuthCallback(
     return mapProfessionalIdentityFailure(identity.reason);
   }
 
+  // Reconnect binding only: expected professional IG_ID must match /me.user_id.
+  // Do not compare token-exchange user_id to /me.id — Meta documents token
+  // user_id as an Instagram-scoped ID and /me.id as an app-scoped ID, and does
+  // not require them to be equal. Account identity is established by the
+  // authenticated /me response after a successful token exchange.
   if (
     consumed.expectedExternalAccountId &&
     consumed.expectedExternalAccountId !== identity.value.externalAccountId
@@ -202,20 +207,6 @@ export async function handleInstagramOAuthCallback(
       "provider_mismatch",
       true,
       "professional_identity_fetch",
-    );
-  }
-
-  // Prefer professional IG_ID for storage. Token-exchange user_id is app-scoped
-  // and must be compared to /me `id`, not to /me `user_id`.
-  if (
-    shortLived.value.userId &&
-    shortLived.value.userId !== identity.value.appScopedUserId
-  ) {
-    return failure(
-      "connection_failed",
-      "provider_mismatch",
-      true,
-      "professional_identity_token_id_mismatch",
     );
   }
 

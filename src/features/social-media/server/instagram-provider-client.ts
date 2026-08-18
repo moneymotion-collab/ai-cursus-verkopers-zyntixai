@@ -313,8 +313,11 @@ export async function fetchInstagramProfessionalIdentity(
   const url = new URL(
     `${config.graphBaseUrl}/${config.graphApiVersion}/me`,
   );
-  // Meta: `id` = app-scoped; `user_id` = Instagram professional IG_ID.
-  // Token-exchange user_id matches `id`, not necessarily `user_id`.
+  // Meta Instagram Login /me fields (v26.0):
+  // - id = app-scoped ID
+  // - user_id = Instagram professional IG_ID (persist as external account id)
+  // Token-exchange user_id is separately documented as Instagram-scoped and is
+  // not contractually required to equal /me.id.
   url.searchParams.set("fields", "id,user_id,username,account_type");
   url.searchParams.set("access_token", accessToken);
 
