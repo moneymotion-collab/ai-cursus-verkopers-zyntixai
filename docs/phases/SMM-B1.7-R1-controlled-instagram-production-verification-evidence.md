@@ -10,7 +10,8 @@
 ## 1. Executive verdict
 
 ```text
-SMM-B1.7-R1 OAUTH CONNECTION VERIFIED — PUBLISHING REMAINS OFF — B1.8 NOT AUTHORIZED
+SMM-B1.7-R1 OAUTH CONNECTION VERIFIED — PUBLISHING REMAINS OFF
+SMM-B1.8 OPENED FOR PRE-PUBLISH GATE ONLY — NO LIVE PROVIDER WRITE YET
 ```
 
 Owner retry result:
@@ -45,7 +46,7 @@ Root-cause chain closed for OAuth connect:
 2. Undocumented `token.user_id === /me.id` equality falsely fail-closed  
 3. Fix: establish identity from authenticated `/me`; persist `/me.user_id` as external account id  
 
-Publishing remains OFF. Do not delete Production evidence rows. Do not start B1.8.
+Publishing remains OFF. Do not delete Production evidence rows. Controlled publish verification continues under `docs/phases/SMM-B1.8-controlled-instagram-production-publish-verification-evidence.md` (pre-publish gate only).
 
 ---
 
@@ -570,10 +571,11 @@ What Cursor will verify next:
 ## 52. Next boundary
 
 ```text
-SMM-B1.8 NOT YET AUTHORIZED
+SMM-B1.8 PRE-PUBLISH GATE OPEN — LIVE PUBLISH NOT YET EXECUTED
+ANALYTICS / AI OPTIMIZATION / CROSS-PLATFORM REPURPOSING STILL OUT OF SCOPE
 ```
 
-Do not start Analytics / AI Optimization / Cross-Platform Repurposing until R1 closes.
+See `docs/phases/SMM-B1.8-controlled-instagram-production-publish-verification-evidence.md`.
 
 ---
 
