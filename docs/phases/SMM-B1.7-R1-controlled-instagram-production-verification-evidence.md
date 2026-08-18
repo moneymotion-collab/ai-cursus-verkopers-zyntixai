@@ -10,12 +10,27 @@
 ## 1. Executive verdict
 
 ```text
-SMM-B1.7-R1 OWNER ACTION REQUIRED — CONTROLLED INSTAGRAM OAUTH
+SMM-B1.7-R1 OWNER ACTION REQUIRED — DEPLOY OAUTH STAGE DIAGNOSTICS THEN ONE RETRY
 ```
 
-Minimal Owner/Admin connect surface shipped at `/social/r1-instagram-connect`.  
-Connection gates ON + publishing OFF: owner-attested.  
-No Instagram OAuth and no live provider write have been performed yet — waiting for owner-controlled OAuth.
+Retry 2 again returned `social_oauth=connection_failed` with no credential persistence.
+Opaque post-consume failure-stage diagnostics added (`social_oauth_stage=…` allowlisted query only; no secret logging).
+
+### Production row state after retry 2 (safe)
+
+| Object | Count / status |
+| --- | --- |
+| Brands | 1 |
+| Workspaces | 1 |
+| Connections | 3 × `authorization_pending` |
+| Intents | 3 × `consumed` |
+| Credentials | 0 |
+| Connection events | 3 × `social_connection_initiated` |
+| Publications | 0 |
+
+Publishing remains OFF. No live publish authorized.
+
+Diagnostic commit: `544ad29` — `fix(smm): add opaque instagram oauth failure stage diagnostics`
 
 ---
 
