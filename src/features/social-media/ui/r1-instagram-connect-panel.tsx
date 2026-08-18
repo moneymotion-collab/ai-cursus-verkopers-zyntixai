@@ -23,6 +23,12 @@ function failureMessage(code: string): string {
       return "Sign in is required.";
     case "forbidden":
       return "Only Owner or Admin may start this connection.";
+    case "closed_beta_not_enrolled":
+      return "Social closed beta is not enabled for this organization.";
+    case "closed_beta_paused":
+      return "Connecting Instagram is unavailable while Social beta access is paused.";
+    case "closed_beta_revoked":
+      return "Connecting Instagram is unavailable because closed-beta access is no longer active.";
     case "workspace_not_found":
       return "Social workspace was not found.";
     case "rate_limited":

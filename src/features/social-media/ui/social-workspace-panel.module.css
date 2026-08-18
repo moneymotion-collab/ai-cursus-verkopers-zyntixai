@@ -4,6 +4,23 @@
   max-width: 54rem;
 }
 
+.betaStatus {
+  display: grid;
+  gap: 0.35rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: var(--surface-color);
+  color: var(--muted-text);
+}
+
+.betaStatus strong {
+  color: var(--text-color);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .sectionNav {
   display: flex;
   flex-wrap: wrap;

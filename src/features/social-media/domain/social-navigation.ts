@@ -3,9 +3,13 @@
  */
 
 export const SOCIAL_ROUTE = "/social" as const;
-export const SOCIAL_NAV_LABEL = "Social" as const;
+/** Primary-nav label during closed beta (SMM-R1-C). */
+export const SOCIAL_NAV_LABEL = "Social — Closed Beta" as const;
 
-/** Visible primary-nav Social link for Beta 1 release readiness. */
+/**
+ * Capability flag that Social primary-nav *can* appear.
+ * Actual visibility is fail-closed via resolveSocialNavVisible + enrollment.
+ */
 export const SOCIAL_NAV_VISIBLE = true as const;
 
 export const SOCIAL_SECTIONS = [

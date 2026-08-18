@@ -27,11 +27,7 @@ import {
   MEMBERS_ROUTE,
   resolveMembersNavVisible,
 } from "@/features/invitations/domain/members-navigation";
-import {
-  SOCIAL_NAV_LABEL,
-  SOCIAL_NAV_VISIBLE,
-  SOCIAL_ROUTE,
-} from "@/features/social-media/domain/social-navigation";
+import { SocialPrimaryNavLink } from "@/features/social-media/ui/social-primary-nav-link";
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -46,6 +42,14 @@ type AppShellProps = {
    * Presentation only — /settings/members route authorization remains authoritative.
    */
   membersNavVisible?: boolean;
+  /**
+   * Social nav visibility override for closed-beta enrollment.
+   * When omitted: server-derived from selected organization enrollment (fail-closed).
+   * Explicit false: always hide. Explicit true: show when Social nav capability is on.
+   *
+   * Presentation only — /social route authorization remains authoritative.
+   */
+  socialNavVisible?: boolean;
   activeNav?:
     | "home"
     | "leads"
@@ -65,6 +69,7 @@ export function AppShell({
   selectedOrganizationId,
   organizationSelectorAction = "/tasks",
   membersNavVisible,
+  socialNavVisible,
   activeNav = "tasks",
 }: AppShellProps) {
   const showOrgSelector = organizationOptions.length > 1;
@@ -138,19 +143,11 @@ export function AppShell({
                   {ATTENTION_NAV_LABEL}
                 </Link>
               ) : null}
-              {SOCIAL_NAV_VISIBLE ? (
-                <Link
-                  className={styles.navLink}
-                  href={
-                    selectedOrganizationId
-                      ? `${SOCIAL_ROUTE}?org=${encodeURIComponent(selectedOrganizationId)}`
-                      : SOCIAL_ROUTE
-                  }
-                  aria-current={activeNav === "social" ? "page" : undefined}
-                >
-                  {SOCIAL_NAV_LABEL}
-                </Link>
-              ) : null}
+              <SocialPrimaryNavLink
+                selectedOrganizationId={selectedOrganizationId}
+                explicitVisibility={socialNavVisible}
+                active={activeNav === "social"}
+              />
               <Link
                 className={styles.navLink}
                 href="/tasks"

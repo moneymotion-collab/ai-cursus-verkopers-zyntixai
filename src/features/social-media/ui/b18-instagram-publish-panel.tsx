@@ -17,6 +17,9 @@ type B18InstagramPublishPanelProps = {
   hasWorkspace: boolean;
   publishableConnections: PublishableConnection[];
   publishingEnabled: boolean;
+  prepareAllowed?: boolean;
+  prepareBlockedReason?: string | null;
+  executeBlockedReason?: string | null;
   initialPublicationId?: string | null;
 };
 
@@ -40,10 +43,16 @@ function prepareFailureMessage(code: string): string {
       return "Sign in is required.";
     case "forbidden":
       return "Only Owner or Admin may prepare this publication.";
+    case "closed_beta_not_enrolled":
+      return "Social closed beta is not enabled for this organization.";
+    case "closed_beta_paused":
+      return "Social closed beta is paused for this organization.";
+    case "closed_beta_revoked":
+      return "Social closed beta access was revoked for this organization.";
     case "invalid_jpeg":
       return "Upload a valid JPEG (320–1440px wide, aspect 4:5–1.91, ≤8 MB).";
     case "workspace_not_found":
-      return "Social workspace was not found. Complete R1 connect first.";
+      return "Social workspace was not found. Connect Instagram first.";
     case "connection_not_found":
       return "No connected Instagram account with publish_image was found.";
     case "workflow_not_ready":
@@ -62,11 +71,19 @@ function prepareFailureMessage(code: string): string {
 function executeFailureMessage(code: string): string {
   switch (code) {
     case "feature_disabled":
-      return "Publishing is OFF. Keep SOCIAL_PUBLISHING_ENABLED unset until owner enablement.";
+      return "Publishing is temporarily unavailable.";
     case "unauthorized":
       return "Sign in is required.";
     case "forbidden":
       return "Only Owner or Admin may execute this publication.";
+    case "closed_beta_not_enrolled":
+      return "Social closed beta is not enabled for this organization.";
+    case "closed_beta_paused":
+      return "Publishing is paused for your organization.";
+    case "closed_beta_revoked":
+      return "Social closed beta access was revoked for this organization.";
+    case "closed_beta_publish_not_allowed":
+      return "Publishing access has not been enabled for your organization.";
     case "not_found":
       return "Publication was not found.";
     case "conflict":
@@ -87,6 +104,9 @@ export function B18InstagramPublishPanel({
   hasWorkspace,
   publishableConnections,
   publishingEnabled,
+  prepareAllowed = true,
+  prepareBlockedReason = null,
+  executeBlockedReason = null,
   initialPublicationId = null,
 }: B18InstagramPublishPanelProps) {
   const pendingRef = useRef(false);
@@ -194,7 +214,7 @@ export function B18InstagramPublishPanel({
       <h2 id="instagram-publish-title">Publish Instagram image</h2>
       <p className={styles.copy}>
         Prepare uploads a JPEG and creates a publication record. Execute stays
-        unavailable while publishing is off.
+        unavailable until publishing access and platform availability allow it.
       </p>
       <ul className={styles.meta}>
         <li>Workspace: {hasWorkspace ? "ready" : "connect Instagram first"}</li>
@@ -202,11 +222,19 @@ export function B18InstagramPublishPanel({
           Publishable Instagram connections: {publishableConnections.length}
         </li>
         <li>
-          Publishing: {publishingEnabled ? "enabled" : "off (fail-closed)"}
+          Execute:{" "}
+          {publishingEnabled
+            ? "available when readiness checks pass"
+            : executeBlockedReason ?? "unavailable"}
         </li>
       </ul>
 
-      {publishableConnections.length === 0 ? (
+      {!prepareAllowed ? (
+        <p className={styles.notice} role="status">
+          {prepareBlockedReason ??
+            "Preparing content is unavailable for this organization."}
+        </p>
+      ) : publishableConnections.length === 0 ? (
         <p className={styles.copy}>
           No connected Instagram account with image publish capability. Connect
           an account first.
@@ -277,14 +305,16 @@ export function B18InstagramPublishPanel({
         </button>
       ) : (
         <p className={styles.notice} role="status">
-          Execute is unavailable while publishing is off. You can still prepare
-          a publication record.
+          {executeBlockedReason ??
+            "Execute is unavailable. You can still prepare a publication record when prepare is allowed."}
         </p>
       )}
 
       {feedback.kind === "prepared" ? (
         <p className={styles.success} role="status">
-          Publication prepared. Publishing remains off until explicitly enabled.
+          Publication prepared.{" "}
+          {executeBlockedReason ??
+            "Execute remains subject to publishing availability and readiness checks."}
         </p>
       ) : null}
       {feedback.kind === "executed" ? (

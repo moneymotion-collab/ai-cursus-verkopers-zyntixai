@@ -8,6 +8,7 @@ import {
 import { loadSocialWorkspacePage } from "@/features/social-media/server/load-social-workspace-page";
 import { SocialWorkspacePanel } from "@/features/social-media/ui/social-workspace-panel";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
+import type { SocialClosedBetaCustomerReadModel } from "@/features/social-media/domain/social-closed-beta-customer-read-model";
 import styles from "./page.module.css";
 
 type PageProps = {
@@ -36,6 +37,25 @@ function OrganizationRequiredPanel({
           </li>
         ))}
       </ul>
+    </section>
+  );
+}
+
+function ClosedBetaNotEnrolledPanel({
+  closedBeta,
+}: {
+  closedBeta: SocialClosedBetaCustomerReadModel;
+}) {
+  return (
+    <section className={styles.statePanel} aria-labelledby="social-beta-gate-title">
+      <p className={styles.betaBadge}>{closedBeta.betaBadgeLabel}</p>
+      <h1 id="social-beta-gate-title">{closedBeta.customerHeadline}</h1>
+      <p>{closedBeta.customerBody}</p>
+      <p className={styles.notice} role="status">
+        Instagram connection, content prepare, and publishing controls are not
+        available for this organization until closed-beta access is granted by
+        ZyntixAI.
+      </p>
     </section>
   );
 }
@@ -77,7 +97,7 @@ export default async function SocialWorkspacePage({ searchParams }: PageProps) {
 
   if (result.kind === "auth_required") {
     return (
-      <AppShell activeNav="social" membersNavVisible={false}>
+      <AppShell activeNav="social" membersNavVisible={false} socialNavVisible={false}>
         <section className={styles.statePanel} aria-labelledby="auth-required-title">
           <h1 id="auth-required-title">Sign in required</h1>
           <p>Sign in as Owner or Admin to use Social Media Management.</p>
@@ -88,7 +108,7 @@ export default async function SocialWorkspacePage({ searchParams }: PageProps) {
 
   if (result.kind === "no_organizations") {
     return (
-      <AppShell activeNav="social" membersNavVisible={false}>
+      <AppShell activeNav="social" membersNavVisible={false} socialNavVisible={false}>
         <section className={styles.statePanel} aria-labelledby="org-unavailable-title">
           <h1 id="org-unavailable-title">Organization unavailable</h1>
           <p>No active organization membership is available for this account.</p>
@@ -99,7 +119,7 @@ export default async function SocialWorkspacePage({ searchParams }: PageProps) {
 
   if (result.kind === "organization_required") {
     return (
-      <AppShell activeNav="social" membersNavVisible={false}>
+      <AppShell activeNav="social" membersNavVisible={false} socialNavVisible={false}>
         <OrganizationRequiredPanel organizations={result.organizations} />
       </AppShell>
     );
@@ -107,7 +127,7 @@ export default async function SocialWorkspacePage({ searchParams }: PageProps) {
 
   if (result.kind === "feature_disabled") {
     return (
-      <AppShell activeNav="social" membersNavVisible={false}>
+      <AppShell activeNav="social" membersNavVisible={false} socialNavVisible={false}>
         <section className={styles.statePanel} aria-labelledby="feature-disabled-title">
           <h1 id="feature-disabled-title">Social connections disabled</h1>
           <p>
@@ -121,7 +141,12 @@ export default async function SocialWorkspacePage({ searchParams }: PageProps) {
 
   if (result.kind === "forbidden") {
     return (
-      <AppShell activeNav="social" membersNavVisible={false} organizationOptions={[]}>
+      <AppShell
+        activeNav="social"
+        membersNavVisible={false}
+        socialNavVisible={false}
+        organizationOptions={[]}
+      >
         <section className={styles.statePanel} aria-labelledby="forbidden-title">
           <h1 id="forbidden-title">Access denied</h1>
           <p>{result.message}</p>
@@ -132,7 +157,7 @@ export default async function SocialWorkspacePage({ searchParams }: PageProps) {
 
   if (result.kind === "org_context_missing") {
     return (
-      <AppShell activeNav="social" membersNavVisible={false}>
+      <AppShell activeNav="social" membersNavVisible={false} socialNavVisible={false}>
         <section className={styles.statePanel} aria-labelledby="org-missing-title">
           <h1 id="org-missing-title">Organization unavailable</h1>
           <p>{result.message}</p>
@@ -143,7 +168,7 @@ export default async function SocialWorkspacePage({ searchParams }: PageProps) {
 
   if (result.kind === "query_error") {
     return (
-      <AppShell activeNav="social" membersNavVisible={false}>
+      <AppShell activeNav="social" membersNavVisible={false} socialNavVisible={false}>
         <section className={styles.statePanel} aria-labelledby="query-error-title">
           <h1 id="query-error-title">Unable to load</h1>
           <p>{result.message}</p>
@@ -162,6 +187,21 @@ export default async function SocialWorkspacePage({ searchParams }: PageProps) {
     );
   }
 
+  if (result.kind === "closed_beta_not_enrolled") {
+    return (
+      <AppShell
+        activeNav="social"
+        membersNavVisible={false}
+        socialNavVisible={false}
+        organizationOptions={result.organizationOptions}
+        selectedOrganizationId={result.organizationId}
+        organizationSelectorAction={SOCIAL_ROUTE}
+      >
+        <ClosedBetaNotEnrolledPanel closedBeta={result.closedBeta} />
+      </AppShell>
+    );
+  }
+
   const alert =
     result.oauthOutcome != null
       ? oauthAlert(result.oauthOutcome, result.oauthFailureStage)
@@ -171,19 +211,21 @@ export default async function SocialWorkspacePage({ searchParams }: PageProps) {
     <AppShell
       activeNav="social"
       membersNavVisible={false}
+      socialNavVisible={result.closedBeta.socialNavVisible}
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}
       organizationSelectorAction={SOCIAL_ROUTE}
     >
       <div className={styles.page}>
         <header className={styles.pageHeader}>
+          <p className={styles.betaBadge}>{result.closedBeta.betaBadgeLabel}</p>
           <h1>Social</h1>
           <p className={styles.subtitle}>
             Instagram accounts, controlled image publishing, and publication
             activity for {result.organizationName}.
           </p>
-          <p className={styles.notice}>
-            Publishing: {result.publishingEnabled ? "ON" : "OFF (fail-closed)"}
+          <p className={styles.notice} role="status">
+            {result.closedBeta.customerHeadline}
           </p>
         </header>
 
@@ -197,6 +239,7 @@ export default async function SocialWorkspacePage({ searchParams }: PageProps) {
           organizationId={result.organizationId}
           section={result.section}
           publishingEnabled={result.publishingEnabled}
+          closedBeta={result.closedBeta}
           hasWorkspace={result.workspaces.length > 0}
           connections={result.connections}
           publications={result.publications}

@@ -14,6 +14,7 @@ import {
   type SocialClosedBetaEffectiveStatus,
   type SocialClosedBetaEntitlementDenialCode,
 } from "@/features/social-media/domain/closed-beta-enrollment";
+import { canConnectWithClosedBetaEnrollment } from "@/features/social-media/domain/social-closed-beta-customer-read-model";
 
 type RpcCapableClient = {
   rpc: (
@@ -133,6 +134,39 @@ export async function assertClosedBetaPublishAllowed(
   const denial = closedBetaPublishDenialCode(loaded.status);
   if (denial) {
     return { ok: false, code: denial };
+  }
+  return { ok: true };
+}
+
+export type ClosedBetaConnectAssertResult =
+  | { ok: true }
+  | {
+      ok: false;
+      code: SocialClosedBetaEntitlementDenialCode | "forbidden" | "unexpected";
+    };
+
+export async function assertClosedBetaConnectAllowed(
+  supabase: SupabaseClient<Database>,
+  organizationId: string,
+): Promise<ClosedBetaConnectAssertResult> {
+  const loaded = await loadSocialClosedBetaEnrollmentStatus(
+    supabase,
+    organizationId,
+  );
+  if (!loaded.ok) {
+    if (loaded.reason === "forbidden") {
+      return { ok: false, code: "forbidden" };
+    }
+    return { ok: false, code: "unexpected" };
+  }
+  if (!canConnectWithClosedBetaEnrollment(loaded.status)) {
+    if (loaded.status === "paused") {
+      return { ok: false, code: "closed_beta_paused" };
+    }
+    if (loaded.status === "revoked") {
+      return { ok: false, code: "closed_beta_revoked" };
+    }
+    return { ok: false, code: "closed_beta_not_enrolled" };
   }
   return { ok: true };
 }

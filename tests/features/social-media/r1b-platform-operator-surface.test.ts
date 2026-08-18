@@ -98,13 +98,13 @@ describe("SMM-R1-B platform operator identity and routes", () => {
     expect(approved.prepareAllowed).toBe(true);
     expect(approved.publishingEntitlementAllowed).toBe(false);
     expect(approved.globalPublishingEnabled).toBe(false);
-    expect(approved.executeBlockedReason).toMatch(/OFF/i);
+    expect(approved.executeBlockedReason).toMatch(/not been enabled|unavailable/i);
 
     const publishing = buildSocialClosedBetaCustomerReadModel({
       enrollmentStatus: "publishing_allowed",
       socialPublishingEnabled: undefined,
     });
-    expect(publishing.diagnosticSummary).toMatch(/kill switch/i);
+    expect(publishing.diagnosticSummary).toMatch(/unavailable|Publishing allowed/i);
   });
 
   it("keeps operator mutation action server-only and free of client service_role", () => {

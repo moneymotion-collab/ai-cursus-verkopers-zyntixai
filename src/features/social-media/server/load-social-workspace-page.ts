@@ -38,6 +38,11 @@ import {
   isSocialOAuthFailureStage,
   SOCIAL_OAUTH_FAILURE_STAGE_QUERY,
 } from "@/features/social-media/domain/oauth-failure-stage";
+import { loadSocialClosedBetaEnrollmentStatus } from "@/features/social-media/server/social-closed-beta-enrollment";
+import {
+  buildSocialClosedBetaCustomerReadModel,
+  type SocialClosedBetaCustomerReadModel,
+} from "@/features/social-media/domain/social-closed-beta-customer-read-model";
 
 function firstSearchParam(
   value: string | string[] | undefined,
@@ -62,6 +67,14 @@ export type SocialWorkspacePageResult =
       organizationId?: string;
     }
   | {
+      kind: "closed_beta_not_enrolled";
+      organizationId: string;
+      organizationName: string;
+      organizationOptions: OrganizationOption[];
+      role: OrganizationRole;
+      closedBeta: SocialClosedBetaCustomerReadModel;
+    }
+  | {
       kind: "success";
       organizationId: string;
       organizationName: string;
@@ -69,6 +82,7 @@ export type SocialWorkspacePageResult =
       role: OrganizationRole;
       section: SocialSection;
       publishingEnabled: boolean;
+      closedBeta: SocialClosedBetaCustomerReadModel;
       workspaces: ListedSocialWorkspace[];
       connections: ListedLifecycleConnection[];
       publications: ListedSocialPublication[];
@@ -160,6 +174,40 @@ export async function loadSocialWorkspacePage(
     role,
   );
 
+  const organizationName =
+    organizationOptions.find((o) => o.organizationId === organizationId)
+      ?.displayName ?? "Organization";
+
+  const publishingEnabled = isSocialPublishingFeatureEnabled();
+  const enrollmentLoaded = await loadSocialClosedBetaEnrollmentStatus(
+    supabase,
+    organizationId,
+  );
+  if (!enrollmentLoaded.ok) {
+    return {
+      kind: "query_error",
+      message: "Unable to load Social closed-beta access. Please try again.",
+      retryable: true,
+      organizationId,
+    };
+  }
+
+  const closedBeta = buildSocialClosedBetaCustomerReadModel({
+    enrollmentStatus: enrollmentLoaded.status,
+    socialPublishingEnabled: publishingEnabled ? "true" : undefined,
+  });
+
+  if (enrollmentLoaded.status === "not_enrolled") {
+    return {
+      kind: "closed_beta_not_enrolled",
+      organizationId,
+      organizationName,
+      organizationOptions,
+      role,
+      closedBeta,
+    };
+  }
+
   const sectionRaw = firstSearchParam(rawSearchParams.section);
   const section: SocialSection = isSocialSection(sectionRaw)
     ? sectionRaw
@@ -174,7 +222,6 @@ export async function loadSocialWorkspacePage(
   const oauthFailureStage =
     stageRaw && isSocialOAuthFailureStage(stageRaw) ? stageRaw : null;
 
-  const publishingEnabled = isSocialPublishingFeatureEnabled();
   const [workspacesResult, inventory] = await Promise.all([
     listActiveSocialWorkspaces(supabase, organizationId),
     listSocialLifecycleInventory(
@@ -207,13 +254,12 @@ export async function loadSocialWorkspacePage(
   return {
     kind: "success",
     organizationId,
-    organizationName:
-      organizationOptions.find((o) => o.organizationId === organizationId)
-        ?.displayName ?? "Organization",
+    organizationName,
     organizationOptions,
     role,
     section,
     publishingEnabled,
+    closedBeta,
     workspaces: workspacesResult.workspaces,
     connections: inventory.connections,
     publications: inventory.publications,

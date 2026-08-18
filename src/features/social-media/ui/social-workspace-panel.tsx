@@ -5,6 +5,7 @@ import { B18InstagramPublishPanel } from "@/features/social-media/ui/b18-instagr
 import { B19LifecyclePanel } from "@/features/social-media/ui/b19-lifecycle-panel";
 import type { SocialSection } from "@/features/social-media/domain/social-navigation";
 import { buildSocialWorkspaceHref } from "@/features/social-media/domain/social-navigation";
+import type { SocialClosedBetaCustomerReadModel } from "@/features/social-media/domain/social-closed-beta-customer-read-model";
 import styles from "./social-workspace-panel.module.css";
 
 type ConnectionRow = {
@@ -49,6 +50,7 @@ type SocialWorkspacePanelProps = {
   organizationId: string;
   section: SocialSection;
   publishingEnabled: boolean;
+  closedBeta: SocialClosedBetaCustomerReadModel;
   hasWorkspace: boolean;
   connections: ConnectionRow[];
   publications: PublicationRow[];
@@ -65,6 +67,7 @@ export function SocialWorkspacePanel({
   organizationId,
   section,
   publishingEnabled,
+  closedBeta,
   hasWorkspace,
   connections,
   publications,
@@ -84,18 +87,31 @@ export function SocialWorkspacePanel({
       !connection.reauthorizationRequired,
   );
   const hasConnectedInstagram = publishableConnections.length > 0;
+  const readOnly =
+    closedBeta.enrollmentStatus === "paused" ||
+    closedBeta.enrollmentStatus === "revoked";
 
   const nextSteps: string[] = [];
-  if (!hasWorkspace) {
-    nextSteps.push("Create a Social workspace by connecting Instagram.");
-  } else if (!hasConnectedInstagram) {
-    nextSteps.push("Connect a healthy Instagram Business account.");
-  } else if (!publishingEnabled) {
-    nextSteps.push(
-      "Publishing is off. Prepare an image when ready; execution stays blocked until owner enablement.",
-    );
-  } else {
-    nextSteps.push("Publishing is enabled. Prepare and execute only intentionally.");
+  if (closedBeta.nextRecommendedAction) {
+    nextSteps.push(closedBeta.nextRecommendedAction);
+  }
+  if (!readOnly) {
+    if (!hasWorkspace) {
+      nextSteps.push("Create a Social workspace by connecting Instagram.");
+    } else if (!hasConnectedInstagram) {
+      nextSteps.push("Connect a healthy Instagram Business account.");
+    } else if (closedBeta.prepareAllowed && !closedBeta.publishingEntitlementAllowed) {
+      nextSteps.push(
+        "Prepare image content when ready. Publishing access has not been enabled yet.",
+      );
+    } else if (
+      closedBeta.publishingEntitlementAllowed &&
+      !closedBeta.globalPublishingEnabled
+    ) {
+      nextSteps.push(
+        "Prepare content while publishing is temporarily unavailable at platform level.",
+      );
+    }
   }
   if (pendingShellCount > 0) {
     nextSteps.push(
@@ -107,18 +123,37 @@ export function SocialWorkspacePanel({
       `${blockedPublicationCount} publication(s) need operator attention in Activity.`,
     );
   }
+  if (nextSteps.length === 0) {
+    nextSteps.push("Review Accounts and Activity for your existing Social history.");
+  }
+
+  const sectionLinks = (
+    [
+      ["overview", "Overview"],
+      ["accounts", "Accounts"],
+      ["publish", "Publish"],
+      ["activity", "Activity"],
+    ] as const
+  ).filter(([id]) => {
+    if (readOnly && (id === "publish" || id === "accounts")) {
+      // Keep Accounts for historical connection visibility; hide Publish mutations.
+      return id !== "publish";
+    }
+    return true;
+  });
 
   return (
     <div className={styles.root}>
+      <div className={styles.betaStatus} role="status">
+        <strong>{closedBeta.betaBadgeLabel}</strong>
+        <span>{closedBeta.customerBody}</span>
+        {closedBeta.executeBlockedReason ? (
+          <span>{closedBeta.executeBlockedReason}</span>
+        ) : null}
+      </div>
+
       <nav className={styles.sectionNav} aria-label="Social sections">
-        {(
-          [
-            ["overview", "Overview"],
-            ["accounts", "Accounts"],
-            ["publish", "Publish"],
-            ["activity", "Activity"],
-          ] as const
-        ).map(([id, label]) => (
+        {sectionLinks.map(([id, label]) => (
           <a
             key={id}
             className={
@@ -139,7 +174,34 @@ export function SocialWorkspacePanel({
         <section className={styles.overview} aria-labelledby="social-overview-title">
           <h2 id="social-overview-title">Overview</h2>
           <ul className={styles.kpiList}>
+            <li>
+              Closed-beta status:{" "}
+              {closedBeta.enrollmentStatus === "publishing_allowed"
+                ? "Publishing access approved"
+                : closedBeta.enrollmentStatus === "approved"
+                  ? "Approved"
+                  : closedBeta.enrollmentStatus === "paused"
+                    ? "Paused"
+                    : closedBeta.enrollmentStatus === "revoked"
+                      ? "Revoked"
+                      : closedBeta.enrollmentStatus}
+            </li>
             <li>Healthy Instagram accounts: {healthyConnectedCount}</li>
+            <li>
+              Prepare: {closedBeta.prepareAllowed ? "Available" : "Not available"}
+            </li>
+            <li>
+              Publishing entitlement:{" "}
+              {closedBeta.publishingEntitlementAllowed
+                ? "Approved"
+                : "Not enabled"}
+            </li>
+            <li>
+              Platform publishing:{" "}
+              {closedBeta.globalPublishingEnabled
+                ? "Available"
+                : "Temporarily unavailable"}
+            </li>
             <li>Active publish queue: {activeQueueCount}</li>
             <li>Succeeded publications: {succeededPublicationCount}</li>
             <li>Needs attention: {blockedPublicationCount}</li>
@@ -157,10 +219,10 @@ export function SocialWorkspacePanel({
             </ol>
           </div>
           <p className={styles.scopeNote}>
-            Beta 1 scope: Instagram account connection, controlled image
+            Closed beta scope: Instagram account connection, controlled image
             publish (when enabled), and publication activity. Brand strategy,
-            content calendar, and multi-format publishing are foundation-only
-            and not exposed here yet.
+            content calendar, Stories/Reels, multi-provider support, and
+            analytics/AI features are not included here.
           </p>
         </section>
       ) : null}
@@ -169,13 +231,25 @@ export function SocialWorkspacePanel({
         <section aria-labelledby="social-accounts-title">
           <h2 id="social-accounts-title">Accounts</h2>
           <p className={styles.copy}>
-            Connect or review Instagram Business accounts for this organization.
+            {readOnly
+              ? "Existing Instagram connections remain visible. New connections are unavailable in this closed-beta state."
+              : "Connect or review Instagram Business accounts for this organization."}
           </p>
-          <R1InstagramConnectPanel
-            organizationId={organizationId}
-            hasWorkspace={hasWorkspace}
-            hasConnectedInstagram={hasConnectedInstagram}
-          />
+          {closedBeta.connectAllowed ? (
+            <R1InstagramConnectPanel
+              organizationId={organizationId}
+              hasWorkspace={hasWorkspace}
+              hasConnectedInstagram={hasConnectedInstagram}
+            />
+          ) : (
+            <p className={styles.copy} role="status">
+              {closedBeta.enrollmentStatus === "paused"
+                ? "Connecting Instagram is unavailable while Social beta access is paused."
+                : closedBeta.enrollmentStatus === "revoked"
+                  ? "Connecting Instagram is unavailable because closed-beta access is no longer active."
+                  : "Connecting Instagram is unavailable for this organization."}
+            </p>
+          )}
           <ul className={styles.list}>
             {connections
               .filter((connection) => connection.status === "connected")
@@ -198,12 +272,26 @@ export function SocialWorkspacePanel({
         </section>
       ) : null}
 
-      {section === "publish" ? (
+      {section === "publish" && readOnly ? (
+        <section aria-labelledby="social-publish-readonly-title">
+          <h2 id="social-publish-readonly-title">Publish image</h2>
+          <p className={styles.copy} role="status">
+            {closedBeta.customerBody}
+          </p>
+        </section>
+      ) : null}
+
+      {section === "publish" && !readOnly ? (
         <section aria-labelledby="social-publish-title">
           <h2 id="social-publish-title">Publish image</h2>
           <p className={styles.copy}>
-            Prepare a feed image for Instagram. Execution stays fail-closed while
-            publishing is off.
+            {closedBeta.prepareAllowed
+              ? closedBeta.publishingEntitlementAllowed
+                ? closedBeta.globalPublishingEnabled
+                  ? "Prepare and execute a feed image when connection readiness allows."
+                  : "Prepare a feed image. Publishing is temporarily unavailable at platform level."
+                : "Prepare a feed image. Publishing access has not been enabled for your organization yet."
+              : "Prepare and publish are unavailable in this closed-beta state."}
           </p>
           <B18InstagramPublishPanel
             organizationId={organizationId}
@@ -214,7 +302,17 @@ export function SocialWorkspacePanel({
               externalAccountId: null,
               capabilitySnapshot: connection.capabilitySnapshot,
             }))}
-            publishingEnabled={publishingEnabled}
+            publishingEnabled={
+              publishingEnabled && closedBeta.publishingEntitlementAllowed
+            }
+            prepareAllowed={closedBeta.prepareAllowed}
+            prepareBlockedReason={
+              closedBeta.prepareAllowed
+                ? null
+                : closedBeta.executeBlockedReason ??
+                  "Preparing content is unavailable for this organization."
+            }
+            executeBlockedReason={closedBeta.executeBlockedReason}
             initialPublicationId={explicitPublicationId}
           />
         </section>
@@ -229,7 +327,9 @@ export function SocialWorkspacePanel({
           </p>
           <B19LifecyclePanel
             organizationId={organizationId}
-            publishingEnabled={publishingEnabled}
+            publishingEnabled={
+              publishingEnabled && closedBeta.publishingEntitlementAllowed
+            }
             connections={connections}
             publications={publications}
             healthyConnectedCount={healthyConnectedCount}

@@ -454,5 +454,14 @@ export {
   buildSocialClosedBetaOperatorDetailHref,
 } from "@/features/social-media/domain/platform-operator-navigation";
 
-export { buildSocialClosedBetaCustomerReadModel } from "@/features/social-media/domain/social-closed-beta-customer-read-model";
-export type { SocialClosedBetaCustomerReadModel } from "@/features/social-media/domain/social-closed-beta-customer-read-model";
+export {
+  buildSocialClosedBetaCustomerReadModel,
+  canConnectWithClosedBetaEnrollment,
+  isSocialNavVisibleForClosedBetaEnrollment,
+  resolveSocialClosedBetaCustomerActionMatrix,
+  resolveSocialNavVisible,
+} from "@/features/social-media/domain/social-closed-beta-customer-read-model";
+export type {
+  SocialClosedBetaCustomerReadModel,
+  SocialClosedBetaCustomerActionMatrix,
+} from "@/features/social-media/domain/social-closed-beta-customer-read-model";

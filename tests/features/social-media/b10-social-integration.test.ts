@@ -20,7 +20,7 @@ import { mapSocialOAuthReturnPathId } from "@/features/social-media/domain/oauth
 describe("SMM-B1.10 Social Beta 1 integration", () => {
   it("exposes canonical /social workspace and primary nav constants", () => {
     expect(SOCIAL_ROUTE).toBe("/social");
-    expect(SOCIAL_NAV_LABEL).toBe("Social");
+    expect(SOCIAL_NAV_LABEL).toBe("Social — Closed Beta");
     expect(SOCIAL_NAV_VISIBLE).toBe(true);
     expect(isSocialWorkspacePathname("/social")).toBe(true);
     expect(isSocialPathname("/social/lifecycle")).toBe(true);
@@ -60,7 +60,8 @@ describe("SMM-B1.10 Social Beta 1 integration", () => {
       join(process.cwd(), "src/components/app-shell.tsx"),
       "utf8",
     );
-    expect(appShell).toContain("SOCIAL_NAV_VISIBLE");
+    expect(appShell).toContain("SocialPrimaryNavLink");
+    expect(appShell).toContain("socialNavVisible");
     expect(appShell).toContain('activeNav === "social"');
 
     for (const relative of [

@@ -29,6 +29,9 @@ export type SocialConnectFailureCode =
   | "invalid_request"
   | "already_connected"
   | "rate_limited"
+  | "closed_beta_not_enrolled"
+  | "closed_beta_paused"
+  | "closed_beta_revoked"
   | "internal_error";
 
 export type SocialConnectResult =
