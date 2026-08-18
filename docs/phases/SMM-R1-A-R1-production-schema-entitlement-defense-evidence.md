@@ -179,4 +179,10 @@ Requires separate owner authorization. **Do not start automatically.**
 
 ## 17. Git state
 
-Filled after evidence commit / push.
+| Item | Value |
+| --- | --- |
+| Implementation | `af214e4` |
+| Evidence / HEAD | `11fb62b` |
+| Upstream | `origin/core/platform-readiness-20260707` |
+| Divergence | `0 0` |
+| Worktree | clean |
