@@ -284,7 +284,7 @@ Do **not** begin R1-D Production enrollment without owner authorization.
 | Item | Value |
 | --- | --- |
 | Implementation | `8b332b6` |
-| Evidence | *(this commit)* |
+| Evidence | 080ee660630f4f63283c80b1219a56e8bd99ff4d |
 | Branch | `core/platform-readiness-20260707` |
 | Upstream | `origin/core/platform-readiness-20260707` |
 
