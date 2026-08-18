@@ -243,8 +243,8 @@ Do not begin automatically. R1-D is the first phase authorized to enroll exactly
 
 | Item | Value |
 | --- | --- |
-| Implementation | 72ed9b677cc4f8ac15b1ee7251f68ee7be8b70ee |
-| Evidence | 72ed9b677cc4f8ac15b1ee7251f68ee7be8b70ee |
+| Implementation | `72ed9b6` |
+| Evidence | `fe54e0d` |
 | Branch | `core/platform-readiness-20260707` |
 
 ### Database/migration
