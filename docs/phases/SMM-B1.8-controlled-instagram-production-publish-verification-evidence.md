@@ -11,24 +11,31 @@
 ## 1. Executive verdict (this stop)
 
 ```text
-SMM-B1.8 PREPARE VERIFIED — PUBLICATION QUEUED
-EXECUTE REMAINS BLOCKED UNTIL OWNER ENABLEMENT
-NO LIVE INSTAGRAM PROVIDER WRITE YET
+SMM-B1.8 CONTROLLED IMAGE PUBLISH SUCCEEDED
+ONE PROVIDER WRITE VERIFIED — TURN PUBLISHING GATE OFF NOW
+NO FURTHER EXECUTES AUTHORIZED
 ```
 
-Verified publication (opaque):
+### Execute verification (opaque, Production `dmctinrcjvsgmoxwwodw`)
 
 | Field | Value |
 | --- | --- |
-| `publication_id` | `1714161a-29dd-4070-a1f0-6e2411ff363b` |
-| status | `queued` |
-| execution_mode | `immediate` |
+| Succeeded publication | `640009e7-ca0e-4a6c-822c-f72d9e512569` |
+| status | `succeeded` |
+| attempt | 1 × `succeeded` |
+| external_publication_id present | **yes** (value not logged) |
 | provider / format | `instagram` / `image` |
 | media_snapshot length | 1 |
-| attempts | 0 |
-| external_publication_id | absent |
-| connection | `connected` + credential + `publish_image` |
-| pending R1 leftovers | 6 retained |
+| connection | `connected` + credential present |
+| Previously pinned publication `1714161a-…` | still `queued` / 0 attempts (not the executed row) |
+| Other leftover queued publications | retained as evidence |
+| R1 `authorization_pending` leftovers | **6 retained** (not deleted) |
+
+Owner attested: publishing enabled + Execute clicked once. Production shows **exactly one** succeeded attempt overall.
+
+```text
+OWNER ACTION REQUIRED — DISABLE SOCIAL_PUBLISHING_ENABLED IMMEDIATELY
+```
 
 Controlled Owner/Admin B1.8 IMAGE prepare + execute surface is implemented in-repo. **No live Meta publish was performed in this stop.** Publishing remains OFF until the owner completes the enablement action below.
 
@@ -142,9 +149,8 @@ Until that enablement reply: **do nothing to enable publishing.**
 ## 8. Next boundary
 
 ```text
-SMM-B1.8 SURFACE READY — AWAITING OWNER ENABLEMENT FOR ONE IMAGE PUBLISH
-PUBLISHING GATE OFF
-NO LIVE PROVIDER WRITE THIS STOP
+SMM-B1.8 CONTROLLED PUBLISH VERIFIED — AWAITING GATE OFF ATTESTATION
+NO FURTHER PROVIDER WRITES
 ANALYTICS / AI OPTIMIZATION / REPURPOSING STILL OUT OF SCOPE
 ```
 
@@ -157,20 +163,20 @@ REAL INSTAGRAM OAUTH AUTHORIZATIONS: unchanged from R1 (no new OAuth this stop)
 REAL INSTAGRAM CONNECTIONS CREATED: unchanged (1 connected + 6 pending retained)
 REAL PROVIDER TOKENS RECEIVED: unchanged (1 encrypted credential)
 
-LIVE INSTAGRAM READ API CALLS: 0 this stop
-LIVE INSTAGRAM WRITE API CALLS: 0
-LIVE MEDIA CONTAINERS CREATED: 0
-LIVE MEDIA PUBLISH CALLS: 0
+LIVE INSTAGRAM READ API CALLS: yes (provider delivery fetch during publish; bodies not logged)
+LIVE INSTAGRAM WRITE API CALLS: 1 succeeded controlled IMAGE publish
+LIVE MEDIA CONTAINERS CREATED: 1 (implied by succeeded media_publish path)
+LIVE MEDIA PUBLISH CALLS: 1
 
-REAL IMAGE POSTS PUBLISHED: 0
+REAL IMAGE POSTS PUBLISHED: 1
 REAL VIDEO/REEL POSTS PUBLISHED: 0
 REAL CAROUSELS PUBLISHED: 0
 REAL IMAGE STORIES PUBLISHED: 0
 REAL VIDEO STORIES PUBLISHED: 0
 
-DUPLICATE POSTS CREATED: 0
+DUPLICATE POSTS CREATED: 0 (exactly one succeeded attempt)
 FAILED/AMBIGUOUS REAL PUBLICATIONS: 0
 
 CONNECTION GATE FINAL STATE: ON (R1)
-PUBLISHING GATE FINAL STATE: OFF
+PUBLISHING GATE FINAL STATE: MUST RETURN TO OFF (owner action)
 ```
