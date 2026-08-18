@@ -25,8 +25,11 @@ import {
 } from "@/features/social-media/server/list-social-connections";
 import type { ListedSocialWorkspace } from "@/features/social-media/server/list-social-workspaces";
 import {
+  isSocialOAuthFailureStage,
   isSocialOAuthOutcomeCode,
+  SOCIAL_OAUTH_FAILURE_STAGE_QUERY,
   SOCIAL_OAUTH_OUTCOME_QUERY,
+  type SocialOAuthFailureStage,
   type SocialOAuthOutcomeCode,
 } from "@/features/social-media/server/oauth-callback-redirect";
 
@@ -61,6 +64,7 @@ export type R1InstagramConnectPageResult =
       workspaces: ListedSocialWorkspace[];
       connections: ListedSocialConnection[];
       oauthOutcome: SocialOAuthOutcomeCode | null;
+      oauthFailureStage: SocialOAuthFailureStage | null;
       publishingGateOffNotice: true;
     };
 
@@ -156,6 +160,11 @@ export async function loadR1InstagramConnectPage(
   const outcomeRaw = firstSearchParam(rawSearchParams[SOCIAL_OAUTH_OUTCOME_QUERY]);
   const oauthOutcome =
     outcomeRaw && isSocialOAuthOutcomeCode(outcomeRaw) ? outcomeRaw : null;
+  const stageRaw = firstSearchParam(
+    rawSearchParams[SOCIAL_OAUTH_FAILURE_STAGE_QUERY],
+  );
+  const oauthFailureStage =
+    stageRaw && isSocialOAuthFailureStage(stageRaw) ? stageRaw : null;
 
   return {
     kind: "success",
@@ -167,6 +176,7 @@ export async function loadR1InstagramConnectPage(
     workspaces: workspacesResult.workspaces,
     connections: connectionsResult.connections,
     oauthOutcome,
+    oauthFailureStage,
     publishingGateOffNotice: true,
   };
 }

@@ -29,6 +29,21 @@ describe("SMM-B1.1-C OAuth continuation redirects", () => {
     expect(path).not.toContain("token");
   });
 
+  it("attaches only allowlisted opaque failure stages", () => {
+    const path = buildSocialOAuthContinuationPath(
+      "social_workspace",
+      "connection_failed",
+      "authorization_code_exchange",
+    );
+    expect(path).toContain("social_oauth=connection_failed");
+    expect(path).toContain(
+      "social_oauth_stage=authorization_code_exchange",
+    );
+    expect(path).not.toContain("access_token");
+    expect(path).not.toContain("client_secret");
+    expect(resolveSafeReturnPath(path)).toBe(path);
+  });
+
   it("does not create open redirects from outcome helpers", () => {
     const failure = buildDefaultSocialOAuthFailurePath("authorization_invalid");
     expect(failure.startsWith("/")).toBe(true);

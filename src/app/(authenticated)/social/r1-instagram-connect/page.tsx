@@ -33,7 +33,10 @@ function OrganizationRequiredPanel({
   );
 }
 
-function outcomeCopy(code: string): { title: string; body: string } {
+function outcomeCopy(
+  code: string,
+  failureStage: string | null,
+): { title: string; body: string } {
   switch (code) {
     case "connected":
       return {
@@ -49,6 +52,15 @@ function outcomeCopy(code: string): { title: string; body: string } {
       return {
         title: "Feature disabled",
         body: "Connection gates were off during callback.",
+      };
+    case "connection_failed":
+    case "provider_unavailable":
+    case "configuration_error":
+      return {
+        title: `OAuth outcome: ${code}`,
+        body: failureStage
+          ? `Safe failure stage: ${failureStage}. Report this exact stage to Cursor. Do not share tokens or secrets.`
+          : "Review the outcome and retry only if appropriate for R1. Do not share tokens or secrets.",
       };
     default:
       return {
@@ -158,7 +170,7 @@ export default async function R1InstagramConnectPage({ searchParams }: PageProps
         connection.status === "permission_missing"),
   );
   const outcome = result.oauthOutcome
-    ? outcomeCopy(result.oauthOutcome)
+    ? outcomeCopy(result.oauthOutcome, result.oauthFailureStage)
     : null;
 
   return (

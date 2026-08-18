@@ -322,4 +322,168 @@ describe("SMM-B1.1-C Instagram OAuth callback orchestration", () => {
     );
     expect(result.outcome).toBe("feature_disabled");
   });
+
+  it("attaches opaque stage authorization_code_exchange on short-lived failures", async () => {
+    const supabase = createSupabaseMock({});
+    const fetchImpl = vi.fn(async () =>
+      new Response(JSON.stringify({ error_type: "OAuthException" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    ) as unknown as typeof fetch;
+    const result = await handleInstagramOAuthCallback(
+      supabase,
+      {
+        query: { code: "auth-code", state: "44".repeat(32) },
+        intentIdFromCookie: intentId,
+      },
+      { env: enabledEnv, fetchImpl },
+    );
+    expect(result.outcome).toBe("connection_failed");
+    expect(result.failureStage).toBe("authorization_code_exchange");
+    expect(result.redirectPath).toContain(
+      "social_oauth_stage=authorization_code_exchange",
+    );
+    expect(result.redirectPath).not.toContain("auth-code");
+    expect(result.redirectPath).not.toContain("OAuthException");
+  });
+
+  it("attaches opaque stage long_lived_token_exchange on long-lived failures", async () => {
+    const supabase = createSupabaseMock({});
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("api.instagram.com/oauth/access_token")) {
+        return new Response(
+          JSON.stringify({
+            data: [
+              {
+                access_token: "short-lived-token",
+                user_id: externalAccountId,
+              },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      return new Response(JSON.stringify({}), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }) as unknown as typeof fetch;
+    const result = await handleInstagramOAuthCallback(
+      supabase,
+      {
+        query: { code: "auth-code", state: "55".repeat(32) },
+        intentIdFromCookie: intentId,
+      },
+      { env: enabledEnv, fetchImpl },
+    );
+    expect(result.outcome).toBe("connection_failed");
+    expect(result.failureStage).toBe("long_lived_token_exchange");
+    expect(result.redirectPath).toContain(
+      "social_oauth_stage=long_lived_token_exchange",
+    );
+    expect(result.redirectPath).not.toContain("short-lived-token");
+  });
+
+  it("attaches opaque stage professional_identity_fetch on identity failures", async () => {
+    const supabase = createSupabaseMock({});
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("api.instagram.com/oauth/access_token")) {
+        return new Response(
+          JSON.stringify({
+            data: [
+              {
+                access_token: "short-lived-token",
+                user_id: externalAccountId,
+              },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      if (url.includes("grant_type=ig_exchange_token")) {
+        return new Response(
+          JSON.stringify({
+            access_token: "long-lived-token",
+            expires_in: 1000,
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      return new Response(JSON.stringify({ username: "x" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }) as unknown as typeof fetch;
+    const result = await handleInstagramOAuthCallback(
+      supabase,
+      {
+        query: { code: "auth-code", state: "66".repeat(32) },
+        intentIdFromCookie: intentId,
+      },
+      { env: enabledEnv, fetchImpl },
+    );
+    expect(result.outcome).toBe("connection_failed");
+    expect(result.failureStage).toBe("professional_identity_fetch");
+    expect(result.redirectPath).toContain(
+      "social_oauth_stage=professional_identity_fetch",
+    );
+    expect(result.redirectPath).not.toContain("long-lived-token");
+  });
+
+  it("attaches opaque stage credential_encrypt_or_upsert on credential upsert failures", async () => {
+    const supabase = createSupabaseMock({ upsertCode: "forbidden" });
+    const result = await handleInstagramOAuthCallback(
+      supabase,
+      {
+        query: { code: "auth-code", state: "77".repeat(32) },
+        intentIdFromCookie: intentId,
+      },
+      { env: enabledEnv, fetchImpl: mockProviderFetch() },
+    );
+    expect(result.outcome).toBe("connection_failed");
+    expect(result.failureStage).toBe("credential_encrypt_or_upsert");
+    expect(result.redirectPath).toContain(
+      "social_oauth_stage=credential_encrypt_or_upsert",
+    );
+  });
+
+  it("attaches opaque stage connection_finalize on finalize failures", async () => {
+    const supabase = createSupabaseMock({ finalizeCode: "unexpected" });
+    const result = await handleInstagramOAuthCallback(
+      supabase,
+      {
+        query: { code: "auth-code", state: "88".repeat(32) },
+        intentIdFromCookie: intentId,
+      },
+      { env: enabledEnv, fetchImpl: mockProviderFetch() },
+    );
+    expect(result.outcome).toBe("connection_failed");
+    expect(result.failureStage).toBe("connection_finalize");
+    expect(result.redirectPath).toContain(
+      "social_oauth_stage=connection_finalize",
+    );
+  });
+
+  it("marks provider_unavailable with the same opaque stage on non_2xx", async () => {
+    const supabase = createSupabaseMock({});
+    const fetchImpl = vi.fn(async () =>
+      new Response("denied", { status: 400 }),
+    ) as unknown as typeof fetch;
+    const result = await handleInstagramOAuthCallback(
+      supabase,
+      {
+        query: { code: "auth-code", state: "99".repeat(32) },
+        intentIdFromCookie: intentId,
+      },
+      { env: enabledEnv, fetchImpl },
+    );
+    expect(result.outcome).toBe("provider_unavailable");
+    expect(result.failureStage).toBe("authorization_code_exchange");
+    expect(result.redirectPath).toContain(
+      "social_oauth_stage=authorization_code_exchange",
+    );
+  });
 });

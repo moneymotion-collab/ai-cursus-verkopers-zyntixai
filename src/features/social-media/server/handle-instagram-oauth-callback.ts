@@ -1,5 +1,5 @@
 /**
- * Instagram OAuth callback orchestration (SMM-B1.1-C).
+ * Instagram OAuth callback orchestration (SMM-B1.1-C / R1 diagnostics).
  *
  * Order:
  * 1) feature gate
@@ -11,7 +11,8 @@
  * 7) AES-256-GCM encrypt + private upsert
  * 8) finalize connection
  *
- * Never logs code/state/tokens/secrets.
+ * Never logs code/state/tokens/secrets/provider bodies.
+ * Opaque failure stages may be returned in allowlisted redirect query only.
  */
 
 import "server-only";
@@ -34,6 +35,7 @@ import { deriveInstagramCapabilitiesFromGrantedPermissions } from "@/features/so
 import {
   buildDefaultSocialOAuthFailurePath,
   buildSocialOAuthContinuationPath,
+  type SocialOAuthFailureStage,
   type SocialOAuthOutcomeCode,
 } from "@/features/social-media/server/oauth-callback-redirect";
 import { readSocialCredentialEncryptionKey } from "@/features/social-media/server/credential-key";
@@ -51,6 +53,7 @@ export type HandleInstagramOAuthCallbackResult = {
   redirectPath: string;
   outcome: SocialOAuthOutcomeCode;
   callbackCode?: SocialCallbackFailureCode | "connection_established";
+  failureStage?: SocialOAuthFailureStage;
   clearIntentCookie: boolean;
 };
 
@@ -58,11 +61,13 @@ function failure(
   outcome: SocialOAuthOutcomeCode,
   callbackCode: SocialCallbackFailureCode,
   clearIntentCookie = true,
+  failureStage?: SocialOAuthFailureStage,
 ): HandleInstagramOAuthCallbackResult {
   return {
-    redirectPath: buildDefaultSocialOAuthFailurePath(outcome),
+    redirectPath: buildDefaultSocialOAuthFailurePath(outcome, failureStage),
     outcome,
     callbackCode,
+    failureStage,
     clearIntentCookie,
   };
 }
@@ -147,7 +152,12 @@ export async function handleInstagramOAuthCallback(
   }
 
   if (consumed.provider !== "instagram") {
-    return failure("connection_failed", "provider_mismatch", true);
+    return failure(
+      "connection_failed",
+      "provider_mismatch",
+      true,
+      "authorization_code_exchange",
+    );
   }
 
   const shortLived = await exchangeInstagramAuthorizationCode(
@@ -156,7 +166,10 @@ export async function handleInstagramOAuthCallback(
     { fetchImpl: options?.fetchImpl },
   );
   if (!shortLived.ok) {
-    return mapProviderFailure(shortLived.reason);
+    return mapProviderFailure(
+      shortLived.reason,
+      "authorization_code_exchange",
+    );
   }
 
   const longLived = await exchangeInstagramLongLivedToken(
@@ -165,7 +178,10 @@ export async function handleInstagramOAuthCallback(
     { fetchImpl: options?.fetchImpl },
   );
   if (!longLived.ok) {
-    return mapProviderFailure(longLived.reason);
+    return mapProviderFailure(
+      longLived.reason,
+      "long_lived_token_exchange",
+    );
   }
 
   const identity = await fetchInstagramProfessionalIdentity(
@@ -175,16 +191,29 @@ export async function handleInstagramOAuthCallback(
   );
   if (!identity.ok) {
     if (identity.reason === "unsupported_account") {
-      return failure("unsupported_account", "unsupported_account", true);
+      return failure(
+        "unsupported_account",
+        "unsupported_account",
+        true,
+        "professional_identity_fetch",
+      );
     }
-    return mapProviderFailure(identity.reason);
+    return mapProviderFailure(
+      identity.reason,
+      "professional_identity_fetch",
+    );
   }
 
   if (
     consumed.expectedExternalAccountId &&
     consumed.expectedExternalAccountId !== identity.value.externalAccountId
   ) {
-    return failure("connection_failed", "provider_mismatch", true);
+    return failure(
+      "connection_failed",
+      "provider_mismatch",
+      true,
+      "professional_identity_fetch",
+    );
   }
 
   // Prefer identity user_id; token-exchange user_id must agree when present.
@@ -192,7 +221,12 @@ export async function handleInstagramOAuthCallback(
     shortLived.value.userId &&
     shortLived.value.userId !== identity.value.externalAccountId
   ) {
-    return failure("connection_failed", "provider_mismatch", true);
+    return failure(
+      "connection_failed",
+      "provider_mismatch",
+      true,
+      "professional_identity_fetch",
+    );
   }
 
   const now = options?.now ?? new Date();
@@ -217,7 +251,12 @@ export async function handleInstagramOAuthCallback(
   });
   if (!stored.ok) {
     if (stored.reason === "stale_version") {
-      return failure("connection_failed", "internal_error", true);
+      return failure(
+        "connection_failed",
+        "internal_error",
+        true,
+        "credential_encrypt_or_upsert",
+      );
     }
     if (
       stored.reason === "configuration_error" ||
@@ -225,9 +264,19 @@ export async function handleInstagramOAuthCallback(
       stored.reason === "version_unsupported" ||
       stored.reason === "invalid_payload"
     ) {
-      return failure("configuration_error", "internal_error", true);
+      return failure(
+        "configuration_error",
+        "internal_error",
+        true,
+        "credential_encrypt_or_upsert",
+      );
     }
-    return failure("connection_failed", "internal_error", true);
+    return failure(
+      "connection_failed",
+      "internal_error",
+      true,
+      "credential_encrypt_or_upsert",
+    );
   }
 
   const finalized = await finalizeSocialConnection(supabase, {
@@ -242,13 +291,33 @@ export async function handleInstagramOAuthCallback(
   if (!finalized.ok) {
     switch (finalized.reason) {
       case "unsupported_account":
-        return failure("unsupported_account", "unsupported_account", true);
+        return failure(
+          "unsupported_account",
+          "unsupported_account",
+          true,
+          "connection_finalize",
+        );
       case "duplicate_connection":
-        return failure("duplicate_connection", "duplicate_connection", true);
+        return failure(
+          "duplicate_connection",
+          "duplicate_connection",
+          true,
+          "connection_finalize",
+        );
       case "identity_mismatch":
-        return failure("connection_failed", "provider_mismatch", true);
+        return failure(
+          "connection_failed",
+          "provider_mismatch",
+          true,
+          "connection_finalize",
+        );
       default:
-        return failure("connection_failed", "internal_error", true);
+        return failure(
+          "connection_failed",
+          "internal_error",
+          true,
+          "connection_finalize",
+        );
     }
   }
 
@@ -265,12 +334,28 @@ export async function handleInstagramOAuthCallback(
 
 function mapProviderFailure(
   reason: string,
+  failureStage: SocialOAuthFailureStage,
 ): HandleInstagramOAuthCallbackResult {
   if (reason === "timeout" || reason === "network_error" || reason === "non_2xx") {
-    return failure("provider_unavailable", "provider_exchange_failed", true);
+    return failure(
+      "provider_unavailable",
+      "provider_exchange_failed",
+      true,
+      failureStage,
+    );
   }
   if (reason === "unsupported_account") {
-    return failure("unsupported_account", "unsupported_account", true);
+    return failure(
+      "unsupported_account",
+      "unsupported_account",
+      true,
+      failureStage,
+    );
   }
-  return failure("connection_failed", "provider_exchange_failed", true);
+  return failure(
+    "connection_failed",
+    "provider_exchange_failed",
+    true,
+    failureStage,
+  );
 }
