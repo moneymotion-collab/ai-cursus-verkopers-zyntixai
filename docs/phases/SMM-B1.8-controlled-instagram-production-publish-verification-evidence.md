@@ -11,33 +11,32 @@
 ## 1. Executive verdict (this stop)
 
 ```text
-SMM-B1.8 CONTROLLED IMAGE PUBLISH SUCCEEDED
-ONE PROVIDER WRITE VERIFIED — TURN PUBLISHING GATE OFF NOW
-NO FURTHER EXECUTES AUTHORIZED
+SMM-B1.8 CLOSED WITH EVIDENCE
+CONTROLLED INSTAGRAM IMAGE PUBLISH VERIFIED
+PUBLISHING GATE OFF (OWNER-ATTESTED)
+NO FURTHER PROVIDER WRITES AUTHORIZED
 ```
 
-### Execute verification (opaque, Production `dmctinrcjvsgmoxwwodw`)
+### Final Production verification (opaque)
 
-| Field | Value |
+| Check | Result |
 | --- | --- |
-| Succeeded publication | `640009e7-ca0e-4a6c-822c-f72d9e512569` |
-| status | `succeeded` |
-| attempt | 1 × `succeeded` |
-| external_publication_id present | **yes** (value not logged) |
-| provider / format | `instagram` / `image` |
-| media_snapshot length | 1 |
-| connection | `connected` + credential present |
-| Previously pinned publication `1714161a-…` | still `queued` / 0 attempts (not the executed row) |
-| Other leftover queued publications | retained as evidence |
+| Succeeded publications | **1** (`640009e7-ca0e-4a6c-822c-f72d9e512569`) |
+| Succeeded attempts | **1** (no additional attempts after gate-off) |
+| Queued leftovers retained | 3 |
+| Connected Instagram | 1 |
 | R1 `authorization_pending` leftovers | **6 retained** (not deleted) |
+| External publication id on success | present (value not logged) |
+| Provider / format | `instagram` / `image` |
 
-Owner attested: publishing enabled + Execute clicked once. Production shows **exactly one** succeeded attempt overall.
+### Owner gate-off attestation (2026-08-18)
 
 ```text
-OWNER ACTION REQUIRED — DISABLE SOCIAL_PUBLISHING_ENABLED IMMEDIATELY
+B1.8 PUBLISHING DISABLED
+GATE OFF CONFIRMED
 ```
 
-Controlled Owner/Admin B1.8 IMAGE prepare + execute surface is implemented in-repo. **No live Meta publish was performed in this stop.** Publishing remains OFF until the owner completes the enablement action below.
+`SOCIAL_PUBLISHING_ENABLED` is owner-attested **OFF**. Do not re-enable without a new explicit authorization. Do not Execute again. Do not delete evidence rows.
 
 ---
 
@@ -149,9 +148,9 @@ Until that enablement reply: **do nothing to enable publishing.**
 ## 8. Next boundary
 
 ```text
-SMM-B1.8 CONTROLLED PUBLISH VERIFIED — AWAITING GATE OFF ATTESTATION
-NO FURTHER PROVIDER WRITES
-ANALYTICS / AI OPTIMIZATION / REPURPOSING STILL OUT OF SCOPE
+SMM-B1.8 CLOSED WITH EVIDENCE
+ANALYTICS / AI OPTIMIZATION / CROSS-PLATFORM REPURPOSING NOT AUTHORIZED BY THIS CLOSURE
+NO FURTHER INSTAGRAM PROVIDER WRITES WITHOUT NEW OWNER AUTHORIZATION
 ```
 
 ---
@@ -178,5 +177,5 @@ DUPLICATE POSTS CREATED: 0 (exactly one succeeded attempt)
 FAILED/AMBIGUOUS REAL PUBLICATIONS: 0
 
 CONNECTION GATE FINAL STATE: ON (R1)
-PUBLISHING GATE FINAL STATE: MUST RETURN TO OFF (owner action)
+PUBLISHING GATE FINAL STATE: OFF (owner-attested 2026-08-18)
 ```
