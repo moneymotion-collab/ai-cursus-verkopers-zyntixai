@@ -17,6 +17,7 @@ type B18InstagramPublishPanelProps = {
   hasWorkspace: boolean;
   publishableConnections: PublishableConnection[];
   publishingEnabled: boolean;
+  initialPublicationId?: string | null;
 };
 
 type Feedback =
@@ -86,13 +87,20 @@ export function B18InstagramPublishPanel({
   hasWorkspace,
   publishableConnections,
   publishingEnabled,
+  initialPublicationId = null,
 }: B18InstagramPublishPanelProps) {
   const pendingRef = useRef(false);
   const [connectionId, setConnectionId] = useState(
     publishableConnections[0]?.id ?? "",
   );
-  const [feedback, setFeedback] = useState<Feedback>({ kind: "idle" });
-  const [publicationId, setPublicationId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<Feedback>(
+    initialPublicationId
+      ? { kind: "prepared", publicationId: initialPublicationId }
+      : { kind: "idle" },
+  );
+  const [publicationId, setPublicationId] = useState<string | null>(
+    initialPublicationId,
+  );
 
   async function onPrepare(form: HTMLFormElement) {
     if (pendingRef.current) {

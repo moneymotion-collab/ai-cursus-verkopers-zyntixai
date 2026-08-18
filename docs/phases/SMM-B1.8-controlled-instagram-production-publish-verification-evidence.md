@@ -11,12 +11,24 @@
 ## 1. Executive verdict (this stop)
 
 ```text
-SMM-B1.8 SURFACE IMPLEMENTED — PUBLISHING STILL OFF
-PRE-PUBLISH ATTESTATIONS RECEIVED
-NO LIVE INSTAGRAM PROVIDER WRITE EXECUTED
-SOCIAL_PUBLISHING_ENABLED REMAINS FAIL-CLOSED
-NEXT: DEPLOY + PREPARE JPEG WHILE GATE OFF — THEN SEPARATE ENABLEMENT ACTION
+SMM-B1.8 PREPARE VERIFIED — PUBLICATION QUEUED
+EXECUTE REMAINS BLOCKED UNTIL OWNER ENABLEMENT
+NO LIVE INSTAGRAM PROVIDER WRITE YET
 ```
+
+Verified publication (opaque):
+
+| Field | Value |
+| --- | --- |
+| `publication_id` | `1714161a-29dd-4070-a1f0-6e2411ff363b` |
+| status | `queued` |
+| execution_mode | `immediate` |
+| provider / format | `instagram` / `image` |
+| media_snapshot length | 1 |
+| attempts | 0 |
+| external_publication_id | absent |
+| connection | `connected` + credential + `publish_image` |
+| pending R1 leftovers | 6 retained |
 
 Controlled Owner/Admin B1.8 IMAGE prepare + execute surface is implemented in-repo. **No live Meta publish was performed in this stop.** Publishing remains OFF until the owner completes the enablement action below.
 

@@ -57,6 +57,8 @@ export type B18InstagramPublishPageResult =
       workspaces: ListedSocialWorkspace[];
       connections: ListedSocialConnection[];
       publishingEnabled: boolean;
+      /** Queued publication ready for one controlled execute (opaque id only). */
+      queuedPublicationId: string | null;
     };
 
 export async function loadB18InstagramPublishPage(
@@ -148,6 +150,79 @@ export async function loadB18InstagramPublishPage(
     };
   }
 
+  const requestedPublicationId = firstSearchParam(
+    rawSearchParams.publication,
+  )?.trim();
+  let queuedPublicationId: string | null = null;
+
+  // social_publications is not yet in generated Database types — session client cast.
+  const publications = supabase as unknown as {
+    from: (table: string) => {
+      select: (columns: string) => {
+        eq: (column: string, value: string) => unknown;
+      };
+    };
+  };
+
+  function asPublicationId(data: unknown): string | null {
+    if (!data || typeof data !== "object") {
+      return null;
+    }
+    const id = (data as { id?: unknown }).id;
+    return typeof id === "string" && id.length > 0 ? id : null;
+  }
+
+  if (requestedPublicationId) {
+    const requestedQuery = publications
+      .from("social_publications")
+      .select("id, status") as {
+      eq: (column: string, value: string) => {
+        eq: (column: string, value: string) => {
+          maybeSingle: () => PromiseLike<{ data: unknown }>;
+        };
+      };
+    };
+    const { data: requested } = await requestedQuery
+      .eq("organization_id", organizationId)
+      .eq("id", requestedPublicationId)
+      .maybeSingle();
+    if (
+      asPublicationId(requested) &&
+      requested &&
+      typeof requested === "object" &&
+      (requested as { status?: unknown }).status === "queued"
+    ) {
+      queuedPublicationId = asPublicationId(requested);
+    }
+  }
+
+  if (!queuedPublicationId) {
+    const latestQuery = publications.from("social_publications").select("id") as {
+      eq: (column: string, value: string) => {
+        eq: (column: string, value: string) => {
+          eq: (column: string, value: string) => {
+            order: (
+              column: string,
+              options: { ascending: boolean },
+            ) => {
+              limit: (count: number) => {
+                maybeSingle: () => PromiseLike<{ data: unknown }>;
+              };
+            };
+          };
+        };
+      };
+    };
+    const { data: latestQueued } = await latestQuery
+      .eq("organization_id", organizationId)
+      .eq("status", "queued")
+      .eq("provider", "instagram")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    queuedPublicationId = asPublicationId(latestQueued);
+  }
+
   return {
     kind: "success",
     organizationId,
@@ -157,5 +232,6 @@ export async function loadB18InstagramPublishPage(
     workspaces: workspacesResult.workspaces,
     connections: connectionsResult.connections,
     publishingEnabled: isSocialPublishingFeatureEnabled(),
+    queuedPublicationId,
   };
 }

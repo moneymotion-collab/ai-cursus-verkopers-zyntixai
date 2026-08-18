@@ -25,7 +25,7 @@ function OrganizationRequiredPanel({
       <ul className={styles.orgList}>
         {organizations.map((organization) => (
           <li key={organization.organizationId}>
-            <a href={buildB18InstagramPublishHref(organization.organizationId)}>
+            <a href={buildB18InstagramPublishHref({ organizationId: organization.organizationId })}>
               {organization.displayName}
             </a>
           </li>
@@ -114,7 +114,11 @@ export default async function B18InstagramPublishPage({ searchParams }: PageProp
           <p>{result.message}</p>
           <a
             className={styles.retryLink}
-            href={buildB18InstagramPublishHref(result.organizationId)}
+            href={buildB18InstagramPublishHref(
+              result.organizationId
+                ? { organizationId: result.organizationId }
+                : undefined,
+            )}
           >
             Retry
           </a>
@@ -158,6 +162,7 @@ export default async function B18InstagramPublishPage({ searchParams }: PageProp
           hasWorkspace={result.workspaces.length > 0}
           publishableConnections={publishableConnections}
           publishingEnabled={result.publishingEnabled}
+          initialPublicationId={result.queuedPublicationId}
         />
 
         <section className={styles.workspaces} aria-labelledby="b18-workspaces-title">

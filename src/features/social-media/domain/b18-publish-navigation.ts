@@ -19,9 +19,19 @@ export function isB18InstagramPublishPathname(pathname: string): boolean {
   );
 }
 
-export function buildB18InstagramPublishHref(organizationId?: string): string {
-  if (!organizationId) {
-    return B18_INSTAGRAM_PUBLISH_ROUTE;
+export function buildB18InstagramPublishHref(input?: {
+  organizationId?: string;
+  publicationId?: string;
+}): string {
+  const params = new URLSearchParams();
+  if (input?.organizationId) {
+    params.set("org", input.organizationId);
   }
-  return `${B18_INSTAGRAM_PUBLISH_ROUTE}?org=${encodeURIComponent(organizationId)}`;
+  if (input?.publicationId) {
+    params.set("publication", input.publicationId);
+  }
+  const query = params.toString();
+  return query
+    ? `${B18_INSTAGRAM_PUBLISH_ROUTE}?${query}`
+    : B18_INSTAGRAM_PUBLISH_ROUTE;
 }

@@ -27,9 +27,18 @@ describe("SMM-B1.8 controlled Instagram IMAGE publish surface", () => {
       isB18InstagramPublishPathname("/social/b18-instagram-publish-evil"),
     ).toBe(false);
     expect(
-      buildB18InstagramPublishHref("11111111-1111-4111-8111-111111111111"),
+      buildB18InstagramPublishHref({
+        organizationId: "11111111-1111-4111-8111-111111111111",
+      }),
     ).toBe(
       "/social/b18-instagram-publish?org=11111111-1111-4111-8111-111111111111",
+    );
+    expect(
+      buildB18InstagramPublishHref({
+        publicationId: "1714161a-29dd-4070-a1f0-6e2411ff363b",
+      }),
+    ).toBe(
+      "/social/b18-instagram-publish?publication=1714161a-29dd-4070-a1f0-6e2411ff363b",
     );
     expect(B18_CONTROLLED_IMAGE_CAPTION).toContain("B1.8");
     expect(
