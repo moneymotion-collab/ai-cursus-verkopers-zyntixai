@@ -58,14 +58,14 @@ describe("social OAuth intent", () => {
       false,
     );
     expect(mapSocialOAuthReturnPathId("social_workspace")).toBe(
-      "/social/r1-instagram-connect",
+      "/social",
     );
   });
 
   it("reuses the trusted safe-return-path allowlist", () => {
     const mapped = resolveSocialOAuthSafeReturnPath("social_workspace");
-    expect(mapped).toBe("/social/r1-instagram-connect");
-    expect(resolveSafeReturnPath(mapped)).toBe("/social/r1-instagram-connect");
+    expect(mapped).toBe("/social");
+    expect(resolveSafeReturnPath(mapped)).toBe("/social");
     expect(resolveSafeReturnPath("https://evil.example/phish")).toBe("/");
     expect(resolveSafeReturnPath("//evil.example")).toBe("/");
     expect(resolveSafeReturnPath("/api/social/instagram/callback")).toBe("/");

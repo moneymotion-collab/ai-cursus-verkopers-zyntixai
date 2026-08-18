@@ -119,17 +119,17 @@ export function B19LifecyclePanel({
     <div className={styles.root}>
       <section className={styles.summary} aria-label="Lifecycle summary">
         <p>
-          Publishing gate:{" "}
+          Publishing:{" "}
           <strong>{publishingEnabled ? "ON" : "OFF (fail-closed)"}</strong>
         </p>
         <p>
-          Healthy connected: {healthyConnectedCount} · Pending shells:{" "}
-          {pendingShellCount} · Queued/pending pubs: {queuedPublicationCount} ·
+          Healthy connected: {healthyConnectedCount} · Pending shells (history):{" "}
+          {pendingShellCount} · Active queue: {queuedPublicationCount} ·
           Succeeded: {succeededPublicationCount}
         </p>
         <p className={styles.notice}>
-          Historical leftovers are retained until an explicit owner action.
-          Actions below do not call Instagram.
+          Historical leftovers stay visible until an Owner/Admin abandons them.
+          These actions do not call Instagram.
         </p>
         {feedback ? <p className={styles.feedback}>{feedback}</p> : null}
       </section>

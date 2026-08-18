@@ -1,6 +1,6 @@
 /**
- * Page loader for /social/b18-instagram-publish (SMM-B1.8).
- * Owner/Admin only. Publishing gate flag is read-only for UI; never enabled here.
+ * Page loader for /social (SMM-B1.10 Beta 1 Social workspace).
+ * Owner/Admin only. Never enables publishing. Never calls Meta.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -17,14 +17,27 @@ import {
 } from "@/features/tasks/ui/resolve-task-organization-selection";
 import type { OrganizationRole } from "@/features/tasks/domain/permissions";
 import { canManageSocialConnections } from "@/features/social-media/domain/permissions";
+import {
+  isSocialSection,
+  type SocialSection,
+} from "@/features/social-media/domain/social-navigation";
 import { isSocialInstagramConnectionsFeatureEnabled } from "@/features/social-media/server/social-connections-feature";
 import { isSocialPublishingFeatureEnabled } from "@/features/social-media/server/social-publishing-feature";
 import { listActiveSocialWorkspaces } from "@/features/social-media/server/list-social-workspaces";
 import {
-  listSocialAccountConnections,
-  type ListedSocialConnection,
-} from "@/features/social-media/server/list-social-connections";
+  listSocialLifecycleInventory,
+  type ListedLifecycleConnection,
+  type ListedSocialPublication,
+} from "@/features/social-media/server/list-social-lifecycle-inventory";
 import type { ListedSocialWorkspace } from "@/features/social-media/server/list-social-workspaces";
+import {
+  isSocialOAuthOutcomeCode,
+  SOCIAL_OAUTH_OUTCOME_QUERY,
+} from "@/features/social-media/server/oauth-callback-redirect";
+import {
+  isSocialOAuthFailureStage,
+  SOCIAL_OAUTH_FAILURE_STAGE_QUERY,
+} from "@/features/social-media/domain/oauth-failure-stage";
 
 function firstSearchParam(
   value: string | string[] | undefined,
@@ -35,7 +48,7 @@ function firstSearchParam(
   return value;
 }
 
-export type B18InstagramPublishPageResult =
+export type SocialWorkspacePageResult =
   | { kind: "auth_required" }
   | { kind: "no_organizations" }
   | { kind: "organization_required"; organizations: OrganizationOption[] }
@@ -54,17 +67,28 @@ export type B18InstagramPublishPageResult =
       organizationName: string;
       organizationOptions: OrganizationOption[];
       role: OrganizationRole;
-      workspaces: ListedSocialWorkspace[];
-      connections: ListedSocialConnection[];
+      section: SocialSection;
       publishingEnabled: boolean;
-      /** Queued publication ready for one controlled execute (opaque id only). */
-      queuedPublicationId: string | null;
+      workspaces: ListedSocialWorkspace[];
+      connections: ListedLifecycleConnection[];
+      publications: ListedSocialPublication[];
+      activePublications: ListedSocialPublication[];
+      historicalPublications: ListedSocialPublication[];
+      healthyConnectedCount: number;
+      pendingShellCount: number;
+      activeQueueCount: number;
+      historicalQueueCount: number;
+      succeededPublicationCount: number;
+      blockedPublicationCount: number;
+      oauthOutcome: string | null;
+      oauthFailureStage: string | null;
+      explicitPublicationId: string | null;
     };
 
-export async function loadB18InstagramPublishPage(
+export async function loadSocialWorkspacePage(
   supabase: SupabaseClient<Database>,
   rawSearchParams: Record<string, string | string[] | undefined>,
-): Promise<B18InstagramPublishPageResult> {
+): Promise<SocialWorkspacePageResult> {
   if (!isSocialInstagramConnectionsFeatureEnabled()) {
     return { kind: "feature_disabled" };
   }
@@ -125,8 +149,7 @@ export async function loadB18InstagramPublishPage(
   if (!canManageSocialConnections(role, "active")) {
     return {
       kind: "forbidden",
-      message:
-        "Only Owner or Admin may run controlled B1.8 Instagram IMAGE publish verification.",
+      message: "Only Owner or Admin may manage Social Media Management.",
       role,
     };
   }
@@ -137,80 +160,86 @@ export async function loadB18InstagramPublishPage(
     role,
   );
 
-  const [workspacesResult, connectionsResult] = await Promise.all([
+  const sectionRaw = firstSearchParam(rawSearchParams.section);
+  const section: SocialSection = isSocialSection(sectionRaw)
+    ? sectionRaw
+    : "overview";
+
+  const oauthRaw = firstSearchParam(rawSearchParams[SOCIAL_OAUTH_OUTCOME_QUERY]);
+  const oauthOutcome =
+    oauthRaw && isSocialOAuthOutcomeCode(oauthRaw) ? oauthRaw : null;
+  const stageRaw = firstSearchParam(
+    rawSearchParams[SOCIAL_OAUTH_FAILURE_STAGE_QUERY],
+  );
+  const oauthFailureStage =
+    stageRaw && isSocialOAuthFailureStage(stageRaw) ? stageRaw : null;
+
+  const publishingEnabled = isSocialPublishingFeatureEnabled();
+  const [workspacesResult, inventory] = await Promise.all([
     listActiveSocialWorkspaces(supabase, organizationId),
-    listSocialAccountConnections(supabase, organizationId),
+    listSocialLifecycleInventory(
+      supabase,
+      organizationId,
+      new Date().toISOString(),
+      publishingEnabled,
+    ),
   ]);
-  if (!workspacesResult.ok || !connectionsResult.ok) {
+
+  if (!workspacesResult.ok || !inventory.ok) {
     return {
       kind: "query_error",
-      message: "Unable to load Social workspace state. Please try again.",
+      message: "Unable to load Social workspace. Please try again.",
       retryable: true,
       organizationId,
     };
   }
 
-  const requestedPublicationId = firstSearchParam(
-    rawSearchParams.publication,
-  )?.trim();
-  let queuedPublicationId: string | null = null;
+  const activePublications = inventory.publications.filter(
+    (publication) => !publication.isHistoricalLeftover,
+  );
+  const historicalPublications = inventory.publications.filter(
+    (publication) => publication.isHistoricalLeftover,
+  );
 
-  // social_publications is not yet in generated Database types — session client cast.
-  const publications = supabase as unknown as {
-    from: (table: string) => {
-      select: (columns: string) => {
-        eq: (column: string, value: string) => unknown;
-      };
-    };
-  };
-
-  function asPublicationId(data: unknown): string | null {
-    if (!data || typeof data !== "object") {
-      return null;
-    }
-    const id = (data as { id?: unknown }).id;
-    return typeof id === "string" && id.length > 0 ? id : null;
-  }
-
-  if (requestedPublicationId) {
-    const requestedQuery = publications
-      .from("social_publications")
-      .select("id, status") as {
-      eq: (column: string, value: string) => {
-        eq: (column: string, value: string) => {
-          maybeSingle: () => PromiseLike<{ data: unknown }>;
-        };
-      };
-    };
-    const { data: requested } = await requestedQuery
-      .eq("organization_id", organizationId)
-      .eq("id", requestedPublicationId)
-      .maybeSingle();
-    if (
-      asPublicationId(requested) &&
-      requested &&
-      typeof requested === "object" &&
-      (requested as { status?: unknown }).status === "queued"
-    ) {
-      queuedPublicationId = asPublicationId(requested);
-    }
-  }
-
-  if (!queuedPublicationId) {
-    // B1.10: do not auto-bind historical queued leftovers for execute.
-    // Execute requires an explicit publication query param or a fresh prepare.
-    queuedPublicationId = null;
-  }
+  const explicitPublicationId =
+    firstSearchParam(rawSearchParams.publication)?.trim() || null;
 
   return {
     kind: "success",
     organizationId,
-    organizationName: namesById[organizationId]?.trim() || "Organization",
+    organizationName:
+      organizationOptions.find((o) => o.organizationId === organizationId)
+        ?.displayName ?? "Organization",
     organizationOptions,
     role,
+    section,
+    publishingEnabled,
     workspaces: workspacesResult.workspaces,
-    connections: connectionsResult.connections,
-    publishingEnabled: isSocialPublishingFeatureEnabled(),
-    queuedPublicationId,
+    connections: inventory.connections,
+    publications: inventory.publications,
+    activePublications,
+    historicalPublications,
+    healthyConnectedCount: inventory.connections.filter(
+      (c) => c.operationalHealth === "healthy",
+    ).length,
+    pendingShellCount: inventory.connections.filter(
+      (c) => c.operationalHealth === "pending_shell",
+    ).length,
+    activeQueueCount: activePublications.filter(
+      (p) => p.status === "queued" || p.status === "pending",
+    ).length,
+    historicalQueueCount: historicalPublications.length,
+    succeededPublicationCount: inventory.publications.filter(
+      (p) => p.status === "succeeded",
+    ).length,
+    blockedPublicationCount: inventory.publications.filter(
+      (p) =>
+        p.status === "unknown_external_outcome" ||
+        p.status === "manual_intervention" ||
+        p.status === "failed_terminal",
+    ).length,
+    oauthOutcome,
+    oauthFailureStage,
+    explicitPublicationId,
   };
 }

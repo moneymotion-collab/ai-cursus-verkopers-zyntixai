@@ -30,19 +30,18 @@ describe("SMM-B1.7-R1 minimal Instagram connect surface", () => {
     expect(R1_INSTAGRAM_CONNECT_WORKSPACE_DISPLAY_NAME).toContain("R1 TEST");
   });
 
-  it("maps OAuth continuation to the R1 connect route allowlist", () => {
-    expect(mapSocialOAuthReturnPathId("social_workspace")).toBe(
-      "/social/r1-instagram-connect",
-    );
+  it("maps OAuth continuation to the Social workspace allowlist", () => {
+    expect(mapSocialOAuthReturnPathId("social_workspace")).toBe("/social");
     expect(resolveSocialOAuthSafeReturnPath("social_workspace")).toBe(
-      "/social/r1-instagram-connect",
+      "/social",
     );
     expect(
       buildSocialOAuthContinuationPath("social_workspace", "connected"),
-    ).toBe("/social/r1-instagram-connect?social_oauth=connected");
-    expect(
-      resolveSafeReturnPath("/social/r1-instagram-connect?social_oauth=connected"),
-    ).toBe("/social/r1-instagram-connect?social_oauth=connected");
+    ).toBe("/social?social_oauth=connected");
+    expect(resolveSafeReturnPath("/social?social_oauth=connected")).toBe(
+      "/social?social_oauth=connected",
+    );
+    expect(isProtectedApplicationPath("/social")).toBe(true);
     expect(isProtectedApplicationPath("/social/r1-instagram-connect")).toBe(
       true,
     );

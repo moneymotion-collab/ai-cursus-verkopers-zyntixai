@@ -28,9 +28,10 @@ export function isSocialOAuthReturnPathId(
  */
 export function mapSocialOAuthReturnPathId(
   id: SocialOAuthReturnPathId,
-): "/social/r1-instagram-connect" {
+): "/social" {
   void id;
-  return "/social/r1-instagram-connect";
+  // B1.10: continue into the Social workspace (not a phase verification URL).
+  return "/social";
 }
 
 export const SOCIAL_OAUTH_INTENT_STATUSES = [

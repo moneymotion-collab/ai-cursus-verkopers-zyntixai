@@ -23,3 +23,6 @@ supabase/pending_foundation/
 .DS_Store
 *.pem
 npm-debug.log*
+
+# local Vercel link metadata (never commit)
+.vercel/

@@ -57,6 +57,8 @@ export type ListedSocialPublication = {
   lastFailureClass: string | null;
   operatorAction: string;
   actionBlockedReason: string | null;
+  /** Unattempted queued/pending leftovers — history, not active work. */
+  isHistoricalLeftover: boolean;
   attempts: ListedPublicationAttempt[];
 };
 
@@ -229,6 +231,9 @@ export async function listSocialLifecycleInventory(
         operatorAction: action.action,
         actionBlockedReason: action.reason,
         attempts: attemptsByPublication.get(id) ?? [],
+        isHistoricalLeftover:
+          (statusRaw === "queued" || statusRaw === "pending") &&
+          (asNumber(record.attempt_count) ?? 0) === 0,
       });
     }
 

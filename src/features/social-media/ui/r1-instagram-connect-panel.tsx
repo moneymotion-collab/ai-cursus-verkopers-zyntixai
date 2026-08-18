@@ -68,19 +68,19 @@ export function R1InstagramConnectPanel({
   }
 
   return (
-    <section className={styles.panel} aria-labelledby="r1-connect-title">
-      <h2 id="r1-connect-title">Connect Instagram (R1)</h2>
+    <section className={styles.panel} aria-labelledby="instagram-connect-title">
+      <h2 id="instagram-connect-title">Connect Instagram</h2>
       <p className={styles.copy}>
-        Uses the dedicated Professional test account only. Publishing remains
-        fail-closed until a later owner-authorized publish stage.
+        Connect an Instagram Business account owned by this organization.
+        Publishing stays off until separately enabled.
       </p>
       <ul className={styles.meta}>
         <li>
-          Workspace: {hasWorkspace ? "present" : "will be created on connect"}
+          Workspace: {hasWorkspace ? "ready" : "will be created on connect"}
         </li>
         <li>
-          Instagram connection:{" "}
-          {hasConnectedInstagram ? "already present" : "not connected yet"}
+          Instagram:{" "}
+          {hasConnectedInstagram ? "connected" : "not connected yet"}
         </li>
       </ul>
       <button
@@ -92,8 +92,8 @@ export function R1InstagramConnectPanel({
         {feedback.kind === "pending"
           ? "Starting Instagram authorization…"
           : hasConnectedInstagram
-            ? "Start Instagram re-check / connect flow"
-            : "Connect Instagram test account"}
+            ? "Reconnect / authorize Instagram"
+            : "Connect Instagram"}
       </button>
       {feedback.kind === "error" ? (
         <p className={styles.error} role="alert">

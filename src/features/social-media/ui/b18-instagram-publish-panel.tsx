@@ -190,26 +190,26 @@ export function B18InstagramPublishPanel({
   }
 
   return (
-    <section className={styles.panel} aria-labelledby="b18-publish-title">
-      <h2 id="b18-publish-title">Controlled Instagram IMAGE publish (B1.8)</h2>
+    <section className={styles.panel} aria-labelledby="instagram-publish-title">
+      <h2 id="instagram-publish-title">Publish Instagram image</h2>
       <p className={styles.copy}>
-        Prepare creates private media + content + publication rows only. Execute
-        stays disabled while publishing remains OFF.
+        Prepare uploads a JPEG and creates a publication record. Execute stays
+        unavailable while publishing is off.
       </p>
       <ul className={styles.meta}>
-        <li>Workspace: {hasWorkspace ? "present" : "missing — complete R1 first"}</li>
+        <li>Workspace: {hasWorkspace ? "ready" : "connect Instagram first"}</li>
         <li>
           Publishable Instagram connections: {publishableConnections.length}
         </li>
         <li>
-          SOCIAL_PUBLISHING_ENABLED: {publishingEnabled ? "true" : "OFF (fail-closed)"}
+          Publishing: {publishingEnabled ? "enabled" : "off (fail-closed)"}
         </li>
       </ul>
 
       {publishableConnections.length === 0 ? (
         <p className={styles.copy}>
-          No connected Instagram account with publish_image. Use the R1 connect
-          surface first.
+          No connected Instagram account with image publish capability. Connect
+          an account first.
         </p>
       ) : (
         <form
@@ -273,19 +273,18 @@ export function B18InstagramPublishPanel({
         >
           {feedback.kind === "pending" && feedback.label.startsWith("Executing")
             ? feedback.label
-            : "Execute controlled IMAGE publish"}
+            : "Execute image publish"}
         </button>
       ) : (
         <p className={styles.notice} role="status">
-          Execute is hidden while SOCIAL_PUBLISHING_ENABLED is not exactly
-          &quot;true&quot;. Prepare may still create publication rows.
+          Execute is unavailable while publishing is off. You can still prepare
+          a publication record.
         </p>
       )}
 
       {feedback.kind === "prepared" ? (
         <p className={styles.success} role="status">
-          Prepared publication {feedback.publicationId}. Publishing remains OFF
-          until owner enablement.
+          Publication prepared. Publishing remains off until explicitly enabled.
         </p>
       ) : null}
       {feedback.kind === "executed" ? (

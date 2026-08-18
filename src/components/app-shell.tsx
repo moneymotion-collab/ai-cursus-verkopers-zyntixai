@@ -27,6 +27,11 @@ import {
   MEMBERS_ROUTE,
   resolveMembersNavVisible,
 } from "@/features/invitations/domain/members-navigation";
+import {
+  SOCIAL_NAV_LABEL,
+  SOCIAL_NAV_VISIBLE,
+  SOCIAL_ROUTE,
+} from "@/features/social-media/domain/social-navigation";
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -49,6 +54,7 @@ type AppShellProps = {
     | "enrollments"
     | "progress"
     | "attention"
+    | "social"
     | "tasks"
     | "members";
 };
@@ -130,6 +136,19 @@ export function AppShell({
                   aria-current={activeNav === "attention" ? "page" : undefined}
                 >
                   {ATTENTION_NAV_LABEL}
+                </Link>
+              ) : null}
+              {SOCIAL_NAV_VISIBLE ? (
+                <Link
+                  className={styles.navLink}
+                  href={
+                    selectedOrganizationId
+                      ? `${SOCIAL_ROUTE}?org=${encodeURIComponent(selectedOrganizationId)}`
+                      : SOCIAL_ROUTE
+                  }
+                  aria-current={activeNav === "social" ? "page" : undefined}
+                >
+                  {SOCIAL_NAV_LABEL}
                 </Link>
               ) : null}
               <Link
