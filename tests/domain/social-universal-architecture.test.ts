@@ -83,6 +83,9 @@ describe("SMM-B1.1-D universal social planning contracts", () => {
       "20260815185612_add_social_versioning_review_approval_calendar_foundation.sql",
       "20260815202145_add_social_publishing_infrastructure_foundation.sql",
       "20260815212000_add_social_private_media_bucket_r1.sql",
+      "20260818190346_add_social_closed_beta_enrollment_foundation.sql",
+      "20260818191706_add_social_closed_beta_entitlement_defense_in_depth.sql",
+      "20260818194719_add_social_closed_beta_operator_mutation_wrappers.sql",
     ]);
   });
 

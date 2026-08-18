@@ -436,3 +436,23 @@ export type {
   SocialClosedBetaOperatorAction,
   SocialClosedBetaEntitlementDenialCode,
 } from "@/features/social-media/domain/closed-beta-enrollment";
+
+export {
+  SOCIAL_CLOSED_BETA_OPERATOR_UI_ENABLED_ENV,
+  SOCIAL_CLOSED_BETA_OPERATOR_EMAIL_ALLOWLIST_ENV,
+  parseSocialClosedBetaOperatorUiEnabled,
+  parseSocialClosedBetaOperatorEmailAllowlist,
+  isSocialClosedBetaOperatorEmailAllowlisted,
+  resolveSocialClosedBetaPlatformOperatorAccess,
+} from "@/features/social-media/domain/platform-operator-identity";
+
+export {
+  SOCIAL_CLOSED_BETA_OPERATOR_ROUTE,
+  SOCIAL_CLOSED_BETA_OPERATOR_NAV_LABEL,
+  isSocialClosedBetaOperatorPathname,
+  buildSocialClosedBetaOperatorListHref,
+  buildSocialClosedBetaOperatorDetailHref,
+} from "@/features/social-media/domain/platform-operator-navigation";
+
+export { buildSocialClosedBetaCustomerReadModel } from "@/features/social-media/domain/social-closed-beta-customer-read-model";
+export type { SocialClosedBetaCustomerReadModel } from "@/features/social-media/domain/social-closed-beta-customer-read-model";
