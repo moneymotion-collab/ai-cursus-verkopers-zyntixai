@@ -1,5 +1,6 @@
 import { isAttentionPathname } from "@/features/attention/domain/attention-navigation";
 import { isMembersPathname } from "@/features/invitations/domain/members-navigation";
+import { isB18InstagramPublishPathname } from "@/features/social-media/domain/b18-publish-navigation";
 import { isR1InstagramConnectPathname } from "@/features/social-media/domain/r1-connect-navigation";
 
 const DEFAULT_RETURN_PATH = "/";
@@ -42,6 +43,10 @@ function isAllowlistedPathname(pathname: string): boolean {
   }
 
   if (isR1InstagramConnectPathname(pathname)) {
+    return true;
+  }
+
+  if (isB18InstagramPublishPathname(pathname)) {
     return true;
   }
 
@@ -175,6 +180,7 @@ export function isProtectedApplicationPath(pathname: string): boolean {
     isAttentionPathname(pathname) ||
     isMembersPathname(pathname) ||
     isR1InstagramConnectPathname(pathname) ||
+    isB18InstagramPublishPathname(pathname) ||
     pathname === "/onboarding"
   );
 }

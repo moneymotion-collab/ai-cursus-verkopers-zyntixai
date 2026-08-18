@@ -92,7 +92,7 @@ describe("SMM-B1.6 publishing migration security", () => {
 
   it("keeps social migration inventory ordered and additive", () => {
     const social = readdirSync(join(process.cwd(), "supabase/migrations"))
-      .filter((name) => name.includes("social"))
+      .filter((name) => name.includes("social") || name.includes("b18"))
       .sort();
     expect(social).toEqual([
       "20260815130220_add_social_connection_credential_foundation.sql",
@@ -103,6 +103,40 @@ describe("SMM-B1.6 publishing migration security", () => {
       "20260815185612_add_social_versioning_review_approval_calendar_foundation.sql",
       "20260815202145_add_social_publishing_infrastructure_foundation.sql",
       "20260815212000_add_social_private_media_bucket_r1.sql",
+      "20260818130747_add_b18_controlled_publication_execution_rpcs.sql",
     ]);
+  });
+
+  it("grants B1.8 controlled wrappers to authenticated only", () => {
+    const b18 = readFileSync(
+      join(
+        process.cwd(),
+        "supabase/migrations/20260818130747_add_b18_controlled_publication_execution_rpcs.sql",
+      ),
+      "utf8",
+    );
+    expect(b18).toContain("public.b18_start_controlled_publication_attempt");
+    expect(b18).toContain("public.b18_complete_controlled_publication_attempt");
+    expect(b18).toContain("private.can_manage_social_connections");
+    expect(b18).toContain("set_config('zyntix.social_publication_worker'");
+    expect(b18).toContain("set_config('zyntix.social_publishing_enabled'");
+    expect(b18).toContain(
+      "grant execute on function public.b18_start_controlled_publication_attempt(uuid, uuid) to authenticated",
+    );
+    expect(b18).toContain(
+      "grant execute on function public.b18_complete_controlled_publication_attempt(uuid, uuid, text, integer, text, text, text, text) to authenticated",
+    );
+    expect(b18).toContain(
+      "revoke all on function public.b18_start_controlled_publication_attempt(uuid, uuid) from service_role",
+    );
+    expect(b18).toContain(
+      "revoke all on function public.b18_complete_controlled_publication_attempt(uuid, uuid, text, integer, text, text, text, text) from service_role",
+    );
+    expect(b18).toContain(
+      "revoke all on function public.b18_start_controlled_publication_attempt(uuid, uuid) from anon",
+    );
+    expect(b18).not.toMatch(
+      /grant execute on function public\.b18_start_controlled_publication_attempt[\s\S]*to service_role/,
+    );
   });
 });

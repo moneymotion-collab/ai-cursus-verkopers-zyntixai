@@ -1,5 +1,5 @@
 /**
- * Session-client listing for Social account connections (SMM-B1.7-R1).
+ * Session-client listing for Social account connections (SMM-B1.7-R1 / B1.8).
  * Safe metadata only — never credentials.
  */
 
@@ -30,6 +30,9 @@ export type ListedSocialConnection = {
   professionalAccountType: string | null;
   externalAccountId: string | null;
   health: string | null;
+  displayName: string | null;
+  capabilitySnapshot: string[];
+  reauthorizationRequired: boolean;
 };
 
 export type ListSocialConnectionsResult =
@@ -38,6 +41,19 @@ export type ListSocialConnectionsResult =
 
 function asString(value: unknown): string | null {
   return typeof value === "string" ? value : null;
+}
+
+function parseCapabilitySnapshot(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const out: string[] = [];
+  for (const item of value) {
+    if (typeof item === "string" && item.length > 0) {
+      out.push(item);
+    }
+  }
+  return out;
 }
 
 export async function listSocialAccountConnections(
@@ -49,7 +65,7 @@ export async function listSocialAccountConnections(
     const { data, error } = await client
       .from("social_account_connections")
       .select(
-        "id, workspace_id, provider, status, professional_account_type, external_account_id, health",
+        "id, workspace_id, provider, status, professional_account_type, external_account_id, health, display_name, capability_snapshot, reauthorization_required_at",
       )
       .eq("organization_id", organizationId);
     if (error) {
@@ -79,6 +95,9 @@ export async function listSocialAccountConnections(
         professionalAccountType: asString(record.professional_account_type),
         externalAccountId: asString(record.external_account_id),
         health: asString(record.health),
+        displayName: asString(record.display_name),
+        capabilitySnapshot: parseCapabilitySnapshot(record.capability_snapshot),
+        reauthorizationRequired: record.reauthorization_required_at != null,
       });
     }
     return { ok: true, connections };

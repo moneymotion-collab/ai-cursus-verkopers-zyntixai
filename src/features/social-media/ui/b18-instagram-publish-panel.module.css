@@ -1,0 +1,66 @@
+.panel {
+  display: grid;
+  gap: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  background: var(--surface-color);
+  max-width: 40rem;
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.copy,
+.meta,
+.notice {
+  margin: 0;
+  color: var(--muted-text);
+}
+
+.meta {
+  padding-left: 1.25rem;
+}
+
+.form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.label {
+  font-weight: 600;
+}
+
+.select,
+.file,
+.button {
+  justify-self: start;
+  min-height: 2.75rem;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background: var(--surface-color);
+  color: var(--text-color);
+}
+
+.button {
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.error {
+  margin: 0;
+  color: var(--danger-text, #b42318);
+}
+
+.success {
+  margin: 0;
+  color: var(--muted-text);
+}
