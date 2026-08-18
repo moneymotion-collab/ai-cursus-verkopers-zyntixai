@@ -10,37 +10,42 @@
 ## 1. Executive verdict
 
 ```text
-SMM-B1.7-R1 OWNER ACTION REQUIRED — DEPLOY REMOVE UNDOCUMENTED TOKEN-ID EQUALITY CHECK THEN ONE RETRY
+SMM-B1.7-R1 OAUTH CONNECTION VERIFIED — PUBLISHING REMAINS OFF — B1.8 NOT AUTHORIZED
 ```
 
-### Production deploy SHA verification (2026-08-18)
+Owner retry result:
+
+```text
+social_oauth=connected
+social_oauth_stage=none
+```
+
+### Production deploy / DB verification (2026-08-18, post-connect)
 
 | Check | Result |
 | --- | --- |
-| Live Production (granular stages) | confirmed on `d9310e0` |
-| Owner retry stage | `professional_identity_token_id_mismatch` |
+| Production tip commit | `ff49a9a54f3d24f33febd6ba70c9a976d2562e8c` |
+| Deploy message | `fix(smm): stop comparing instagram token user_id to /me.id` |
+| Connections | 1 × `connected` + 6 × `authorization_pending` (left as evidence; not deleted) |
+| Connected provider / login | `instagram` / `instagram_login` |
+| Professional account type | `business` |
+| Health | `healthy` |
+| External account id present | yes (value not logged) |
+| Display name present | yes (value not logged) |
+| Credential ref + private ciphertext | yes (1 encrypted credential row; no plaintext inspected) |
+| Token expiry / connected_at present | yes |
+| Capability snapshot | `publish_image`, `publish_video`, `publish_carousel`, `publish_short`, `publish_story` |
+| Publications | **0** |
+| Publication attempts | **0** |
+| Publishing gate | **OFF** (must remain OFF) |
 
-### Root cause (token identity model)
+Root-cause chain closed for OAuth connect:
 
-Official Instagram API with Instagram Login (`v26.0`):
+1. Coarse `professional_identity_fetch` after successful token exchange  
+2. Undocumented `token.user_id === /me.id` equality falsely fail-closed  
+3. Fix: establish identity from authenticated `/me`; persist `/me.user_id` as external account id  
 
-| Identifier | Documented meaning |
-| --- | --- |
-| Token-exchange `user_id` | Instagram-scoped / Instagram App-scoped user ID returned with the short-lived token |
-| `/me.id` | App user's app-scoped ID |
-| `/me.user_id` | Instagram professional account ID (`<IG_ID>`); webhook `id` value |
-
-Meta does **not** document a required equality between token-exchange `user_id` and `/me.id`. Production proved they can differ after a successful `/me` read. Identity must be established from the authenticated `/me` response; persist `/me.user_id` as `external_account_id`.
-
-### Production row state after diagnostic retry (safe)
-
-| Object | Count / status |
-| --- | --- |
-| Connections | 4 × `authorization_pending` |
-| Credentials | 0 |
-| Publications | 0 |
-
-Publishing remains OFF. Do not delete Production evidence rows.
+Publishing remains OFF. Do not delete Production evidence rows. Do not start B1.8.
 
 ---
 
@@ -575,11 +580,11 @@ Do not start Analytics / AI Optimization / Cross-Platform Repurposing until R1 c
 ## External-effects ledger (this stop)
 
 ```text
-REAL INSTAGRAM OAUTH AUTHORIZATIONS: 0
-REAL INSTAGRAM CONNECTIONS CREATED: 0
-REAL PROVIDER TOKENS RECEIVED: 0
+REAL INSTAGRAM OAUTH AUTHORIZATIONS: >=1 SUCCESS (plus prior failed R1 diagnostics)
+REAL INSTAGRAM CONNECTIONS CREATED: 1 connected (plus authorization_pending leftovers retained)
+REAL PROVIDER TOKENS RECEIVED: 1 encrypted credential row (ciphertext only; plaintext never logged)
 
-LIVE INSTAGRAM READ API CALLS: 0
+LIVE INSTAGRAM READ API CALLS: yes (/me during successful OAuth only; bodies not logged)
 LIVE INSTAGRAM WRITE API CALLS: 0
 LIVE MEDIA CONTAINERS CREATED: 0
 LIVE MEDIA PUBLISH CALLS: 0
@@ -593,8 +598,9 @@ REAL VIDEO STORIES PUBLISHED: 0
 DUPLICATE POSTS CREATED: 0
 FAILED/AMBIGUOUS REAL PUBLICATIONS: 0
 
-CONNECTION GATE FINAL STATE: OFF
+CONNECTION GATE FINAL STATE: ON (owner-attested for R1)
 PUBLISHING GATE FINAL STATE: OFF
 ```
 
 Production DB mutation performed (non-Instagram): private bucket migration `20260815212000` only.
+Pending authorization rows retained as evidence — not deleted.
