@@ -6,6 +6,7 @@ import { canManageSocialConnections } from "@/features/social-media/domain/permi
 import { isSocialInstagramConnectionsFeatureEnabled } from "@/features/social-media/server/social-connections-feature";
 import { isSocialPublishingFeatureEnabled } from "@/features/social-media/server/social-publishing-feature";
 import { executeB18ImagePublication } from "@/features/social-media/server/b18-execute-image-publication";
+import { assertClosedBetaPublishAllowed } from "@/features/social-media/server/social-closed-beta-enrollment";
 
 export type ExecuteB18InstagramImagePublicationActionResult =
   | {
@@ -31,6 +32,10 @@ export type ExecuteB18InstagramImagePublicationActionResult =
         | "stale_claim"
         | "none_due"
         | "credential_unavailable"
+        | "closed_beta_not_enrolled"
+        | "closed_beta_paused"
+        | "closed_beta_revoked"
+        | "closed_beta_publish_not_allowed"
         | "internal_error";
     };
 
@@ -69,6 +74,23 @@ export async function executeB18InstagramImagePublicationAction(input: {
     return { ok: false, code: "forbidden" };
   }
 
+  const publishEntitlement = await assertClosedBetaPublishAllowed(
+    supabase,
+    orgContext.context.organizationId,
+  );
+  if (!publishEntitlement.ok) {
+    if (
+      publishEntitlement.code === "closed_beta_not_enrolled" ||
+      publishEntitlement.code === "closed_beta_paused" ||
+      publishEntitlement.code === "closed_beta_revoked" ||
+      publishEntitlement.code === "closed_beta_publish_not_allowed" ||
+      publishEntitlement.code === "forbidden"
+    ) {
+      return { ok: false, code: publishEntitlement.code };
+    }
+    return { ok: false, code: "internal_error" };
+  }
+
   const result = await executeB18ImagePublication(supabase, {
     organizationId: orgContext.context.organizationId,
     publicationId,
@@ -83,6 +105,10 @@ export async function executeB18InstagramImagePublicationAction(input: {
       case "stale_claim":
       case "none_due":
       case "credential_unavailable":
+      case "closed_beta_not_enrolled":
+      case "closed_beta_paused":
+      case "closed_beta_revoked":
+      case "closed_beta_publish_not_allowed":
         return { ok: false, code: result.reason };
       case "invalid_input":
         return { ok: false, code: "invalid_request" };

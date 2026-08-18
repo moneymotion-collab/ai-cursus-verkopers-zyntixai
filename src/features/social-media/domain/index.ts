@@ -413,3 +413,26 @@ export type {
   SocialConnectionOperationalHealth,
   PublicationActionAvailability,
 } from "@/features/social-media/domain/lifecycle";
+
+export {
+  SOCIAL_CLOSED_BETA_ENROLLMENT_STATUSES,
+  SOCIAL_CLOSED_BETA_ENROLLMENT_EVENT_TYPES,
+  SOCIAL_CLOSED_BETA_OPERATOR_ACTIONS,
+  isSocialClosedBetaEnrollmentStatus,
+  isSocialClosedBetaEffectiveStatus,
+  canPrepareWithClosedBetaEnrollment,
+  canExecuteWithClosedBetaEnrollment,
+  closedBetaPrepareDenialCode,
+  closedBetaPublishDenialCode,
+  userSafeClosedBetaDenialMessage,
+  isLegalClosedBetaTransition,
+  nextClosedBetaStatusAfterAction,
+  evaluateSocialProviderWriteAuthorization,
+} from "@/features/social-media/domain/closed-beta-enrollment";
+export type {
+  SocialClosedBetaEnrollmentStatus,
+  SocialClosedBetaEffectiveStatus,
+  SocialClosedBetaEnrollmentEventType,
+  SocialClosedBetaOperatorAction,
+  SocialClosedBetaEntitlementDenialCode,
+} from "@/features/social-media/domain/closed-beta-enrollment";

@@ -13,6 +13,7 @@ import type {
   SocialPublicationMediaReference,
 } from "@/features/social-media/domain/publishing";
 import { isSocialPublishingFeatureEnabled } from "@/features/social-media/server/social-publishing-feature";
+import { assertClosedBetaPublishAllowed } from "@/features/social-media/server/social-closed-beta-enrollment";
 import { loadEncryptedSocialProviderCredentialEnvelope } from "@/features/social-media/server/credential-repository";
 import { decryptSocialCredentialEnvelope } from "@/features/social-media/server/credential-crypto";
 import { SOCIAL_CREDENTIAL_ENCRYPTION_PURPOSE } from "@/features/social-media/server/credential-secrets";
@@ -129,6 +130,10 @@ export type ExecuteB18ImagePublicationFailure = {
     | "stale_claim"
     | "none_due"
     | "credential_unavailable"
+    | "closed_beta_not_enrolled"
+    | "closed_beta_paused"
+    | "closed_beta_revoked"
+    | "closed_beta_publish_not_allowed"
     | "transport_error"
     | "unexpected";
 };
@@ -191,6 +196,23 @@ export async function executeB18ImagePublication(
     return { ok: false, reason: "invalid_input" };
   }
 
+  const entitlement = await assertClosedBetaPublishAllowed(
+    supabase,
+    organizationId,
+  );
+  if (!entitlement.ok) {
+    if (
+      entitlement.code === "closed_beta_not_enrolled" ||
+      entitlement.code === "closed_beta_paused" ||
+      entitlement.code === "closed_beta_revoked" ||
+      entitlement.code === "closed_beta_publish_not_allowed" ||
+      entitlement.code === "forbidden"
+    ) {
+      return { ok: false, reason: entitlement.code };
+    }
+    return { ok: false, reason: "unexpected" };
+  }
+
   const rpcClient = supabase as unknown as RpcCapableClient;
   const queryClient = supabase as unknown as QueryCapableClient;
 
@@ -224,7 +246,11 @@ export async function executeB18ImagePublication(
       startCode === "conflict" ||
       startCode === "stale_claim" ||
       startCode === "none_due" ||
-      startCode === "invalid_input"
+      startCode === "invalid_input" ||
+      startCode === "closed_beta_not_enrolled" ||
+      startCode === "closed_beta_paused" ||
+      startCode === "closed_beta_revoked" ||
+      startCode === "closed_beta_publish_not_allowed"
     ) {
       return { ok: false, reason: startCode };
     }

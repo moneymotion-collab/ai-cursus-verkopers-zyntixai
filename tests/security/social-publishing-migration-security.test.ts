@@ -110,6 +110,7 @@ describe("SMM-B1.6 publishing migration security", () => {
       "20260815212000_add_social_private_media_bucket_r1.sql",
       "20260818130747_add_b18_controlled_publication_execution_rpcs.sql",
       "20260818145249_add_b19_publishing_lifecycle_hardening.sql",
+      "20260818190346_add_social_closed_beta_enrollment_foundation.sql",
     ]);
   });
 

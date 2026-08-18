@@ -7,6 +7,7 @@ import { isSocialInstagramConnectionsFeatureEnabled } from "@/features/social-me
 import { listActiveSocialWorkspaces } from "@/features/social-media/server/list-social-workspaces";
 import { listSocialAccountConnections } from "@/features/social-media/server/list-social-connections";
 import { prepareB18ImagePublication } from "@/features/social-media/server/b18-prepare-image-publication";
+import { assertClosedBetaPrepareAllowed } from "@/features/social-media/server/social-closed-beta-enrollment";
 
 export type PrepareB18InstagramImagePublicationActionResult =
   | {
@@ -29,6 +30,9 @@ export type PrepareB18InstagramImagePublicationActionResult =
         | "workflow_not_ready"
         | "connection_ineligible"
         | "capability_missing"
+        | "closed_beta_not_enrolled"
+        | "closed_beta_paused"
+        | "closed_beta_revoked"
         | "internal_error";
     };
 
@@ -69,6 +73,22 @@ export async function prepareB18InstagramImagePublicationAction(
   }
   if (!canManageSocialConnections(orgContext.context.role, "active")) {
     return { ok: false, code: "forbidden" };
+  }
+
+  const prepareEntitlement = await assertClosedBetaPrepareAllowed(
+    supabase,
+    orgContext.context.organizationId,
+  );
+  if (!prepareEntitlement.ok) {
+    if (
+      prepareEntitlement.code === "closed_beta_not_enrolled" ||
+      prepareEntitlement.code === "closed_beta_paused" ||
+      prepareEntitlement.code === "closed_beta_revoked" ||
+      prepareEntitlement.code === "forbidden"
+    ) {
+      return { ok: false, code: prepareEntitlement.code };
+    }
+    return { ok: false, code: "internal_error" };
   }
 
   const [workspacesResult, connectionsResult] = await Promise.all([
