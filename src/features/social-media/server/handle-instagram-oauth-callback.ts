@@ -216,10 +216,12 @@ export async function handleInstagramOAuthCallback(
     );
   }
 
-  // Prefer identity user_id; token-exchange user_id must agree when present.
+  // Prefer professional IG_ID for storage. Token-exchange user_id is app-scoped
+  // and must be compared to /me `id`, not to /me `user_id`.
   if (
     shortLived.value.userId &&
-    shortLived.value.userId !== identity.value.externalAccountId
+    identity.value.appScopedUserId &&
+    shortLived.value.userId !== identity.value.appScopedUserId
   ) {
     return failure(
       "connection_failed",

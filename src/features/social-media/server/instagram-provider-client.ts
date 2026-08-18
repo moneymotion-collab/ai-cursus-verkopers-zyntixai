@@ -34,7 +34,10 @@ export type InstagramLongLivedToken = {
 };
 
 export type InstagramProfessionalIdentity = {
+  /** Instagram professional account ID (`user_id` field / IG_ID). */
   externalAccountId: string;
+  /** App-scoped user id (`id` field); comparable to token-exchange user_id. */
+  appScopedUserId: string | null;
   username: string | null;
   accountType: InstagramProfessionalAccountType;
 };
@@ -292,7 +295,9 @@ export async function fetchInstagramProfessionalIdentity(
   const url = new URL(
     `${config.graphBaseUrl}/${config.graphApiVersion}/me`,
   );
-  url.searchParams.set("fields", "user_id,username,account_type");
+  // Meta: `id` = app-scoped; `user_id` = Instagram professional IG_ID.
+  // Token-exchange user_id matches `id`, not necessarily `user_id`.
+  url.searchParams.set("fields", "id,user_id,username,account_type");
   url.searchParams.set("access_token", accessToken);
 
   const fetched = await fetchWithTimeout(
@@ -318,12 +323,24 @@ export async function fetchInstagramProfessionalIdentity(
   if (!record) {
     return { ok: false, reason: "invalid_payload" };
   }
-  const externalAccountIdRaw = record.user_id ?? record.id;
+
+  const appScopedRaw = record.id;
+  const appScopedUserId =
+    typeof appScopedRaw === "string"
+      ? appScopedRaw.trim()
+      : typeof appScopedRaw === "number"
+        ? String(appScopedRaw)
+        : null;
+  if (appScopedUserId !== null && appScopedUserId.length === 0) {
+    return { ok: false, reason: "invalid_payload" };
+  }
+
+  const professionalRaw = record.user_id ?? record.id;
   const externalAccountId =
-    typeof externalAccountIdRaw === "string"
-      ? externalAccountIdRaw.trim()
-      : typeof externalAccountIdRaw === "number"
-        ? String(externalAccountIdRaw)
+    typeof professionalRaw === "string"
+      ? professionalRaw.trim()
+      : typeof professionalRaw === "number"
+        ? String(professionalRaw)
         : "";
   if (externalAccountId.length === 0) {
     return { ok: false, reason: "invalid_payload" };
@@ -342,6 +359,7 @@ export async function fetchInstagramProfessionalIdentity(
     ok: true,
     value: {
       externalAccountId,
+      appScopedUserId,
       username,
       accountType,
     },

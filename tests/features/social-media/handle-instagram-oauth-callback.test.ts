@@ -115,6 +115,7 @@ function mockProviderFetch(): typeof fetch {
     if (url.includes("/me")) {
       return new Response(
         JSON.stringify({
+          id: externalAccountId,
           user_id: externalAccountId,
           username: "zyntix_demo",
           account_type: "BUSINESS",
@@ -465,6 +466,119 @@ describe("SMM-B1.1-C Instagram OAuth callback orchestration", () => {
     expect(result.redirectPath).toContain(
       "social_oauth_stage=connection_finalize",
     );
+  });
+
+  it("accepts distinct app-scoped token user_id and professional IG user_id", async () => {
+    const appScopedId = "10200000000000099";
+    const professionalId = "17841400000000999";
+    const supabase = createSupabaseMock({});
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("api.instagram.com/oauth/access_token")) {
+        return new Response(
+          JSON.stringify({
+            data: [
+              {
+                access_token: "short-lived-token",
+                user_id: appScopedId,
+                permissions:
+                  "instagram_business_basic,instagram_business_content_publish",
+              },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      if (url.includes("grant_type=ig_exchange_token")) {
+        return new Response(
+          JSON.stringify({
+            access_token: "long-lived-token",
+            token_type: "bearer",
+            expires_in: 5184000,
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      if (url.includes("/me")) {
+        return new Response(
+          JSON.stringify({
+            id: appScopedId,
+            user_id: professionalId,
+            username: "zyntix_demo",
+            account_type: "Media_Creator",
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      return new Response("not found", { status: 404 });
+    }) as unknown as typeof fetch;
+
+    const result = await handleInstagramOAuthCallback(
+      supabase,
+      {
+        query: { code: "auth-code", state: "aa".repeat(32) },
+        intentIdFromCookie: intentId,
+      },
+      { env: enabledEnv, fetchImpl },
+    );
+    expect(result.outcome).toBe("connected");
+    expect(result.redirectPath).not.toContain("social_oauth_stage=");
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      "finalize_social_connection",
+      expect.objectContaining({
+        p_connection_id: connectionId,
+        p_external_account_id: professionalId,
+      }),
+    );
+  });
+
+  it("still fail-closes when app-scoped ids disagree", async () => {
+    const supabase = createSupabaseMock({});
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("api.instagram.com/oauth/access_token")) {
+        return new Response(
+          JSON.stringify({
+            data: [
+              {
+                access_token: "short-lived-token",
+                user_id: "10200000000000001",
+              },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      if (url.includes("grant_type=ig_exchange_token")) {
+        return new Response(
+          JSON.stringify({
+            access_token: "long-lived-token",
+            expires_in: 1000,
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      return new Response(
+        JSON.stringify({
+          id: "10200000000000002",
+          user_id: "17841400000000000",
+          username: "zyntix_demo",
+          account_type: "BUSINESS",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }) as unknown as typeof fetch;
+
+    const result = await handleInstagramOAuthCallback(
+      supabase,
+      {
+        query: { code: "auth-code", state: "bb".repeat(32) },
+        intentIdFromCookie: intentId,
+      },
+      { env: enabledEnv, fetchImpl },
+    );
+    expect(result.outcome).toBe("connection_failed");
+    expect(result.failureStage).toBe("professional_identity_fetch");
   });
 
   it("marks provider_unavailable with the same opaque stage on non_2xx", async () => {

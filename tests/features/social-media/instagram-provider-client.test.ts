@@ -111,9 +111,10 @@ describe("SMM-B1.1-C Instagram provider adapter", () => {
       {
         fetchImpl: async () =>
           jsonResponse({
+            id: "10200000000000001",
             user_id: "17841400000000000",
             username: "zyntix_demo",
-            account_type: "BUSINESS",
+            account_type: "Business",
           }),
       },
     );
@@ -122,7 +123,27 @@ describe("SMM-B1.1-C Instagram provider adapter", () => {
       return;
     }
     expect(identity.value.accountType).toBe("business");
+    expect(identity.value.appScopedUserId).toBe("10200000000000001");
     expect(identity.value.externalAccountId).toBe("17841400000000000");
+
+    const creator = await fetchInstagramProfessionalIdentity(
+      config,
+      "long-token",
+      {
+        fetchImpl: async () =>
+          jsonResponse({
+            id: "10200000000000002",
+            user_id: "17841400000000001",
+            username: "zyntix_creator",
+            account_type: "Media_Creator",
+          }),
+      },
+    );
+    expect(creator.ok).toBe(true);
+    if (!creator.ok) {
+      return;
+    }
+    expect(creator.value.accountType).toBe("creator");
   });
 
   it("rejects personal / unsupported account types", async () => {

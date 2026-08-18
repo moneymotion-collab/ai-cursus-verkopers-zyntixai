@@ -10,27 +10,29 @@
 ## 1. Executive verdict
 
 ```text
-SMM-B1.7-R1 OWNER ACTION REQUIRED — DEPLOY OAUTH STAGE DIAGNOSTICS THEN ONE RETRY
+SMM-B1.7-R1 OWNER ACTION REQUIRED — DEPLOY IDENTITY ID-MAPPING FIX THEN ONE RETRY
 ```
 
-Retry 2 again returned `social_oauth=connection_failed` with no credential persistence.
-Opaque post-consume failure-stage diagnostics added (`social_oauth_stage=…` allowlisted query only; no secret logging).
+Retry with diagnostics returned:
 
-### Production row state after retry 2 (safe)
+```text
+social_oauth=connection_failed
+social_oauth_stage=professional_identity_fetch
+```
+
+Root cause: callback compared token-exchange `user_id` (app-scoped) to `/me.user_id` (professional IG_ID). Meta documents these as different IDs; mismatch fail-closed after successful token exchange.
+
+Fix: request `/me` fields `id,user_id,username,account_type`; compare token `user_id` to `/me.id`; persist professional `/me.user_id` as external account id.
+
+### Production row state after diagnostic retry (safe)
 
 | Object | Count / status |
 | --- | --- |
-| Brands | 1 |
-| Workspaces | 1 |
-| Connections | 3 × `authorization_pending` |
-| Intents | 3 × `consumed` |
+| Connections | 4 × `authorization_pending` |
 | Credentials | 0 |
-| Connection events | 3 × `social_connection_initiated` |
 | Publications | 0 |
 
-Publishing remains OFF. No live publish authorized.
-
-Diagnostic commit: `544ad29` — `fix(smm): add opaque instagram oauth failure stage diagnostics`
+Publishing remains OFF.
 
 ---
 
