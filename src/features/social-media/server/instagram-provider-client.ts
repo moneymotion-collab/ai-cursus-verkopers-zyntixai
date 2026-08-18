@@ -20,7 +20,10 @@ export type InstagramProviderHttpFailureReason =
   | "invalid_json"
   | "invalid_payload"
   | "empty_token"
-  | "unsupported_account";
+  | "unsupported_account"
+  | "missing_id"
+  | "missing_user_id"
+  | "missing_username";
 
 export type InstagramShortLivedToken = {
   accessToken: string;
@@ -37,8 +40,8 @@ export type InstagramProfessionalIdentity = {
   /** Instagram professional account ID (`user_id` field / IG_ID). */
   externalAccountId: string;
   /** App-scoped user id (`id` field); comparable to token-exchange user_id. */
-  appScopedUserId: string | null;
-  username: string | null;
+  appScopedUserId: string;
+  username: string;
   accountType: InstagramProfessionalAccountType;
 };
 
@@ -66,7 +69,22 @@ function unwrapDataObject(value: unknown): Record<string, unknown> | null {
   if (Array.isArray(record.data) && record.data.length > 0) {
     return asRecord(record.data[0]);
   }
+  const nestedData = asRecord(record.data);
+  if (nestedData) {
+    return nestedData;
+  }
   return record;
+}
+
+function readNonEmptyId(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
 }
 
 function parsePermissions(value: unknown): string[] {
@@ -324,26 +342,28 @@ export async function fetchInstagramProfessionalIdentity(
     return { ok: false, reason: "invalid_payload" };
   }
 
-  const appScopedRaw = record.id;
-  const appScopedUserId =
-    typeof appScopedRaw === "string"
-      ? appScopedRaw.trim()
-      : typeof appScopedRaw === "number"
-        ? String(appScopedRaw)
-        : null;
-  if (appScopedUserId !== null && appScopedUserId.length === 0) {
-    return { ok: false, reason: "invalid_payload" };
+  // Fail closed on each required Instagram Login /me field separately so
+  // Production can surface an opaque stage without logging provider bodies.
+  const appScopedUserId = readNonEmptyId(record.id);
+  if (!appScopedUserId) {
+    return { ok: false, reason: "missing_id" };
   }
 
-  const professionalRaw = record.user_id ?? record.id;
-  const externalAccountId =
-    typeof professionalRaw === "string"
-      ? professionalRaw.trim()
-      : typeof professionalRaw === "number"
-        ? String(professionalRaw)
-        : "";
-  if (externalAccountId.length === 0) {
-    return { ok: false, reason: "invalid_payload" };
+  const externalAccountId = readNonEmptyId(record.user_id);
+  if (!externalAccountId) {
+    return { ok: false, reason: "missing_user_id" };
+  }
+
+  const username =
+    typeof record.username === "string" && record.username.trim().length > 0
+      ? record.username.trim()
+      : null;
+  if (!username) {
+    return { ok: false, reason: "missing_username" };
+  }
+
+  if (!("account_type" in record)) {
+    return { ok: false, reason: "unsupported_account" };
   }
   const accountType = normalizeInstagramProfessionalAccountType(
     typeof record.account_type === "string" ? record.account_type : null,
@@ -351,10 +371,7 @@ export async function fetchInstagramProfessionalIdentity(
   if (!accountType) {
     return { ok: false, reason: "unsupported_account" };
   }
-  const username =
-    typeof record.username === "string" && record.username.trim().length > 0
-      ? record.username.trim()
-      : null;
+
   return {
     ok: true,
     value: {

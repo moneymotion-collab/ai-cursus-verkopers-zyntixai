@@ -277,6 +277,7 @@ describe("SMM-B1.1-C Instagram OAuth callback orchestration", () => {
       }
       return new Response(
         JSON.stringify({
+          id: externalAccountId,
           user_id: externalAccountId,
           username: "personal",
           account_type: "PERSONAL",
@@ -294,6 +295,7 @@ describe("SMM-B1.1-C Instagram OAuth callback orchestration", () => {
       { env: enabledEnv, fetchImpl },
     );
     expect(result.outcome).toBe("unsupported_account");
+    expect(result.failureStage).toBe("professional_identity_account_type");
   });
 
   it("maps duplicate connection finalize failures", async () => {
@@ -387,7 +389,7 @@ describe("SMM-B1.1-C Instagram OAuth callback orchestration", () => {
     expect(result.redirectPath).not.toContain("short-lived-token");
   });
 
-  it("attaches opaque stage professional_identity_fetch on identity failures", async () => {
+  it("attaches opaque stage professional_identity_missing_id on incomplete /me payload", async () => {
     const supabase = createSupabaseMock({});
     const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
@@ -427,11 +429,99 @@ describe("SMM-B1.1-C Instagram OAuth callback orchestration", () => {
       { env: enabledEnv, fetchImpl },
     );
     expect(result.outcome).toBe("connection_failed");
-    expect(result.failureStage).toBe("professional_identity_fetch");
+    expect(result.failureStage).toBe("professional_identity_missing_id");
     expect(result.redirectPath).toContain(
-      "social_oauth_stage=professional_identity_fetch",
+      "social_oauth_stage=professional_identity_missing_id",
     );
     expect(result.redirectPath).not.toContain("long-lived-token");
+  });
+
+  it("attaches opaque stage professional_identity_http on /me non_2xx", async () => {
+    const supabase = createSupabaseMock({});
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("api.instagram.com/oauth/access_token")) {
+        return new Response(
+          JSON.stringify({
+            data: [
+              {
+                access_token: "short-lived-token",
+                user_id: "10200000000000001",
+              },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      if (url.includes("grant_type=ig_exchange_token")) {
+        return new Response(
+          JSON.stringify({
+            access_token: "long-lived-token",
+            expires_in: 1000,
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      return new Response("denied", { status: 400 });
+    }) as unknown as typeof fetch;
+    const result = await handleInstagramOAuthCallback(
+      supabase,
+      {
+        query: { code: "auth-code", state: "67".repeat(32) },
+        intentIdFromCookie: intentId,
+      },
+      { env: enabledEnv, fetchImpl },
+    );
+    expect(result.outcome).toBe("provider_unavailable");
+    expect(result.failureStage).toBe("professional_identity_http");
+  });
+
+  it("attaches opaque stage professional_identity_account_type for PERSONAL", async () => {
+    const supabase = createSupabaseMock({});
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("api.instagram.com/oauth/access_token")) {
+        return new Response(
+          JSON.stringify({
+            data: [
+              {
+                access_token: "short-lived-token",
+                user_id: "10200000000000001",
+              },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      if (url.includes("grant_type=ig_exchange_token")) {
+        return new Response(
+          JSON.stringify({
+            access_token: "long-lived-token",
+            expires_in: 1000,
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      return new Response(
+        JSON.stringify({
+          id: "10200000000000001",
+          user_id: "17841400000000000",
+          username: "personal_user",
+          account_type: "PERSONAL",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }) as unknown as typeof fetch;
+    const result = await handleInstagramOAuthCallback(
+      supabase,
+      {
+        query: { code: "auth-code", state: "68".repeat(32) },
+        intentIdFromCookie: intentId,
+      },
+      { env: enabledEnv, fetchImpl },
+    );
+    expect(result.outcome).toBe("unsupported_account");
+    expect(result.failureStage).toBe("professional_identity_account_type");
   });
 
   it("attaches opaque stage credential_encrypt_or_upsert on credential upsert failures", async () => {
@@ -578,7 +668,7 @@ describe("SMM-B1.1-C Instagram OAuth callback orchestration", () => {
       { env: enabledEnv, fetchImpl },
     );
     expect(result.outcome).toBe("connection_failed");
-    expect(result.failureStage).toBe("professional_identity_fetch");
+    expect(result.failureStage).toBe("professional_identity_token_id_mismatch");
   });
 
   it("marks provider_unavailable with the same opaque stage on non_2xx", async () => {

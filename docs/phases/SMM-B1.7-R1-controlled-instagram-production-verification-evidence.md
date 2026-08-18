@@ -10,19 +10,28 @@
 ## 1. Executive verdict
 
 ```text
-SMM-B1.7-R1 OWNER ACTION REQUIRED — DEPLOY IDENTITY ID-MAPPING FIX THEN ONE RETRY
+SMM-B1.7-R1 OWNER ACTION REQUIRED — DEPLOY GRANULAR IDENTITY STAGES THEN ONE RETRY
 ```
 
-Retry with diagnostics returned:
+### Production deploy SHA verification (2026-08-18)
+
+| Check | Result |
+| --- | --- |
+| Live Production alias | `www.zyntixai.com` → `dpl_DCaLF7eMbkU73p6LP1yxPisAAMWV` |
+| Production `gitCommitSha` | `55e1a560638c5f20626b3b0d67e16da2cf39b2fa` |
+| Contained ID-mapping fix? | **Yes** |
+| Prior Production SHA | `dacac847cb82231f6a641f774b04442cb4a2a715` (docs-only) |
+
+Owner retry while Production already contained `55e1a56` still returned:
 
 ```text
 social_oauth=connection_failed
 social_oauth_stage=professional_identity_fetch
 ```
 
-Root cause: callback compared token-exchange `user_id` (app-scoped) to `/me.user_id` (professional IG_ID). Meta documents these as different IDs; mismatch fail-closed after successful token exchange.
+So short-lived + long-lived token exchange succeeded, and failure remains inside professional identity — but the coarse stage is insufficient. Next patch adds finer allowlisted stages (HTTP / JSON / missing id|user_id|username / account_type / token id mismatch) without logging provider bodies.
 
-Fix: request `/me` fields `id,user_id,username,account_type`; compare token `user_id` to `/me.id`; persist professional `/me.user_id` as external account id.
+Official Instagram Login `/me` fields `id`, `user_id`, `username`, `account_type` remain valid for `graph.instagram.com` + `v26.0`.
 
 ### Production row state after diagnostic retry (safe)
 
@@ -32,7 +41,7 @@ Fix: request `/me` fields `id,user_id,username,account_type`; compare token `use
 | Credentials | 0 |
 | Publications | 0 |
 
-Publishing remains OFF.
+Publishing remains OFF. Do not delete Production evidence rows.
 
 ---
 

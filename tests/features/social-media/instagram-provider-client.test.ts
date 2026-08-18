@@ -153,6 +153,7 @@ describe("SMM-B1.1-C Instagram provider adapter", () => {
       {
         fetchImpl: async () =>
           jsonResponse({
+            id: "10200000000000001",
             user_id: "1",
             username: "personal_user",
             account_type: "PERSONAL",
@@ -160,6 +161,74 @@ describe("SMM-B1.1-C Instagram provider adapter", () => {
       },
     );
     expect(identity).toEqual({ ok: false, reason: "unsupported_account" });
+  });
+
+  it("fail-closes with granular reasons for missing /me fields", async () => {
+    const missingId = await fetchInstagramProfessionalIdentity(
+      config,
+      "long-token",
+      {
+        fetchImpl: async () =>
+          jsonResponse({
+            user_id: "17841400000000000",
+            username: "zyntix_demo",
+            account_type: "Business",
+          }),
+      },
+    );
+    expect(missingId).toEqual({ ok: false, reason: "missing_id" });
+
+    const missingUserId = await fetchInstagramProfessionalIdentity(
+      config,
+      "long-token",
+      {
+        fetchImpl: async () =>
+          jsonResponse({
+            id: "10200000000000001",
+            username: "zyntix_demo",
+            account_type: "Business",
+          }),
+      },
+    );
+    expect(missingUserId).toEqual({ ok: false, reason: "missing_user_id" });
+
+    const missingUsername = await fetchInstagramProfessionalIdentity(
+      config,
+      "long-token",
+      {
+        fetchImpl: async () =>
+          jsonResponse({
+            id: "10200000000000001",
+            user_id: "17841400000000000",
+            account_type: "Business",
+          }),
+      },
+    );
+    expect(missingUsername).toEqual({ ok: false, reason: "missing_username" });
+  });
+
+  it("accepts /me payloads wrapped in a data object", async () => {
+    const identity = await fetchInstagramProfessionalIdentity(
+      config,
+      "long-token",
+      {
+        fetchImpl: async () =>
+          jsonResponse({
+            data: {
+              id: "10200000000000003",
+              user_id: "17841400000000003",
+              username: "wrapped_demo",
+              account_type: "Business",
+            },
+          }),
+      },
+    );
+    expect(identity.ok).toBe(true);
+    if (!identity.ok) {
+      return;
+    }
+    expect(identity.value.externalAccountId).toBe("17841400000000003");
+    expect(identity.value.appScopedUserId).toBe("10200000000000003");
   });
 
   it("maps invalid JSON and timeout failures safely", async () => {

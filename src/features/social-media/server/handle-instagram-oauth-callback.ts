@@ -190,18 +190,7 @@ export async function handleInstagramOAuthCallback(
     { fetchImpl: options?.fetchImpl },
   );
   if (!identity.ok) {
-    if (identity.reason === "unsupported_account") {
-      return failure(
-        "unsupported_account",
-        "unsupported_account",
-        true,
-        "professional_identity_fetch",
-      );
-    }
-    return mapProviderFailure(
-      identity.reason,
-      "professional_identity_fetch",
-    );
+    return mapProfessionalIdentityFailure(identity.reason);
   }
 
   if (
@@ -220,14 +209,13 @@ export async function handleInstagramOAuthCallback(
   // and must be compared to /me `id`, not to /me `user_id`.
   if (
     shortLived.value.userId &&
-    identity.value.appScopedUserId &&
     shortLived.value.userId !== identity.value.appScopedUserId
   ) {
     return failure(
       "connection_failed",
       "provider_mismatch",
       true,
-      "professional_identity_fetch",
+      "professional_identity_token_id_mismatch",
     );
   }
 
@@ -360,4 +348,62 @@ function mapProviderFailure(
     true,
     failureStage,
   );
+}
+
+function mapProfessionalIdentityFailure(
+  reason: string,
+): HandleInstagramOAuthCallbackResult {
+  switch (reason) {
+    case "timeout":
+    case "network_error":
+    case "non_2xx":
+      return failure(
+        "provider_unavailable",
+        "provider_exchange_failed",
+        true,
+        "professional_identity_http",
+      );
+    case "invalid_json":
+      return failure(
+        "connection_failed",
+        "provider_exchange_failed",
+        true,
+        "professional_identity_invalid_json",
+      );
+    case "missing_id":
+      return failure(
+        "connection_failed",
+        "provider_exchange_failed",
+        true,
+        "professional_identity_missing_id",
+      );
+    case "missing_user_id":
+      return failure(
+        "connection_failed",
+        "provider_exchange_failed",
+        true,
+        "professional_identity_missing_user_id",
+      );
+    case "missing_username":
+      return failure(
+        "connection_failed",
+        "provider_exchange_failed",
+        true,
+        "professional_identity_missing_username",
+      );
+    case "unsupported_account":
+      return failure(
+        "unsupported_account",
+        "unsupported_account",
+        true,
+        "professional_identity_account_type",
+      );
+    default:
+      return failure(
+        "connection_failed",
+        "provider_exchange_failed",
+        true,
+        "professional_identity_fetch",
+      );
+  }
 }
