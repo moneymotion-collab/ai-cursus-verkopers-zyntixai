@@ -1,11 +1,11 @@
 import { AppShell } from "@/components/app-shell";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
-  B18_INSTAGRAM_PUBLISH_ROUTE,
-  buildB18InstagramPublishHref,
-} from "@/features/social-media/domain/b18-publish-navigation";
-import { loadB18InstagramPublishPage } from "@/features/social-media/server/load-b18-instagram-publish-page";
-import { B18InstagramPublishPanel } from "@/features/social-media/ui/b18-instagram-publish-panel";
+  B19_LIFECYCLE_ROUTE,
+  buildB19LifecycleHref,
+} from "@/features/social-media/domain/b19-lifecycle-navigation";
+import { loadB19LifecyclePage } from "@/features/social-media/server/load-b19-lifecycle-page";
+import { B19LifecyclePanel } from "@/features/social-media/ui/b19-lifecycle-panel";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
 import styles from "./page.module.css";
 
@@ -19,13 +19,13 @@ function OrganizationRequiredPanel({
   organizations: OrganizationOption[];
 }) {
   return (
-    <section className={styles.statePanel} aria-labelledby="b18-org-required-title">
-      <h1 id="b18-org-required-title">Organization selection required</h1>
-      <p>Select an organization for controlled Instagram B1.8 publish verification.</p>
+    <section className={styles.statePanel} aria-labelledby="b19-org-required-title">
+      <h1 id="b19-org-required-title">Organization selection required</h1>
+      <p>Select an organization for Social publishing lifecycle operations.</p>
       <ul className={styles.orgList}>
         {organizations.map((organization) => (
           <li key={organization.organizationId}>
-            <a href={buildB18InstagramPublishHref({ organizationId: organization.organizationId })}>
+            <a href={buildB19LifecycleHref({ organizationId: organization.organizationId })}>
               {organization.displayName}
             </a>
           </li>
@@ -35,17 +35,17 @@ function OrganizationRequiredPanel({
   );
 }
 
-export default async function B18InstagramPublishPage({ searchParams }: PageProps) {
+export default async function B19LifecyclePage({ searchParams }: PageProps) {
   const supabase = await createSupabaseServerClient();
   const rawSearchParams = await searchParams;
-  const result = await loadB18InstagramPublishPage(supabase, rawSearchParams);
+  const result = await loadB19LifecyclePage(supabase, rawSearchParams);
 
   if (result.kind === "auth_required") {
     return (
       <AppShell activeNav="home" membersNavVisible={false}>
         <section className={styles.statePanel} aria-labelledby="auth-required-title">
           <h1 id="auth-required-title">Sign in required</h1>
-          <p>Sign in as Owner/Admin to run controlled B1.8 IMAGE publish verification.</p>
+          <p>Sign in as Owner/Admin to manage Social publishing lifecycle.</p>
         </section>
       </AppShell>
     );
@@ -75,10 +75,7 @@ export default async function B18InstagramPublishPage({ searchParams }: PageProp
       <AppShell activeNav="home" membersNavVisible={false}>
         <section className={styles.statePanel} aria-labelledby="feature-disabled-title">
           <h1 id="feature-disabled-title">Instagram connections disabled</h1>
-          <p>
-            Connection gates are off. Keep publishing off until owner-authorized
-            B1.8 enablement.
-          </p>
+          <p>Connection gates are off. Lifecycle ops remain unavailable.</p>
         </section>
       </AppShell>
     );
@@ -114,7 +111,7 @@ export default async function B18InstagramPublishPage({ searchParams }: PageProp
           <p>{result.message}</p>
           <a
             className={styles.retryLink}
-            href={buildB18InstagramPublishHref(
+            href={buildB19LifecycleHref(
               result.organizationId
                 ? { organizationId: result.organizationId }
                 : undefined,
@@ -127,89 +124,34 @@ export default async function B18InstagramPublishPage({ searchParams }: PageProp
     );
   }
 
-  const publishableConnections = result.connections.filter(
-    (connection) =>
-      connection.provider === "instagram" &&
-      connection.status === "connected" &&
-      connection.capabilitySnapshot.includes("publish_image") &&
-      !connection.reauthorizationRequired,
-  );
-
   return (
     <AppShell
       activeNav="home"
       membersNavVisible={false}
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}
-      organizationSelectorAction={B18_INSTAGRAM_PUBLISH_ROUTE}
+      organizationSelectorAction={B19_LIFECYCLE_ROUTE}
     >
       <div className={styles.page}>
         <header className={styles.pageHeader}>
-          <h1>SMM B1.8 — Controlled Instagram IMAGE publish</h1>
+          <h1>SMM B1.9 — Publishing lifecycle</h1>
           <p className={styles.subtitle}>
-            Owner/Admin verification surface. Prefer a single feed IMAGE only.
+            Operator inventory for connections, publications, and opaque attempt
+            timelines. No Instagram provider writes.
           </p>
           <p className={styles.orgName}>{result.organizationName}</p>
-          <p className={styles.notice}>
-            Publishing gate is{" "}
-            {result.publishingEnabled ? "ON" : "OFF (fail-closed)"}. Do not enable
-            it until the owner issues the final enablement action.
-          </p>
-          <p className={styles.notice}>
-            Lifecycle ops:{" "}
-            <a href={`/social/lifecycle?org=${result.organizationId}`}>
-              /social/lifecycle
-            </a>
-          </p>
         </header>
 
-        <B18InstagramPublishPanel
+        <B19LifecyclePanel
           organizationId={result.organizationId}
-          hasWorkspace={result.workspaces.length > 0}
-          publishableConnections={publishableConnections}
           publishingEnabled={result.publishingEnabled}
-          initialPublicationId={result.queuedPublicationId}
+          connections={result.connections}
+          publications={result.publications}
+          healthyConnectedCount={result.healthyConnectedCount}
+          pendingShellCount={result.pendingShellCount}
+          queuedPublicationCount={result.queuedPublicationCount}
+          succeededPublicationCount={result.succeededPublicationCount}
         />
-
-        <section className={styles.workspaces} aria-labelledby="b18-workspaces-title">
-          <h2 id="b18-workspaces-title">Workspaces</h2>
-          {result.workspaces.length === 0 ? (
-            <p>None yet — complete R1 connect first.</p>
-          ) : (
-            <ul>
-              {result.workspaces.map((workspace) => (
-                <li key={workspace.id}>
-                  {workspace.displayName} · brand {workspace.brandId}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section
-          className={styles.connections}
-          aria-labelledby="b18-connections-title"
-        >
-          <h2 id="b18-connections-title">Connections</h2>
-          {result.connections.length === 0 ? (
-            <p>No Social connections yet.</p>
-          ) : (
-            <ul>
-              {result.connections.map((connection) => (
-                <li key={connection.id}>
-                  {connection.provider} · {connection.status}
-                  {connection.displayName ? ` · ${connection.displayName}` : ""}
-                  {connection.capabilitySnapshot.includes("publish_image")
-                    ? " · publish_image"
-                    : ""}
-                  {connection.reauthorizationRequired
-                    ? " · reauthorization required"
-                    : ""}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
       </div>
     </AppShell>
   );

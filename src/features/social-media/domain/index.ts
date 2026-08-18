@@ -390,3 +390,26 @@ export type {
   SocialPublishingAdapterRegistry,
   SocialPublicationClientReadModel,
 } from "@/features/social-media/domain/publishing";
+
+export {
+  SOCIAL_PUBLICATION_TERMINAL_STATUSES,
+  SOCIAL_PUBLICATION_PROVIDER_WRITE_BLOCKED_STATUSES,
+  SOCIAL_PUBLICATION_ABANDONABLE_STATUSES,
+  SOCIAL_PUBLICATION_SAFE_RETRY_STATUSES,
+  UNKNOWN_EXTERNAL_RESOLUTIONS,
+  isTerminalPublicationStatus,
+  isProviderWriteBlockedStatus,
+  isAbandonablePublicationStatus,
+  isSafeToRetryProviderWrite,
+  classifyFailureRetryPolicy,
+  deriveConnectionOperationalHealth,
+  isHealthyConnectedAccount,
+  resolvePublicationOperatorAction,
+  attemptTimelineStage,
+  isUnknownExternalResolution,
+} from "@/features/social-media/domain/lifecycle";
+export type {
+  UnknownExternalResolution,
+  SocialConnectionOperationalHealth,
+  PublicationActionAvailability,
+} from "@/features/social-media/domain/lifecycle";

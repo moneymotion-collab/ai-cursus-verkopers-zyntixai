@@ -92,7 +92,12 @@ describe("SMM-B1.6 publishing migration security", () => {
 
   it("keeps social migration inventory ordered and additive", () => {
     const social = readdirSync(join(process.cwd(), "supabase/migrations"))
-      .filter((name) => name.includes("social") || name.includes("b18"))
+      .filter(
+        (name) =>
+          name.includes("social") ||
+          name.includes("b18") ||
+          name.includes("b19"),
+      )
       .sort();
     expect(social).toEqual([
       "20260815130220_add_social_connection_credential_foundation.sql",
@@ -104,6 +109,7 @@ describe("SMM-B1.6 publishing migration security", () => {
       "20260815202145_add_social_publishing_infrastructure_foundation.sql",
       "20260815212000_add_social_private_media_bucket_r1.sql",
       "20260818130747_add_b18_controlled_publication_execution_rpcs.sql",
+      "20260818145249_add_b19_publishing_lifecycle_hardening.sql",
     ]);
   });
 

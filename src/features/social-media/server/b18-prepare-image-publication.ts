@@ -5,13 +5,15 @@
 
 import "server-only";
 
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import {
   B18_CONTENT_ITEM_TITLE,
   B18_CONTROLLED_IMAGE_CAPTION,
 } from "@/features/social-media/domain/b18-publish-navigation";
+import { isTerminalPublicationStatus } from "@/features/social-media/domain/lifecycle";
+import { isSocialPublicationStatus } from "@/features/social-media/domain/publishing";
 import { uploadPrivateSocialJpeg } from "@/features/social-media/server/private-media-upload";
 
 type RpcCapableClient = {
@@ -131,6 +133,74 @@ export async function prepareB18ImagePublication(
   const connectionId = input.connectionId.trim();
   if (!organizationId || !brandId || !workspaceId || !connectionId) {
     return { ok: false, reason: "invalid_input" };
+  }
+
+  const contentFingerprint = createHash("sha256")
+    .update(input.jpegBytes)
+    .digest("hex")
+    .slice(0, 40);
+  const baseIdempotencyKey = `b18_${connectionId.replace(/-/g, "").slice(0, 12)}_${contentFingerprint}`;
+
+  try {
+    const existingQuery = await (
+      supabase as unknown as {
+        from: (table: string) => {
+          select: (columns: string) => {
+            eq: (
+              column: string,
+              value: string,
+            ) => {
+              eq: (
+                column: string,
+                value: string,
+              ) => PromiseLike<{
+                data: unknown;
+                error: { message?: string } | null;
+              }>;
+            };
+          };
+        };
+      }
+    )
+      .from("social_publications")
+      .select(
+        "id, status, content_id, variant_id, variant_version_id, connection_id",
+      )
+      .eq("organization_id", organizationId)
+      .eq("idempotency_key", baseIdempotencyKey);
+    if (!existingQuery.error && Array.isArray(existingQuery.data)) {
+      const row = existingQuery.data[0] as Record<string, unknown> | undefined;
+      const existingId = asString(row?.id);
+      const existingStatus = asString(row?.status);
+      const existingContentId = asString(row?.content_id);
+      const existingVariantId = asString(row?.variant_id);
+      const existingVariantVersionId = asString(row?.variant_version_id);
+      const existingConnectionId = asString(row?.connection_id);
+      if (
+        existingId &&
+        existingStatus &&
+        isSocialPublicationStatus(existingStatus) &&
+        !isTerminalPublicationStatus(existingStatus) &&
+        existingContentId &&
+        existingVariantId &&
+        existingVariantVersionId &&
+        existingConnectionId === connectionId
+      ) {
+        return {
+          ok: true,
+          publicationId: existingId,
+          connectionId,
+          contentId: existingContentId,
+          variantId: existingVariantId,
+          variantVersionId: existingVariantVersionId,
+          assetId: "reused",
+          brandId,
+          workspaceId,
+        };
+      }
+    }
+  } catch {
+    // Continue with fresh prepare.
   }
 
   const uploaded = await uploadPrivateSocialJpeg({
@@ -327,7 +397,55 @@ export async function prepareB18ImagePublication(
     return { ok: false, reason: "workflow_not_ready" };
   }
 
-  const idempotencyKey = `b18_${randomUUID().replace(/-/g, "").slice(0, 24)}`;
+  // Stable key for identical JPEG+connection (DB unique + create RPC returns existing).
+  // New key only when a prior publication for that key is terminal.
+  let idempotencyKey = baseIdempotencyKey;
+  try {
+    const existingQuery = await (
+      supabase as unknown as {
+        from: (table: string) => {
+          select: (columns: string) => {
+            eq: (
+              column: string,
+              value: string,
+            ) => {
+              eq: (
+                column: string,
+                value: string,
+              ) => PromiseLike<{
+                data: unknown;
+                error: { message?: string } | null;
+              }>;
+            };
+          };
+        };
+      }
+    )
+      .from("social_publications")
+      .select("id, status")
+      .eq("organization_id", organizationId)
+      .eq("idempotency_key", baseIdempotencyKey);
+    if (!existingQuery.error && Array.isArray(existingQuery.data)) {
+      const row = existingQuery.data[0] as
+        | { id?: unknown; status?: unknown }
+        | undefined;
+      const existingStatus = asString(row?.status);
+      if (
+        existingStatus &&
+        isSocialPublicationStatus(existingStatus) &&
+        isTerminalPublicationStatus(existingStatus)
+      ) {
+        idempotencyKey = `${baseIdempotencyKey.slice(0, 100)}_${randomUUID().replace(/-/g, "").slice(0, 8)}`;
+      }
+    }
+  } catch {
+    // Fall through to create with computed key.
+  }
+
+  if (idempotencyKey.length > 128) {
+    idempotencyKey = idempotencyKey.slice(0, 128);
+  }
+
   const publicationResult = await rpcRow(client, "create_social_publication", {
     p_organization_id: organizationId,
     p_variant_version_id: variantVersionId,
