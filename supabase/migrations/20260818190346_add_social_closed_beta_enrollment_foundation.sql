@@ -408,7 +408,7 @@ begin
       return query select 'closed_beta_not_enrolled'::text, null::uuid, null::text, null::text;
       return;
     end if;
-    -- allow_publishing only from approved; resume handles paused â†’ prior status
+    -- allow_publishing only from approved; resume handles paused -> prior status
     if v_row.status = 'publishing_allowed' then
       return query select 'conflict'::text, v_row.id, v_prev, null::text;
       return;
@@ -533,7 +533,7 @@ revoke all on function private.transition_social_closed_beta_enrollment(uuid, te
 revoke all on function private.transition_social_closed_beta_enrollment(uuid, text, text, uuid) from service_role;
 
 -- ---------------------------------------------------------------------------
--- Public operator RPCs â€” NOT granted to authenticated (no self-promotion)
+-- Public operator RPCs -- NOT granted to authenticated (no self-promotion)
 -- Narrow grant: service_role only + operator GUC required inside private core.
 -- ---------------------------------------------------------------------------
 
@@ -744,8 +744,8 @@ grant execute on function public.get_social_closed_beta_enrollment_status(uuid) 
 
 -- ---------------------------------------------------------------------------
 -- Authenticated assert RPCs (app prepare/execute gates; no provider write)
--- Full CREATE OR REPLACE of create_social_publication / b18_start deferred so
--- B1.9 claim/start semantics stay untouched; private helpers remain authoritative.
+-- SQL CREATE OR REPLACE hardening of create_social_publication / b18_start is in
+-- 20260818191706_add_social_closed_beta_entitlement_defense_in_depth.sql
 -- ---------------------------------------------------------------------------
 
 create or replace function public.assert_social_closed_beta_prepare_allowed(

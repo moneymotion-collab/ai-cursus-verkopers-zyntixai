@@ -39,6 +39,7 @@ describe("SMM-R1-A execute entitlement surface", () => {
 
     expect(serverExecute).toContain("assertClosedBetaPublishAllowed");
     expect(serverExecute).toContain("isSocialPublishingFeatureEnabled");
+    expect(serverExecute).not.toContain("arm_social_publishing_execution_session");
   });
 
   it("denies execute when global publishing is OFF even if entitlement would pass", async () => {
