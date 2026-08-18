@@ -216,4 +216,14 @@ Requires separate owner authorization. **Do not start automatically.**
 
 ## 19. Git status
 
-Reported in closing commit message / push attestation after evidence commit.
+| Item | Value |
+| --- | --- |
+| Design commit | `3c5d985` |
+| Implementation commit | `8874fde` |
+| Evidence commit / HEAD | `88307e0` |
+| Upstream | `origin/core/platform-readiness-20260707` |
+| Divergence after push | `0 0` |
+| Worktree | clean |
+
+*(Exact SHAs recorded in chat closure; this evidence file was committed as `88307e0`.)*
+
