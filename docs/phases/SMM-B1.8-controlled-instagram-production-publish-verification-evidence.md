@@ -12,12 +12,15 @@
 
 ```text
 SMM-B1.8 OPENED — PRE-PUBLISH GATE ONLY
+STANDARD ACCESS SUFFICIENT FOR OWNER-MANAGED ROLE/TEST ACCOUNT
 NO LIVE INSTAGRAM PROVIDER WRITE EXECUTED
 SOCIAL_PUBLISHING_ENABLED MUST REMAIN OFF
 OWNER ACTION REQUIRED — PRE-PUBLISH ATTESTATIONS + TEST ASSET
 ```
 
 This stop defines the smallest safe single-publication test and the owner steps that must complete **before** any publishing-gate enablement. Cursor must **not** perform a live publish in this stop.
+
+**Access correction (2026-08-18):** Do **not** attest Advanced Access. Owner reports `instagram_business_content_publish` = **Standard Access**, **Ready to use**, **no App Review requested**. That is eligible for this controlled B1.8 path (same owner-managed Professional account with App Dashboard role; R1 connected). Advanced Access remains required later for non-role / customer accounts — out of scope for this verification.
 
 ---
 
@@ -71,6 +74,40 @@ Verified 2026-08-18 against Production `dmctinrcjvsgmoxwwodw` (no tokens, codes,
 TARGET ACCOUNT RULE: use the single verified connected Instagram Professional test account only.
 Do not reconnect, do not target pending rows, do not use any other Instagram account.
 ```
+
+---
+
+## 4b. Meta access-level eligibility (Standard Access)
+
+Official Instagram Login / access-level contract (owner-managed / role users):
+
+| Source | Contract point |
+| --- | --- |
+| [Instagram Platform Overview](https://developers.facebook.com/docs/instagram-platform/overview) | Standard Access is default; **if the app only serves your Instagram professional account or an account you manage, Standard Access is all the app needs** |
+| [Access Levels](https://developers.facebook.com/docs/graph-api/overview/access-levels/) | Standard Access permissions may be requested from / are active for **app users who have a role on the app** |
+| [App Review for Instagram API](https://developers.facebook.com/docs/instagram-platform/app-review/) | Scenario “app is only for a business I own or manage” → **Standard Access; App Review not required** |
+| Same App Review page | Advanced Access + App Review required when the app serves accounts the developer does **not** own/manage (e.g. Tech Provider / non-role users) |
+
+### Owner-reported dashboard state (B1.8)
+
+| Item | Owner report |
+| --- | --- |
+| Permission | `instagram_business_content_publish` |
+| Access level | **Standard Access** |
+| Status | **Ready to use** |
+| App Review | **Not requested** (correct for this path) |
+| Target account | Same owner-managed Professional test account with App Dashboard role; R1 OAuth connected |
+
+### Eligibility decision for this controlled verification
+
+```text
+PASS — Standard Access is sufficient for B1.8 controlled publish verification
+on the owner-managed App Dashboard role / test Professional account.
+Do NOT require or attest Advanced Access for this phase.
+Advanced Access remains a future gate for customer / non-role rollout only.
+```
+
+Supporting R1 evidence already recorded: connection `connected`, encrypted credential present, capability snapshot includes `publish_image` (derived from granted `instagram_business_content_publish` on the R1 token exchange).
 
 ---
 
@@ -229,7 +266,8 @@ Do record:
 | Publications / attempts still zero | **PASS** |
 | Publishing execution gate OFF | **REQUIRED / PASS until final owner action** |
 | Test JPEG prepared to Meta + bucket specs | **OWNER ACTION** |
-| Meta App Review / Advanced Access for publish permission | **OWNER ATTEST** |
+| Meta `instagram_business_content_publish` access | **PASS — Standard Access, Ready to use** (owner-managed role/test account; App Review not required for this path) |
+| Advanced Access / App Review | **Not required for B1.8**; defer to customer rollout |
 | Content + media + approval objects | **NOT READY** (0/0) |
 | Controlled single-publish executor surface | **NOT READY** |
 | Live provider write | **NOT AUTHORIZED YET** |
@@ -244,8 +282,8 @@ OWNER ACTION REQUIRED — B1.8 PRE-PUBLISH ATTESTATIONS
 
 Complete **all** of the following. Do **not** set `SOCIAL_PUBLISHING_ENABLED=true` yet.
 
-1. Confirm the Instagram account that will receive the post is the **same** Professional Business test account already connected in R1 (no new OAuth unless Cursor later requests reauth for a documented reason).  
-2. Confirm Meta App Dashboard: Instagram Login app has **Advanced Access** (or otherwise Production-eligible access) for `instagram_business_content_publish` for this test app/user path.  
+1. Confirm the Instagram account that will receive the post is the **same** Professional Business test account already connected in R1 (owner-managed; App Dashboard role; no new OAuth unless Cursor later requests reauth for a documented reason).  
+2. Confirm Meta App Dashboard still shows `instagram_business_content_publish` = **Standard Access** / **Ready to use** for this role/test path. **Do not** request App Review or switch to Advanced Access for B1.8.  
 3. Prepare **one** test JPEG meeting §6 (prefer 1080×1080 or 1080×1350, sRGB, ≤8 MB). Keep the file ready for upload via the forthcoming B1.8 controlled surface (do not paste bytes/secrets into chat).  
 4. Confirm Production secrets remain configured (names only; do not paste values):
    - `SOCIAL_CREDENTIAL_ENCRYPTION_KEY`
@@ -258,6 +296,7 @@ Complete **all** of the following. Do **not** set `SOCIAL_PUBLISHING_ENABLED=tru
 ```text
 B1.8 PRE-PUBLISH ATTESTATIONS READY
 TEST JPEG READY
+STANDARD ACCESS CONFIRMED
 PUBLISHING REMAINS OFF
 ```
 
@@ -291,7 +330,8 @@ Until that future instruction is issued: **do nothing to enable publishing.**
 ## 13. Next boundary
 
 ```text
-SMM-B1.8 PRE-PUBLISH GATE PUBLISHED — AWAITING OWNER ATTESTATIONS
+SMM-B1.8 PRE-PUBLISH GATE CONTINUES — STANDARD ACCESS ELIGIBLE
+AWAITING OWNER ATTESTATIONS (NO ADVANCED ACCESS)
 NO LIVE PROVIDER WRITE
 ANALYTICS / AI OPTIMIZATION / REPURPOSING STILL OUT OF SCOPE
 ```
