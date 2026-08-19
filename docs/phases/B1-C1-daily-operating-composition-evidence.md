@@ -2,213 +2,132 @@
 
 | Field | Value |
 | --- | --- |
-| Phase | **B1-C1 — Daily Operating Composition** |
+| Phase | **B1-C1 — Daily Operating Composition** (+ **B1-C1-R1** browser automation) |
 | Date | 2026-08-19 |
-| Formal status | `B1-C1 BLOCKED — AUTHENTICATED PRODUCTION OWNER SESSION UNAVAILABLE FOR BROWSER QA` |
+| Formal status | `OWNER ACTION REQUIRED — AUTHENTICATED BROWSER SESSION BOOTSTRAP` |
 | Branch | `core/platform-readiness-20260707` |
-| Implementation commit | `fbc9e0c29c25ee7dedc4b36c0cf1337e89b34a19` |
+| Implementation commit (B1-C1 product) | `fbc9e0c29c25ee7dedc4b36c0cf1337e89b34a19` |
+| Browser harness commit (B1-C1-R1) | *(this implementation commit)* |
+| Evidence commit | *(this evidence commit)* |
 | Production deploy | `dpl_3PyraG19nn8pdfZymNzJbbBEKJhH` (`zyntixai-m934z6xre-…`) |
 | www alias | `https://www.zyntixai.com` |
 | Migrations | **NONE** |
 
 ```text
-B1-C1 BLOCKED — AUTHENTICATED PRODUCTION OWNER SESSION UNAVAILABLE FOR BROWSER QA
+OWNER ACTION REQUIRED — AUTHENTICATED BROWSER SESSION BOOTSTRAP
 ```
 
 ---
 
 ## 1. Executive verdict
 
-Implementation, targeted tests, typecheck, lint, build, Production deploy, Social fail-closed checks, and unauthenticated Production entry-gate QA are complete.
+B1-C1 product composition remains Production-deployed and fixture-verified.
 
-**Authenticated Owner/Admin interactive desktop + mobile browser QA on Production `/home` could not be completed** because no Owner session credentials were available to the agent and existing browser tabs redirected to login.
+B1-C1-R1 added the reusable authenticated Playwright Production browser harness.
+**Authenticated Production desktop/mobile/tablet specs are implemented but skipped** until the Owner completes the one-time local auth bootstrap (no credentials in chat/Git).
 
-Do not treat B1-C1 as closed until that authenticated browser pass is recorded.
+Do **not** close B1-C1 until `npm run browser:auth:bootstrap` succeeds and `npm run test:browser:b1-c1` passes.
 
 ---
 
 ## 2. Authoritative baseline
 
-### Stage 0 (pre-implementation)
-
 | Check | Result |
 | --- | --- |
 | Branch | `core/platform-readiness-20260707` |
-| Baseline before Stage 0 | `8fd4b8f9f2351dcf19f96f2ed335dac2ca86efaf` |
-| Stage 0 docs commit | `cc5272b3516245e1115f7b2e85f5524285eb8a9f` |
-| Divergence after Stage 0 | `0 0` |
-| B1-MA | `B1-MA COMPLETE — OWNER REVIEW COMPLETED` / **NEAR READY** / P0 **NONE** |
-| R1-F | preserved as **BLOCKED — REAL CLOSED-BETA COHORT NOT YET AVAILABLE** |
-
-### Implementation
-
-| Check | Result |
-| --- | --- |
-| Implementation HEAD | `fbc9e0c29c25ee7dedc4b36c0cf1337e89b34a19` |
-| Upstream after push | matches origin |
-| Worktree after implementation push | clean |
+| Product implementation | `fbc9e0c` |
+| Prior evidence | `d5bbefe` |
+| B1-MA | NEAR READY / P0 NONE |
+| R1-F | remains cohort-blocked (untouched) |
 
 ---
 
 ## 3. Product problem
 
-Before B1-C1, completed onboarding landed Owners on `/leads`, requiring module hunting for Attention and Tasks. Primary question unanswered:
-
-> When I open ZyntixAI at the start of the day, can I immediately understand what needs my attention and what I need to do next?
+Start-of-day question answered by `/home` composition over Attention + Tasks.
 
 ---
 
 ## 4. Existing domain reuse
 
-| Need | Authoritative source | Reused as |
-| --- | --- | --- |
-| Open Attention | `listAttentionItems` | open + acknowledged, non-archived |
-| Severity / assignment | Attention list read model | severity rank + assigneeMemberId |
-| Due / overdue Tasks | `listTasks` + due-state filters | overdue + due_today, open, assigned to membership |
-| Org / role / membership | `resolveTaskPageOrganization` + `resolveOrganizationContext` | org binding + role |
-| Product entry | `buildProductDestination` / landing resolver | now `/home?org=…` |
-
-No new Attention rules, task statuses, CRM tables, analytics store, or AI ranking.
+Unchanged from B1-C1: `listAttentionItems`, `listTasks`, org resolution, landing → `/home`.
 
 ---
 
 ## 5. Architecture
 
-Thin composition only:
+### Product (unchanged in R1)
 
-- Domain: `composeDailyOperatingBrief` (pure, deterministic)
-- Server loader: `loadDailyOperatingPage` (parallel Attention + Tasks reads)
-- UI: `DailyOperatingBriefPanel` + `/home` page
-- Entry wiring: onboarding destination, authenticated landing, AppShell Home, safe-return allowlist, middleware protection
+Server composition + `/home` UI. No migration. No AI ranking.
 
-**NO MIGRATION.** No new persistence table.
+### Browser QA architecture (B1-C1-R1 discovery result)
+
+| Layer | Authoritative tool |
+| --- | --- |
+| Unit / composition / role / tenant / UI fixtures | **Vitest** (existing) |
+| Authenticated Production desktop/mobile/tablet | **Playwright** `@playwright/test` (new, authorized by B1-C1-R1) |
+| Historical phase browsers | Cursor IDE browser MCP (manual/agent evidence) |
+
+**Prior state:** no in-repo Playwright config; `package.json` historically forbade Playwright during D6-QA; PX2 noted e2e harness needs governance approval. **B1-C1-R1 is that authorization.**
+
+Auth strategy selected (hierarchy):
+
+1. ~~reuse existing secure fixture~~ — none existed  
+2. ~~reuse existing storage state~~ — none existed  
+3. **Owner interactive login → local gitignored Playwright storageState** ← implemented  
+4. Stop for owner action if bootstrap not completed ← **current stop**
+
+Path: `playwright/.auth/production-owner.json` (gitignored). Never printed/committed.
 
 ---
 
 ## 6. Composition contract
 
-Answered by `/home`:
-
-1. Organization critical/high Attention (Owner/Admin)
-2. Attention assigned to me
-3. Overdue assigned open Tasks
-4. Due-today assigned open Tasks
-5. Calm empty state when none of the above
-6. View-all links into existing Attention/Tasks modules
-
-Program/enrollment metadata UI intentionally omitted (B1-C4). Activity feed omitted (no new event system; no low-noise authoritative activity read model selected for B1-C1).
+Unchanged. Sections: Organization attention, Assigned Attention, Overdue, Due today, calm empty.
 
 ---
 
 ## 7. Priority model
 
-Deterministic order (no LLM ranking):
-
-1. Critical Attention
-2. High Attention
-3. Overdue assigned Tasks
-4. Due-today assigned Tasks
-5. Other open Attention assigned to me (medium/low)
-
-Limits: Attention fetch 25; each section display limit 5.
+Deterministic severity/date ordering. Fixture test covers critical→high + overdue/due-today mix without duplicates.
 
 ---
 
 ## 8. Role contract
 
-| Role | Organization Attention (critical/high) | Assigned Attention / Tasks |
-| --- | --- | --- |
-| Owner | Yes | Yes |
-| Admin | Yes | Yes |
-| Staff | No | Yes (own assignment only) |
-| Viewer | No | Yes (own assignment only, existing permissions) |
-
-Server authorization remains authoritative via existing org resolution + domain readers.
+Vitest loader/compose: Owner/Admin see org Attention; Staff does not.
 
 ---
 
 ## 9. Tenant isolation
 
-- Reads always use resolver-bound `organizationId`, not client trust alone.
-- Composition filters drop cross-org rows if present.
-- Wrong/inaccessible org selection does not call Attention/Tasks loaders.
-- Loader tests cover client org-id manipulation vs resolved org id.
+Vitest loader/compose: resolver-bound org; cross-tenant rows excluded; client org param cannot override reads.
 
 ---
 
-## 10. Attention integration
+## 10–13. Attention / Task / Program / Activity
 
-Reuses existing lifecycle statuses (`open` / `acknowledged`). Excludes terminal/archived. Routes to `/attention/[id]?org=…`. No new signal sources (B1-C3).
-
----
-
-## 11. Task integration
-
-Open assigned Tasks only. Distinguishes overdue vs due_today via existing due-state. Completed/cancelled/archived excluded. Routes to `/tasks/[id]?org=…`.
-
----
-
-## 12. Program/enrollment boundary
-
-No enrollment metadata UI. No invent risk scoring. Context labels may show existing Attention customer/program display names when present.
-
----
-
-## 13. Activity boundary
-
-No activity section in B1-C1. Avoided inventing a new event feed.
+Unchanged boundaries. Activity still omitted.
 
 ---
 
 ## 14. UX states
 
-| State | Behavior |
-| --- | --- |
-| Empty healthy | Calm “You are clear for now.” |
-| Partial failure | Section error + status banner; no false empty success |
-| Full failure | Page error Alert |
-| Loading | `home/loading.tsx` |
-| Org required | Org picker with `/home?org=…` only |
+Honest empty / partial failure / full error / loading preserved.
 
 ---
 
 ## 15. Mobile/a11y
 
-- CSS stacks severity under title under 640px
-- `overflow-wrap: anywhere` on titles
-- Semantic headings / list / links
-- Severity has screen-reader “Severity” prefix (not color alone)
-- Focus-visible styles on rows
-- Tappable min-heights on links
-
-Live mobile Production interaction still pending authenticated session.
+CSS + semantic headings. Playwright mobile/tablet specs ready (pending auth).
 
 ---
 
-## 16. Security tests
+## 16–17. Security / functional fixture tests
 
-`tests/features/daily-operating/load-daily-operating-page.test.ts` + compose tests cover:
+Daily-operating Vitest suite expanded (compose priority, honest task failure, due-today links, a11y heading ids).
 
-1. Unauthenticated denied
-2. Wrong/inaccessible org does not load domain data
-3. Owner composition for resolved org
-4. Admin org Attention visibility
-5. Staff cannot gain org Attention via composition
-6. Cross-tenant Attention excluded in compose
-7. Cross-tenant Tasks excluded in compose
-8. Completed work excluded
-9. Resolved/archived Attention excluded
-10. Client org param cannot override resolver org id for reads
-
-Also: `/home` added to `isProtectedApplicationPath` + safe-return allowlist.
-
----
-
-## 17. Functional tests
-
-Daily-operating suite: compose (6), loader (8), UI (5) = **19** focused tests.
-
-Landing destination regressions updated for `/home` across auth/onboarding/invitations tests.
+Loader + role + tenant coverage retained.
 
 ---
 
@@ -216,33 +135,45 @@ Landing destination regressions updated for `/home` across auth/onboarding/invit
 
 | Suite | Result |
 | --- | --- |
-| typecheck | PASS |
-| lint | PASS |
-| build (local) | PASS |
-| build (Vercel Production) | PASS; route `/home` present |
-| Targeted auth + daily-operating + attention/task nav/loaders | **193 passed** |
-| Broader auth/onboarding/invitations/daily-operating | **492 passed** |
-| Full Vitest | **2431 passed / 7 failed** |
-
-Full-suite failures are **pre-existing / unrelated** to B1-C1:
-
-- `tests/security/security-boundary.test.ts` — `SERVICE_ROLE` present in existing `src/lib/supabase/service-role.ts` (baseline)
-- Social migration inventory order expectations outdated vs later Social migrations (multiple SMM security tests)
-
-B1-C1 did not introduce those failures.
+| daily-operating + leads-scope-boundary | **25 passed** |
+| Playwright B1-C1 Production | **3 skipped** (no auth state) |
 
 ---
 
-## 19. Browser QA
+## 19. Browser QA evidence classes
+
+### A. AUTOMATED AUTHENTICATED PRODUCTION QA
 
 | Check | Result |
 | --- | --- |
-| Unauthenticated Production `/home?org=…` | **PASS** — redirects to `/login?next=/home?org=…` (middleware protection) |
-| Authenticated desktop entry / populated / empty / navigation | **NOT EXECUTED** — no Owner session available |
-| Authenticated mobile layout / tap / overflow | **NOT EXECUTED** — same blocker |
-| Keyboard / refresh authenticated | **NOT EXECUTED** — same blocker |
+| Framework | Playwright Chromium |
+| Auth | local storageState (missing → skip) |
+| Desktop `/home` empty-state | **SKIPPED — awaiting bootstrap** |
+| Mobile | **SKIPPED — awaiting bootstrap** |
+| Tablet | **SKIPPED — awaiting bootstrap** |
+| Unauthenticated redirect (prior) | PASS (`/home` → `/login?next=…`) |
 
-Fixture/UI unit coverage exists for empty, critical Attention, overdue Task, Staff hide org Attention, honest failure, long titles.
+### B. FIXTURE / TEST ENVIRONMENT QA
+
+| Check | Result |
+| --- | --- |
+| Empty calm state | PASS (Vitest UI) |
+| Populated Attention + overdue Task links | PASS |
+| Due-today Task link | PASS |
+| Staff hides org Attention | PASS |
+| Fetch failure ≠ empty success | PASS |
+| Priority / mixed / no duplicates | PASS |
+| Cross-tenant exclusion | PASS |
+| Completed/resolved/archived exclusion | PASS |
+
+**Not Production data.**
+
+### C. HUMAN UX OBSERVATION
+
+| Observation | Classification |
+| --- | --- |
+| Brief “Loading today’s brief…” then content | **B1-C5 POLISH** (functional, bounded; `home/loading.tsx`) |
+| Natural empty Assigned/Overdue/Due today | Expected Production empty (not a B1-C1 defect) |
 
 ---
 
@@ -250,12 +181,9 @@ Fixture/UI unit coverage exists for empty, critical Attention, overdue Task, Sta
 
 | Check | Result |
 | --- | --- |
-| Deploy | `dpl_3PyraG19nn8pdfZymNzJbbBEKJhH` Ready |
-| Alias | `https://www.zyntixai.com` |
-| `/home` in Production build | Yes |
-| Authenticated owner composition render | **PENDING** Owner sign-in |
-| Tenant binding interactive proof | **PENDING** Owner sign-in |
-| Destructive Production mutations | **NONE** |
+| Deploy | `dpl_3PyraG19nn8pdfZymNzJbbBEKJhH` on www |
+| `/home` route | Present |
+| Authenticated automated empty-state | **PENDING bootstrap** |
 
 ---
 
@@ -263,41 +191,44 @@ Fixture/UI unit coverage exists for empty, critical Attention, overdue Task, Sta
 
 | Check | Result |
 | --- | --- |
-| B1-C1 Social code/env changes | **NONE** |
-| `SOCIAL_PUBLISHING_ENABLED` (local/runtime inspect via env run) | `"false"` / fail-closed |
-| Enrollments | **1** (`publishing_allowed`) |
-| Window statuses | closed=1, consumed=2; **no active window** |
-| R1-F | remains blocked; not reopened |
-| Provider-write delta by B1-C1 | **NONE** (no Social mutations) |
+| `SOCIAL_PUBLISHING_ENABLED` | `"false"` / fail-closed |
+| Enrollments | 1 (`publishing_allowed`) |
+| Windows | closed=1, consumed=2; **no active** |
+| R1-F | untouched |
+| Provider-write / windows created by R1 | **NONE** |
 
 ---
 
-## 22. Known limitations
+## 22. Known limitations / unblock
 
-1. Authenticated Production browser QA incomplete without Owner session.
-2. No activity feed in B1-C1.
-3. No program/enrollment operational indicators beyond Attention context labels.
-4. Attention evaluation remains on-demand (B1-C3 may revisit).
-5. Full Vitest has pre-existing Social inventory / service-role boundary failures unrelated to this phase.
+1. Authenticated Playwright Production suite requires Owner bootstrap.
+2. Populated-state browser navigation against live Production not claimed (fixtures cover links/semantics).
+3. Loading transition polish deferred to B1-C5.
+
+### Exact Owner bootstrap steps (no credentials in chat)
+
+```text
+1. In the repo root, run:  npm run browser:auth:bootstrap
+2. A Chromium window opens to Production login.
+3. Sign in there with the legitimate Owner account (not in Cursor chat).
+4. Wait until /home shows the “Today” heading for org 2fc07699-ece5-44b9-bbb3-abbc23e9fffb.
+5. The script writes gitignored playwright/.auth/production-owner.json and exits.
+6. Run:  npm run test:browser:b1-c1
+7. Tell the agent the suite finished so evidence can close B1-C1.
+```
 
 ---
 
 ## 23. Git state
 
-| Check | At evidence publication |
-| --- | --- |
-| Implementation commit | `fbc9e0c29c25ee7dedc4b36c0cf1337e89b34a19` |
-| Evidence commit | *(this commit)* |
-| Expected after evidence push | HEAD = upstream = origin, divergence `0 0`, clean worktree |
+Harness + matrix + evidence commits published; auth storage never committed. Expected after push: HEAD = origin, divergence `0 0`, clean except ignored auth file if present.
 
 ---
 
 ## 24. Closure verdict
 
 ```text
-B1-C1 BLOCKED — AUTHENTICATED PRODUCTION OWNER SESSION UNAVAILABLE FOR BROWSER QA
+OWNER ACTION REQUIRED — AUTHENTICATED BROWSER SESSION BOOTSTRAP
 ```
 
-**Unblock path:** Owner signs into Production, opens `/home?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb`, confirms composition + Attention/Task navigation on desktop and mobile viewport, then re-authorize a short evidence update to close B1-C1.
-
-**STOP:** Do not start B1-C2, invitations Production QA, Attention signal expansion, enrollment metadata UI, R1-F, or Social publishing enablement from this phase.
+**STOP before B1-C2.**
