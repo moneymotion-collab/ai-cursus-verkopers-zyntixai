@@ -236,7 +236,7 @@ Then evaluate R1-E-R2 / R1-E closure.
 | --- | --- |
 | Branch | `core/platform-readiness-20260707` |
 | Implementation SHA | `e1c30b95d8073e5d3a935dd3264834024650807d` |
-| Evidence SHA | _(this commit)_ |
+| Evidence SHA | $ev |
 | Authoritative HEAD | after evidence push |
 | Upstream | `origin/core/platform-readiness-20260707` |
 | Divergence at start | `0 0` |
