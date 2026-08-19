@@ -363,7 +363,7 @@ SMM-R1-E CLOSED WITH EVIDENCE — FIRST CLOSED-BETA PUBLISHING ENTITLEMENT & EXA
 | Branch | `core/platform-readiness-20260707` |
 | Implementation SHA (P4; no P5 code change) | `e1c30b95d8073e5d3a935dd3264834024650807d` |
 | Evidence commit | `5dd026b0b5c3305382e5b5cf7bbf23efdfdbef35` |
-| Authoritative HEAD | after SHA-field follow-up commit on this evidence |
+| Authoritative HEAD | c331fcce3edc1878d4ba26acabad27b9826472d2 |
 | Upstream/origin | `origin/core/platform-readiness-20260707` |
 | Governance | no reset / rebase / amend / force-push; `.vercel` not committed |
 
