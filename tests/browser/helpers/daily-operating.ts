@@ -18,9 +18,11 @@ export async function openDailyOperatingHome(page: Page) {
 }
 
 export async function expectDailyOperatingShell(page: Page) {
+  // Semantic readiness: composition shell, not the loading flash.
   await expect(page.getByRole("heading", { level: 1, name: "Today" })).toBeVisible({
     timeout: 30_000,
   });
+  await expect(page.getByText("Loading today’s brief…")).toHaveCount(0);
   await expect(
     page.getByText("What needs attention and what you need to do next."),
   ).toBeVisible();
@@ -38,30 +40,50 @@ export async function expectDailyOperatingSections(page: Page) {
 }
 
 /**
- * Current natural Production control-org empty semantics.
- * Distinguishes honest empty from fatal error / infinite loading.
+ * Assert no B1-C1 product failure UI.
+ *
+ * Do NOT use bare getByRole('alert'): Next.js App Router injects an invisible
+ * route announcer with role="alert" (see app-router-announcer.js).
  */
-export async function expectNaturalEmptyOperatingState(page: Page) {
+export async function expectNoDailyOperatingProductFailure(page: Page) {
   await expect(page.getByText("Unable to load today’s brief")).toHaveCount(0);
-  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByText("Unable to load Attention.")).toHaveCount(0);
+  await expect(page.getByText("Unable to load Tasks.")).toHaveCount(0);
+  await expect(
+    page.getByText("Attention could not be loaded."),
+  ).toHaveCount(0);
+  await expect(page.getByText("Tasks could not be loaded.")).toHaveCount(0);
+}
+
+/**
+ * Current natural Production control-org semantics (Owner observation + screenshot):
+ * - Organization attention may contain actionable High Attention
+ * - Assigned Attention empty
+ * - Overdue empty
+ * - Due today empty
+ *
+ * Calm “You are clear for now.” is only valid when NOTHING is actionable,
+ * so it must not be required when Organization attention has items.
+ */
+export async function expectCurrentProductionOperatingState(page: Page) {
+  await expectNoDailyOperatingProductFailure(page);
   await expect(page.getByText("Loading today’s brief…")).toHaveCount(0);
 
-  // Section empty copy (stable semantics)
   await expect(
     page.getByText("No Attention is assigned to you."),
   ).toBeVisible();
-  await expect(
-    page.getByText("No assigned work is overdue."),
-  ).toBeVisible();
+  await expect(page.getByText("No assigned work is overdue.")).toBeVisible();
   await expect(page.getByText("No work is due today.")).toBeVisible();
 
-  // Calm banner when nothing actionable
-  await expect(page.getByText("You are clear for now.")).toBeVisible();
+  // Organization attention is a real section; current Production may be populated.
+  const orgSection = page.getByRole("region", {
+    name: "Organization attention",
+  });
+  await expect(orgSection).toBeVisible();
   await expect(
-    page.getByText(
-      "Nothing urgent needs your attention and no assigned work is due today.",
-    ),
-  ).toBeVisible();
+    orgSection.getByText("Nothing urgent needs organization attention."),
+  ).toHaveCount(0);
+  await expect(orgSection.getByRole("link").first()).toBeVisible();
 }
 
 export async function expectNoHorizontalOverflow(page: Page) {

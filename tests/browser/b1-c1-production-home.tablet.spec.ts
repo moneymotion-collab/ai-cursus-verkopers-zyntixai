@@ -2,8 +2,8 @@ import { existsSync } from "node:fs";
 import { test } from "@playwright/test";
 import { BROWSER_QA_AUTH_STATE_PATH } from "./helpers/qa-config";
 import {
+  expectCurrentProductionOperatingState,
   expectDailyOperatingShell,
-  expectNaturalEmptyOperatingState,
   expectNoHorizontalOverflow,
   openDailyOperatingHome,
 } from "./helpers/daily-operating";
@@ -19,7 +19,7 @@ test.describe("B1-C1 Production daily operating — tablet", () => {
   test("intermediate viewport keeps composition readable", async ({ page }) => {
     await openDailyOperatingHome(page);
     await expectDailyOperatingShell(page);
-    await expectNaturalEmptyOperatingState(page);
+    await expectCurrentProductionOperatingState(page);
     await expectNoHorizontalOverflow(page);
   });
 });

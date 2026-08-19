@@ -3,9 +3,9 @@ import { test, expect } from "@playwright/test";
 import { BROWSER_QA_AUTH_STATE_PATH, browserQaOrgId } from "./helpers/qa-config";
 import {
   collectPageHealth,
+  expectCurrentProductionOperatingState,
   expectDailyOperatingSections,
   expectDailyOperatingShell,
-  expectNaturalEmptyOperatingState,
   expectNoHorizontalOverflow,
   openDailyOperatingHome,
 } from "./helpers/daily-operating";
@@ -26,17 +26,16 @@ test.describe("B1-C1 Production daily operating — mobile", () => {
     await openDailyOperatingHome(page);
     await expectDailyOperatingShell(page);
     await expectDailyOperatingSections(page);
-    await expectNaturalEmptyOperatingState(page);
+    await expectCurrentProductionOperatingState(page);
     await expectNoHorizontalOverflow(page);
 
-    // Primary nav remains available (no hover-only gate)
     await expect(page.getByRole("navigation", { name: "Primary" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Home" })).toBeVisible();
 
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(page).not.toHaveURL(/\/login/);
     await expect(page.url()).toContain(`org=${browserQaOrgId()}`);
-    await expectNaturalEmptyOperatingState(page);
+    await expectCurrentProductionOperatingState(page);
     await expectNoHorizontalOverflow(page);
 
     health.assertHealthy();

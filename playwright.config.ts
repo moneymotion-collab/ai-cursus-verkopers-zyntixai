@@ -4,6 +4,9 @@ import path from "node:path";
 /**
  * B1-C1-R1 authenticated Production browser QA harness.
  * Auth storage under playwright/.auth is gitignored and never printed.
+ *
+ * Mobile/tablet device presets default to WebKit. Force Chromium so the
+ * suite stays on the installed browser while keeping device viewports.
  */
 const authFile = path.join(__dirname, "playwright/.auth/production-owner.json");
 const baseURL =
@@ -32,6 +35,7 @@ export default defineConfig({
       name: "desktop-chromium",
       use: {
         ...devices["Desktop Chrome"],
+        browserName: "chromium",
         storageState: authFile,
       },
       testMatch: /.*\.desktop\.spec\.ts/,
@@ -40,6 +44,7 @@ export default defineConfig({
       name: "mobile-chromium",
       use: {
         ...devices["iPhone 13"],
+        browserName: "chromium",
         storageState: authFile,
       },
       testMatch: /.*\.mobile\.spec\.ts/,
@@ -48,6 +53,7 @@ export default defineConfig({
       name: "tablet-chromium",
       use: {
         ...devices["iPad Mini"],
+        browserName: "chromium",
         storageState: authFile,
       },
       testMatch: /.*\.tablet\.spec\.ts/,
