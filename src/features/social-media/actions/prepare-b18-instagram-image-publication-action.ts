@@ -13,6 +13,8 @@ export type PrepareB18InstagramImagePublicationActionResult =
   | {
       ok: true;
       publicationId: string;
+      created: boolean;
+      idempotencyOutcome: "created" | "reused_active";
       contentId: string;
       variantVersionId: string;
       assetId: string;
@@ -152,6 +154,8 @@ export async function prepareB18InstagramImagePublicationAction(
   return {
     ok: true,
     publicationId: prepared.publicationId,
+    created: prepared.created,
+    idempotencyOutcome: prepared.idempotencyOutcome,
     contentId: prepared.contentId,
     variantVersionId: prepared.variantVersionId,
     assetId: prepared.assetId,

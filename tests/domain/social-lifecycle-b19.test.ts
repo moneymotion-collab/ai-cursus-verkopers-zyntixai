@@ -4,6 +4,7 @@ import {
   classifyFailureRetryPolicy,
   deriveConnectionOperationalHealth,
   isHealthyConnectedAccount,
+  isPrepareIdempotentReuseStatus,
   isProviderWriteBlockedStatus,
   isSafeToRetryProviderWrite,
   isTerminalPublicationStatus,
@@ -14,9 +15,22 @@ describe("SMM-B1.9 lifecycle contracts", () => {
   it("protects terminal and ambiguous statuses from provider writes", () => {
     expect(isTerminalPublicationStatus("succeeded")).toBe(true);
     expect(isTerminalPublicationStatus("queued")).toBe(false);
+    expect(isTerminalPublicationStatus("manual_intervention")).toBe(false);
     expect(isProviderWriteBlockedStatus("unknown_external_outcome")).toBe(true);
     expect(isProviderWriteBlockedStatus("processing")).toBe(true);
+    expect(isProviderWriteBlockedStatus("manual_intervention")).toBe(true);
     expect(isProviderWriteBlockedStatus("queued")).toBe(false);
+  });
+
+  it("limits Prepare idempotent reuse to active first-execute statuses", () => {
+    expect(isPrepareIdempotentReuseStatus("queued")).toBe(true);
+    expect(isPrepareIdempotentReuseStatus("pending")).toBe(true);
+    expect(isPrepareIdempotentReuseStatus("failed_retryable")).toBe(true);
+    expect(isPrepareIdempotentReuseStatus("manual_intervention")).toBe(false);
+    expect(isPrepareIdempotentReuseStatus("failed_terminal")).toBe(false);
+    expect(isPrepareIdempotentReuseStatus("succeeded")).toBe(false);
+    expect(isPrepareIdempotentReuseStatus("processing")).toBe(false);
+    expect(isPrepareIdempotentReuseStatus("claimed")).toBe(false);
   });
 
   it("fails closed on ambiguous and succeeded retry", () => {

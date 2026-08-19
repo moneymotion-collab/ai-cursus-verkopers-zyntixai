@@ -36,6 +36,20 @@ export const SOCIAL_PUBLICATION_SAFE_RETRY_STATUSES = [
   "failed_retryable",
 ] as const satisfies readonly SocialPublicationStatus[];
 
+/**
+ * Prepare may only reuse an existing publication for the same idempotency key
+ * when that row is still first-execute / safe-retry eligible.
+ *
+ * Intentionally excludes `manual_intervention`, `failed_terminal`, `succeeded`,
+ * and other write-blocked or terminal statuses so a failed historical Prepare
+ * cannot masquerade as a fresh Prepare success without creating a new row.
+ */
+export const SOCIAL_PUBLICATION_PREPARE_IDEMPOTENT_REUSE_STATUSES = [
+  "pending",
+  "queued",
+  "failed_retryable",
+] as const satisfies readonly SocialPublicationStatus[];
+
 export type UnknownExternalResolution =
   | "confirm_not_published"
   | "retain_manual_intervention"
@@ -87,6 +101,14 @@ export function isAbandonablePublicationStatus(
 ): boolean {
   return (
     SOCIAL_PUBLICATION_ABANDONABLE_STATUSES as readonly SocialPublicationStatus[]
+  ).includes(status);
+}
+
+export function isPrepareIdempotentReuseStatus(
+  status: SocialPublicationStatus,
+): boolean {
+  return (
+    SOCIAL_PUBLICATION_PREPARE_IDEMPOTENT_REUSE_STATUSES as readonly SocialPublicationStatus[]
   ).includes(status);
 }
 

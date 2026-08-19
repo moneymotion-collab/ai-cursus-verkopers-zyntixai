@@ -12,7 +12,7 @@ import {
   B18_CONTENT_ITEM_TITLE,
   B18_CONTROLLED_IMAGE_CAPTION,
 } from "@/features/social-media/domain/b18-publish-navigation";
-import { isTerminalPublicationStatus } from "@/features/social-media/domain/lifecycle";
+import { isPrepareIdempotentReuseStatus } from "@/features/social-media/domain/lifecycle";
 import { isSocialPublicationStatus } from "@/features/social-media/domain/publishing";
 import { uploadPrivateSocialJpeg } from "@/features/social-media/server/private-media-upload";
 
@@ -45,6 +45,9 @@ function asBoolean(value: unknown): boolean | null {
 export type PrepareB18ImagePublicationSuccess = {
   ok: true;
   publicationId: string;
+  /** True when a new publication row was materialized; false when an active row was reused. */
+  created: boolean;
+  idempotencyOutcome: "created" | "reused_active";
   connectionId: string;
   contentId: string;
   variantId: string;
@@ -180,7 +183,7 @@ export async function prepareB18ImagePublication(
         existingId &&
         existingStatus &&
         isSocialPublicationStatus(existingStatus) &&
-        !isTerminalPublicationStatus(existingStatus) &&
+        isPrepareIdempotentReuseStatus(existingStatus) &&
         existingContentId &&
         existingVariantId &&
         existingVariantVersionId &&
@@ -189,6 +192,8 @@ export async function prepareB18ImagePublication(
         return {
           ok: true,
           publicationId: existingId,
+          created: false,
+          idempotencyOutcome: "reused_active",
           connectionId,
           contentId: existingContentId,
           variantId: existingVariantId,
@@ -398,7 +403,9 @@ export async function prepareB18ImagePublication(
   }
 
   // Stable key for identical JPEG+connection (DB unique + create RPC returns existing).
-  // New key only when a prior publication for that key is terminal.
+  // Mint a new key when a prior row for that key is not Prepare-reusable
+  // (e.g. manual_intervention / failed_terminal / succeeded), so Create does not
+  // silently return the historical UUID without a fresh publication row.
   let idempotencyKey = baseIdempotencyKey;
   try {
     const existingQuery = await (
@@ -433,7 +440,7 @@ export async function prepareB18ImagePublication(
       if (
         existingStatus &&
         isSocialPublicationStatus(existingStatus) &&
-        isTerminalPublicationStatus(existingStatus)
+        !isPrepareIdempotentReuseStatus(existingStatus)
       ) {
         idempotencyKey = `${baseIdempotencyKey.slice(0, 100)}_${randomUUID().replace(/-/g, "").slice(0, 8)}`;
       }
@@ -472,6 +479,8 @@ export async function prepareB18ImagePublication(
   return {
     ok: true,
     publicationId,
+    created: true,
+    idempotencyOutcome: "created",
     connectionId,
     contentId,
     variantId,

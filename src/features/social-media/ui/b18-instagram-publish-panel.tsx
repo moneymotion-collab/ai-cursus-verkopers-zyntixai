@@ -26,7 +26,15 @@ type B18InstagramPublishPanelProps = {
 type Feedback =
   | { kind: "idle" }
   | { kind: "pending"; label: string }
-  | { kind: "prepared"; publicationId: string }
+  | {
+      kind: "prepared";
+      publicationId: string;
+      created: boolean;
+    }
+  | {
+      kind: "selected";
+      publicationId: string;
+    }
   | {
       kind: "executed";
       publicationId: string;
@@ -81,7 +89,7 @@ function executeFailureMessage(code: string): string {
     case "closed_beta_paused":
       return "Publishing is paused for your organization.";
     case "closed_beta_revoked":
-      return "Social closed beta access was revoked for this organization.";
+      return "Social closed beta access was revoked for your organization.";
     case "closed_beta_publish_not_allowed":
       return "Publishing access has not been enabled for your organization.";
     case "not_found":
@@ -115,7 +123,7 @@ export function B18InstagramPublishPanel({
   );
   const [feedback, setFeedback] = useState<Feedback>(
     initialPublicationId
-      ? { kind: "prepared", publicationId: initialPublicationId }
+      ? { kind: "selected", publicationId: initialPublicationId }
       : { kind: "idle" },
   );
   const [publicationId, setPublicationId] = useState<string | null>(
@@ -157,10 +165,18 @@ export function B18InstagramPublishPanel({
         });
         return;
       }
+      if (!result.publicationId) {
+        setFeedback({
+          kind: "error",
+          message: "Unable to prepare the controlled IMAGE publication.",
+        });
+        return;
+      }
       setPublicationId(result.publicationId);
       setFeedback({
         kind: "prepared",
         publicationId: result.publicationId,
+        created: result.created,
       });
     } catch {
       setFeedback({
@@ -312,15 +328,26 @@ export function B18InstagramPublishPanel({
 
       {feedback.kind === "prepared" ? (
         <p className={styles.success} role="status">
-          Publication prepared.{" "}
+          {feedback.created
+            ? "Publication prepared."
+            : "Publication already prepared."}{" "}
+          Publication ID: {feedback.publicationId}.{" "}
           {executeBlockedReason ??
             "Execute remains subject to publishing availability and readiness checks."}
+        </p>
+      ) : null}
+      {feedback.kind === "selected" ? (
+        <p className={styles.notice} role="status">
+          Publication selected. Publication ID: {feedback.publicationId}. This
+          does not confirm a new Prepare — submit Prepare with a JPEG to create
+          or reuse a durable publication.
         </p>
       ) : null}
       {feedback.kind === "executed" ? (
         <p className={styles.success} role="status">
           Outcome: {feedback.outcome}. External id present:{" "}
-          {feedback.externalPublicationIdPresent ? "yes" : "no"}.
+          {feedback.externalPublicationIdPresent ? "yes" : "no"}. Publication
+          ID: {feedback.publicationId}.
         </p>
       ) : null}
       {feedback.kind === "error" ? (

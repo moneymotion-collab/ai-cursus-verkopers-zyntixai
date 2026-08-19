@@ -71,9 +71,17 @@ describe("SMM-B1.8 controlled Instagram IMAGE publish surface", () => {
       ),
       "utf8",
     );
+    const panel = readFileSync(
+      join(
+        process.cwd(),
+        "src/features/social-media/ui/b18-instagram-publish-panel.tsx",
+      ),
+      "utf8",
+    );
 
     expect(prepare).toContain('"use server"');
     expect(prepare).toContain("prepareB18ImagePublication");
+    expect(prepare).toContain("created: prepared.created");
     expect(prepare).not.toContain("SOCIAL_PUBLISHING_ENABLED=true");
     expect(prepare).not.toContain("service_role");
     expect(prepare).not.toContain("SERVICE_ROLE");
@@ -94,6 +102,9 @@ describe("SMM-B1.8 controlled Instagram IMAGE publish surface", () => {
     expect(
       isSocialPublishingFeatureEnabled({ SOCIAL_PUBLISHING_ENABLED: "1" }),
     ).toBe(false);
+
+    expect(panel).toContain("Publication ID:");
+    expect(panel).toContain('kind: "selected"');
   });
 
   it("rejects non-JPEG bytes at the dimension helper boundary", () => {
