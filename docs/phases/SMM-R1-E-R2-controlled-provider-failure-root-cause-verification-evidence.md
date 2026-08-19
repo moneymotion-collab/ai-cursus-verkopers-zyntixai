@@ -4,16 +4,16 @@
 | --- | --- |
 | Phase | **SMM-R1-E-R2 — Controlled Provider Failure Root-Cause Verification** |
 | Date | 2026-08-19 |
-| Formal status | `IN PROGRESS — PREPARE PATH FIXED; FRESH OWNER PREPARE NOT YET MATERIALIZED` |
+| Formal status | `ACTIVE — SECURITY/SELECTION BINDING INCIDENT; AUTHORIZED TARGET NOT EXECUTED` |
 | Parent | **SMM-R1-E** remains **BLOCKED** |
 | Predecessor | **SMM-R1-E-R1** remains **CLOSED** (do not reopen) |
-| Sub-phase | **SMM-R1-E-R2-P1** Prepare durability / UI success contract |
+| Sub-phase | **SMM-R1-E-R2** post-window binding verification |
 | Production | `dmctinrcjvsgmoxwwodw` / `www.zyntixai.com` |
 
 ```text
 R1-E-R1 CLOSED — DO NOT REOPEN
-R1-E BLOCKED — DO NOT FALSELY CLOSE
-R1-E-R2 ACTIVE — PREPARE PATH FIXED; AWAITING FRESH OWNER PREPARE
+R1-E BLOCKED — DO NOT CLOSE
+R1-E-R2 ACTIVE — SELECTION BINDING INCIDENT; AUTHORIZED UUID NOT EXECUTED
 ```
 
 ---
@@ -162,25 +162,165 @@ Idempotency for active queued Prepare is preserved. Duplicate Execute protection
 
 | Item | Status |
 | --- | --- |
-| New R2 publication UUID | **absent** (owner Prepare after fix not yet verified) |
-| Execute window | **not authorized** |
+| Target UUID | `ae6caf94-2fc7-4653-a085-0228d32e0c53` |
+| created_at | `2026-08-19T09:33:21.677414Z` |
+| status | `queued` · attempts **0** · external id **absent** |
+| Sibling excluded | `f584f4bb-…` remains queued · **must not Execute** |
+| Execute window | **OPEN** (see §10) |
 
 ---
 
-## 9. Owner-action-required gate
+## 9. Pre-window invariants (Stage 1) — PASS
+
+All checks passed before gate flip: target queued/attempts0/no lease/media ready/IG healthy/enrollment publishing_allowed/enrollments=1/gate was OFF/GUC unset/attempts total=2/siblings+history untouched.
+
+---
+
+## 10. Diagnostic window opened (Stage 2)
+
+| Check | Result |
+| --- | --- |
+| `SOCIAL_PUBLISHING_ENABLED` | **true** (Production only) |
+| ON deploy | `zyntixai-5rnfbs6ic…` → `www.zyntixai.com` **Ready** (`dpl_D7QjAf2HD6Ry8Qb5Vvanhn3eo86L`) |
+| Target after ON | still `queued` · attempts **0** · no new attempt from gate alone |
+| Attempts total | still **2** |
+| Publishing GUC / exec_at_rest | unset / **false** |
+| Agent Execute | **not performed** |
+
+---
+
+## 11. Owner-action-required gate (Stage 3)
 
 ```text
-OWNER ACTION REQUIRED — R1-E-R2 PREPARE PATH FIXED; PREPARE ONE FRESH IMAGE
+OWNER ACTION REQUIRED — HARD REFRESH THEN EXECUTE EXACTLY ONCE
 ```
 
-Do **not** open the diagnostic Execute window until a **new** publication UUID exists with attempts **0**.
+```text
+publication_id=ae6caf94-2fc7-4653-a085-0228d32e0c53
+max_execute_count=1
+```
 
-**Exact owner next action:**
+Do **not** Execute: `f584f4bb-…`, historical queued leftovers, or `bdd8a0dc-…`.
 
-1. Hard-refresh (no `publication=` param):  
-   `https://www.zyntixai.com/social?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb&section=publish`
-2. Prepare **one** JPEG (may be the same photo as R1-E — fix now creates a new row; a new export is still preferred).
-3. Confirm success copy includes a **new** Publication ID (not `bdd8a0dc-…`).
-4. Confirm the same UUID appears in Social Activity.
-5. Reply with that UUID.
-6. Do **not** Execute.
+After owner click: inspect attempt + diagnostics → **immediately** set `SOCIAL_PUBLISHING_ENABLED=false` and redeploy OFF.
+
+---
+
+## 12. Immediate OFF restoration (Priority 1) — PROVEN
+
+| Check | Result |
+| --- | --- |
+| `SOCIAL_PUBLISHING_ENABLED` | **false** (Production pull verified) |
+| OFF deploy | `zyntixai-myk5cjqcu…` → `www.zyntixai.com` **Ready** (`dpl_2uk4ne9Rp8cdW1QdNE4wXHPDZxC1`) |
+| Publishing GUC | unset |
+| `exec_at_rest` | **false** |
+| Further Execute | blocked by gate OFF |
+
+---
+
+## 13. UUID discrepancy / binding investigation (Priority 2)
+
+### Owner-visible UI
+
+```text
+Outcome: succeeded
+External id present: yes
+Publication ID: 1f1fa14e-0208-4c12-b28f-7c185f26eec7
+```
+
+### Authorized target `ae6caf94-2fc7-4653-a085-0228d32e0c53`
+
+| Field | Durable result |
+| --- | --- |
+| status | still **`queued`** |
+| attempts | **0** |
+| attempt rows | **0** |
+| external id | **absent** |
+| Execute during window | **NO** |
+
+### Visible UUID `1f1fa14e-0208-4c12-b28f-7c185f26eec7`
+
+| Classification | **internal publication UUID** (not attempt/media) |
+| --- | --- |
+| created_at | `2026-08-19T09:44:09.345706Z` (**during ON window**, after Stage 3 stop) |
+| status | **`succeeded`** |
+| attempts | **1** |
+| attempt UUID | `b596f6d4-a51f-4268-9913-763419905f75` · outcome **`succeeded`** |
+| external id | **present** (value not printed) |
+| idempotency_key | `b18_24420652d0b4_9dc7bd5a8fa228343aeab52aee99c4d930f9c550_face2ed3` |
+| media | fresh asset · jpeg · 1254×1254 · 460410 B · ready · created `09:44:08Z` |
+| events | created → queued → claimed → attempt_started → attempt_succeeded |
+
+Proven: a **new Prepare** during the ON window created `1f1fa14e-…`, then **that** publication was Executed. Execute action returns the client-supplied `publicationId`; UI displayed the executed publication’s UUID correctly for the write that landed — which was **not** the authorized target.
+
+### Sibling / historical Execute check
+
+| UUID | Attempts after window |
+| --- | --- |
+| `f584f4bb-…` | **0** (still queued) |
+| `040e15f3-…` / `1714161a-…` / `9dd4f6ed-…` | **0** |
+| `bdd8a0dc-…` / attempt `c2d3cef0-…` | unchanged (`manual_intervention` / `failed_terminal`) |
+
+### Window deltas
+
+| Metric | Value |
+| --- | --- |
+| New attempts during window | **1** (`b596f6d4-…` on `1f1fa14e-…`) |
+| Provider writes | **1** |
+| Publications gaining external id this window | **1** (`1f1fa14e-…`) |
+| Authorized target attempts | **0** |
+
+### Success-path diagnostics on `b596f6d4-…`
+
+`provider_step`, HTTP/Graph codes, request/response flags: **null** (success path; R1-E-R1 failure diagnostics not required to populate on success).
+
+---
+
+## 14. Production counts (after OFF)
+
+| Metric | After |
+| --- | --- |
+| Org publications | **8** (was 7 pre-window; +1 Prepare during window) |
+| Queued | **5** (includes untouched authorized `ae6caf94-…`) |
+| Succeeded | **2** |
+| manual_intervention | **1** |
+| With external id | **2** |
+| Attempts total | **3** (was 2; +1) |
+| Enrollments / events | **1** / **2** · status still `publishing_allowed` · `updated_at` unchanged |
+
+---
+
+## 15. Root-cause / phase disposition
+
+```text
+SECURITY/SELECTION BINDING INCIDENT — AUTHORIZED PUBLICATION NOT EXECUTED
+```
+
+- Authorized `ae6caf94-…` was **not** executed.
+- A different durable publication `1f1fa14e-…` (fresh Prepare during ON window) received the single provider write and **succeeded**.
+- Prior R1-E 4xx was **not** evaluated against the authorized target; incidental success on a same-fingerprint JPEG does **not** authorize R1-E / R1-E-R2 closure for the controlled single-UUID objective.
+
+```text
+ROOT CAUSE NOT REPRODUCED
+```
+
+(for the prior 4xx — only as an incidental observation on a non-authorized publication; **do not close**)
+
+```text
+R1-E-R2 NOT CLOSED
+R1-E REMAINS BLOCKED
+```
+
+Do **not** use R1-E or R1-E-R2 success closure strings.
+
+---
+
+## 16. Final safety state
+
+| Check | Result |
+| --- | --- |
+| Global publishing | **OFF** |
+| www | `zyntixai-myk5cjqcu…` **Ready** |
+| GUC / exec_at_rest | unset / **false** |
+| No further Execute authorized | **yes** |
+| R1-F | **not started** |
