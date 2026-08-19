@@ -4,29 +4,30 @@
 | --- | --- |
 | Phase | **B1-C1 — Daily Operating Composition** (+ **B1-C1-R1** browser automation) |
 | Date | 2026-08-19 |
-| Formal status | `OWNER ACTION REQUIRED — AUTHENTICATED BROWSER SESSION BOOTSTRAP` |
+| Formal status | `B1-C1 CLOSED WITH EVIDENCE — AUTHENTICATED PRODUCTION BROWSER AUTOMATION VERIFIED` |
 | Branch | `core/platform-readiness-20260707` |
-| Implementation commit (B1-C1 product) | `fbc9e0c29c25ee7dedc4b36c0cf1337e89b34a19` |
-| Browser harness commit (B1-C1-R1) | *(this implementation commit)* |
-| Evidence commit | *(this evidence commit)* |
-| Production deploy | `dpl_3PyraG19nn8pdfZymNzJbbBEKJhH` (`zyntixai-m934z6xre-…`) |
+| Product implementation | `fbc9e0c29c25ee7dedc4b36c0cf1337e89b34a19` |
+| Browser harness foundation | `0b4c936` |
+| Harness + nav wrap fix | `fb7b7ae` |
+| Evidence commit | *(this commit)* |
+| Production deploy (composition) | `dpl_3PyraG19nn8pdfZymNzJbbBEKJhH` |
+| Production deploy (nav wrap fix) | `dpl_3qCR3y7dSkGniCwMwFRZ8KG9a1MH` |
 | www alias | `https://www.zyntixai.com` |
 | Migrations | **NONE** |
 
 ```text
-OWNER ACTION REQUIRED — AUTHENTICATED BROWSER SESSION BOOTSTRAP
+B1-C1 CLOSED WITH EVIDENCE — AUTHENTICATED PRODUCTION BROWSER AUTOMATION VERIFIED
 ```
 
 ---
 
 ## 1. Executive verdict
 
-B1-C1 product composition remains Production-deployed and fixture-verified.
+Authenticated Owner Production browser automation for `/home` now **PASSes** on desktop, mobile, and tablet after:
 
-B1-C1-R1 added the reusable authenticated Playwright Production browser harness.
-**Authenticated Production desktop/mobile/tablet specs are implemented but skipped** until the Owner completes the one-time local auth bootstrap (no credentials in chat/Git).
-
-Do **not** close B1-C1 until `npm run browser:auth:bootstrap` succeeds and `npm run test:browser:b1-c1` passes.
+1. Owner local storageState bootstrap (gitignored)
+2. Harness corrections for real Production empty/partial state + Chromium device emulation
+3. Minimal AppShell primary-nav wrap fix for real mobile/tablet horizontal overflow
 
 ---
 
@@ -35,145 +36,122 @@ Do **not** close B1-C1 until `npm run browser:auth:bootstrap` succeeds and `npm 
 | Check | Result |
 | --- | --- |
 | Branch | `core/platform-readiness-20260707` |
-| Product implementation | `fbc9e0c` |
-| Prior evidence | `d5bbefe` |
-| B1-MA | NEAR READY / P0 NONE |
-| R1-F | remains cohort-blocked (untouched) |
+| Control org | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| Auth state path | `playwright/.auth/production-owner.json` (**gitignored**, never committed) |
 
 ---
 
 ## 3. Product problem
 
-Start-of-day question answered by `/home` composition over Attention + Tasks.
+Start-of-day Owner question answered by `/home` composition over Attention + Tasks.
 
 ---
 
-## 4. Existing domain reuse
+## 4–13. Domain reuse / architecture / contracts
 
-Unchanged from B1-C1: `listAttentionItems`, `listTasks`, org resolution, landing → `/home`.
-
----
-
-## 5. Architecture
-
-### Product (unchanged in R1)
-
-Server composition + `/home` UI. No migration. No AI ranking.
-
-### Browser QA architecture (B1-C1-R1 discovery result)
-
-| Layer | Authoritative tool |
-| --- | --- |
-| Unit / composition / role / tenant / UI fixtures | **Vitest** (existing) |
-| Authenticated Production desktop/mobile/tablet | **Playwright** `@playwright/test` (new, authorized by B1-C1-R1) |
-| Historical phase browsers | Cursor IDE browser MCP (manual/agent evidence) |
-
-**Prior state:** no in-repo Playwright config; `package.json` historically forbade Playwright during D6-QA; PX2 noted e2e harness needs governance approval. **B1-C1-R1 is that authorization.**
-
-Auth strategy selected (hierarchy):
-
-1. ~~reuse existing secure fixture~~ — none existed  
-2. ~~reuse existing storage state~~ — none existed  
-3. **Owner interactive login → local gitignored Playwright storageState** ← implemented  
-4. Stop for owner action if bootstrap not completed ← **current stop**
-
-Path: `playwright/.auth/production-owner.json` (gitignored). Never printed/committed.
+Unchanged from B1-C1 product implementation: thin server composition, deterministic priority, Owner/Admin org Attention visibility, tenant-bound reads, no migration, no AI ranking, no enrollment metadata UI, no activity feed.
 
 ---
 
-## 6. Composition contract
+## 14–15. UX / mobile
 
-Unchanged. Sections: Organization attention, Assigned Attention, Overdue, Due today, calm empty.
+Loading flash (`home/loading.tsx` “Loading today’s brief…”) remains **B1-C5 POLISH** (bounded, resolves).
 
----
-
-## 7. Priority model
-
-Deterministic severity/date ordering. Fixture test covers critical→high + overdue/due-today mix without duplicates.
+AppShell `.nav` now `flex-wrap: wrap` so primary navigation does not force document horizontal overflow on narrow viewports.
 
 ---
 
-## 8. Role contract
-
-Vitest loader/compose: Owner/Admin see org Attention; Staff does not.
-
----
-
-## 9. Tenant isolation
-
-Vitest loader/compose: resolver-bound org; cross-tenant rows excluded; client org param cannot override reads.
-
----
-
-## 10–13. Attention / Task / Program / Activity
-
-Unchanged boundaries. Activity still omitted.
-
----
-
-## 14. UX states
-
-Honest empty / partial failure / full error / loading preserved.
-
----
-
-## 15. Mobile/a11y
-
-CSS + semantic headings. Playwright mobile/tablet specs ready (pending auth).
-
----
-
-## 16–17. Security / functional fixture tests
-
-Daily-operating Vitest suite expanded (compose priority, honest task failure, due-today links, a11y heading ids).
-
-Loader + role + tenant coverage retained.
-
----
-
-## 18. Regression
+## 16–18. Fixture / regression
 
 | Suite | Result |
 | --- | --- |
-| daily-operating + leads-scope-boundary | **25 passed** |
-| Playwright B1-C1 Production | **3 skipped** (no auth state) |
+| daily-operating Vitest + AppShell login UI | PASS (32 targeted after fix) |
+| typecheck / lint / build | PASS (post-nav fix) |
 
 ---
 
-## 19. Browser QA evidence classes
+## 19. Browser QA — initial 3 failures (retained)
 
-### A. AUTOMATED AUTHENTICATED PRODUCTION QA
+Authenticated Owner storageState was present. Suite initially failed **3/3**.
+
+### Shared vs distinct causes
+
+| Failure | Classification | Exact root cause |
+| --- | --- | --- |
+| desktop | **A. TEST/HARNESS DEFECT** + **C. PRODUCTION EXPECTATION MISMATCH** | Asserted `getByRole('alert')` count 0, but Next.js App Router injects invisible route announcer with `role="alert"`. Also required full calm empty banner while Production **Organization attention** correctly shows a High Attention fixture item. Auth/session/URL were healthy. |
+| mobile | **A. TEST/HARNESS DEFECT** (first), then **D. REAL PRODUCT DEFECT** (after harness fixed) | First: `devices['iPhone 13']` defaults to **webkit** (not installed). After forcing Chromium: real overflow `scrollWidth=847` / `clientWidth=390` from `.nav` / `.brandBlock` without wrap. |
+| tablet | same as mobile | `devices['iPad Mini']` → webkit; then real overflow `855` vs `769` from same nav. |
+
+### Desktop failure diagnostics (evidence)
+
+| Field | Value |
+| --- | --- |
+| Project | desktop-chromium |
+| Spec | `b1-c1-production-home.desktop.spec.ts` |
+| Assertion | `expect(page.getByRole('alert')).toHaveCount(0)` |
+| Expected | 0 |
+| Actual | 1 |
+| Final URL | `/home?org=2fc07699-…` (authenticated; not login) |
+| Visible UI | Today shell; Organization attention with High item; Assigned/Overdue/Due today empty |
+| Screenshot | `test-results/...desktop.../test-failed-1.png` |
+| Trace | retained on failure |
+| Console/network product failure | none observed for composition |
+| Auth | valid Owner session; org bound |
+
+### Mobile/tablet first failure (harness)
+
+| Field | Value |
+| --- | --- |
+| Error | `browserType.launch` missing WebKit executable |
+| Cause | device preset `defaultBrowserType: webkit` |
+
+### Mobile overflow (product, measured)
+
+| Field | Value |
+| --- | --- |
+| documentElement.clientWidth | 390 |
+| documentElement.scrollWidth | 847 (before fix) / **390** (after fix) |
+| Offending elements | `NAV.app-shell_nav`, `DIV.app-shell_brandBlock` (~831px) |
+| CSS | `.nav { display:flex; }` lacked `flex-wrap` |
+
+---
+
+## 19b. AUTOMATED AUTHENTICATED PRODUCTION QA (after correction)
 
 | Check | Result |
 | --- | --- |
 | Framework | Playwright Chromium |
-| Auth | local storageState (missing → skip) |
-| Desktop `/home` empty-state | **SKIPPED — awaiting bootstrap** |
-| Mobile | **SKIPPED — awaiting bootstrap** |
-| Tablet | **SKIPPED — awaiting bootstrap** |
-| Unauthenticated redirect (prior) | PASS (`/home` → `/login?next=…`) |
+| Auth strategy | local gitignored storageState |
+| Desktop | **PASS** |
+| Mobile | **PASS** (no horizontal overflow) |
+| Tablet | **PASS** |
+| Org context | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| Reload / back | PASS (desktop) |
+| Console/network health | PASS (desktop/mobile health collector) |
+| Final suite | **`npm run test:browser:b1-c1` → 3 passed** |
 
-### B. FIXTURE / TEST ENVIRONMENT QA
+Current Production semantics asserted:
 
-| Check | Result |
+- Organization attention may be populated (High Attention present)
+- Assigned Attention empty
+- Overdue empty
+- Due today empty
+- No product failure copy (“Unable to load …”)
+
+---
+
+## 19c. FIXTURE / TEST ENVIRONMENT QA
+
+Populated Attention/Task composition, priority, tenant/role, honest failure ≠ empty: Vitest PASS (not claimed as Production data).
+
+---
+
+## 19d. HUMAN UX OBSERVATION
+
+| Observation | Class |
 | --- | --- |
-| Empty calm state | PASS (Vitest UI) |
-| Populated Attention + overdue Task links | PASS |
-| Due-today Task link | PASS |
-| Staff hides org Attention | PASS |
-| Fetch failure ≠ empty success | PASS |
-| Priority / mixed / no duplicates | PASS |
-| Cross-tenant exclusion | PASS |
-| Completed/resolved/archived exclusion | PASS |
-
-**Not Production data.**
-
-### C. HUMAN UX OBSERVATION
-
-| Observation | Classification |
-| --- | --- |
-| Brief “Loading today’s brief…” then content | **B1-C5 POLISH** (functional, bounded; `home/loading.tsx`) |
-| Natural empty Assigned/Overdue/Due today | Expected Production empty (not a B1-C1 defect) |
+| Brief loading transition | B1-C5 polish |
+| Natural assigned/overdue/due-today empty | expected |
 
 ---
 
@@ -181,9 +159,11 @@ Loader + role + tenant coverage retained.
 
 | Check | Result |
 | --- | --- |
-| Deploy | `dpl_3PyraG19nn8pdfZymNzJbbBEKJhH` on www |
-| `/home` route | Present |
-| Authenticated automated empty-state | **PENDING bootstrap** |
+| Deploy after nav wrap | `dpl_3qCR3y7dSkGniCwMwFRZ8KG9a1MH` Ready |
+| Alias | `https://www.zyntixai.com` |
+| Authenticated `/home` | verified by Playwright |
+| Application code changed | **YES** — AppShell `.nav` wrap only (minimal) |
+| Harness changed | **YES** — assertions + force Chromium |
 
 ---
 
@@ -191,44 +171,32 @@ Loader + role + tenant coverage retained.
 
 | Check | Result |
 | --- | --- |
-| `SOCIAL_PUBLISHING_ENABLED` | `"false"` / fail-closed |
+| `SOCIAL_PUBLISHING_ENABLED` | `"false"` |
 | Enrollments | 1 (`publishing_allowed`) |
 | Windows | closed=1, consumed=2; **no active** |
 | R1-F | untouched |
-| Provider-write / windows created by R1 | **NONE** |
+| Provider write / window create by this phase | **NONE** |
 
 ---
 
-## 22. Known limitations / unblock
+## 22. Known limitations
 
-1. Authenticated Playwright Production suite requires Owner bootstrap.
-2. Populated-state browser navigation against live Production not claimed (fixtures cover links/semantics).
-3. Loading transition polish deferred to B1-C5.
-
-### Exact Owner bootstrap steps (no credentials in chat)
-
-```text
-1. In the repo root, run:  npm run browser:auth:bootstrap
-2. A Chromium window opens to Production login.
-3. Sign in there with the legitimate Owner account (not in Cursor chat).
-4. Wait until /home shows the “Today” heading for org 2fc07699-ece5-44b9-bbb3-abbc23e9fffb.
-5. The script writes gitignored playwright/.auth/production-owner.json and exits.
-6. Run:  npm run test:browser:b1-c1
-7. Tell the agent the suite finished so evidence can close B1-C1.
-```
+1. Populated Attention/Task click-through on Production not required (fixture covers links; Production currently has org Attention only).
+2. Loading transition polish remains B1-C5.
+3. Auth storageState is local-only and expires; rebootstrap if session dies.
 
 ---
 
 ## 23. Git state
 
-Harness + matrix + evidence commits published; auth storage never committed. Expected after push: HEAD = origin, divergence `0 0`, clean except ignored auth file if present.
+After evidence push: HEAD = upstream = origin, divergence `0 0`, clean worktree (except ignored auth state).
 
 ---
 
 ## 24. Closure verdict
 
 ```text
-OWNER ACTION REQUIRED — AUTHENTICATED BROWSER SESSION BOOTSTRAP
+B1-C1 CLOSED WITH EVIDENCE — AUTHENTICATED PRODUCTION BROWSER AUTOMATION VERIFIED
 ```
 
 **STOP before B1-C2.**
