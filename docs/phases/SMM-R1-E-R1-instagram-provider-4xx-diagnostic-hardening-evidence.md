@@ -235,7 +235,7 @@ ROOT CAUSE NOT YET PROVEN — NEXT CONTROLLED ATTEMPT WILL PROVIDE STRUCTURED PR
 | --- | --- |
 | Branch | `core/platform-readiness-20260707` |
 | Implementation SHA | `e82eff9c8406bb7afc8924b426d949ed56227780` |
-| Evidence SHA | *(this commit)* |
+| Evidence SHA | 88cd93da4cf42680491fcb6466d97618f2a087f0 |
 | Upstream | `origin/core/platform-readiness-20260707` |
 | Worktree | clean after push |
 
