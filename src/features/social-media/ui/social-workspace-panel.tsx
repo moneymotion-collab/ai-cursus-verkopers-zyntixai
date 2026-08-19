@@ -61,6 +61,12 @@ type SocialWorkspacePanelProps = {
   succeededPublicationCount: number;
   blockedPublicationCount: number;
   explicitPublicationId: string | null;
+  controlledPublishWindow?: {
+    windowId: string;
+    publicationId: string;
+    maxExecuteCount: number;
+    consumedExecuteCount: number;
+  } | null;
 };
 
 export function SocialWorkspacePanel({
@@ -78,6 +84,7 @@ export function SocialWorkspacePanel({
   succeededPublicationCount,
   blockedPublicationCount,
   explicitPublicationId,
+  controlledPublishWindow = null,
 }: SocialWorkspacePanelProps) {
   const publishableConnections = connections.filter(
     (connection) =>
@@ -305,15 +312,22 @@ export function SocialWorkspacePanel({
             publishingEnabled={
               publishingEnabled && closedBeta.publishingEntitlementAllowed
             }
-            prepareAllowed={closedBeta.prepareAllowed}
+            prepareAllowed={
+              closedBeta.prepareAllowed && !controlledPublishWindow
+            }
             prepareBlockedReason={
-              closedBeta.prepareAllowed
-                ? null
-                : closedBeta.executeBlockedReason ??
-                  "Preparing content is unavailable for this organization."
+              controlledPublishWindow
+                ? "A controlled publication is currently authorized for execution. Finish or close that window before preparing another publication."
+                : closedBeta.prepareAllowed
+                  ? null
+                  : closedBeta.executeBlockedReason ??
+                    "Preparing content is unavailable for this organization."
             }
             executeBlockedReason={closedBeta.executeBlockedReason}
             initialPublicationId={explicitPublicationId}
+            authorizedPublicationId={
+              controlledPublishWindow?.publicationId ?? null
+            }
           />
         </section>
       ) : null}

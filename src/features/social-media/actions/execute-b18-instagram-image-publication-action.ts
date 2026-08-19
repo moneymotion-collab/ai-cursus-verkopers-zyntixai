@@ -7,6 +7,11 @@ import { isSocialInstagramConnectionsFeatureEnabled } from "@/features/social-me
 import { isSocialPublishingFeatureEnabled } from "@/features/social-media/server/social-publishing-feature";
 import { executeB18ImagePublication } from "@/features/social-media/server/b18-execute-image-publication";
 import { assertClosedBetaPublishAllowed } from "@/features/social-media/server/social-closed-beta-enrollment";
+import { assertControlledPublishWindowBinding } from "@/features/social-media/server/controlled-publish-window";
+import {
+  CONTROLLED_WINDOW_EXHAUSTED,
+  PUBLICATION_NOT_AUTHORIZED_FOR_WINDOW,
+} from "@/features/social-media/domain/controlled-publish-window";
 
 export type ExecuteB18InstagramImagePublicationActionResult =
   | {
@@ -36,6 +41,8 @@ export type ExecuteB18InstagramImagePublicationActionResult =
         | "closed_beta_paused"
         | "closed_beta_revoked"
         | "closed_beta_publish_not_allowed"
+        | "publication_not_authorized_for_window"
+        | "controlled_window_exhausted"
         | "internal_error";
     };
 
@@ -91,6 +98,22 @@ export async function executeB18InstagramImagePublicationAction(input: {
     return { ok: false, code: "internal_error" };
   }
 
+  const windowBinding = await assertControlledPublishWindowBinding(
+    supabase,
+    orgContext.context.organizationId,
+    publicationId,
+  );
+  if (!windowBinding.ok) {
+    if (
+      windowBinding.code === PUBLICATION_NOT_AUTHORIZED_FOR_WINDOW ||
+      windowBinding.code === CONTROLLED_WINDOW_EXHAUSTED ||
+      windowBinding.code === "forbidden"
+    ) {
+      return { ok: false, code: windowBinding.code };
+    }
+    return { ok: false, code: "internal_error" };
+  }
+
   const result = await executeB18ImagePublication(supabase, {
     organizationId: orgContext.context.organizationId,
     publicationId,
@@ -109,6 +132,8 @@ export async function executeB18InstagramImagePublicationAction(input: {
       case "closed_beta_paused":
       case "closed_beta_revoked":
       case "closed_beta_publish_not_allowed":
+      case "publication_not_authorized_for_window":
+      case "controlled_window_exhausted":
         return { ok: false, code: result.reason };
       case "invalid_input":
         return { ok: false, code: "invalid_request" };

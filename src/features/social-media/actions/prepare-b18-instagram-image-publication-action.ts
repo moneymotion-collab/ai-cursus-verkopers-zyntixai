@@ -8,6 +8,8 @@ import { listActiveSocialWorkspaces } from "@/features/social-media/server/list-
 import { listSocialAccountConnections } from "@/features/social-media/server/list-social-connections";
 import { prepareB18ImagePublication } from "@/features/social-media/server/b18-prepare-image-publication";
 import { assertClosedBetaPrepareAllowed } from "@/features/social-media/server/social-closed-beta-enrollment";
+import { loadActiveControlledPublishWindow } from "@/features/social-media/server/controlled-publish-window";
+import { isPrepareBlockedByActiveControlledWindow } from "@/features/social-media/domain/controlled-publish-window";
 
 export type PrepareB18InstagramImagePublicationActionResult =
   | {
@@ -35,6 +37,7 @@ export type PrepareB18InstagramImagePublicationActionResult =
         | "closed_beta_not_enrolled"
         | "closed_beta_paused"
         | "closed_beta_revoked"
+        | "controlled_window_prepare_blocked"
         | "internal_error";
     };
 
@@ -91,6 +94,20 @@ export async function prepareB18InstagramImagePublicationAction(
       return { ok: false, code: prepareEntitlement.code };
     }
     return { ok: false, code: "internal_error" };
+  }
+
+  const activeWindow = await loadActiveControlledPublishWindow(
+    supabase,
+    orgContext.context.organizationId,
+  );
+  if (!activeWindow.ok) {
+    if (activeWindow.reason === "forbidden") {
+      return { ok: false, code: "forbidden" };
+    }
+    return { ok: false, code: "internal_error" };
+  }
+  if (isPrepareBlockedByActiveControlledWindow(activeWindow.window)) {
+    return { ok: false, code: "controlled_window_prepare_blocked" };
   }
 
   const [workspacesResult, connectionsResult] = await Promise.all([

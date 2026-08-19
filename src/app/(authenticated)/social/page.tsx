@@ -250,6 +250,7 @@ export default async function SocialWorkspacePage({ searchParams }: PageProps) {
           succeededPublicationCount={result.succeededPublicationCount}
           blockedPublicationCount={result.blockedPublicationCount}
           explicitPublicationId={result.explicitPublicationId}
+          controlledPublishWindow={result.controlledPublishWindow}
         />
       </div>
     </AppShell>

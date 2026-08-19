@@ -440,6 +440,21 @@ export type {
 } from "@/features/social-media/domain/closed-beta-enrollment";
 
 export {
+  SOCIAL_CONTROLLED_PUBLISH_WINDOW_STATUSES,
+  PUBLICATION_NOT_AUTHORIZED_FOR_WINDOW,
+  CONTROLLED_WINDOW_EXHAUSTED,
+  PREPARE_BLOCKED_BY_CONTROLLED_WINDOW_COPY,
+  isSocialControlledPublishWindowStatus,
+  evaluateControlledPublishWindowBinding,
+  isPrepareBlockedByActiveControlledWindow,
+  userSafeControlledWindowDenialMessage,
+} from "@/features/social-media/domain/controlled-publish-window";
+export type {
+  SocialControlledPublishWindowStatus,
+  ActiveControlledPublishWindow,
+} from "@/features/social-media/domain/controlled-publish-window";
+
+export {
   SOCIAL_CLOSED_BETA_OPERATOR_UI_ENABLED_ENV,
   SOCIAL_CLOSED_BETA_OPERATOR_EMAIL_ALLOWLIST_ENV,
   parseSocialClosedBetaOperatorUiEnabled,

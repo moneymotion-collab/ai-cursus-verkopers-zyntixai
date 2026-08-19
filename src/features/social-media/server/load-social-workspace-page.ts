@@ -39,6 +39,8 @@ import {
   SOCIAL_OAUTH_FAILURE_STAGE_QUERY,
 } from "@/features/social-media/domain/oauth-failure-stage";
 import { loadSocialClosedBetaEnrollmentStatus } from "@/features/social-media/server/social-closed-beta-enrollment";
+import { loadActiveControlledPublishWindow } from "@/features/social-media/server/controlled-publish-window";
+import type { ActiveControlledPublishWindow } from "@/features/social-media/domain/controlled-publish-window";
 import {
   buildSocialClosedBetaCustomerReadModel,
   type SocialClosedBetaCustomerReadModel,
@@ -97,6 +99,7 @@ export type SocialWorkspacePageResult =
       oauthOutcome: string | null;
       oauthFailureStage: string | null;
       explicitPublicationId: string | null;
+      controlledPublishWindow: ActiveControlledPublishWindow | null;
     };
 
 export async function loadSocialWorkspacePage(
@@ -222,7 +225,7 @@ export async function loadSocialWorkspacePage(
   const oauthFailureStage =
     stageRaw && isSocialOAuthFailureStage(stageRaw) ? stageRaw : null;
 
-  const [workspacesResult, inventory] = await Promise.all([
+  const [workspacesResult, inventory, controlledWindowResult] = await Promise.all([
     listActiveSocialWorkspaces(supabase, organizationId),
     listSocialLifecycleInventory(
       supabase,
@@ -230,9 +233,10 @@ export async function loadSocialWorkspacePage(
       new Date().toISOString(),
       publishingEnabled,
     ),
+    loadActiveControlledPublishWindow(supabase, organizationId),
   ]);
 
-  if (!workspacesResult.ok || !inventory.ok) {
+  if (!workspacesResult.ok || !inventory.ok || !controlledWindowResult.ok) {
     return {
       kind: "query_error",
       message: "Unable to load Social workspace. Please try again.",
@@ -287,5 +291,6 @@ export async function loadSocialWorkspacePage(
     oauthOutcome,
     oauthFailureStage,
     explicitPublicationId,
+    controlledPublishWindow: controlledWindowResult.window,
   };
 }

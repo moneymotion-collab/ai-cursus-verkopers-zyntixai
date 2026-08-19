@@ -21,6 +21,8 @@ type B18InstagramPublishPanelProps = {
   prepareBlockedReason?: string | null;
   executeBlockedReason?: string | null;
   initialPublicationId?: string | null;
+  /** Server-authoritative controlled-window target (R1-E-R2-P2). */
+  authorizedPublicationId?: string | null;
 };
 
 type Feedback =
@@ -71,6 +73,8 @@ function prepareFailureMessage(code: string): string {
       return "publish_image capability is missing on the connection.";
     case "invalid_request":
       return "The prepare request was invalid.";
+    case "controlled_window_prepare_blocked":
+      return "A controlled publication is currently authorized for execution. Finish or close that window before preparing another publication.";
     default:
       return "Unable to prepare the controlled IMAGE publication.";
   }
@@ -102,6 +106,10 @@ function executeFailureMessage(code: string): string {
       return "Credential could not be loaded for this connection.";
     case "invalid_request":
       return "The execute request was invalid.";
+    case "publication_not_authorized_for_window":
+      return "This publication is not authorized for the current publishing window.";
+    case "controlled_window_exhausted":
+      return "The authorized publishing window has already been used.";
     default:
       return "Unable to execute the controlled IMAGE publication.";
   }
@@ -116,19 +124,31 @@ export function B18InstagramPublishPanel({
   prepareBlockedReason = null,
   executeBlockedReason = null,
   initialPublicationId = null,
+  authorizedPublicationId = null,
 }: B18InstagramPublishPanelProps) {
   const pendingRef = useRef(false);
   const [connectionId, setConnectionId] = useState(
     publishableConnections[0]?.id ?? "",
   );
+  const boundPublicationId =
+    authorizedPublicationId?.trim() || initialPublicationId || null;
   const [feedback, setFeedback] = useState<Feedback>(
-    initialPublicationId
-      ? { kind: "selected", publicationId: initialPublicationId }
+    boundPublicationId
+      ? authorizedPublicationId
+        ? { kind: "selected", publicationId: boundPublicationId }
+        : { kind: "selected", publicationId: boundPublicationId }
       : { kind: "idle" },
   );
   const [publicationId, setPublicationId] = useState<string | null>(
-    initialPublicationId,
+    boundPublicationId,
   );
+
+  const executeTargetId = authorizedPublicationId?.trim() || publicationId;
+  const selectionMismatch =
+    !!authorizedPublicationId &&
+    !!initialPublicationId &&
+    initialPublicationId !== authorizedPublicationId;
+  const canExecute = publishingEnabled && !!executeTargetId;
 
   async function onPrepare(form: HTMLFormElement) {
     if (pendingRef.current) {
@@ -172,7 +192,10 @@ export function B18InstagramPublishPanel({
         });
         return;
       }
-      setPublicationId(result.publicationId);
+      // Never retarget an active controlled-window authorization from Prepare.
+      if (!authorizedPublicationId) {
+        setPublicationId(result.publicationId);
+      }
       setFeedback({
         kind: "prepared",
         publicationId: result.publicationId,
@@ -189,7 +212,7 @@ export function B18InstagramPublishPanel({
   }
 
   async function onExecute() {
-    if (pendingRef.current || !publishingEnabled || !publicationId) {
+    if (pendingRef.current || !canExecute || !executeTargetId) {
       return;
     }
     pendingRef.current = true;
@@ -200,7 +223,7 @@ export function B18InstagramPublishPanel({
     try {
       const result = await executeB18InstagramImagePublicationAction({
         organizationId,
-        publicationId,
+        publicationId: executeTargetId,
       });
       if (!result.ok) {
         setFeedback({
@@ -243,6 +266,9 @@ export function B18InstagramPublishPanel({
             ? "available when readiness checks pass"
             : executeBlockedReason ?? "unavailable"}
         </li>
+        {authorizedPublicationId ? (
+          <li>Authorized publication: {authorizedPublicationId}</li>
+        ) : null}
       </ul>
 
       {!prepareAllowed ? (
@@ -308,7 +334,14 @@ export function B18InstagramPublishPanel({
         </form>
       )}
 
-      {publishingEnabled && publicationId ? (
+      {selectionMismatch ? (
+        <p className={styles.notice} role="status">
+          URL selection differs from the authorized publication. Execute will
+          use the authorized publication only.
+        </p>
+      ) : null}
+
+      {canExecute ? (
         <button
           type="button"
           className={styles.button}

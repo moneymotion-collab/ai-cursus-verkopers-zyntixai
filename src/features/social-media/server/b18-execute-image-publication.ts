@@ -140,6 +140,8 @@ export type ExecuteB18ImagePublicationFailure = {
     | "closed_beta_paused"
     | "closed_beta_revoked"
     | "closed_beta_publish_not_allowed"
+    | "publication_not_authorized_for_window"
+    | "controlled_window_exhausted"
     | "transport_error"
     | "unexpected";
 };
@@ -301,7 +303,9 @@ export async function executeB18ImagePublication(
       startCode === "closed_beta_not_enrolled" ||
       startCode === "closed_beta_paused" ||
       startCode === "closed_beta_revoked" ||
-      startCode === "closed_beta_publish_not_allowed"
+      startCode === "closed_beta_publish_not_allowed" ||
+      startCode === "publication_not_authorized_for_window" ||
+      startCode === "controlled_window_exhausted"
     ) {
       return { ok: false, reason: startCode };
     }
