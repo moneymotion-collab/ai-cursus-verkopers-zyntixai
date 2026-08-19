@@ -365,7 +365,7 @@ describe("invitations feature gate OFF", () => {
       invitationCookies: { continuation: sealed.cookieValue },
       authenticatedUserId: USER_A,
     });
-    expect(path).toBe(`/leads?org=${ORG_A}`);
+    expect(path).toBe(`/home?org=${ORG_A}`);
   });
 
   it("feature re-enable before expiry resumes invitation routing", () => {

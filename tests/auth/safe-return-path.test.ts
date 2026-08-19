@@ -13,6 +13,10 @@ describe("resolveSafeReturnPath", () => {
   });
 
   it("accepts Leads, Customers, Tasks, Programs, and Enrollments paths including nested routes", () => {
+    expect(resolveSafeReturnPath("/home")).toBe("/home");
+    expect(
+      resolveSafeReturnPath("/home?org=11111111-1111-4111-8111-111111111111"),
+    ).toBe("/home?org=11111111-1111-4111-8111-111111111111");
     expect(resolveSafeReturnPath("/leads")).toBe("/leads");
     expect(resolveSafeReturnPath("/leads/11111111-1111-4111-8111-111111111111/edit")).toBe(
       "/leads/11111111-1111-4111-8111-111111111111/edit",
@@ -195,6 +199,8 @@ describe("password recovery path helpers", () => {
 
 describe("isProtectedApplicationPath", () => {
   it("marks product workspace routes as protected", () => {
+    expect(isProtectedApplicationPath("/home")).toBe(true);
+    expect(isProtectedApplicationPath("/home/")).toBe(true);
     expect(isProtectedApplicationPath("/leads")).toBe(true);
     expect(isProtectedApplicationPath("/leads/new")).toBe(true);
     expect(isProtectedApplicationPath("/customers")).toBe(true);

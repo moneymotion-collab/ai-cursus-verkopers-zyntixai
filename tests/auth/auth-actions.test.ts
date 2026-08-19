@@ -128,7 +128,7 @@ describe("loginAction", () => {
     expect(JSON.stringify(result)).not.toMatch(/raw-provider-secret/i);
   });
 
-  it("rejects unsafe return paths and lands on organization-scoped leads", async () => {
+  it("rejects unsafe return paths and lands on organization-scoped home", async () => {
     signInWithPasswordMock.mockResolvedValue({ data: {}, error: null });
 
     const result = await loginAction({
@@ -137,7 +137,7 @@ describe("loginAction", () => {
       next: "https://evil.example/phish",
     });
 
-    expect(result).toEqual({ ok: true, redirectTo: `/leads?org=${ORG_A}` });
+    expect(result).toEqual({ ok: true, redirectTo: `/home?org=${ORG_A}` });
   });
 });
 

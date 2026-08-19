@@ -59,7 +59,7 @@ export async function resolveAuthenticatedLanding(
     return buildProductDestination(organizationId);
   }
 
-  return "/leads";
+  return "/home";
 }
 
 /**

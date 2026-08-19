@@ -4,11 +4,16 @@ import { isB18InstagramPublishPathname } from "@/features/social-media/domain/b1
 import { isR1InstagramConnectPathname } from "@/features/social-media/domain/r1-connect-navigation";
 import { isSocialPathname } from "@/features/social-media/domain/social-navigation";
 import { isSocialClosedBetaOperatorPathname } from "@/features/social-media/domain/platform-operator-navigation";
+import { isDailyOperatingHomePathname } from "@/features/daily-operating/domain/compose-daily-operating-brief";
 
 const DEFAULT_RETURN_PATH = "/";
 
 function isAllowlistedPathname(pathname: string): boolean {
   if (pathname === "/") {
+    return true;
+  }
+
+  if (isDailyOperatingHomePathname(pathname)) {
     return true;
   }
 
@@ -175,6 +180,7 @@ export function resolveSafeReturnPath(
 
 export function isProtectedApplicationPath(pathname: string): boolean {
   return (
+    isDailyOperatingHomePathname(pathname) ||
     pathname === "/leads" ||
     pathname.startsWith("/leads/") ||
     pathname === "/customers" ||

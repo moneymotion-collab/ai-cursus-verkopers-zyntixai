@@ -43,12 +43,12 @@ function context(partial: Partial<OnboardingContext> = {}): OnboardingContext {
 }
 
 describe("B1.3 browser journey contracts", () => {
-  it("Journey A — incomplete owner starts at step 1 with prefills then completes to leads", () => {
+  it("Journey A — incomplete owner starts at step 1 with prefills then completes to home", () => {
     const values = formValuesFromContext(context());
     expect(resolveInitialOnboardingStep(values)).toBe(1);
     expect(values.displayName).toBe("Casey");
     expect(values.organizationName).toBe("Casey Coaching");
-    expect(buildProductDestination(ORG)).toBe(`/leads?org=${ORG}`);
+    expect(buildProductDestination(ORG)).toBe(`/home?org=${ORG}`);
   });
 
   it("Journey B — refresh resumes from saved server values", () => {

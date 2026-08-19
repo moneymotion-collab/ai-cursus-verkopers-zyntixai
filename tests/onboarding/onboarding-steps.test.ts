@@ -148,7 +148,7 @@ describe("onboarding steps domain", () => {
   });
 
   it("preserves organization context in destination builders", () => {
-    expect(buildProductDestination(ORG)).toBe(`/leads?org=${ORG}`);
+    expect(buildProductDestination(ORG)).toBe(`/home?org=${ORG}`);
     expect(buildOnboardingPath(ORG)).toBe(`/onboarding?org=${ORG}`);
     expect(buildOnboardingPath()).toBe("/onboarding");
   });

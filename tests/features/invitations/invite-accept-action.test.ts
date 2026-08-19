@@ -246,7 +246,7 @@ describe("acceptInvitationAction", () => {
     });
 
     await expect(acceptInvitationAction()).rejects.toThrow(
-      `NEXT_REDIRECT:/leads?org=${ORG_A}`,
+      `NEXT_REDIRECT:/home?org=${ORG_A}`,
     );
     expect(acceptRpcMock).toHaveBeenCalledOnce();
     expect(cookiesSetMock).toHaveBeenCalledWith(
@@ -291,7 +291,7 @@ describe("acceptInvitationAction", () => {
 
     // redirect() is outside catch — mock throw propagates unchanged.
     await expect(acceptInvitationAction()).rejects.toThrow(
-      `NEXT_REDIRECT:/leads?org=${ORG_A}`,
+      `NEXT_REDIRECT:/home?org=${ORG_A}`,
     );
   });
 
@@ -361,7 +361,7 @@ describe("acceptInvitationAction", () => {
     });
 
     await expect(acceptInvitationAction()).rejects.toThrow(
-      `NEXT_REDIRECT:/leads?org=${ORG_B}`,
+      `NEXT_REDIRECT:/home?org=${ORG_B}`,
     );
   });
 

@@ -41,14 +41,14 @@ describe("resolveAuthenticatedLanding", () => {
     listMembershipsMock.mockReset();
   });
 
-  it("lands single completed-organization owners on organization-scoped leads", async () => {
+  it("lands single completed-organization owners on organization-scoped home", async () => {
     listMembershipsMock.mockResolvedValue({
       ok: true,
       memberships: [{ organizationId: ORG_A, role: "owner" }],
     });
 
     await expect(resolveAuthenticatedLanding(fakeSupabase())).resolves.toBe(
-      `/leads?org=${ORG_A}`,
+      `/home?org=${ORG_A}`,
     );
   });
 
@@ -63,7 +63,7 @@ describe("resolveAuthenticatedLanding", () => {
     );
   });
 
-  it("lands multi-organization users on /leads for selection", async () => {
+  it("lands multi-organization users on /home for selection", async () => {
     listMembershipsMock.mockResolvedValue({
       ok: true,
       memberships: [
@@ -72,7 +72,7 @@ describe("resolveAuthenticatedLanding", () => {
       ],
     });
 
-    await expect(resolveAuthenticatedLanding(fakeSupabase())).resolves.toBe("/leads");
+    await expect(resolveAuthenticatedLanding(fakeSupabase())).resolves.toBe("/home");
   });
 
   it("lands zero-organization users on registration recovery", async () => {
@@ -110,17 +110,17 @@ describe("resolvePostLoginDestination", () => {
 
   it("resolves default and root destinations through organization landing", async () => {
     await expect(resolvePostLoginDestination(fakeSupabase(), "/")).resolves.toBe(
-      `/leads?org=${ORG_A}`,
+      `/home?org=${ORG_A}`,
     );
     await expect(resolvePostLoginDestination(fakeSupabase(), undefined)).resolves.toBe(
-      `/leads?org=${ORG_A}`,
+      `/home?org=${ORG_A}`,
     );
   });
 
   it("falls back to organization landing for rejected open redirects", async () => {
     await expect(
       resolvePostLoginDestination(fakeSupabase(), "https://evil.example"),
-    ).resolves.toBe(`/leads?org=${ORG_A}`);
+    ).resolves.toBe(`/home?org=${ORG_A}`);
   });
 
   it("allows an onboarding return path", async () => {

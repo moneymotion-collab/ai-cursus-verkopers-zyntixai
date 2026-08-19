@@ -90,7 +90,7 @@ describe("root entry redirects", () => {
     await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT:/login");
   });
 
-  it("redirects single-organization users to organization-scoped leads", async () => {
+  it("redirects single-organization users to organization-scoped home", async () => {
     getUserMock.mockResolvedValue({
       data: { user: { id: "u1", email_confirmed_at: "2026-01-01T00:00:00Z" } },
       error: null,
@@ -99,10 +99,10 @@ describe("root entry redirects", () => {
       ok: true,
       memberships: [{ organizationId: ORG_A, role: "owner" }],
     });
-    await expect(HomePage()).rejects.toThrow(`NEXT_REDIRECT:/leads?org=${ORG_A}`);
+    await expect(HomePage()).rejects.toThrow(`NEXT_REDIRECT:/home?org=${ORG_A}`);
   });
 
-  it("redirects multi-organization users to /leads and zero-org users to recovery", async () => {
+  it("redirects multi-organization users to /home and zero-org users to recovery", async () => {
     getUserMock.mockResolvedValue({
       data: { user: { id: "u1", email_confirmed_at: "2026-01-01T00:00:00Z" } },
       error: null,
@@ -114,7 +114,7 @@ describe("root entry redirects", () => {
         { organizationId: ORG_B, role: "staff" },
       ],
     });
-    await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT:/leads");
+    await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT:/home");
 
     listMembershipsMock.mockResolvedValue({ ok: true, memberships: [] });
     await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT:/register/complete");

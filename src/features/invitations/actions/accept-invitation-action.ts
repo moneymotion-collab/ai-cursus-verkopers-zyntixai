@@ -104,7 +104,7 @@ export async function acceptInvitationAction(): Promise<AcceptInvitationActionRe
       );
     }
     if (memberships.ok && memberships.memberships.length > 1) {
-      redirect("/leads");
+      redirect("/home");
     }
     redirect("/");
   }

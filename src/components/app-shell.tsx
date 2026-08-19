@@ -88,7 +88,11 @@ export function AppShell({
             <nav className={styles.nav} aria-label="Primary">
               <Link
                 className={styles.navLink}
-                href="/"
+                href={
+                  selectedOrganizationId
+                    ? `/home?org=${encodeURIComponent(selectedOrganizationId)}`
+                    : "/home"
+                }
                 aria-current={activeNav === "home" ? "page" : undefined}
               >
                 Home

@@ -212,7 +212,7 @@ describe("registerAction", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.code).toBe("authenticated_user_cannot_self_register");
-      expect(result.redirectTo).toBe(`/leads?org=${ORG_A}`);
+      expect(result.redirectTo).toBe(`/home?org=${ORG_A}`);
     }
   });
 
@@ -361,11 +361,11 @@ describe("completeRegistrationAction", () => {
     });
     tryProvisionMock.mockResolvedValue({
       ok: true,
-      path: `/leads?org=${ORG_A}`,
+      path: `/home?org=${ORG_A}`,
     });
 
     const result = await completeRegistrationAction();
-    expect(result).toEqual({ ok: true, redirectTo: `/leads?org=${ORG_A}` });
+    expect(result).toEqual({ ok: true, redirectTo: `/home?org=${ORG_A}` });
   });
 
   it("denies owner completion when public registration is disabled", async () => {

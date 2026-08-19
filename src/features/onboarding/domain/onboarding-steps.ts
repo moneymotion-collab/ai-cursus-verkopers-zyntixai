@@ -260,7 +260,7 @@ export function buildCompletePayload(
 }
 
 export function buildProductDestination(organizationId: string): string {
-  return `/leads?org=${encodeURIComponent(organizationId)}`;
+  return `/home?org=${encodeURIComponent(organizationId)}`;
 }
 
 export function buildOnboardingPath(organizationId?: string | null): string {
