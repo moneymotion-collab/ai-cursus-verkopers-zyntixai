@@ -25,6 +25,8 @@ R1-E-R2 ACTIVE — PREPARE PATH FIXED; AWAITING FRESH OWNER PREPARE
 | Branch | `core/platform-readiness-20260707` |
 | Pre-fix HEAD | `6503872b152492d4f88e462be8efcdd308839c4a` |
 | P1 fix commit | `b2d42781d1d4d33165f5584057c2e0e36d040362` |
+| Evidence SHA record | `e4954640488e5841710ace2a55dddbb79692320e` |
+| Production deploy | `zyntixai-lhmd1sckm…` → `www.zyntixai.com` **Ready** (`dpl_HPu2LLKDxhHqnsMxXySUhitqdddT`) |
 | R1-E-R1 implementation | `e82eff9c8406bb7afc8924b426d949ed56227780` |
 | Upstream | `origin/core/platform-readiness-20260707` |
 | `SOCIAL_PUBLISHING_ENABLED` | OFF (not re-enabled) |
@@ -145,12 +147,14 @@ Idempotency for active queued Prepare is preserved. Duplicate Execute protection
 
 | Check | Result |
 | --- | --- |
-| Global publishing | **OFF** |
+| Global publishing | **OFF** (env not flipped this phase; deploy Ready with existing Production env) |
 | Publishing GUC | unset · `exec_at_rest=false` |
 | Meta provider write | **0** |
 | Execute | **not performed** |
+| Org publications / attempts | still **5** / **2** |
 | Historical incident / queued leftovers | **untouched** |
 | Enrollment | `publishing_allowed` · enrollments **1** |
+| www alias | `zyntixai-lhmd1sckm…` **Ready** |
 
 ---
 
