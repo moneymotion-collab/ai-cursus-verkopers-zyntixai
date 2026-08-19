@@ -113,7 +113,37 @@ describe("SMM-B1.6 publishing migration security", () => {
       "20260818190346_add_social_closed_beta_enrollment_foundation.sql",
       "20260818191706_add_social_closed_beta_entitlement_defense_in_depth.sql",
       "20260818194719_add_social_closed_beta_operator_mutation_wrappers.sql",
+      "20260819101500_add_social_instagram_provider_4xx_diagnostic_hardening.sql",
     ]);
+  });
+
+  it("adds R1-E-R1 provider diagnostic columns without rewriting history", () => {
+    const r1er1 = readFileSync(
+      join(
+        process.cwd(),
+        "supabase/migrations/20260819101500_add_social_instagram_provider_4xx_diagnostic_hardening.sql",
+      ),
+      "utf8",
+    );
+    expect(r1er1).toContain("add column if not exists provider_step text");
+    expect(r1er1).toContain("provider_http_status");
+    expect(r1er1).toContain("provider_error_code");
+    expect(r1er1).toContain("safe_provider_message");
+    expect(r1er1).toContain("create_container");
+    expect(r1er1).toContain("media_publish");
+    expect(r1er1).not.toMatch(
+      /update public\.social_publication_attempts[\s\S]*where id = 'bdd8a0dc/,
+    );
+    expect(r1er1).not.toContain("c2d3cef0-9e22-4595-bb02-64ec3b76adfc");
+    expect(r1er1).toMatch(
+      /grant execute on function public\.b18_complete_controlled_publication_attempt[\s\S]*to authenticated/,
+    );
+    expect(r1er1).not.toMatch(
+      /grant execute on function public\.b18_complete_controlled_publication_attempt[\s\S]*to service_role/,
+    );
+    expect(r1er1).not.toMatch(
+      /grant execute on function private\.complete_social_publication_attempt/,
+    );
   });
 
   it("grants B1.8 controlled wrappers to authenticated only", () => {

@@ -149,6 +149,24 @@ export type SocialPublicationExecutionInput = {
   altText: string | null;
 };
 
+/**
+ * Provider-neutral safe diagnostics for a failed publishing attempt.
+ * Instagram R1-E-R1 populates these; other adapters may omit.
+ */
+export type SocialPublishingProviderDiagnostics = {
+  providerStep: string;
+  httpStatus: number | null;
+  providerErrorCode: number | null;
+  providerErrorSubcode: number | null;
+  providerErrorType: string | null;
+  safeProviderMessage: string | null;
+  requestDispatched: boolean;
+  responseReceived: boolean;
+  externalContainerIdPresent: boolean;
+  externalPublicationIdPresent: boolean;
+  boundaryState: string;
+};
+
 export type SocialPublishingAdapterResult =
   | {
       outcome: "succeeded";
@@ -158,6 +176,7 @@ export type SocialPublishingAdapterResult =
       outcome: "failed_retryable" | "failed_terminal" | "unknown_external_outcome";
       failureClass: SocialPublicationFailureClass;
       safeErrorCode: string;
+      providerDiagnostics?: SocialPublishingProviderDiagnostics;
     };
 
 /**

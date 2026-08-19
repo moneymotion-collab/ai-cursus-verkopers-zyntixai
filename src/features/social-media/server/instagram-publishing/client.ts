@@ -38,9 +38,14 @@ export type InstagramPublishingHttpResult<T> =
       ok: false;
       reason: InstagramPublishingHttpFailureReason;
       requestDispatched: boolean;
+      /** True when an HTTP response object was received (including non-2xx). */
+      responseReceived?: boolean;
       httpStatus?: number;
       providerErrorCode?: number | null;
       providerErrorSubcode?: number | null;
+      providerErrorType?: string | null;
+      /** Raw provider message — sanitize before persist/log. */
+      providerErrorMessage?: string | null;
     };
 
 export type InstagramContainerId = { id: string };
@@ -84,12 +89,17 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 function extractProviderError(value: unknown): {
   code: number | null;
   subcode: number | null;
+  type: string | null;
+  message: string | null;
 } {
   const record = asRecord(value);
   const error = asRecord(record?.error);
   const code = typeof error?.code === "number" ? error.code : null;
-  const subcode = typeof error?.error_subcode === "number" ? error.error_subcode : null;
-  return { code, subcode };
+  const subcode =
+    typeof error?.error_subcode === "number" ? error.error_subcode : null;
+  const type = typeof error?.type === "string" ? error.type : null;
+  const message = typeof error?.message === "string" ? error.message : null;
+  return { code, subcode, type, message };
 }
 
 async function fetchWithTimeout(
@@ -171,24 +181,39 @@ export async function createInstagramMediaContainer(input: {
   }
   if (!fetched.value.ok) {
     const json = await readJsonSafely(fetched.value);
-    const err = json.ok ? extractProviderError(json.value) : { code: null, subcode: null };
+    const err = json.ok
+      ? extractProviderError(json.value)
+      : { code: null, subcode: null, type: null, message: null };
     return {
       ok: false,
       reason: "non_2xx",
       requestDispatched: true,
+      responseReceived: true,
       httpStatus: fetched.value.status,
       providerErrorCode: err.code,
       providerErrorSubcode: err.subcode,
+      providerErrorType: err.type,
+      providerErrorMessage: err.message,
     };
   }
   const json = await readJsonSafely(fetched.value);
   if (!json.ok) {
-    return { ok: false, reason: "invalid_json", requestDispatched: true };
+    return {
+      ok: false,
+      reason: "invalid_json",
+      requestDispatched: true,
+      responseReceived: true,
+    };
   }
   const record = asRecord(json.value);
   const id = typeof record?.id === "string" ? record.id.trim() : "";
   if (!id) {
-    return { ok: false, reason: "invalid_payload", requestDispatched: true };
+    return {
+      ok: false,
+      reason: "invalid_payload",
+      requestDispatched: true,
+      responseReceived: true,
+    };
   }
   return { ok: true, value: { id }, requestDispatched: true };
 }
@@ -212,16 +237,30 @@ export async function getInstagramContainerStatus(input: {
     return fetched;
   }
   if (!fetched.value.ok) {
+    const json = await readJsonSafely(fetched.value);
+    const err = json.ok
+      ? extractProviderError(json.value)
+      : { code: null, subcode: null, type: null, message: null };
     return {
       ok: false,
       reason: "non_2xx",
       requestDispatched: true,
+      responseReceived: true,
       httpStatus: fetched.value.status,
+      providerErrorCode: err.code,
+      providerErrorSubcode: err.subcode,
+      providerErrorType: err.type,
+      providerErrorMessage: err.message,
     };
   }
   const json = await readJsonSafely(fetched.value);
   if (!json.ok) {
-    return { ok: false, reason: "invalid_json", requestDispatched: true };
+    return {
+      ok: false,
+      reason: "invalid_json",
+      requestDispatched: true,
+      responseReceived: true,
+    };
   }
   const record = asRecord(json.value);
   const statusCode = record?.status_code;
@@ -232,7 +271,12 @@ export async function getInstagramContainerStatus(input: {
     statusCode !== "IN_PROGRESS" &&
     statusCode !== "PUBLISHED"
   ) {
-    return { ok: false, reason: "invalid_payload", requestDispatched: true };
+    return {
+      ok: false,
+      reason: "invalid_payload",
+      requestDispatched: true,
+      responseReceived: true,
+    };
   }
   return {
     ok: true,
@@ -264,24 +308,39 @@ export async function publishInstagramMediaContainer(input: {
   }
   if (!fetched.value.ok) {
     const json = await readJsonSafely(fetched.value);
-    const err = json.ok ? extractProviderError(json.value) : { code: null, subcode: null };
+    const err = json.ok
+      ? extractProviderError(json.value)
+      : { code: null, subcode: null, type: null, message: null };
     return {
       ok: false,
       reason: "non_2xx",
       requestDispatched: true,
+      responseReceived: true,
       httpStatus: fetched.value.status,
       providerErrorCode: err.code,
       providerErrorSubcode: err.subcode,
+      providerErrorType: err.type,
+      providerErrorMessage: err.message,
     };
   }
   const json = await readJsonSafely(fetched.value);
   if (!json.ok) {
-    return { ok: false, reason: "invalid_json", requestDispatched: true };
+    return {
+      ok: false,
+      reason: "invalid_json",
+      requestDispatched: true,
+      responseReceived: true,
+    };
   }
   const record = asRecord(json.value);
   const id = typeof record?.id === "string" ? record.id.trim() : "";
   if (!id) {
-    return { ok: false, reason: "invalid_payload", requestDispatched: true };
+    return {
+      ok: false,
+      reason: "invalid_payload",
+      requestDispatched: true,
+      responseReceived: true,
+    };
   }
   return { ok: true, value: { id }, requestDispatched: true };
 }
@@ -352,8 +411,18 @@ export async function waitForInstagramContainerFinished(input: {
   | { ok: true; statusCode: "FINISHED" | "PUBLISHED" }
   | {
       ok: false;
-      reason: "poll_timeout" | "container_expired" | "container_error" | InstagramPublishingHttpFailureReason;
+      reason:
+        | "poll_timeout"
+        | "container_expired"
+        | "container_error"
+        | InstagramPublishingHttpFailureReason;
       requestDispatched: boolean;
+      responseReceived?: boolean;
+      httpStatus?: number;
+      providerErrorCode?: number | null;
+      providerErrorSubcode?: number | null;
+      providerErrorType?: string | null;
+      providerErrorMessage?: string | null;
     }
 > {
   const sleep =

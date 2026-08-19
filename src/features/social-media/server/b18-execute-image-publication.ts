@@ -18,6 +18,12 @@ import { loadEncryptedSocialProviderCredentialEnvelope } from "@/features/social
 import { decryptSocialCredentialEnvelope } from "@/features/social-media/server/credential-crypto";
 import { SOCIAL_CREDENTIAL_ENCRYPTION_PURPOSE } from "@/features/social-media/server/credential-secrets";
 import { createInstagramPublishingAdapter } from "@/features/social-media/server/instagram-publishing/adapter";
+import {
+  isInstagramProviderStep,
+  logInstagramProviderDiagnostic,
+  type InstagramProviderDiagnostics,
+} from "@/features/social-media/server/instagram-publishing/diagnostics";
+import type { SocialPublishingProviderDiagnostics } from "@/features/social-media/domain/publishing";
 
 type RpcCapableClient = {
   rpc: (
@@ -138,6 +144,27 @@ export type ExecuteB18ImagePublicationFailure = {
     | "unexpected";
 };
 
+function toPersistedDiagnostics(
+  value: SocialPublishingProviderDiagnostics | undefined,
+): InstagramProviderDiagnostics | null {
+  if (!value || !isInstagramProviderStep(value.providerStep)) {
+    return null;
+  }
+  return {
+    providerStep: value.providerStep,
+    httpStatus: value.httpStatus,
+    providerErrorCode: value.providerErrorCode,
+    providerErrorSubcode: value.providerErrorSubcode,
+    providerErrorType: value.providerErrorType,
+    safeProviderMessage: value.safeProviderMessage,
+    requestDispatched: value.requestDispatched,
+    responseReceived: value.responseReceived,
+    externalContainerIdPresent: value.externalContainerIdPresent,
+    externalPublicationIdPresent: value.externalPublicationIdPresent,
+    boundaryState: value.boundaryState as InstagramProviderDiagnostics["boundaryState"],
+  };
+}
+
 async function completeAttempt(
   client: RpcCapableClient,
   args: {
@@ -149,9 +176,23 @@ async function completeAttempt(
     failureClass?: string | null;
     safeErrorCode?: string | null;
     externalPublicationId?: string | null;
+    publicationId?: string;
+    diagnostics?: InstagramProviderDiagnostics | null;
   },
 ): Promise<"success" | string> {
   try {
+    const diagnostics = args.diagnostics ?? null;
+    if (diagnostics && args.publicationId && args.safeErrorCode && args.failureClass) {
+      logInstagramProviderDiagnostic({
+        organizationId: args.organizationId,
+        publicationId: args.publicationId,
+        attemptId: args.attemptId,
+        diagnostics,
+        safeErrorCode: args.safeErrorCode,
+        outcome: args.outcome,
+        failureClass: args.failureClass,
+      });
+    }
     const { data, error } = await client.rpc(
       "b18_complete_controlled_publication_attempt",
       {
@@ -163,6 +204,16 @@ async function completeAttempt(
         p_failure_class: args.failureClass ?? null,
         p_safe_error_code: args.safeErrorCode ?? null,
         p_external_publication_id: args.externalPublicationId ?? null,
+        p_provider_step: diagnostics?.providerStep ?? null,
+        p_provider_http_status: diagnostics?.httpStatus ?? null,
+        p_provider_error_code: diagnostics?.providerErrorCode ?? null,
+        p_provider_error_subcode: diagnostics?.providerErrorSubcode ?? null,
+        p_provider_error_type: diagnostics?.providerErrorType ?? null,
+        p_safe_provider_message: diagnostics?.safeProviderMessage ?? null,
+        p_provider_request_dispatched: diagnostics?.requestDispatched ?? null,
+        p_provider_response_received: diagnostics?.responseReceived ?? null,
+        p_external_container_id_present:
+          diagnostics?.externalContainerIdPresent ?? null,
       },
     );
     if (error) {
@@ -532,6 +583,8 @@ export async function executeB18ImagePublication(
     outcome: publishResult.outcome,
     failureClass: publishResult.failureClass,
     safeErrorCode: publishResult.safeErrorCode,
+    publicationId,
+    diagnostics: toPersistedDiagnostics(publishResult.providerDiagnostics),
   });
   if (completeCode !== "success") {
     return { ok: false, reason: "unexpected" };

@@ -35,6 +35,16 @@ export {
   toAdapterFailureResult,
 } from "@/features/social-media/server/instagram-publishing/errors";
 export {
+  INSTAGRAM_PROVIDER_STEPS,
+  isInstagramProviderStep,
+  sanitizeInstagramProviderMessage,
+  sanitizeInstagramProviderErrorType,
+  buildInstagramProviderDiagnostics,
+  logInstagramProviderDiagnostic,
+  type InstagramProviderStep,
+  type InstagramProviderDiagnostics,
+} from "@/features/social-media/server/instagram-publishing/diagnostics";
+export {
   isInstagramPublishableFormat,
   mapContentFormatToInstagramContainerType,
   INSTAGRAM_CAROUSEL_MAX_ITEMS,

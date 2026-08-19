@@ -32,6 +32,10 @@ export type ListedPublicationAttempt = {
   outcome: SocialPublicationAttemptOutcome;
   failureClass: string | null;
   safeErrorCode: string | null;
+  providerStep: string | null;
+  providerHttpStatus: number | null;
+  providerErrorCode: number | null;
+  providerErrorSubcode: number | null;
   startedAt: string;
   finishedAt: string | null;
   timelineStage: string;
@@ -119,7 +123,7 @@ export async function listSocialLifecycleInventory(
       client
         .from("social_publication_attempts")
         .select(
-          "id, publication_id, attempt_number, outcome, failure_class, safe_error_code, started_at, finished_at",
+          "id, publication_id, attempt_number, outcome, failure_class, safe_error_code, provider_step, provider_http_status, provider_error_code, provider_error_subcode, started_at, finished_at",
         )
         .eq("organization_id", organizationId)
         .order("attempt_number", { ascending: true }),
@@ -171,6 +175,10 @@ export async function listSocialLifecycleInventory(
         outcome: outcome as SocialPublicationAttemptOutcome,
         failureClass: asString(record.failure_class),
         safeErrorCode: asString(record.safe_error_code),
+        providerStep: asString(record.provider_step),
+        providerHttpStatus: asNumber(record.provider_http_status),
+        providerErrorCode: asNumber(record.provider_error_code),
+        providerErrorSubcode: asNumber(record.provider_error_subcode),
         startedAt,
         finishedAt: asString(record.finished_at),
         timelineStage: timeline.stage,

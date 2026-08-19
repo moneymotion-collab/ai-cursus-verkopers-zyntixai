@@ -1,5 +1,5 @@
 /**
- * Instagram SocialPublishingAdapter (SMM-B1.7).
+ * Instagram SocialPublishingAdapter (SMM-B1.7 + R1-E-R1 diagnostics).
  * Real Graph publishing HTTP behind injectable fetch — tests never hit Meta.
  */
 
@@ -20,6 +20,10 @@ import {
   waitForInstagramContainerFinished,
   type InstagramPublishingHttpResult,
 } from "@/features/social-media/server/instagram-publishing/client";
+import {
+  buildInstagramProviderDiagnostics,
+  type InstagramProviderStep,
+} from "@/features/social-media/server/instagram-publishing/diagnostics";
 import {
   mapInstagramHttpFailure,
   toAdapterFailureResult,
@@ -53,28 +57,78 @@ function failureFromReason(
   extra?: {
     afterIrreversibleMutation?: boolean;
     httpStatus?: number;
+    providerStep?: InstagramProviderStep;
+    requestDispatched?: boolean;
+    responseReceived?: boolean;
+    providerErrorCode?: number | null;
+    providerErrorSubcode?: number | null;
+    providerErrorType?: string | null;
+    providerMessage?: unknown;
+    externalContainerIdPresent?: boolean;
+    externalPublicationIdPresent?: boolean;
+    ambiguousTransport?: boolean;
   },
 ): SocialPublishingAdapterResult {
-  return toAdapterFailureResult(
-    mapInstagramHttpFailure({
-      reason,
-      afterIrreversibleMutation: extra?.afterIrreversibleMutation,
-      httpStatus: extra?.httpStatus,
-    }),
-  );
+  const failure = mapInstagramHttpFailure({
+    reason,
+    afterIrreversibleMutation: extra?.afterIrreversibleMutation,
+    httpStatus: extra?.httpStatus,
+    providerErrorCode: extra?.providerErrorCode,
+    providerErrorSubcode: extra?.providerErrorSubcode,
+  });
+  const diagnostics =
+    extra?.providerStep != null
+      ? buildInstagramProviderDiagnostics({
+          providerStep: extra.providerStep,
+          httpStatus: extra.httpStatus ?? null,
+          providerErrorCode: extra.providerErrorCode ?? null,
+          providerErrorSubcode: extra.providerErrorSubcode ?? null,
+          providerErrorType: extra.providerErrorType ?? null,
+          providerMessage: extra.providerMessage,
+          requestDispatched: Boolean(extra.requestDispatched),
+          responseReceived: Boolean(extra.responseReceived),
+          externalContainerIdPresent: extra.externalContainerIdPresent,
+          externalPublicationIdPresent: extra.externalPublicationIdPresent,
+          ambiguousTransport: extra.ambiguousTransport,
+        })
+      : null;
+  return toAdapterFailureResult(failure, diagnostics);
 }
 
-function mapCreateFailure(
+function mapHttpFailure(
   created: Extract<InstagramPublishingHttpResult<unknown>, { ok: false }>,
+  providerStep: InstagramProviderStep,
+  extras?: {
+    afterIrreversibleMutation?: boolean;
+    externalContainerIdPresent?: boolean;
+    ambiguousTransport?: boolean;
+  },
 ): SocialPublishingAdapterResult {
-  return failureFromReason(
+  const reason =
     created.reason === "timeout" || created.reason === "network_error"
       ? created.reason
       : created.reason === "non_2xx"
         ? "non_2xx"
-        : "invalid_payload",
-    { httpStatus: created.httpStatus },
-  );
+        : created.reason === "invalid_json"
+          ? "invalid_json"
+          : "invalid_payload";
+  return failureFromReason(reason, {
+    afterIrreversibleMutation: extras?.afterIrreversibleMutation,
+    httpStatus: created.httpStatus,
+    providerStep,
+    requestDispatched: created.requestDispatched,
+    responseReceived:
+      created.responseReceived === true ||
+      created.reason === "non_2xx" ||
+      created.reason === "invalid_json" ||
+      created.reason === "invalid_payload",
+    providerErrorCode: created.providerErrorCode,
+    providerErrorSubcode: created.providerErrorSubcode,
+    providerErrorType: created.providerErrorType,
+    providerMessage: created.providerErrorMessage,
+    externalContainerIdPresent: extras?.externalContainerIdPresent,
+    ambiguousTransport: extras?.ambiguousTransport,
+  });
 }
 
 function sortedMedia(input: SocialPublicationExecutionInput) {
@@ -117,18 +171,50 @@ async function waitReady(
     return null;
   }
   if (ready.reason === "container_expired") {
-    return failureFromReason("container_expired");
+    return failureFromReason("container_expired", {
+      providerStep: "container_status",
+      requestDispatched: ready.requestDispatched,
+      responseReceived: true,
+      externalContainerIdPresent: true,
+    });
   }
   if (ready.reason === "container_error") {
-    return failureFromReason("container_error");
+    return failureFromReason("container_error", {
+      providerStep: "container_status",
+      requestDispatched: ready.requestDispatched,
+      responseReceived: true,
+      externalContainerIdPresent: true,
+    });
   }
   if (ready.reason === "poll_timeout") {
-    return failureFromReason("poll_timeout");
+    return failureFromReason("poll_timeout", {
+      providerStep: "container_status",
+      requestDispatched: ready.requestDispatched,
+      responseReceived: true,
+      externalContainerIdPresent: true,
+    });
   }
-  return failureFromReason(
-    ready.reason === "timeout" || ready.reason === "network_error"
-      ? ready.reason
-      : "invalid_payload",
+  return mapHttpFailure(
+    {
+      ok: false,
+      reason:
+        ready.reason === "timeout" || ready.reason === "network_error"
+          ? ready.reason
+          : ready.reason === "non_2xx"
+            ? "non_2xx"
+            : ready.reason === "invalid_json"
+              ? "invalid_json"
+              : "invalid_payload",
+      requestDispatched: ready.requestDispatched,
+      responseReceived: ready.responseReceived,
+      httpStatus: ready.httpStatus,
+      providerErrorCode: ready.providerErrorCode,
+      providerErrorSubcode: ready.providerErrorSubcode,
+      providerErrorType: ready.providerErrorType,
+      providerErrorMessage: ready.providerErrorMessage,
+    },
+    "container_status",
+    { externalContainerIdPresent: true },
   );
 }
 
@@ -264,7 +350,7 @@ export function createInstagramPublishingAdapter(
             request: childReq,
           });
           if (!child.ok) {
-            return mapCreateFailure(child);
+            return mapHttpFailure(child, "create_container");
           }
           if (isVideo) {
             const waitErr = await waitReady(deps, child.value.id);
@@ -285,7 +371,9 @@ export function createInstagramPublishingAdapter(
           },
         });
         if (!parent.ok) {
-          return mapCreateFailure(parent);
+          return mapHttpFailure(parent, "create_container", {
+            externalContainerIdPresent: childIds.length > 0,
+          });
         }
         containerId = parent.value.id;
       } else {
@@ -348,7 +436,7 @@ export function createInstagramPublishingAdapter(
           request,
         });
         if (!created.ok) {
-          return mapCreateFailure(created);
+          return mapHttpFailure(created, "create_container");
         }
         containerId = created.value.id;
         if (needsProcessingWait) {
@@ -379,10 +467,24 @@ export function createInstagramPublishingAdapter(
             published.reason === "invalid_json"
               ? "network_error"
               : published.reason,
-            { afterIrreversibleMutation: true },
+            {
+              afterIrreversibleMutation: true,
+              providerStep: "media_publish",
+              requestDispatched: true,
+              responseReceived: published.reason === "invalid_json",
+              httpStatus: published.httpStatus,
+              providerErrorCode: published.providerErrorCode,
+              providerErrorSubcode: published.providerErrorSubcode,
+              providerErrorType: published.providerErrorType,
+              providerMessage: published.providerErrorMessage,
+              externalContainerIdPresent: true,
+              ambiguousTransport: true,
+            },
           );
         }
-        return mapCreateFailure(published);
+        return mapHttpFailure(published, "media_publish", {
+          externalContainerIdPresent: true,
+        });
       }
 
       return {

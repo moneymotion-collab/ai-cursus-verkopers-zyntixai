@@ -176,10 +176,16 @@ describe("SMM-B1.7 Instagram publishing adapter", () => {
     });
     const adapter = adapterDeps(fetchImpl);
     const result = await adapter.publish(baseInput);
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       outcome: "unknown_external_outcome",
       failureClass: "unknown_external_outcome",
       safeErrorCode: "instagram_publish_ambiguous_timeout",
+      providerDiagnostics: {
+        providerStep: "media_publish",
+        requestDispatched: true,
+        externalContainerIdPresent: true,
+        boundaryState: "ambiguous_transport",
+      },
     });
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });

@@ -8,7 +8,9 @@ import "server-only";
 import type {
   SocialPublicationFailureClass,
   SocialPublishingAdapterResult,
+  SocialPublishingProviderDiagnostics,
 } from "@/features/social-media/domain/publishing";
+import type { InstagramProviderDiagnostics } from "@/features/social-media/server/instagram-publishing/diagnostics";
 
 export type InstagramHttpAttemptDisposition =
   | "never_sent"
@@ -190,10 +192,29 @@ export function mapInstagramHttpFailure(input: {
 
 export function toAdapterFailureResult(
   failure: InstagramNormalizedFailure,
+  diagnostics?: InstagramProviderDiagnostics | null,
 ): Exclude<SocialPublishingAdapterResult, { outcome: "succeeded" }> {
+  const providerDiagnostics: SocialPublishingProviderDiagnostics | undefined =
+    diagnostics
+      ? {
+          providerStep: diagnostics.providerStep,
+          httpStatus: diagnostics.httpStatus,
+          providerErrorCode: diagnostics.providerErrorCode,
+          providerErrorSubcode: diagnostics.providerErrorSubcode,
+          providerErrorType: diagnostics.providerErrorType,
+          safeProviderMessage: diagnostics.safeProviderMessage,
+          requestDispatched: diagnostics.requestDispatched,
+          responseReceived: diagnostics.responseReceived,
+          externalContainerIdPresent: diagnostics.externalContainerIdPresent,
+          externalPublicationIdPresent:
+            diagnostics.externalPublicationIdPresent,
+          boundaryState: diagnostics.boundaryState,
+        }
+      : undefined;
   return {
     outcome: failure.outcome,
     failureClass: failure.failureClass,
     safeErrorCode: failure.safeErrorCode,
+    ...(providerDiagnostics ? { providerDiagnostics } : {}),
   };
 }
