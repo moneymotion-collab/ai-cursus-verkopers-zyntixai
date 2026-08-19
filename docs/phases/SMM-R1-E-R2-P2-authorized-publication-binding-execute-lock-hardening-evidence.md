@@ -353,8 +353,8 @@ P2 closure does **not** close R1-E-R2 or R1-E. Do **not** start R1-F.
 | --- | --- |
 | Branch | `core/platform-readiness-20260707` |
 | Implementation SHA | `f229bfe3150420559d35a28fdf67022e34f63ac9` |
-| Evidence SHA | _(this commit)_ |
-| Authoritative HEAD | `f229bfe` + evidence commit after push |
+| Evidence SHA | `30ae92366055eff844bf4a08c7e33d5c694fb139` |
+| Authoritative HEAD | `30ae923` |
 | Upstream | `origin/core/platform-readiness-20260707` |
 | Divergence at P2 start | `0 0` |
 | Worktree | clean after evidence commit |
