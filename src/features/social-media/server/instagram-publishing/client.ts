@@ -396,10 +396,49 @@ export async function fetchInstagramContentPublishingLimit(input: {
   };
 }
 
-/** Meta recommends ~1 poll/minute for ≤5 minutes. */
+/**
+ * Meta Content Publishing guidance: poll container status ~once/minute for up to ~5 minutes.
+ * Bound is hard-capped: no infinite loop, no media_publish without FINISHED/PUBLISHED.
+ */
 export const INSTAGRAM_CONTAINER_POLL_INTERVAL_MS = 60_000;
 export const INSTAGRAM_CONTAINER_POLL_MAX_ATTEMPTS = 5;
+/** Soft bound for evidence/tests: interval × (maxAttempts − 1) when sleeping between polls. */
+export const INSTAGRAM_CONTAINER_POLL_MAX_DURATION_MS =
+  INSTAGRAM_CONTAINER_POLL_INTERVAL_MS *
+  (INSTAGRAM_CONTAINER_POLL_MAX_ATTEMPTS - 1);
 
+export type InstagramContainerReadySuccess = {
+  ok: true;
+  statusCode: "FINISHED" | "PUBLISHED";
+  pollCount: number;
+  elapsedMs: number;
+  finishedConfirmed: true;
+};
+
+export type InstagramContainerReadyFailure = {
+  ok: false;
+  reason:
+    | "poll_timeout"
+    | "container_expired"
+    | "container_error"
+    | InstagramPublishingHttpFailureReason;
+  requestDispatched: boolean;
+  responseReceived?: boolean;
+  httpStatus?: number;
+  providerErrorCode?: number | null;
+  providerErrorSubcode?: number | null;
+  providerErrorType?: string | null;
+  providerErrorMessage?: string | null;
+  pollCount: number;
+  elapsedMs: number;
+  finalStatusCode?: InstagramContainerStatus["statusCode"] | null;
+  finishedConfirmed: false;
+};
+
+/**
+ * Authoritative gate between create_container and media_publish.
+ * Only FINISHED/PUBLISHED may proceed; IN_PROGRESS polls; ERROR/EXPIRED/unknown fail closed.
+ */
 export async function waitForInstagramContainerFinished(input: {
   containerId: string;
   accessToken: string;
@@ -407,29 +446,17 @@ export async function waitForInstagramContainerFinished(input: {
   sleep?: (ms: number) => Promise<void>;
   intervalMs?: number;
   maxAttempts?: number;
-}): Promise<
-  | { ok: true; statusCode: "FINISHED" | "PUBLISHED" }
-  | {
-      ok: false;
-      reason:
-        | "poll_timeout"
-        | "container_expired"
-        | "container_error"
-        | InstagramPublishingHttpFailureReason;
-      requestDispatched: boolean;
-      responseReceived?: boolean;
-      httpStatus?: number;
-      providerErrorCode?: number | null;
-      providerErrorSubcode?: number | null;
-      providerErrorType?: string | null;
-      providerErrorMessage?: string | null;
-    }
-> {
+  nowMs?: () => number;
+}): Promise<InstagramContainerReadySuccess | InstagramContainerReadyFailure> {
   const sleep =
     input.sleep ??
     ((ms: number) => new Promise((resolve) => setTimeout(resolve, ms)));
   const interval = input.intervalMs ?? INSTAGRAM_CONTAINER_POLL_INTERVAL_MS;
   const maxAttempts = input.maxAttempts ?? INSTAGRAM_CONTAINER_POLL_MAX_ATTEMPTS;
+  const nowMs = input.nowMs ?? (() => Date.now());
+  const startedAt = nowMs();
+  let pollCount = 0;
+  let finalStatusCode: InstagramContainerStatus["statusCode"] | null = null;
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const status = await getInstagramContainerStatus({
@@ -437,20 +464,39 @@ export async function waitForInstagramContainerFinished(input: {
       accessToken: input.accessToken,
       fetchImpl: input.fetchImpl,
     });
+    pollCount += 1;
     if (!status.ok) {
-      return status;
+      return {
+        ...status,
+        pollCount,
+        elapsedMs: Math.max(0, nowMs() - startedAt),
+        finalStatusCode,
+        finishedConfirmed: false,
+      };
     }
+    finalStatusCode = status.value.statusCode;
     if (
       status.value.statusCode === "FINISHED" ||
       status.value.statusCode === "PUBLISHED"
     ) {
-      return { ok: true, statusCode: status.value.statusCode };
+      return {
+        ok: true,
+        statusCode: status.value.statusCode,
+        pollCount,
+        elapsedMs: Math.max(0, nowMs() - startedAt),
+        finishedConfirmed: true,
+      };
     }
     if (status.value.statusCode === "EXPIRED") {
       return {
         ok: false,
         reason: "container_expired",
         requestDispatched: true,
+        responseReceived: true,
+        pollCount,
+        elapsedMs: Math.max(0, nowMs() - startedAt),
+        finalStatusCode,
+        finishedConfirmed: false,
       };
     }
     if (status.value.statusCode === "ERROR") {
@@ -458,11 +504,26 @@ export async function waitForInstagramContainerFinished(input: {
         ok: false,
         reason: "container_error",
         requestDispatched: true,
+        responseReceived: true,
+        pollCount,
+        elapsedMs: Math.max(0, nowMs() - startedAt),
+        finalStatusCode,
+        finishedConfirmed: false,
       };
     }
+    // IN_PROGRESS — continue within bound
     if (attempt + 1 < maxAttempts) {
       await sleep(interval);
     }
   }
-  return { ok: false, reason: "poll_timeout", requestDispatched: true };
+  return {
+    ok: false,
+    reason: "poll_timeout",
+    requestDispatched: true,
+    responseReceived: true,
+    pollCount,
+    elapsedMs: Math.max(0, nowMs() - startedAt),
+    finalStatusCode,
+    finishedConfirmed: false,
+  };
 }

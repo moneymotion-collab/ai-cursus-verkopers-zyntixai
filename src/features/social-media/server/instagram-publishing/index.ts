@@ -29,6 +29,11 @@ export {
   getInstagramContainerStatus,
   fetchInstagramContentPublishingLimit,
   waitForInstagramContainerFinished,
+  INSTAGRAM_CONTAINER_POLL_INTERVAL_MS,
+  INSTAGRAM_CONTAINER_POLL_MAX_ATTEMPTS,
+  INSTAGRAM_CONTAINER_POLL_MAX_DURATION_MS,
+  type InstagramContainerReadySuccess,
+  type InstagramContainerReadyFailure,
 } from "@/features/social-media/server/instagram-publishing/client";
 export {
   mapInstagramHttpFailure,

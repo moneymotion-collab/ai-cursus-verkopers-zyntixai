@@ -151,6 +151,9 @@ describe("SMM-R1-E-R1 Instagram provider 4xx diagnostics", () => {
 
   it("maps media_publish Graph 400 with step after container create", async () => {
     const fetchImpl = vi.fn(async (url: string) => {
+      if (url.includes("fields=status_code")) {
+        return jsonResponse({ status_code: "FINISHED" });
+      }
       if (url.includes("/media_publish")) {
         return graphError(400, 9007, 2207020, "Media publish failed");
       }
@@ -172,6 +175,9 @@ describe("SMM-R1-E-R1 Instagram provider 4xx diagnostics", () => {
 
   it("maps media_publish Graph 403 to unauthorized with step", async () => {
     const fetchImpl = vi.fn(async (url: string) => {
+      if (url.includes("fields=status_code")) {
+        return jsonResponse({ status_code: "FINISHED" });
+      }
       if (url.includes("/media_publish")) {
         return graphError(403, 10, undefined, "Not allowed");
       }
@@ -218,6 +224,9 @@ describe("SMM-R1-E-R1 Instagram provider 4xx diagnostics", () => {
 
   it("keeps ambiguous media_publish transport separately classified", async () => {
     const fetchImpl = vi.fn(async (url: string) => {
+      if (url.includes("fields=status_code")) {
+        return jsonResponse({ status_code: "FINISHED" });
+      }
       if (url.includes("/media_publish")) {
         const err = new Error("aborted");
         err.name = "AbortError";

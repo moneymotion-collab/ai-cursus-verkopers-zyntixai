@@ -134,12 +134,20 @@ describe("SMM-B1.7 Instagram publishing adapter", () => {
     ).toBe(true);
   });
 
-  it("publishes a single image container then media_publish", async () => {
+  it("publishes a single image only after FINISHED container status", async () => {
     const createBodies: unknown[] = [];
+    let publishCalls = 0;
+    let statusCalls = 0;
     const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
       expect(url).toContain("graph.instagram.com");
       expect(url).toContain("/v26.0/");
+      if (url.includes("fields=status_code")) {
+        statusCalls += 1;
+        return jsonResponse({ status_code: "FINISHED" });
+      }
       if (url.includes("/media_publish")) {
+        publishCalls += 1;
+        expect(statusCalls).toBeGreaterThanOrEqual(1);
         return jsonResponse({ id: "media_999" });
       }
       if (url.includes("/media")) {
@@ -154,7 +162,9 @@ describe("SMM-B1.7 Instagram publishing adapter", () => {
       outcome: "succeeded",
       externalPublicationId: "media_999",
     });
-    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(publishCalls).toBe(1);
+    expect(statusCalls).toBe(1);
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
     const createBody = createBodies[0] as {
       image_url: string;
       caption: string;
@@ -167,6 +177,9 @@ describe("SMM-B1.7 Instagram publishing adapter", () => {
 
   it("maps ambiguous media_publish timeout to unknown_external_outcome without retry", async () => {
     const fetchImpl = vi.fn(async (url: string) => {
+      if (url.includes("fields=status_code")) {
+        return jsonResponse({ status_code: "FINISHED" });
+      }
       if (url.includes("/media_publish")) {
         const err = new Error("aborted");
         err.name = "AbortError";
@@ -187,7 +200,7 @@ describe("SMM-B1.7 Instagram publishing adapter", () => {
         boundaryState: "ambiguous_transport",
       },
     });
-    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
   });
 
   it("publishes reels with status polling before media_publish", async () => {
@@ -224,13 +237,21 @@ describe("SMM-B1.7 Instagram publishing adapter", () => {
       externalPublicationId: "media_reel",
     });
     expect((createBodies[0] as { media_type: string }).media_type).toBe("REELS");
+    expect(statusCalls).toBe(2);
   });
 
-  it("publishes carousel with ordered children and no reorder", async () => {
+  it("publishes carousel with ordered children and FINISHED waits", async () => {
     const createBodies: unknown[] = [];
     let n = 0;
+    let statusCalls = 0;
+    let publishCalls = 0;
     const fetch2 = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("fields=status_code")) {
+        statusCalls += 1;
+        return jsonResponse({ status_code: "FINISHED" });
+      }
       if (url.includes("/media_publish")) {
+        publishCalls += 1;
         return jsonResponse({ id: "media_car" });
       }
       if (url.includes("/media")) {
@@ -268,13 +289,18 @@ describe("SMM-B1.7 Instagram publishing adapter", () => {
       externalPublicationId: "media_car",
     });
     expect(createBodies).toHaveLength(3);
+    expect(statusCalls).toBe(3);
+    expect(publishCalls).toBe(1);
     const parent = createBodies[2] as { children: string; media_type: string };
     expect(parent.media_type).toBe("CAROUSEL");
     expect(parent.children).toBe("c_1,c_2");
   });
 
-  it("publishes story image without caption parameter", async () => {
+  it("publishes story image without caption after FINISHED", async () => {
     const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("fields=status_code")) {
+        return jsonResponse({ status_code: "FINISHED" });
+      }
       if (url.includes("/media_publish")) {
         return jsonResponse({ id: "media_story" });
       }
@@ -296,6 +322,145 @@ describe("SMM-B1.7 Instagram publishing adapter", () => {
     expect(result).toEqual({
       outcome: "succeeded",
       externalPublicationId: "media_story",
+    });
+  });
+
+  it("R1-E-R2-P4: image IN_PROGRESS then FINISHED before single media_publish", async () => {
+    let statusCalls = 0;
+    let publishCalls = 0;
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url.includes("fields=status_code")) {
+        statusCalls += 1;
+        return jsonResponse({
+          status_code: statusCalls < 3 ? "IN_PROGRESS" : "FINISHED",
+        });
+      }
+      if (url.includes("/media_publish")) {
+        publishCalls += 1;
+        expect(statusCalls).toBe(3);
+        return jsonResponse({ id: "media_ready" });
+      }
+      return jsonResponse({ id: "container_img" });
+    });
+    const adapter = adapterDeps(fetchImpl, { pollMaxAttempts: 5 });
+    const result = await adapter.publish(baseInput);
+    expect(result).toEqual({
+      outcome: "succeeded",
+      externalPublicationId: "media_ready",
+    });
+    expect(publishCalls).toBe(1);
+    expect(statusCalls).toBe(3);
+  });
+
+  it("R1-E-R2-P4: image poll timeout yields zero media_publish", async () => {
+    let publishCalls = 0;
+    let statusCalls = 0;
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url.includes("fields=status_code")) {
+        statusCalls += 1;
+        return jsonResponse({ status_code: "IN_PROGRESS" });
+      }
+      if (url.includes("/media_publish")) {
+        publishCalls += 1;
+        return jsonResponse({ id: "should_not" });
+      }
+      return jsonResponse({ id: "container_img" });
+    });
+    const adapter = adapterDeps(fetchImpl, { pollMaxAttempts: 3 });
+    const result = await adapter.publish(baseInput);
+    expect(result).toMatchObject({
+      outcome: "failed_retryable",
+      failureClass: "timeout",
+      safeErrorCode: "instagram_container_poll_timeout",
+      providerDiagnostics: { providerStep: "container_status" },
+    });
+    expect(publishCalls).toBe(0);
+    expect(statusCalls).toBe(3);
+  });
+
+  it("R1-E-R2-P4: ERROR/EXPIRED/unknown status never call media_publish", async () => {
+    for (const [status, safeCode] of [
+      ["ERROR", "instagram_container_error"],
+      ["EXPIRED", "instagram_container_expired"],
+      ["WEIRD", "instagram_invalid_payload"],
+    ] as const) {
+      let publishCalls = 0;
+      const fetchImpl = vi.fn(async (url: string) => {
+        if (url.includes("fields=status_code")) {
+          return jsonResponse({ status_code: status });
+        }
+        if (url.includes("/media_publish")) {
+          publishCalls += 1;
+          return jsonResponse({ id: "nope" });
+        }
+        return jsonResponse({ id: "container_x" });
+      });
+      const result = await adapterDeps(fetchImpl).publish(baseInput);
+      expect(publishCalls).toBe(0);
+      expect(result).toMatchObject({
+        safeErrorCode: safeCode,
+        providerDiagnostics: { providerStep: "container_status" },
+      });
+    }
+  });
+
+  it("R1-E-R2-P4: container_status HTTP 400/401/429/5xx block media_publish", async () => {
+    for (const [httpStatus, safeCode] of [
+      [400, "instagram_http_4xx"],
+      [401, "instagram_http_unauthorized"],
+      [429, "instagram_http_rate_limited"],
+      [503, "instagram_http_5xx"],
+    ] as const) {
+      let publishCalls = 0;
+      let statusCalls = 0;
+      const fetchImpl = vi.fn(async (url: string) => {
+        if (url.includes("fields=status_code")) {
+          statusCalls += 1;
+          return jsonResponse(
+            {
+              error: {
+                code: 1,
+                error_subcode: 2,
+                type: "OAuthException",
+                message: "status failed",
+              },
+            },
+            httpStatus,
+          );
+        }
+        if (url.includes("/media_publish")) {
+          publishCalls += 1;
+          return jsonResponse({ id: "nope" });
+        }
+        return jsonResponse({ id: "container_x" });
+      });
+      const result = await adapterDeps(fetchImpl).publish(baseInput);
+      expect(publishCalls).toBe(0);
+      expect(statusCalls).toBe(1);
+      expect(result).toMatchObject({
+        safeErrorCode: safeCode,
+        providerDiagnostics: { providerStep: "container_status" },
+      });
+    }
+  });
+
+  it("R1-E-R2-P4: malformed status payload blocks media_publish", async () => {
+    let publishCalls = 0;
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url.includes("fields=status_code")) {
+        return jsonResponse({ status_code: null });
+      }
+      if (url.includes("/media_publish")) {
+        publishCalls += 1;
+        return jsonResponse({ id: "nope" });
+      }
+      return jsonResponse({ id: "container_x" });
+    });
+    const result = await adapterDeps(fetchImpl).publish(baseInput);
+    expect(publishCalls).toBe(0);
+    expect(result).toMatchObject({
+      safeErrorCode: "instagram_invalid_payload",
+      providerDiagnostics: { providerStep: "container_status" },
     });
   });
 

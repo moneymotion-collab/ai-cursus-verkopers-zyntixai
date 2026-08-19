@@ -18,6 +18,8 @@ import {
   fetchInstagramContentPublishingLimit,
   publishInstagramMediaContainer,
   waitForInstagramContainerFinished,
+  INSTAGRAM_CONTAINER_POLL_INTERVAL_MS,
+  INSTAGRAM_CONTAINER_POLL_MAX_ATTEMPTS,
   type InstagramPublishingHttpResult,
 } from "@/features/social-media/server/instagram-publishing/client";
 import {
@@ -164,8 +166,8 @@ async function waitReady(
     accessToken: deps.accessToken,
     fetchImpl: deps.fetchImpl,
     sleep: deps.sleep,
-    intervalMs: deps.pollIntervalMs ?? 0,
-    maxAttempts: deps.pollMaxAttempts ?? 5,
+    intervalMs: deps.pollIntervalMs ?? INSTAGRAM_CONTAINER_POLL_INTERVAL_MS,
+    maxAttempts: deps.pollMaxAttempts ?? INSTAGRAM_CONTAINER_POLL_MAX_ATTEMPTS,
   });
   if (ready.ok) {
     return null;
@@ -174,24 +176,33 @@ async function waitReady(
     return failureFromReason("container_expired", {
       providerStep: "container_status",
       requestDispatched: ready.requestDispatched,
-      responseReceived: true,
+      responseReceived: ready.responseReceived ?? true,
       externalContainerIdPresent: true,
+      providerMessage: ready.finalStatusCode
+        ? `Container status ${ready.finalStatusCode}`
+        : undefined,
     });
   }
   if (ready.reason === "container_error") {
     return failureFromReason("container_error", {
       providerStep: "container_status",
       requestDispatched: ready.requestDispatched,
-      responseReceived: true,
+      responseReceived: ready.responseReceived ?? true,
       externalContainerIdPresent: true,
+      providerMessage: ready.finalStatusCode
+        ? `Container status ${ready.finalStatusCode}`
+        : undefined,
     });
   }
   if (ready.reason === "poll_timeout") {
     return failureFromReason("poll_timeout", {
       providerStep: "container_status",
       requestDispatched: ready.requestDispatched,
-      responseReceived: true,
+      responseReceived: ready.responseReceived ?? true,
       externalContainerIdPresent: true,
+      providerMessage: ready.finalStatusCode
+        ? `Container status ${ready.finalStatusCode} after ${ready.pollCount} polls`
+        : `Container not FINISHED after ${ready.pollCount} polls`,
     });
   }
   return mapHttpFailure(
@@ -321,7 +332,6 @@ export function createInstagramPublishingAdapter(
           : undefined;
 
       let containerId: string;
-      let needsProcessingWait = false;
 
       if (format === "carousel") {
         const childIds: string[] = [];
@@ -352,11 +362,10 @@ export function createInstagramPublishingAdapter(
           if (!child.ok) {
             return mapHttpFailure(child, "create_container");
           }
-          if (isVideo) {
-            const waitErr = await waitReady(deps, child.value.id);
-            if (waitErr) {
-              return waitErr;
-            }
+          // Image and video carousel children must reach FINISHED before parent/publish.
+          const childWaitErr = await waitReady(deps, child.value.id);
+          if (childWaitErr) {
+            return childWaitErr;
           }
           childIds.push(child.value.id);
         }
@@ -376,6 +385,10 @@ export function createInstagramPublishingAdapter(
           });
         }
         containerId = parent.value.id;
+        const parentWaitErr = await waitReady(deps, containerId);
+        if (parentWaitErr) {
+          return parentWaitErr;
+        }
       } else {
         const primary = media[0];
         if (!primary) {
@@ -409,7 +422,6 @@ export function createInstagramPublishingAdapter(
             mediaType: "STORIES",
             videoUrl: url.url,
           };
-          needsProcessingWait = true;
         } else if (format === "short_video") {
           request = {
             kind: "video",
@@ -417,7 +429,6 @@ export function createInstagramPublishingAdapter(
             videoUrl: url.url,
             caption,
           };
-          needsProcessingWait = true;
         } else {
           // video
           request = {
@@ -426,7 +437,6 @@ export function createInstagramPublishingAdapter(
             videoUrl: url.url,
             caption,
           };
-          needsProcessingWait = true;
         }
 
         const created = await createInstagramMediaContainer({
@@ -439,15 +449,14 @@ export function createInstagramPublishingAdapter(
           return mapHttpFailure(created, "create_container");
         }
         containerId = created.value.id;
-        if (needsProcessingWait) {
-          const waitErr = await waitReady(deps, containerId);
-          if (waitErr) {
-            return waitErr;
-          }
+        // R1-E-R2-P4: IMAGE (and all other formats) must confirm FINISHED before media_publish.
+        const waitErr = await waitReady(deps, containerId);
+        if (waitErr) {
+          return waitErr;
         }
       }
 
-      // BEFORE_PROVIDER_MUTATION — final media_publish
+      // BEFORE_PROVIDER_MUTATION — final media_publish (only after FINISHED)
       const published = await publishInstagramMediaContainer({
         igUserId: input.externalAccountId,
         accessToken: deps.accessToken,
