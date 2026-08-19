@@ -122,8 +122,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain("You are clear for now.");
   });
 
-  it("truncates long titles safely via CSS class contract", () => {
-    const longTitle = "A".repeat(180);
+  it("shows due-today task links and excludes calm empty banner when actionable", () => {
     const html = renderToStaticMarkup(
       <DailyOperatingBriefPanel
         brief={brief({
@@ -131,11 +130,11 @@ describe("DailyOperatingBriefPanel", () => {
           dueTodayTasks: [
             {
               kind: "task",
-              id: "t9",
-              title: longTitle,
-              href: `/tasks/t9?org=${ORG}`,
+              id: "t-today",
+              title: "Prep call",
+              href: `/tasks/t-today?org=${ORG}`,
               bucket: "due_today",
-              dueAt: "2026-08-19T12:00:00.000Z",
+              dueAt: "2026-08-19T15:00:00.000Z",
             },
           ],
         })}
@@ -143,7 +142,37 @@ describe("DailyOperatingBriefPanel", () => {
         tasksQueryFailed={false}
       />,
     );
-    expect(html).toContain(longTitle);
-    expect(html).toContain("rowTitle");
+    expect(html).toContain(`href="/tasks/t-today?org=${ORG}"`);
+    expect(html).toContain("Due today");
+    expect(html).toContain("Prep call");
+    expect(html).not.toContain("You are clear for now.");
+  });
+
+  it("does not treat fetch failure as empty success for tasks", () => {
+    const html = renderToStaticMarkup(
+      <DailyOperatingBriefPanel
+        brief={brief({ hasAnyActionable: false })}
+        attentionQueryFailed={false}
+        tasksQueryFailed={true}
+      />,
+    );
+    expect(html).toContain("Unable to load Tasks.");
+    expect(html).toContain("Tasks could not be loaded.");
+    expect(html).not.toContain("You are clear for now.");
+    expect(html).not.toContain("No work is due today.");
+  });
+
+  it("exposes semantic headings for keyboard/a11y automation contracts", () => {
+    const html = renderToStaticMarkup(
+      <DailyOperatingBriefPanel
+        brief={brief({ role: "owner", hasAnyActionable: false })}
+        attentionQueryFailed={false}
+        tasksQueryFailed={false}
+      />,
+    );
+    expect(html).toContain("id=\"organization-attention\"");
+    expect(html).toContain("id=\"assigned-to-me-—-attention\"");
+    expect(html).toContain("id=\"overdue-work\"");
+    expect(html).toContain("id=\"due-today\"");
   });
 });

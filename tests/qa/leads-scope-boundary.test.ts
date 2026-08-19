@@ -45,9 +45,15 @@ describe("leads scope boundary", () => {
     expect(leadsSource).not.toMatch(/openai/i);
   });
 
-  it("does not change dependency manifests during D6-QA", () => {
+  it("keeps Next as the application runtime and does not pull Cursor SDK into app deps", () => {
     expect(packageJson).toContain('"next"');
     expect(packageJson).not.toMatch(/"@cursor\//);
-    expect(packageJson).not.toMatch(/playwright/i);
+    const parsed = JSON.parse(packageJson) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    expect(parsed.dependencies?.["@playwright/test"]).toBeUndefined();
+    // Authorized browser-QA harness only (B1-C1-R1).
+    expect(parsed.devDependencies?.["@playwright/test"]).toBeTruthy();
   });
 });

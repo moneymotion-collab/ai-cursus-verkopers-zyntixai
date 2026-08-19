@@ -26,3 +26,10 @@ npm-debug.log*
 
 # local Vercel link metadata (never commit)
 .vercel/
+
+# Playwright / authenticated browser QA (never commit secrets or local auth state)
+/playwright/.auth/
+/playwright-report/
+/test-results/
+/blob-report/
+/playwright/.cache/

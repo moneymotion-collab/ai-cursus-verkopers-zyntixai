@@ -249,4 +249,52 @@ describe("composeDailyOperatingBrief", () => {
     expect(brief.organizationAttention).toEqual([]);
     expect(brief.hasAnyActionable).toBe(false);
   });
+
+  it("orders organization Attention critical before high and keeps assigned medium in myAttention", () => {
+    const brief = composeDailyOperatingBrief({
+      organizationId: ORG,
+      membershipId: ME,
+      role: "owner",
+      attentionItems: [
+        attention({
+          id: "high",
+          severity: "high",
+          title: "High",
+          lastDetectedAt: "2026-08-19T12:00:00.000Z",
+        }),
+        attention({
+          id: "critical",
+          severity: "critical",
+          title: "Critical",
+          lastDetectedAt: "2026-08-19T11:00:00.000Z",
+        }),
+        attention({
+          id: "mine-medium",
+          severity: "medium",
+          title: "Mine medium",
+          assigneeMemberId: ME,
+        }),
+      ],
+      overdueTasks: [
+        task({ id: "overdue", title: "Overdue", overdue: true }),
+      ],
+      dueTodayTasks: [
+        task({ id: "today", title: "Today", dueToday: true }),
+      ],
+    });
+
+    expect(brief.organizationAttention.map((row) => row.id)).toEqual([
+      "critical",
+      "high",
+    ]);
+    expect(brief.myAttention.map((row) => row.id)).toEqual(["mine-medium"]);
+    expect(brief.overdueTasks.map((row) => row.id)).toEqual(["overdue"]);
+    expect(brief.dueTodayTasks.map((row) => row.id)).toEqual(["today"]);
+    expect(new Set([
+      ...brief.organizationAttention.map((row) => row.id),
+      ...brief.myAttention.map((row) => row.id),
+      ...brief.overdueTasks.map((row) => row.id),
+      ...brief.dueTodayTasks.map((row) => row.id),
+    ]).size).toBe(5);
+  });
 });

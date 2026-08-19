@@ -10,6 +10,9 @@
     "test": "vitest",
     "test:run": "vitest run",
     "lint": "next lint",
+    "browser:auth:bootstrap": "node scripts/browser-auth-bootstrap.mjs",
+    "test:browser": "playwright test",
+    "test:browser:b1-c1": "playwright test tests/browser/b1-c1-production-home",
     "supabase": "supabase",
     "supabase:types": "supabase gen types typescript --linked > src/types/database.generated.ts",
     "db:reset": "supabase db reset",
@@ -27,6 +30,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^22.20.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
