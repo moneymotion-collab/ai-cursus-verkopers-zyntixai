@@ -24,6 +24,7 @@ R1-E-R2 ACTIVE — PREPARE PATH FIXED; AWAITING FRESH OWNER PREPARE
 | --- | --- |
 | Branch | `core/platform-readiness-20260707` |
 | Pre-fix HEAD | `6503872b152492d4f88e462be8efcdd308839c4a` |
+| P1 fix commit | `b2d42781d1d4d33165f5584057c2e0e36d040362` |
 | R1-E-R1 implementation | `e82eff9c8406bb7afc8924b426d949ed56227780` |
 | Upstream | `origin/core/platform-readiness-20260707` |
 | `SOCIAL_PUBLISHING_ENABLED` | OFF (not re-enabled) |
