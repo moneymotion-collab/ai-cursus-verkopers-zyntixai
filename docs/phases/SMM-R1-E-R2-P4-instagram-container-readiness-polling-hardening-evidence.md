@@ -237,7 +237,7 @@ Then evaluate R1-E-R2 / R1-E closure.
 | Branch | `core/platform-readiness-20260707` |
 | Implementation SHA | `e1c30b95d8073e5d3a935dd3264834024650807d` |
 | Evidence SHA | `4f67a0443244a6498b66d2fbc8c3e216e4f1eba3` |
-| Authoritative HEAD | `e29d93a426eda741734be9682ed35d805dbe6497` |
+| Authoritative HEAD | `087d07a1d43d5c7abb3ab069af95083a78ba7963` |
 | Upstream | `origin/core/platform-readiness-20260707` |
 | Divergence at start | `0 0` |
 | Migration | none |
