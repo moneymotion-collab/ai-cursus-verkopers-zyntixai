@@ -8,7 +8,20 @@ import styles from "../../login/page.module.css";
 
 export const dynamic = "force-dynamic";
 
-export default async function RegisterCheckEmailPage() {
+type RegisterCheckEmailPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function firstParam(value: string | string[] | undefined): string | undefined {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+  return value;
+}
+
+export default async function RegisterCheckEmailPage({
+  searchParams,
+}: RegisterCheckEmailPageProps) {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -22,10 +35,13 @@ export default async function RegisterCheckEmailPage() {
     redirect(destination.path);
   }
 
+  const params = await searchParams;
+  const reason = firstParam(params.reason) ?? null;
+
   return (
     <main className={styles.page} aria-labelledby="check-email-title">
       <p className={styles.brand}>ZyntixAI</p>
-      <CheckEmailPanel />
+      <CheckEmailPanel reason={reason} />
     </main>
   );
 }

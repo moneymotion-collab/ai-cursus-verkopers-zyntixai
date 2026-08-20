@@ -201,7 +201,8 @@ export async function registerAction(input: unknown): Promise<RegisterActionResu
         email: parsed.data.email,
         password: parsed.data.password,
         options: {
-          emailRedirectTo: buildAuthCallbackUrl(origin),
+          // Preserve invite accept as post-verify destination when PKCE `next` is honored.
+          emailRedirectTo: buildAuthCallbackUrl(origin, "/invite/accept"),
           data: {
             display_name: parsed.data.name,
           },
@@ -340,6 +341,8 @@ export async function resendVerificationAction(
 ): Promise<{
   ok: boolean;
   message: string;
+  alreadyVerified?: boolean;
+  rateLimited?: boolean;
 }> {
   try {
     const supabase = await createSupabaseServerClient();
@@ -352,7 +355,9 @@ export async function resendVerificationAction(
     if (user?.email_confirmed_at) {
       return {
         ok: true,
-        message: "Your email is already verified. Continue account setup.",
+        message:
+          "Your email is already verified. Sign in to continue your invitation.",
+        alreadyVerified: true,
       };
     }
 
@@ -366,18 +371,39 @@ export async function resendVerificationAction(
       email = parsed.data.email;
     }
 
+    const cookieStore = await cookies();
+    const inviteNext = hasValidInvitationContinuation(
+      cookieStore.get(INVITE_CONTINUATION_COOKIE_NAME)?.value,
+    )
+      ? "/invite/accept"
+      : undefined;
+
     const { error } = await supabase.auth.resend({
       type: "signup",
       email,
       options: {
-        emailRedirectTo: buildAuthCallbackUrl(origin),
+        emailRedirectTo: buildAuthCallbackUrl(origin, inviteNext),
       },
     });
 
     if (error) {
       const code = normalizeRegistrationAuthError(error);
       if (code === "rate_limited") {
-        return { ok: false, message: registrationErrorMessage("rate_limited") };
+        return {
+          ok: false,
+          message:
+            "Too many attempts. If you already clicked a verification link, sign in instead of requesting another email.",
+          rateLimited: true,
+        };
+      }
+      if (code === "email_unavailable") {
+        // Already-registered / already-confirmed class: never trap on resend.
+        return {
+          ok: true,
+          message:
+            "If this email is already verified, sign in to continue. Otherwise wait for a new verification message.",
+          alreadyVerified: true,
+        };
       }
     }
 

@@ -15,14 +15,31 @@ export { PENDING_VERIFICATION_EMAIL_KEY };
 
 type CheckEmailPanelProps = {
   initialMessage?: string;
+  /** From `/register/check-email?reason=…` — never trust for auth decisions. */
+  reason?: string | null;
 };
 
-export function CheckEmailPanel({ initialMessage }: CheckEmailPanelProps) {
+function messageForReason(reason: string | null | undefined): string | null {
+  if (reason === "verification_expired") {
+    return "That verification link could not start a signed-in session. If you already clicked a verification email, your account may already be verified — sign in to continue instead of requesting another email.";
+  }
+  return null;
+}
+
+export function CheckEmailPanel({
+  initialMessage,
+  reason,
+}: CheckEmailPanelProps) {
+  const reasonMessage = messageForReason(reason);
   const [message, setMessage] = useState(
     initialMessage ??
+      reasonMessage ??
       "Check your email for a verification link to finish creating your account.",
   );
   const [error, setError] = useState<string | null>(null);
+  const [preferSignIn, setPreferSignIn] = useState(
+    reason === "verification_expired",
+  );
   const [email, setEmail] = useState("");
   const pendingRef = useRef(false);
   const [isPending, startTransition] = useTransition();
@@ -50,8 +67,14 @@ export function CheckEmailPanel({ initialMessage }: CheckEmailPanelProps) {
       );
       if (!result.ok) {
         setError(result.message);
+        if (result.rateLimited) {
+          setPreferSignIn(true);
+        }
       } else {
         setMessage(result.message);
+        if (result.alreadyVerified) {
+          setPreferSignIn(true);
+        }
       }
       pendingRef.current = false;
     });
@@ -61,6 +84,14 @@ export function CheckEmailPanel({ initialMessage }: CheckEmailPanelProps) {
     <section className={styles.panel} aria-labelledby="check-email-title">
       <h1 id="check-email-title">Verify your email</h1>
       <p className={styles.body}>{message}</p>
+      {preferSignIn ? (
+        <p className={styles.body}>
+          <Link href="/login" className={styles.link}>
+            Sign in to continue
+          </Link>
+          {" — do not keep requesting verification emails if you already clicked one."}
+        </p>
+      ) : null}
       {error ? (
         <p className={styles.error} role="alert">
           {error}
@@ -91,7 +122,7 @@ export function CheckEmailPanel({ initialMessage }: CheckEmailPanelProps) {
       </button>
       <p className={styles.footer}>
         <Link href="/login" className={styles.link}>
-          Back to sign in
+          Already verified? Sign in
         </Link>
       </p>
     </section>

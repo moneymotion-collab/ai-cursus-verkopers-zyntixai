@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 const exchangeCodeForSessionMock = vi.hoisted(() => vi.fn());
+const verifyOtpMock = vi.hoisted(() => vi.fn());
 const getUserMock = vi.hoisted(() => vi.fn());
 const createServerClientMock = vi.hoisted(() => vi.fn());
 const getPublicSupabaseEnvMock = vi.hoisted(() => vi.fn());
@@ -24,6 +25,7 @@ import { GET } from "@/app/auth/callback/route";
 describe("auth callback route", () => {
   beforeEach(() => {
     exchangeCodeForSessionMock.mockReset();
+    verifyOtpMock.mockReset();
     getUserMock.mockReset();
     createServerClientMock.mockReset();
     getPublicSupabaseEnvMock.mockReset();
@@ -35,6 +37,7 @@ describe("auth callback route", () => {
     createServerClientMock.mockImplementation(() => ({
       auth: {
         exchangeCodeForSession: exchangeCodeForSessionMock,
+        verifyOtp: verifyOtpMock,
         getUser: getUserMock,
       },
     }));
@@ -145,5 +148,53 @@ describe("auth callback route", () => {
     expect(response.headers.get("location")).toBe(
       "http://localhost:3000/register/complete",
     );
+  });
+
+  it("exchanges email token_hash+type via verifyOtp and routes invite accept", async () => {
+    verifyOtpMock.mockResolvedValue({ error: null });
+    getUserMock.mockResolvedValue({
+      data: { user: { id: "user-1", email_confirmed_at: "2026-01-01T00:00:00Z" } },
+      error: null,
+    });
+    resolvePostAuthDestinationMock.mockResolvedValue({
+      kind: "invite_accept",
+      path: "/invite/accept",
+    });
+
+    const response = await GET(
+      new NextRequest(
+        "http://localhost:3000/auth/callback?token_hash=abc&type=signup&next=%2Finvite%2Faccept",
+      ),
+    );
+
+    expect(exchangeCodeForSessionMock).not.toHaveBeenCalled();
+    expect(verifyOtpMock).toHaveBeenCalledWith({
+      type: "signup",
+      token_hash: "abc",
+    });
+    expect(response.headers.get("location")).toBe(
+      "http://localhost:3000/invite/accept",
+    );
+  });
+
+  it("does not trap verified invite users on check-email after successful session", async () => {
+    exchangeCodeForSessionMock.mockResolvedValue({ error: null });
+    getUserMock.mockResolvedValue({
+      data: { user: { id: "user-1", email_confirmed_at: "2026-01-01T00:00:00Z" } },
+      error: null,
+    });
+    resolvePostAuthDestinationMock.mockResolvedValue({
+      kind: "invite_accept",
+      path: "/invite/accept",
+    });
+
+    const response = await GET(
+      new NextRequest("http://localhost:3000/auth/callback?code=signup-code"),
+    );
+
+    expect(response.headers.get("location")).toBe(
+      "http://localhost:3000/invite/accept",
+    );
+    expect(response.headers.get("location")).not.toContain("check-email");
   });
 });

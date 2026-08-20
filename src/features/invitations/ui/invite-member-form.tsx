@@ -11,6 +11,7 @@ type InviteMemberFormProps = {
   organizationId: string;
   invitableRoles: readonly OrganizationInvitationTargetRole[];
   invitationAcceptanceEnabled: boolean;
+  invitationEmailDeliveryEnabled: boolean;
 };
 
 type FormFeedback =
@@ -50,6 +51,7 @@ export function InviteMemberForm({
   organizationId,
   invitableRoles,
   invitationAcceptanceEnabled,
+  invitationEmailDeliveryEnabled,
 }: InviteMemberFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
@@ -144,8 +146,9 @@ export function InviteMemberForm({
       <div className={styles.sectionHeader}>
         <h2 id="invite-member-heading">Invite member</h2>
         <p className={styles.helpText}>
-          Create a pending invitation for this organization. Invitation email
-          delivery is not enabled yet.
+          {invitationEmailDeliveryEnabled
+            ? "Create a pending invitation for this organization. When delivery is enabled, the recipient receives one invitation email."
+            : "Create a pending invitation for this organization. Invitation email delivery is currently disabled."}
         </p>
       </div>
 

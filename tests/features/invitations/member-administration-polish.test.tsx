@@ -100,6 +100,7 @@ describe("Slice 4 create/resend/revoke message truthfulness", () => {
         organizationId={ORG_ID}
         invitableRoles={["staff", "viewer"]}
         invitationAcceptanceEnabled={false}
+        invitationEmailDeliveryEnabled={false}
       />,
     );
 
@@ -107,21 +108,22 @@ describe("Slice 4 create/resend/revoke message truthfulness", () => {
     expect(html).not.toContain("disabled=\"\"");
     expect(html).not.toContain("disabled={true}");
     expect(html).toContain('aria-disabled="false"');
-    expect(html.toLowerCase()).toContain("email delivery is not enabled yet");
+    expect(html.toLowerCase()).toContain("invitation email delivery is currently disabled");
     expect(html.toLowerCase()).not.toContain("email sent");
   });
 
-  it("form remains usable when Acceptance is ON without delivery claims", () => {
+  it("form remains usable when Acceptance is ON and reflects delivery gate truthfully", () => {
     const html = renderToStaticMarkup(
       <InviteMemberForm
         organizationId={ORG_ID}
         invitableRoles={["admin", "staff", "viewer"]}
         invitationAcceptanceEnabled
+        invitationEmailDeliveryEnabled={false}
       />,
     );
 
     expect(html).toContain("Create invitation");
-    expect(html.toLowerCase()).toContain("email delivery is not enabled yet");
+    expect(html.toLowerCase()).toContain("invitation email delivery is currently disabled");
     expect(html.toLowerCase()).not.toContain("email sent");
     expect(html.toLowerCase()).not.toContain("recipient notified");
   });

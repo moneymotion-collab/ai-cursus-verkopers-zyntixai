@@ -78,6 +78,14 @@ describe("register UI contracts", () => {
   it("renders verification and recovery panels", () => {
     const checkEmail = renderToStaticMarkup(<CheckEmailPanel />);
     expect(checkEmail).toContain("Verify your email");
+    expect(checkEmail).toContain("Already verified? Sign in");
+    expect(checkEmail).toContain('href="/login"');
+
+    const expired = renderToStaticMarkup(
+      <CheckEmailPanel reason="verification_expired" />,
+    );
+    expect(expired).toContain("Sign in to continue");
+    expect(expired.toLowerCase()).toContain("already verified");
     expect(checkEmail).toContain('id="resend-email"');
     expect(checkEmail).toContain("Resend verification email");
     expect(renderToStaticMarkup(<CompleteRegistrationPanel />)).toContain(

@@ -300,7 +300,9 @@ describe("resendVerificationAction", () => {
     });
 
     expect(result.ok).toBe(false);
-    expect(result.message).toBe(registrationErrorMessage("rate_limited"));
+    expect(result.rateLimited).toBe(true);
+    expect(result.message.toLowerCase()).toContain("too many attempts");
+    expect(result.message.toLowerCase()).toContain("sign in");
   });
 
   it("returns enumeration-safe messaging for unknown accounts", async () => {

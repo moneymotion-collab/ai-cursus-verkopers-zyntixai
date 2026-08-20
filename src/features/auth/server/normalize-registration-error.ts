@@ -65,7 +65,10 @@ export function normalizeRegistrationAuthError(error: unknown): RegistrationErro
     code === "email_exists" ||
     message.includes("already registered") ||
     message.includes("user already registered") ||
-    message.includes("email address is already")
+    message.includes("email address is already") ||
+    message.includes("already been registered") ||
+    message.includes("already confirmed") ||
+    message.includes("email already confirmed")
   ) {
     return "email_unavailable";
   }

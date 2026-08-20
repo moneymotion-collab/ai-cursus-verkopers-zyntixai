@@ -135,6 +135,7 @@ function renderMemberAdminComposition(options: {
         organizationId={ORG_A}
         invitableRoles={invitableRoles}
         invitationAcceptanceEnabled={options.invitationAcceptanceEnabled}
+        invitationEmailDeliveryEnabled={false}
       />
       <ActiveMembersSection
         members={members}

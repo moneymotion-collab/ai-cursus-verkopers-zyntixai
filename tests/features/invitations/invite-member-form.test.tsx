@@ -24,6 +24,7 @@ describe("InviteMemberForm role options", () => {
         organizationId={ORG_ID}
         invitableRoles={roles}
         invitationAcceptanceEnabled
+        invitationEmailDeliveryEnabled={false}
       />,
     );
 
@@ -35,6 +36,7 @@ describe("InviteMemberForm role options", () => {
     expect(html).toContain(">Viewer<");
     expect(html).not.toContain('value="owner"');
     expect(html).toContain("Create invitation");
+    expect(html).toContain("Invitation email delivery is currently disabled.");
     expect(html.toLowerCase()).not.toContain("email sent");
   });
 
@@ -47,6 +49,7 @@ describe("InviteMemberForm role options", () => {
         organizationId={ORG_ID}
         invitableRoles={roles}
         invitationAcceptanceEnabled
+        invitationEmailDeliveryEnabled
       />,
     );
 
@@ -54,6 +57,7 @@ describe("InviteMemberForm role options", () => {
     expect(html).toContain(">Viewer<");
     expect(html).not.toContain('value="admin"');
     expect(html).not.toContain('value="owner"');
+    expect(html).toContain("When delivery is enabled");
   });
 
   it("renders nothing when actor has no invitable roles", () => {
@@ -62,6 +66,7 @@ describe("InviteMemberForm role options", () => {
         organizationId={ORG_ID}
         invitableRoles={getInvitableOrganizationRoles("staff", "active")}
         invitationAcceptanceEnabled
+        invitationEmailDeliveryEnabled={false}
       />,
     );
     expect(html).toBe("");

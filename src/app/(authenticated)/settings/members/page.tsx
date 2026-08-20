@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getInvitableOrganizationRoles } from "@/features/invitations/domain/permissions";
 import { buildMembersListHref } from "@/features/invitations/domain/members-navigation";
 import { isInvitationsFeatureEnabled } from "@/features/invitations/server/invitations-feature";
+import { isInvitationEmailDeliveryEnabled } from "@/features/invitations/server/delivery/config";
 import { loadMemberAdministrationPage } from "@/features/invitations/server/load-member-administration-page";
 import {
   ActiveMembersSection,
@@ -137,6 +138,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
   const invitableRoles = getInvitableOrganizationRoles(result.role, "active");
   // Acceptance/continuation gate only — does not disable create/resend/revoke.
   const invitationAcceptanceEnabled = isInvitationsFeatureEnabled();
+  const invitationEmailDeliveryEnabled = isInvitationEmailDeliveryEnabled();
 
   return (
     <AppShell
@@ -163,6 +165,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
           organizationId={result.organizationId}
           invitableRoles={invitableRoles}
           invitationAcceptanceEnabled={invitationAcceptanceEnabled}
+          invitationEmailDeliveryEnabled={invitationEmailDeliveryEnabled}
         />
 
         <ActiveMembersSection
