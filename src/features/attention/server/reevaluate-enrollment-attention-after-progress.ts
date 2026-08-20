@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { isKnownAttentionRole } from "@/features/attention/domain/permissions";
 import { resolveAttentionPermissions } from "@/features/attention/domain/permissions";
 import { evaluateAttentionRules } from "@/features/attention/server/attention-rpc-adapters";
+import { elevateStaleProgressAttentionForHomeSurfacing } from "@/features/attention/server/elevate-stale-progress-attention-for-home";
 import { listAttentionEvaluateRevalidationPaths } from "@/features/attention/ui/attention-evaluate-return";
 import type { ProgressRole } from "@/features/progress/domain/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -44,6 +45,15 @@ export async function reevaluateEnrollmentAttentionAfterProgress(params: {
 
   if (!result.ok) {
     return { attempted: true, ok: false };
+  }
+
+  try {
+    await elevateStaleProgressAttentionForHomeSurfacing({
+      supabase: params.supabase,
+      organizationId: params.organizationId,
+    });
+  } catch {
+    // Fail-soft after evaluate.
   }
 
   for (const path of listAttentionEvaluateRevalidationPaths(

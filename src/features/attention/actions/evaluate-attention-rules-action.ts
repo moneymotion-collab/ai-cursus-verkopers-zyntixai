@@ -18,6 +18,7 @@ import {
   listAttentionEvaluateRevalidationPaths,
   resolveAttentionEvaluateReturnPath,
 } from "@/features/attention/ui/attention-evaluate-return";
+import { elevateStaleProgressAttentionForHomeSurfacing } from "@/features/attention/server/elevate-stale-progress-attention-for-home";
 import { resolveOrganizationContext } from "@/features/organizations/server/resolve-organization-context";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -115,6 +116,15 @@ export async function evaluateAttentionRulesAction(
           : result.error,
         returnPath,
       };
+    }
+
+    try {
+      await elevateStaleProgressAttentionForHomeSurfacing({
+        supabase,
+        organizationId: org.context.organizationId,
+      });
+    } catch {
+      // Fail-soft: evaluate already committed Signal/Item deltas.
     }
 
     for (const path of listAttentionEvaluateRevalidationPaths(

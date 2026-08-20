@@ -31,7 +31,7 @@ export function AttentionEvaluateRulesActions({
   returnPath,
   enrollmentId,
   heading = "Refresh enrollment Attention",
-  description = "Checks active and paused enrollments for no recent progress (14 UTC calendar days). Creates or updates Attention when needed; expires items when progress resumes. Does not create duplicates for the same enrollment.",
+  description = "Checks active and paused enrollments for no recent progress (14 UTC calendar days). Creates or updates Attention when needed at actionable severity for Today’s organization attention; expires items when progress resumes. Does not create duplicates for the same enrollment.",
   buttonLabel = "Evaluate progress Attention",
 }: AttentionEvaluateRulesActionsProps) {
   const router = useRouter();
