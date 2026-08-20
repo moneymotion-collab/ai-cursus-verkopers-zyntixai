@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { logoutAction } from "@/features/auth/actions/auth-actions";
 import styles from "./app-shell.module.css";
@@ -5,29 +6,30 @@ import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organi
 import {
   PROGRAMS_NAV_LABEL,
   PROGRAMS_NAV_VISIBLE,
-  buildProgramsListHref,
+  PROGRAMS_ROUTE,
 } from "@/features/programs/domain/programs-navigation";
 import {
   ENROLLMENTS_NAV_LABEL,
   ENROLLMENTS_NAV_VISIBLE,
-  buildEnrollmentsListHref,
+  ENROLLMENTS_ROUTE,
 } from "@/features/enrollments/domain/enrollments-navigation";
 import {
   PROGRESS_NAV_LABEL,
   PROGRESS_NAV_VISIBLE,
-  buildProgressListHref,
+  PROGRESS_ROUTE,
 } from "@/features/progress/domain/progress-navigation";
 import {
   ATTENTION_NAV_LABEL,
   ATTENTION_NAV_VISIBLE,
-  buildAttentionListHref,
+  ATTENTION_ROUTE,
 } from "@/features/attention/domain/attention-navigation";
 import {
   MEMBERS_NAV_LABEL,
-  buildMembersListHref,
+  MEMBERS_ROUTE,
   resolveMembersNavVisible,
 } from "@/features/invitations/domain/members-navigation";
 import { SocialPrimaryNavLink } from "@/features/social-media/ui/social-primary-nav-link";
+import { OrgAwareLink } from "./org-aware-link";
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -63,12 +65,208 @@ type AppShellProps = {
     | "members";
 };
 
-/** Preserve org query on primary nav so multi-org operators do not lose context. */
-function withOrg(path: string, organizationId?: string): string {
-  if (!organizationId) {
-    return path;
-  }
-  return `${path}?org=${encodeURIComponent(organizationId)}`;
+function PrimaryNavFallback({
+  selectedOrganizationId,
+  socialNavVisible,
+  showMembersNav,
+  activeNav,
+}: {
+  selectedOrganizationId?: string;
+  socialNavVisible?: boolean;
+  showMembersNav: boolean;
+  activeNav: NonNullable<AppShellProps["activeNav"]>;
+}) {
+  const withOrg = (path: string) =>
+    selectedOrganizationId
+      ? `${path}?org=${encodeURIComponent(selectedOrganizationId)}`
+      : path;
+
+  return (
+    <nav className={styles.nav} aria-label="Primary">
+      <Link
+        className={styles.navLink}
+        href={withOrg("/home")}
+        aria-current={activeNav === "home" ? "page" : undefined}
+      >
+        Home
+      </Link>
+      <Link
+        className={styles.navLink}
+        href={withOrg("/leads")}
+        aria-current={activeNav === "leads" ? "page" : undefined}
+      >
+        Leads
+      </Link>
+      <Link
+        className={styles.navLink}
+        href={withOrg("/customers")}
+        aria-current={activeNav === "customers" ? "page" : undefined}
+      >
+        Customers
+      </Link>
+      {PROGRAMS_NAV_VISIBLE ? (
+        <Link
+          className={styles.navLink}
+          href={withOrg(PROGRAMS_ROUTE)}
+          aria-current={activeNav === "programs" ? "page" : undefined}
+        >
+          {PROGRAMS_NAV_LABEL}
+        </Link>
+      ) : null}
+      {ENROLLMENTS_NAV_VISIBLE ? (
+        <Link
+          className={styles.navLink}
+          href={withOrg(ENROLLMENTS_ROUTE)}
+          aria-current={activeNav === "enrollments" ? "page" : undefined}
+        >
+          {ENROLLMENTS_NAV_LABEL}
+        </Link>
+      ) : null}
+      {PROGRESS_NAV_VISIBLE ? (
+        <Link
+          className={styles.navLink}
+          href={withOrg(PROGRESS_ROUTE)}
+          aria-current={activeNav === "progress" ? "page" : undefined}
+        >
+          {PROGRESS_NAV_LABEL}
+        </Link>
+      ) : null}
+      {ATTENTION_NAV_VISIBLE ? (
+        <Link
+          className={styles.navLink}
+          href={withOrg(ATTENTION_ROUTE)}
+          aria-current={activeNav === "attention" ? "page" : undefined}
+        >
+          {ATTENTION_NAV_LABEL}
+        </Link>
+      ) : null}
+      <SocialPrimaryNavLink
+        selectedOrganizationId={selectedOrganizationId}
+        explicitVisibility={socialNavVisible}
+        active={activeNav === "social"}
+      />
+      <Link
+        className={styles.navLink}
+        href={withOrg("/tasks")}
+        aria-current={activeNav === "tasks" ? "page" : undefined}
+      >
+        Tasks
+      </Link>
+      {showMembersNav ? (
+        <Link
+          className={styles.navLink}
+          href={withOrg(MEMBERS_ROUTE)}
+          aria-current={activeNav === "members" ? "page" : undefined}
+        >
+          {MEMBERS_NAV_LABEL}
+        </Link>
+      ) : null}
+    </nav>
+  );
+}
+
+function PrimaryNav({
+  selectedOrganizationId,
+  socialNavVisible,
+  showMembersNav,
+  activeNav,
+}: {
+  selectedOrganizationId?: string;
+  socialNavVisible?: boolean;
+  showMembersNav: boolean;
+  activeNav: NonNullable<AppShellProps["activeNav"]>;
+}) {
+  return (
+    <nav className={styles.nav} aria-label="Primary">
+      <OrgAwareLink
+        className={styles.navLink}
+        href="/home"
+        organizationId={selectedOrganizationId}
+        aria-current={activeNav === "home" ? "page" : undefined}
+      >
+        Home
+      </OrgAwareLink>
+      <OrgAwareLink
+        className={styles.navLink}
+        href="/leads"
+        organizationId={selectedOrganizationId}
+        aria-current={activeNav === "leads" ? "page" : undefined}
+      >
+        Leads
+      </OrgAwareLink>
+      <OrgAwareLink
+        className={styles.navLink}
+        href="/customers"
+        organizationId={selectedOrganizationId}
+        aria-current={activeNav === "customers" ? "page" : undefined}
+      >
+        Customers
+      </OrgAwareLink>
+      {PROGRAMS_NAV_VISIBLE ? (
+        <OrgAwareLink
+          className={styles.navLink}
+          href={PROGRAMS_ROUTE}
+          organizationId={selectedOrganizationId}
+          aria-current={activeNav === "programs" ? "page" : undefined}
+        >
+          {PROGRAMS_NAV_LABEL}
+        </OrgAwareLink>
+      ) : null}
+      {ENROLLMENTS_NAV_VISIBLE ? (
+        <OrgAwareLink
+          className={styles.navLink}
+          href={ENROLLMENTS_ROUTE}
+          organizationId={selectedOrganizationId}
+          aria-current={activeNav === "enrollments" ? "page" : undefined}
+        >
+          {ENROLLMENTS_NAV_LABEL}
+        </OrgAwareLink>
+      ) : null}
+      {PROGRESS_NAV_VISIBLE ? (
+        <OrgAwareLink
+          className={styles.navLink}
+          href={PROGRESS_ROUTE}
+          organizationId={selectedOrganizationId}
+          aria-current={activeNav === "progress" ? "page" : undefined}
+        >
+          {PROGRESS_NAV_LABEL}
+        </OrgAwareLink>
+      ) : null}
+      {ATTENTION_NAV_VISIBLE ? (
+        <OrgAwareLink
+          className={styles.navLink}
+          href={ATTENTION_ROUTE}
+          organizationId={selectedOrganizationId}
+          aria-current={activeNav === "attention" ? "page" : undefined}
+        >
+          {ATTENTION_NAV_LABEL}
+        </OrgAwareLink>
+      ) : null}
+      <SocialPrimaryNavLink
+        selectedOrganizationId={selectedOrganizationId}
+        explicitVisibility={socialNavVisible}
+        active={activeNav === "social"}
+      />
+      <OrgAwareLink
+        className={styles.navLink}
+        href="/tasks"
+        organizationId={selectedOrganizationId}
+        aria-current={activeNav === "tasks" ? "page" : undefined}
+      >
+        Tasks
+      </OrgAwareLink>
+      {showMembersNav ? (
+        <OrgAwareLink
+          className={styles.navLink}
+          href={MEMBERS_ROUTE}
+          organizationId={selectedOrganizationId}
+          aria-current={activeNav === "members" ? "page" : undefined}
+        >
+          {MEMBERS_NAV_LABEL}
+        </OrgAwareLink>
+      ) : null}
+    </nav>
+  );
 }
 
 export function AppShell({
@@ -86,15 +284,6 @@ export function AppShell({
     organizationOptions,
     selectedOrganizationId,
   });
-  const homeHref = withOrg("/home", selectedOrganizationId);
-  const leadsHref = withOrg("/leads", selectedOrganizationId);
-  const customersHref = withOrg("/customers", selectedOrganizationId);
-  const programsHref = buildProgramsListHref(selectedOrganizationId);
-  const enrollmentsHref = buildEnrollmentsListHref(selectedOrganizationId);
-  const progressHref = buildProgressListHref(selectedOrganizationId);
-  const attentionHref = buildAttentionListHref(selectedOrganizationId);
-  const tasksHref = withOrg("/tasks", selectedOrganizationId);
-  const membersHref = buildMembersListHref(selectedOrganizationId);
 
   return (
     <div className={styles.shell}>
@@ -102,86 +291,23 @@ export function AppShell({
         <div className={styles.headerInner}>
           <div className={styles.brandBlock}>
             <p className={styles.brand}>ZyntixAI</p>
-            <nav className={styles.nav} aria-label="Primary">
-              <Link
-                className={styles.navLink}
-                href={homeHref}
-                aria-current={activeNav === "home" ? "page" : undefined}
-              >
-                Home
-              </Link>
-              <Link
-                className={styles.navLink}
-                href={leadsHref}
-                aria-current={activeNav === "leads" ? "page" : undefined}
-              >
-                Leads
-              </Link>
-              <Link
-                className={styles.navLink}
-                href={customersHref}
-                aria-current={activeNav === "customers" ? "page" : undefined}
-              >
-                Customers
-              </Link>
-              {PROGRAMS_NAV_VISIBLE ? (
-                <Link
-                  className={styles.navLink}
-                  href={programsHref}
-                  aria-current={activeNav === "programs" ? "page" : undefined}
-                >
-                  {PROGRAMS_NAV_LABEL}
-                </Link>
-              ) : null}
-              {ENROLLMENTS_NAV_VISIBLE ? (
-                <Link
-                  className={styles.navLink}
-                  href={enrollmentsHref}
-                  aria-current={activeNav === "enrollments" ? "page" : undefined}
-                >
-                  {ENROLLMENTS_NAV_LABEL}
-                </Link>
-              ) : null}
-              {PROGRESS_NAV_VISIBLE ? (
-                <Link
-                  className={styles.navLink}
-                  href={progressHref}
-                  aria-current={activeNav === "progress" ? "page" : undefined}
-                >
-                  {PROGRESS_NAV_LABEL}
-                </Link>
-              ) : null}
-              {ATTENTION_NAV_VISIBLE ? (
-                <Link
-                  className={styles.navLink}
-                  href={attentionHref}
-                  aria-current={activeNav === "attention" ? "page" : undefined}
-                >
-                  {ATTENTION_NAV_LABEL}
-                </Link>
-              ) : null}
-              <SocialPrimaryNavLink
+            <Suspense
+              fallback={
+                <PrimaryNavFallback
+                  selectedOrganizationId={selectedOrganizationId}
+                  socialNavVisible={socialNavVisible}
+                  showMembersNav={showMembersNav}
+                  activeNav={activeNav}
+                />
+              }
+            >
+              <PrimaryNav
                 selectedOrganizationId={selectedOrganizationId}
-                explicitVisibility={socialNavVisible}
-                active={activeNav === "social"}
+                socialNavVisible={socialNavVisible}
+                showMembersNav={showMembersNav}
+                activeNav={activeNav}
               />
-              <Link
-                className={styles.navLink}
-                href={tasksHref}
-                aria-current={activeNav === "tasks" ? "page" : undefined}
-              >
-                Tasks
-              </Link>
-              {showMembersNav ? (
-                <Link
-                  className={styles.navLink}
-                  href={membersHref}
-                  aria-current={activeNav === "members" ? "page" : undefined}
-                >
-                  {MEMBERS_NAV_LABEL}
-                </Link>
-              ) : null}
-            </nav>
+            </Suspense>
           </div>
           <div className={styles.headerActions}>
             {showOrgSelector ? (

@@ -68,34 +68,34 @@ test.describe("B1-C5 Production product polish — desktop", () => {
     await expectDailyOperatingShell(page);
     await expectNoDailyOperatingProductFailure(page);
 
-    await page.getByRole("link", { name: "Attention", exact: true }).first().click();
+    await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Attention", exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/attention\\?org=${orgId()}`));
     await expect(page.getByRole("heading", { level: 1, name: "Attention" })).toBeVisible({
       timeout: 30_000,
     });
 
-    await page.getByRole("link", { name: "Enrollments", exact: true }).first().click();
+    await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Enrollments", exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/enrollments\\?org=${orgId()}`));
     await expect(page.getByRole("heading", { level: 1, name: "Enrollments" })).toBeVisible();
 
-    await page.getByRole("link", { name: "Progress", exact: true }).first().click();
+    await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Progress", exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/progress\\?org=${orgId()}`));
 
-    await page.getByRole("link", { name: "Programs", exact: true }).first().click();
+    await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Programs", exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/programs\\?org=${orgId()}`));
 
-    await page.getByRole("link", { name: "Customers", exact: true }).first().click();
+    await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Customers", exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/customers\\?org=${orgId()}`));
 
-    await page.getByRole("link", { name: "Tasks", exact: true }).first().click();
+    await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Tasks", exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/tasks\\?org=${orgId()}`));
 
-    await page.getByRole("link", { name: "Members", exact: true }).first().click();
+    await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Members", exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/settings/members\\?org=${orgId()}`));
     await expect(page.getByRole("heading", { level: 1, name: "Members" })).toBeVisible();
     await expect(page.getByText(/restricted rollout|Invitations/i).first()).toBeVisible();
 
-    await page.getByRole("link", { name: "Home", exact: true }).first().click();
+    await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Home", exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/home\\?org=${orgId()}`));
     await expectDailyOperatingShell(page);
 

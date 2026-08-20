@@ -134,7 +134,8 @@ describe("customers UI accessibility", () => {
 describe("customers app shell stylesheet contract", () => {
   it("preserves org-aware tasks and customers navigation helpers", () => {
     const shell = readFileSync(path.join(process.cwd(), "src/components/app-shell.tsx"), "utf8");
-    expect(shell).toContain('withOrg("/tasks"');
-    expect(shell).toContain('withOrg("/customers"');
+    expect(shell).toContain('href="/tasks"');
+    expect(shell).toContain('href="/customers"');
+    expect(shell).toContain("OrgAwareLink");
   });
 });
