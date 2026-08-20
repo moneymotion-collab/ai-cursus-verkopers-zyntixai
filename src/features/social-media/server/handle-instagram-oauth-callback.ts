@@ -7,9 +7,10 @@
  * 3) authenticated session
  * 4) consume single-use intent (before provider exchange)
  * 5) code → short-lived → long-lived token
- * 6) professional identity verification
- * 7) AES-256-GCM encrypt + private upsert
- * 8) finalize connection
+ * 6) professional identity verification (fail-closed before any write)
+ * 7) resolve credential upsert target (connect: version 0; reauthorize: existing envelope)
+ * 8) AES-256-GCM encrypt + private upsert
+ * 9) finalize: connect → finalize_social_connection; reauthorize → finalize_social_reauthorization
  *
  * Never logs code/state/tokens/secrets/provider bodies.
  * Opaque failure stages may be returned in allowlisted redirect query only.
@@ -22,15 +23,21 @@ import type { Database } from "@/types/database";
 import { isSocialInstagramConnectionsFeatureEnabled } from "@/features/social-media/server/social-connections-feature";
 import { readInstagramOAuthConfig } from "@/features/social-media/server/instagram-oauth-config";
 import { fingerprintSocialOAuthRawState } from "@/features/social-media/server/oauth-state";
-import { consumeSocialOAuthIntent } from "@/features/social-media/server/oauth-intent-repository";
-import { finalizeSocialConnection } from "@/features/social-media/server/oauth-intent-repository";
+import {
+  consumeSocialOAuthIntent,
+  finalizeSocialConnection,
+  finalizeSocialReauthorization,
+} from "@/features/social-media/server/oauth-intent-repository";
 import {
   exchangeInstagramAuthorizationCode,
   exchangeInstagramLongLivedToken,
   fetchInstagramProfessionalIdentity,
   type InstagramProviderFetch,
 } from "@/features/social-media/server/instagram-provider-client";
-import { upsertEncryptedSocialProviderCredential } from "@/features/social-media/server/credential-repository";
+import {
+  resolveSocialCredentialUpsertTarget,
+  upsertEncryptedSocialProviderCredential,
+} from "@/features/social-media/server/credential-repository";
 import { deriveInstagramCapabilitiesFromGrantedPermissions } from "@/features/social-media/server/instagram-publishing/permissions";
 import {
   buildDefaultSocialOAuthFailurePath,
@@ -218,10 +225,24 @@ export async function handleInstagramOAuthCallback(
         ).toISOString()
       : null;
 
+  const upsertTarget = await resolveSocialCredentialUpsertTarget(supabase, {
+    intentKind: consumed.intentKind,
+    connectionId: consumed.connectionId,
+  });
+  if (!upsertTarget.ok) {
+    return failure(
+      "connection_failed",
+      "internal_error",
+      true,
+      "credential_encrypt_or_upsert",
+    );
+  }
+
   const stored = await upsertEncryptedSocialProviderCredential(supabase, {
     connectionId: consumed.connectionId,
     organizationId: consumed.organizationId,
-    expectedCredentialVersion: 0,
+    credentialId: upsertTarget.credentialId,
+    expectedCredentialVersion: upsertTarget.expectedCredentialVersion,
     payload: {
       payloadVersion: 1,
       accessToken: longLived.value.accessToken,
@@ -260,15 +281,25 @@ export async function handleInstagramOAuthCallback(
     );
   }
 
-  const finalized = await finalizeSocialConnection(supabase, {
-    connectionId: consumed.connectionId,
-    externalAccountId: identity.value.externalAccountId,
-    displayName: identity.value.username,
-    professionalAccountType: identity.value.accountType,
-    capabilities: deriveInstagramCapabilitiesFromGrantedPermissions(
-      shortLived.value.permissions,
-    ),
-  });
+  const capabilities = deriveInstagramCapabilitiesFromGrantedPermissions(
+    shortLived.value.permissions,
+  );
+  const finalized =
+    consumed.intentKind === "reauthorize"
+      ? await finalizeSocialReauthorization(supabase, {
+          intentId: input.intentIdFromCookie,
+          externalAccountId: identity.value.externalAccountId,
+          displayName: identity.value.username,
+          professionalAccountType: identity.value.accountType,
+          capabilities,
+        })
+      : await finalizeSocialConnection(supabase, {
+          connectionId: consumed.connectionId,
+          externalAccountId: identity.value.externalAccountId,
+          displayName: identity.value.username,
+          professionalAccountType: identity.value.accountType,
+          capabilities,
+        });
   if (!finalized.ok) {
     switch (finalized.reason) {
       case "unsupported_account":

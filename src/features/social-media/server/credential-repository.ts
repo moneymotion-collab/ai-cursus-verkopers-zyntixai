@@ -44,6 +44,45 @@ function asNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+export type SocialCredentialUpsertTarget =
+  | {
+      ok: true;
+      credentialId?: string;
+      expectedCredentialVersion: number;
+    }
+  | { ok: false; reason: string };
+
+/**
+ * Connect inserts a new envelope at version 0.
+ * Reauthorize loads the existing envelope identity/version and never
+ * assumes version 0. Ciphertext from the load path is not reused.
+ */
+export async function resolveSocialCredentialUpsertTarget(
+  supabase: SupabaseClient<Database>,
+  input: {
+    intentKind: "connect" | "reauthorize";
+    connectionId: string;
+  },
+): Promise<SocialCredentialUpsertTarget> {
+  if (input.intentKind === "connect") {
+    return { ok: true, expectedCredentialVersion: 0 };
+  }
+
+  const loaded = await loadEncryptedSocialProviderCredentialEnvelope(
+    supabase,
+    input.connectionId,
+  );
+  if (!loaded.ok) {
+    return { ok: false, reason: loaded.reason };
+  }
+
+  return {
+    ok: true,
+    credentialId: loaded.envelope.credentialId,
+    expectedCredentialVersion: loaded.envelope.credentialVersion,
+  };
+}
+
 export async function upsertEncryptedSocialProviderCredential(
   supabase: SupabaseClient<Database>,
   input: {

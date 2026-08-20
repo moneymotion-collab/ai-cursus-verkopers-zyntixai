@@ -54,6 +54,14 @@ export const RECONNECTABLE_SOCIAL_CONNECTION_STATUSES = [
   "permission_missing",
 ] as const satisfies readonly SocialConnectionStatus[];
 
+/**
+ * Statuses that may complete an explicit reauthorization finalize.
+ * Same set as reconnectable. Ordinary connect finalize remains
+ * authorization_pending-only and must not use this list.
+ */
+export const REAUTHORIZATION_FINALIZABLE_SOCIAL_CONNECTION_STATUSES =
+  RECONNECTABLE_SOCIAL_CONNECTION_STATUSES;
+
 export function isSocialConnectionStatus(
   value: string,
 ): value is SocialConnectionStatus {
@@ -97,6 +105,14 @@ export function isReconnectableSocialConnectionStatus(
 ): boolean {
   return (
     RECONNECTABLE_SOCIAL_CONNECTION_STATUSES as readonly string[]
+  ).includes(status);
+}
+
+export function isReauthorizationFinalizableSocialConnectionStatus(
+  status: string,
+): boolean {
+  return (
+    REAUTHORIZATION_FINALIZABLE_SOCIAL_CONNECTION_STATUSES as readonly string[]
   ).includes(status);
 }
 

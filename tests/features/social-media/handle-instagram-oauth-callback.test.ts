@@ -180,6 +180,14 @@ describe("SMM-B1.1-C Instagram OAuth callback orchestration", () => {
         ]),
       }),
     );
+    expect(supabase.rpc).not.toHaveBeenCalledWith(
+      "load_social_provider_credential_envelope",
+      expect.anything(),
+    );
+    expect(supabase.rpc).not.toHaveBeenCalledWith(
+      "finalize_social_reauthorization",
+      expect.anything(),
+    );
   });
 
   it("fail-closes reconnect when returned Instagram identity does not match", async () => {
@@ -202,7 +210,15 @@ describe("SMM-B1.1-C Instagram OAuth callback orchestration", () => {
       expect.anything(),
     );
     expect(supabase.rpc).not.toHaveBeenCalledWith(
+      "load_social_provider_credential_envelope",
+      expect.anything(),
+    );
+    expect(supabase.rpc).not.toHaveBeenCalledWith(
       "finalize_social_connection",
+      expect.anything(),
+    );
+    expect(supabase.rpc).not.toHaveBeenCalledWith(
+      "finalize_social_reauthorization",
       expect.anything(),
     );
   });

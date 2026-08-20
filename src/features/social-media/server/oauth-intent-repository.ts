@@ -331,3 +331,54 @@ export async function finalizeSocialConnection(
     return { ok: false, reason: "transport_error" };
   }
 }
+
+export async function finalizeSocialReauthorization(
+  supabase: SupabaseClient<Database>,
+  input: {
+    intentId: string;
+    externalAccountId: string;
+    displayName: string | null;
+    professionalAccountType: InstagramProfessionalAccountType;
+    capabilities: readonly string[];
+  },
+): Promise<FinalizeSocialConnectionSuccess | FinalizeSocialConnectionFailure> {
+  const client = supabase as unknown as RpcCapableClient;
+  try {
+    const { data, error } = await client.rpc(
+      "finalize_social_reauthorization",
+      {
+        p_intent_id: input.intentId,
+        p_external_account_id: input.externalAccountId,
+        p_display_name: input.displayName,
+        p_professional_account_type: input.professionalAccountType,
+        p_capabilities: input.capabilities,
+      },
+    );
+    if (error) {
+      return { ok: false, reason: "transport_error" };
+    }
+    const row = firstRow(data);
+    const resultCode = asString(row?.result_code);
+    if (resultCode === "success") {
+      const connectionId = asString(row?.connection_id);
+      if (!connectionId) {
+        return { ok: false, reason: "unexpected" };
+      }
+      return { ok: true, connectionId };
+    }
+    if (
+      resultCode === "invalid_input" ||
+      resultCode === "unsupported_account" ||
+      resultCode === "not_found" ||
+      resultCode === "forbidden" ||
+      resultCode === "conflict" ||
+      resultCode === "identity_mismatch" ||
+      resultCode === "duplicate_connection"
+    ) {
+      return { ok: false, reason: resultCode };
+    }
+    return { ok: false, reason: "unexpected" };
+  } catch {
+    return { ok: false, reason: "transport_error" };
+  }
+}

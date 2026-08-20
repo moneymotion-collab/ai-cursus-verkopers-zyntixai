@@ -116,6 +116,7 @@ describe("SMM-B1.5 versioning/review/calendar migration security", () => {
       "20260818194719_add_social_closed_beta_operator_mutation_wrappers.sql",
       "20260819101500_add_social_instagram_provider_4xx_diagnostic_hardening.sql",
       "20260819120000_add_social_controlled_publish_window_binding.sql",
+      "20260820120000_add_social_reauthorization_connected_finalize.sql",
     ]);
   });
 });
