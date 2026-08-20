@@ -3,20 +3,20 @@
 | Field | Value |
 | --- | --- |
 | Phase | **B1-C2 — Invitations Production Acceptance QA** |
-| Stage | **B1-C2-R1 — verification failure RCA + fix deployed; resume acceptance** |
+| Stage | **Post-acceptance verified + gates OFF; Owner session refresh needed for Members UI QA** |
 | Date | 2026-08-20 |
-| Formal status | `OWNER ACTION REQUIRED — RESUME B1-C2 INVITATION ACCEPTANCE` |
-| Real invitation emails | **1** (Owner-confirmed inbox receipt) |
-| Acceptance mutations | **0** |
-| Membership creates | **0** |
-| Provider writes (authorized window) | **1** |
-| Gate state | delivery **OFF**; acceptance **ON** |
+| Formal status | `OWNER ACTION REQUIRED — OWNER BROWSER SESSION REFRESH FOR B1-C2 MEMBERS QA` |
+| Real invitation emails | **1** |
+| Acceptance successes | **1** |
+| Membership creates | **1** (Viewer) |
+| Provider writes | **1** |
+| Gate state | delivery **OFF**; acceptance **OFF** |
 
 ```text
-OWNER ACTION REQUIRED — RESUME B1-C2 INVITATION ACCEPTANCE
+OWNER ACTION REQUIRED — OWNER BROWSER SESSION REFRESH FOR B1-C2 MEMBERS QA
 ```
 
-**Strict stop:** Delivery **OFF**. Acceptance **ON**. Do not resend. Agent must not accept.
+**Strict stop:** Durable acceptance proven. Gates resting OFF. Temporary Viewer kept (disposition A). Do not start B1-C3.
 
 ---
 
@@ -436,43 +436,50 @@ None of the above is a silent Product defect requiring Stage-1 implementation.
 ## 23. Owner action required
 
 ```text
-OWNER ACTION REQUIRED — RESUME B1-C2 INVITATION ACCEPTANCE
+OWNER ACTION REQUIRED — OWNER BROWSER SESSION REFRESH FOR B1-C2 MEMBERS QA
 ```
 
-### B1-C2-R1 — invite-gated verification failure (FAILED ATTEMPT PRESERVED)
+### Post-acceptance durable verification (PASS)
 
 | Field | Value |
 | --- | --- |
-| Classification | **B** — email verification **DID** confirm the auth user; application failed to establish/recognize a signed-in session and returned the Owner to the resend-verification screen |
-| Auth user | exists (`user_prefix=80352a2f`) |
-| `email_confirmed_at` | **present** |
-| `confirmed_at` | **present** |
-| `last_sign_in_at` | **null** (no successful app session after verify) |
-| Invitation | `008aa279-c18d-4c7b-97cf-5b90d09a7737` still **pending** · role `viewer` · token present · not expired |
-| Membership | target **0** · org active **6** |
-| Secondary effect | Supabase/signup **resend rate-limit** after Owner retries — not the root cause |
-| Root cause | Auth callback required PKCE `code` only; when confirmation completed without a recoverable session cookie on www, `/register/check-email` only inspects **session** `email_confirmed_at` and kept showing Resend |
-| Minimal fix SHA | `f7b3745` |
-| Fix contents | `token_hash`+`type` `verifyOtp` on `/auth/callback`; invite `emailRedirectTo` includes `next=/invite/accept`; check-email already-verified / rate-limit sign-in guidance; Members delivery copy gate-aware |
-| Fix deploy | `dpl_CquK7fCNz61z5AmfzUu5nQbx11vg` READY · `https://www.zyntixai.com` |
-| Delivery gate | **OFF** |
-| Acceptance gate | **ON** (required to resume) |
-| Social publishing | **OFF** |
-| Resend required | **no** (do not resend verification or invitation) |
-| Resend currently allowed | **no** (do not attempt) |
+| Invitation | `008aa279-c18d-4c7b-97cf-5b90d09a7737` |
+| `email_fp` | `dc8bd0d9c066` |
+| Org | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| Role | `viewer` |
+| Status | **accepted** |
+| `accepted_at` | `2026-08-20T04:14:32.808182+00` |
+| `revoked_at` | null |
+| Accepted before expiry | **yes** |
+| `accepted_by` | `user_prefix=80352a2f` (sole auth user for recipient) |
+| Membership | `04c1e397-f36c-4683-88da-75c8386478b7` · active · viewer · same org/user · created at accept time |
+| Members | **6 → 7** |
+| Target memberships | **0 → 1** |
+| Pending invites | **0** |
+| Accepted invites (org) | **4** |
+| Delivery attempts | **3** (unchanged; +0 after accept) |
+| Auth users for recipient | **1** (no duplicate) |
+| Events | `invitation_created` ×1 · `invitation_accepted` ×1 · delivery attempt ×1 |
+| Replay contract | fixture/security: `already_member` / terminal accepted; **no second Production accept attempted** |
+| Viewer privilege contract | domain tests: Viewer cannot create/manage invitations |
+| Acceptance gate OFF | `INVITATIONS_ENABLED=false` · deploy `dpl_EN6cgHzS8JafpWkHzvFp9uhfZGZe` READY |
+| Delivery gate | **OFF** (unchanged) |
+| Accept route effective | feature-disabled copy (**PASS**) |
+| Social | publishing OFF · windows closed=1 consumed=2 · enrollments unchanged |
 
-### Resume strategy (A)
+### Blocker for formal closure
 
-Existing auth user is already email-confirmed. Reuse invitation `008aa279-…`. No second invitation.
+Owner Playwright `storageState` expired (`reason=session_expired`). Members desktop/mobile live UI QA and optional Viewer session bootstrap remain.
 
-Owner steps (no tokens/URLs pasted):
+**Owner:** locally refresh Owner auth only (do not paste password):
 
-1. Hard refresh Production.  
-2. Open https://www.zyntixai.com/login and sign in with the **same** QA email/password used during invite-gated registration.  
-3. If prompted, continue to invitation acceptance.  
-4. If the page says to reopen the invitation: open the **original invitation email** once (not the verification email), then Accept **exactly once**.  
-5. Do not resend verification. Do not create another invite.  
-6. Report the exact visible result.
+```text
+npm run browser:auth:bootstrap
+```
+
+Then reply **Owner auth refreshed** so Cursor can finish Members UI QA and close B1-C2.
+
+Do not remove the temporary Viewer. Do not send another invite.
 
 ---
 
@@ -481,15 +488,7 @@ Owner steps (no tokens/URLs pasted):
 | Check | Value |
 | --- | --- |
 | Implementation | `f7b3745` |
-| Evidence | this document |
-| Forbidden commits | auth/tokens/secrets — **not committed** |
+| Evidence | this document (post-accept update) |
+| Shutdown deploy | `dpl_EN6cgHzS8JafpWkHzvFp9uhfZGZe` |
 
----
-
-## Stage-1 verdict fields
-
-*(historical Stage-1 snapshot retained above; Phase 4–R1 supersede while acceptance window is open)*
-
-Phase 4 send preserved: invitation `008aa279-…`, delivery attempts 2→3, inbox YES, delivery OFF. Static delivery copy fixed in `f7b3745`.
-
-**B1-C2 is not closed.**
+**B1-C2 is not closed** until Members live QA completes.
