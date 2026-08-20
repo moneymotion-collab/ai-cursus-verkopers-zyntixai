@@ -57,17 +57,17 @@ test.describe("B1-C4 Production enrollment operational metadata — desktop", ()
       { waitUntil: "domcontentloaded" },
     );
     await expect(page).not.toHaveURL(/\/login/);
-    await expect(page.getByRole("heading", { name: "Progress" })).toBeVisible({
+    await expect(page.getByRole("heading", { name: "Progress", exact: true })).toBeVisible({
       timeout: 30_000,
     });
     await expect(page.getByText(/Last meaningful progress/i)).toBeVisible();
     await expect(page.getByText(/No recent progress/i).first()).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Attention" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Attention", exact: true })).toBeVisible();
     await expect(
       page.getByRole("link", { name: /No recent enrollment progress/i }).first(),
     ).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Next action" })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Open Attention|Review progress/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Next action", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Open Attention", exact: true })).toBeVisible();
 
     await page.goBack();
     await expect(page).toHaveURL(new RegExp(`/attention/`));
@@ -86,9 +86,9 @@ test.describe("B1-C4 Production enrollment operational metadata — desktop", ()
     await expect(page.getByRole("heading", { level: 1, name: "Enrollments" })).toBeVisible({
       timeout: 30_000,
     });
-    await expect(page.getByRole("columnheader", { name: "Progress" })).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: "Last progress" })).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: "Attention" })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Progress", exact: true })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Last progress", exact: true })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Attention", exact: true })).toBeVisible();
     await expect(page.getByText("No recent progress").first()).toBeVisible();
     health.assertHealthy();
   });

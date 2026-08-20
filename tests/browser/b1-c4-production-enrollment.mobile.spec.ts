@@ -28,16 +28,18 @@ test.describe("B1-C4 Production enrollment operational metadata — mobile", () 
       timeout: 30_000,
     });
     await expectNoHorizontalOverflow(page);
-    await expect(page.getByText("No recent progress").first()).toBeVisible();
+    await expect(
+      page.getByRole("list", { name: "Enrollment list" }).getByText("No recent progress").first(),
+    ).toBeVisible();
 
     await page.goto(`/enrollments/${STALE_ENROLLMENT_ID}?org=${orgId()}`, {
       waitUntil: "domcontentloaded",
     });
-    await expect(page.getByRole("heading", { name: "Progress" })).toBeVisible({
+    await expect(page.getByRole("heading", { name: "Progress", exact: true })).toBeVisible({
       timeout: 30_000,
     });
-    await expect(page.getByRole("heading", { name: "Attention" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Next action" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Attention", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Next action", exact: true })).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
     health.assertHealthy();
