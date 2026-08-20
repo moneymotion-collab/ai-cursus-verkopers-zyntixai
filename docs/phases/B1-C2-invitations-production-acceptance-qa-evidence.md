@@ -3,9 +3,9 @@
 | Field | Value |
 | --- | --- |
 | Phase | **B1-C2 — Invitations Production Acceptance QA** |
-| Stage | **Phase 4 — post-send verification + delivery OFF; acceptance ON pending** |
+| Stage | **B1-C2-R1 — verification failure RCA + fix deployed; resume acceptance** |
 | Date | 2026-08-20 |
-| Formal status | `OWNER ACTION REQUIRED — ACCEPT EXACTLY ONE B1-C2 VIEWER INVITATION` |
+| Formal status | `OWNER ACTION REQUIRED — RESUME B1-C2 INVITATION ACCEPTANCE` |
 | Real invitation emails | **1** (Owner-confirmed inbox receipt) |
 | Acceptance mutations | **0** |
 | Membership creates | **0** |
@@ -13,10 +13,10 @@
 | Gate state | delivery **OFF**; acceptance **ON** |
 
 ```text
-OWNER ACTION REQUIRED — ACCEPT EXACTLY ONE B1-C2 VIEWER INVITATION
+OWNER ACTION REQUIRED — RESUME B1-C2 INVITATION ACCEPTANCE
 ```
 
-**Strict stop:** Delivery gate restored **OFF**. Acceptance remains **ON**. Agent must **not** accept or consume the invitation.
+**Strict stop:** Delivery **OFF**. Acceptance **ON**. Do not resend. Agent must not accept.
 
 ---
 
@@ -436,66 +436,43 @@ None of the above is a silent Product defect requiring Stage-1 implementation.
 ## 23. Owner action required
 
 ```text
-OWNER ACTION REQUIRED — ACCEPT EXACTLY ONE B1-C2 VIEWER INVITATION
+OWNER ACTION REQUIRED — RESUME B1-C2 INVITATION ACCEPTANCE
 ```
 
-### Phase 4 — post-send verification + immediate delivery shutdown
+### B1-C2-R1 — invite-gated verification failure (FAILED ATTEMPT PRESERVED)
 
 | Field | Value |
 | --- | --- |
-| Owner submit count | **1** |
-| Invitation UUID | `008aa279-c18d-4c7b-97cf-5b90d09a7737` |
-| `email_fp` | `dc8bd0d9c066` |
-| Organization | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
-| Role | `viewer` |
-| Invitation status | `pending` |
-| Created at (UTC) | `2026-08-20 03:03:28.089365+00` |
-| Expires at (UTC) | `2026-08-27 03:03:28.089365+00` |
-| Token present | **yes** (hash only; raw never logged) |
-| Duplicate invitations for org+fp | **0** (exactly one) |
-| Delivery attempts before | **2** |
-| Delivery attempts after | **3** |
-| Provider delivery delta | **+1** |
-| Attempt for this invitation | **1** · operation=`create` · provider=`resend` · status=`submitted` · `provider_message_id` present · `failure_category` null |
-| Automatic retry / resend | **none** |
-| Real inbox receipt | **OWNER-CONFIRMED REAL INBOX DELIVERY = YES** |
-| Delivery gate after verify | **OFF** (`INVITATION_EMAIL_DELIVERY_ENABLED=false`) |
-| Acceptance gate | **ON** (`INVITATIONS_ENABLED` remains true) |
-| Shutdown deploy | `dpl_CNnnqPnMGkbJqSt6sQ2Xn6iRPMBd` READY · `https://www.zyntixai.com` |
-| Acceptance effective post-deploy | **ON** (rollout notice hidden; `/invite/accept` link-unavailable copy, not feature-disabled) |
-| Member count | **6** |
-| Target membership | **0** |
-| Auth users for recipient | **0** (invite-gated registration path) |
-| Remaining email deliveries authorized | **0** |
-| Remaining acceptances authorized | **1** |
-| Resend authorized | **false** |
-| Cleanup disposition | **A** |
-| Social publishing | **OFF** · windows closed=1 consumed=2 · enrollments `publishing_allowed`=1 · R1-F paused |
+| Classification | **B** — email verification **DID** confirm the auth user; application failed to establish/recognize a signed-in session and returned the Owner to the resend-verification screen |
+| Auth user | exists (`user_prefix=80352a2f`) |
+| `email_confirmed_at` | **present** |
+| `confirmed_at` | **present** |
+| `last_sign_in_at` | **null** (no successful app session after verify) |
+| Invitation | `008aa279-c18d-4c7b-97cf-5b90d09a7737` still **pending** · role `viewer` · token present · not expired |
+| Membership | target **0** · org active **6** |
+| Secondary effect | Supabase/signup **resend rate-limit** after Owner retries — not the root cause |
+| Root cause | Auth callback required PKCE `code` only; when confirmation completed without a recoverable session cookie on www, `/register/check-email` only inspects **session** `email_confirmed_at` and kept showing Resend |
+| Minimal fix SHA | `f7b3745` |
+| Fix contents | `token_hash`+`type` `verifyOtp` on `/auth/callback`; invite `emailRedirectTo` includes `next=/invite/accept`; check-email already-verified / rate-limit sign-in guidance; Members delivery copy gate-aware |
+| Fix deploy | `dpl_CquK7fCNz61z5AmfzUu5nQbx11vg` READY · `https://www.zyntixai.com` |
+| Delivery gate | **OFF** |
+| Acceptance gate | **ON** (required to resume) |
+| Social publishing | **OFF** |
+| Resend required | **no** (do not resend verification or invitation) |
+| Resend currently allowed | **no** (do not attempt) |
 
-### Static delivery-copy UX finding (B1-C2)
+### Resume strategy (A)
 
-Hardcoded help text in `invite-member-form.tsx`:
+Existing auth user is already email-confirmed. Reuse invitation `008aa279-…`. No second invitation.
 
-> Create a pending invitation… Invitation email delivery is not enabled yet.
+Owner steps (no tokens/URLs pasted):
 
-This displayed while Production delivery was **ON** and the real email was delivered. **Classification: B1-C2 usability defect** (materially misleading Beta Owner about whether delivery works). Not fixed in this pass (shutdown prioritized).
-
-**Smallest proposed fix:** pass server `isInvitationEmailDeliveryEnabled()` into `InviteMemberForm` and render delivery help copy conditionally (enabled vs disabled). No migration. Ship after acceptance window or with resting-state restore—avoid extra deploys mid-acceptance unless Owner requests.
-
-### Owner acceptance instructions
-
-1. Open the invitation email already received.  
-2. Click the invitation/acceptance action **exactly once**.  
-3. Do not forward or resend.  
-4. Complete invite-gated registration using **only** the authorized QA email.  
-5. Complete email verification if required.  
-6. Continue through secure acceptance once.  
-7. Do not accept a second time.  
-8. Report the exact visible result.  
-
-Do **not** paste invitation URL, token, password, verification code, or session token.
-
-After Owner reports acceptance success, next pass verifies membership 6→7 / role viewer / audit / replay, then turns **acceptance OFF**.
+1. Hard refresh Production.  
+2. Open https://www.zyntixai.com/login and sign in with the **same** QA email/password used during invite-gated registration.  
+3. If prompted, continue to invitation acceptance.  
+4. If the page says to reopen the invitation: open the **original invitation email** once (not the verification email), then Accept **exactly once**.  
+5. Do not resend verification. Do not create another invite.  
+6. Report the exact visible result.
 
 ---
 
@@ -503,29 +480,16 @@ After Owner reports acceptance success, next pass verifies membership 6→7 / ro
 
 | Check | Value |
 | --- | --- |
-| Evidence | this document (Phase 4 update) |
-| Forbidden commits | auth state / tokens / secrets — **not committed** |
+| Implementation | `f7b3745` |
+| Evidence | this document |
+| Forbidden commits | auth/tokens/secrets — **not committed** |
 
 ---
 
 ## Stage-1 verdict fields
 
-*(historical Stage-1 snapshot retained above; Phase 3–4 supersede gate resting state while acceptance window is open)*
+*(historical Stage-1 snapshot retained above; Phase 4–R1 supersede while acceptance window is open)*
 
-```text
-organization_id=2fc07699-ece5-44b9-bbb3-abbc23e9fffb
-recommended_role=viewer
-invitation_delivery_ready=PASS
-acceptance_ready=PASS
-provider_config_ready=PASS
-current_delivery_gate=OFF
-current_acceptance_gate=OFF
-pending_invitation_baseline=0
-member_baseline=6
-authorized_new_invitations_if_owner_approves=1
-authorized_provider_delivery_attempts_if_owner_approves=1
-authorized_acceptance_successes_if_owner_approves=1
-provider_writes_authorized_in_this_stage=0
-```
+Phase 4 send preserved: invitation `008aa279-…`, delivery attempts 2→3, inbox YES, delivery OFF. Static delivery copy fixed in `f7b3745`.
 
 **B1-C2 is not closed.**
