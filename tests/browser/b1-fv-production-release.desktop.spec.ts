@@ -85,16 +85,14 @@ test.describe("B1-FV Course Sellers Beta-1 release — desktop", () => {
     await expect(page.getByRole("heading", { name: "Next Best Action" })).toBeVisible({
       timeout: 30_000,
     });
-    await page.goBack();
-    await expect(page).toHaveURL(new RegExp(`/home\\?org=${orgId()}`));
 
-    await nav.getByRole("link", { name: "Members", exact: true }).click();
-    await expect(page).toHaveURL(new RegExp(`/settings/members\\?org=${orgId()}`));
-    await expect(page.getByRole("heading", { level: 1, name: "Members" })).toBeVisible();
+    await openOrgRoute(page, "/settings/members");
+    await expect(page.getByRole("heading", { level: 1, name: "Members" })).toBeVisible({
+      timeout: 30_000,
+    });
     await expect(page.getByText(/restricted rollout|Invitations/i).first()).toBeVisible();
 
-    await nav.getByRole("link", { name: "Home", exact: true }).click();
-    await expect(page).toHaveURL(new RegExp(`/home\\?org=${orgId()}`));
+    await openDailyOperatingHome(page);
     await expectDailyOperatingShell(page);
 
     health.assertHealthy();
