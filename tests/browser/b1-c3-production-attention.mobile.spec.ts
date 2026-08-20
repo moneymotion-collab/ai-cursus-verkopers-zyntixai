@@ -35,17 +35,15 @@ test.describe("B1-C3 Production Course Seller Attention — mobile", () => {
     const staleLink = orgSection.getByRole("link", {
       name: /No recent enrollment progress/i,
     });
-    if ((await staleLink.count()) > 0) {
-      await expect(staleLink.first()).toBeVisible();
-      await staleLink.first().click();
-      await expect(page).toHaveURL(
-        new RegExp(`/attention/[0-9a-f-]{36}\\?org=${browserQaOrgId()}`),
-      );
-      await expect(
-        page.getByRole("heading", { name: "No recent enrollment progress" }),
-      ).toBeVisible();
-      await expectNoHorizontalOverflow(page);
-    }
+    await expect(staleLink.first()).toBeVisible({ timeout: 30_000 });
+    await staleLink.first().click();
+    await expect(page).toHaveURL(
+      new RegExp(`/attention/[0-9a-f-]{36}\\?org=${browserQaOrgId()}`),
+    );
+    await expect(
+      page.getByRole("heading", { name: "No recent enrollment progress" }),
+    ).toBeVisible();
+    await expectNoHorizontalOverflow(page);
 
     health.assertHealthy();
   });

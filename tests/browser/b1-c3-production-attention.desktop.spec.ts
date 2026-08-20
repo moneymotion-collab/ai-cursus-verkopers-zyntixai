@@ -68,7 +68,7 @@ test.describe("B1-C3 Production Course Seller Attention — desktop", () => {
     await expect(
       page.getByRole("heading", { name: "No recent enrollment progress" }),
     ).toBeVisible();
-    await expect(page.getByText(/medium|Medium/i).first()).toBeVisible();
+    await expect(page.getByText("High", { exact: true }).first()).toBeVisible();
 
     await expect(
       page.getByRole("heading", { name: "Next Best Action" }),
