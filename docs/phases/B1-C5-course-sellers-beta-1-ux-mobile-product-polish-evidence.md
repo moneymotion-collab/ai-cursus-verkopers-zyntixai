@@ -316,7 +316,7 @@ B1-FV must remain verification-only — not started here.
 | Field | Value |
 |---|---|
 | Implementation commits | `9a88008` · `e70e46b` · `168a48f` |
-| Evidence commit | (this commit) |
+| Evidence commit | `4bd101abc85b8565180565eff293c4557f036f7b` |
 | Branch | `core/platform-readiness-20260707` |
 | Divergence target | `0 0` after evidence push |
 | Secrets | no `.vercel` / auth / tokens committed |
