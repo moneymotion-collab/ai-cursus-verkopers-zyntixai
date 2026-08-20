@@ -17,7 +17,8 @@ Course Sellers Beta-1 critical routes were inventoried, polished for loading/nav
 | Prior phases | B1-MA · B1-C1 · B1-C2 · B1-C3 · B1-C4 ✅ |
 | Start www deploy | `dpl_CEABHUAj2np7LDS4LymsjxmwjsBQ` |
 | Final www deploy | `dpl_9Vze4Fwh4ZAmKdqVv9q28pUNgUa8` → `https://www.zyntixai.com` |
-| Final HEAD | see §43 |
+| Final HEAD | `4bd101a` |
+| Evidence commit | `4bd101a` |
 
 ## 3. Scope / non-scope
 
@@ -316,9 +317,11 @@ B1-FV must remain verification-only — not started here.
 | Field | Value |
 |---|---|
 | Implementation commits | `9a88008` · `e70e46b` · `168a48f` |
-| Evidence commit | `4bd101abc85b8565180565eff293c4557f036f7b` |
+| Evidence SHA | `4bd101a` |
+| Final HEAD | `4bd101a` |
 | Branch | `core/platform-readiness-20260707` |
-| Divergence target | `0 0` after evidence push |
+| Divergence | `0 0` |
+| Worktree | clean |
 | Secrets | no `.vercel` / auth / tokens committed |
 
 ## 44. Closure verdict
