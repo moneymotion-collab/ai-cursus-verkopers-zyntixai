@@ -302,9 +302,11 @@ On-demand Owner/Admin evaluate + post-progress re-eval for Owner/Admin is suffic
 |---|---|
 | Implementation SHA (wire evaluate) | `1d44187` |
 | Implementation SHA (home severity elevation) | `c9bbb1a` |
-| Evidence SHA | *(this commit)* |
+| Evidence SHA | `d0279c7` |
+| Final HEAD | `d0279c7` |
 | Branch | `core/platform-readiness-20260707` |
-| Expected final | HEAD = upstream = origin; divergence `0 0`; clean |
+| Divergence | `0 0` |
+| Worktree | clean |
 
 ## 31. Closure verdict
 
