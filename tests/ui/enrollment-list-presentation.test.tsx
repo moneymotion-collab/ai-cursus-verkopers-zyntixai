@@ -8,6 +8,7 @@ import {
   ORG_ID,
   sampleEnrollmentListItem,
 } from "../helpers/enrollment-test-fixtures";
+import { sampleEnrollmentListOperationalHints } from "../helpers/enrollment-operational-fixtures";
 
 vi.mock("@/components/ui/badge", () => ({
   Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
@@ -23,6 +24,8 @@ const listState = {
 };
 
 const ownerLabels = { [MEMBER_ID]: "Jordan Lee" };
+const emptyHints = { byEnrollmentId: {} };
+const populatedHints = sampleEnrollmentListOperationalHints(sampleEnrollmentListItem.id);
 
 describe("EnrollmentListPresentation", () => {
   it("renders customer, program, status, owner, and enrolled date with detail links", () => {
@@ -32,6 +35,7 @@ describe("EnrollmentListPresentation", () => {
         timeZone="UTC"
         listState={listState}
         ownerLabels={ownerLabels}
+        operationalHints={populatedHints}
         emptyTitle="No enrollments yet"
         emptyDescription="Create an enrollment."
       />,
@@ -41,6 +45,7 @@ describe("EnrollmentListPresentation", () => {
     expect(html).toContain("Growth Lab");
     expect(html).toContain("Active");
     expect(html).toContain("Jordan Lee");
+    expect(html).toContain("Progress current");
     expect(html).toContain(`/enrollments/${sampleEnrollmentListItem.id}`);
     expect(html).not.toContain("organizationId");
     expect(html).not.toContain("created_by_member_id");
@@ -53,6 +58,7 @@ describe("EnrollmentListPresentation", () => {
         timeZone="UTC"
         listState={listState}
         ownerLabels={{}}
+        operationalHints={populatedHints}
         emptyTitle="No enrollments yet"
         emptyDescription="Create an enrollment."
       />,
@@ -74,6 +80,7 @@ describe("EnrollmentListPresentation", () => {
         timeZone="UTC"
         listState={listState}
         ownerLabels={ownerLabels}
+        operationalHints={populatedHints}
         emptyTitle="No enrollments yet"
         emptyDescription="Create an enrollment."
       />,
@@ -89,6 +96,7 @@ describe("EnrollmentListPresentation", () => {
         timeZone="UTC"
         listState={listState}
         ownerLabels={{}}
+        operationalHints={emptyHints}
         emptyTitle="No enrollments yet"
         emptyDescription="An enrollment links a customer to a program."
         createHref="/enrollments/new"
@@ -107,6 +115,7 @@ describe("EnrollmentListPresentation", () => {
         timeZone="UTC"
         listState={{ ...listState, q: "zzz" }}
         ownerLabels={{}}
+        operationalHints={emptyHints}
         emptyTitle="No enrollments match the selected filters."
         emptyDescription="Try adjusting filters."
         clearFiltersHref="/enrollments"

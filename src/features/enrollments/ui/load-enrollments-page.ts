@@ -1,7 +1,8 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import type { EnrollmentListReadResult } from "@/features/enrollments/domain/read-types";
+import type { EnrollmentListOperationalHints } from "@/features/enrollments/domain/operational-metadata";
 import type { EnrollmentApplicationError } from "@/features/enrollments/domain/types";
 import { loadEnrollmentsListFoundation } from "@/features/enrollments/server/load-enrollment-foundations";
+import { loadEnrollmentListOperationalHints } from "@/features/enrollments/server/load-enrollment-operational-metadata";
 import { resolveEnrollmentPageOrganization } from "@/features/enrollments/server/resolve-enrollment-page-organization";
 import { resolveMemberLabels } from "@/features/enrollments/server/resolve-enrollment-labels";
 import { resolveEnrollmentListContext } from "@/features/enrollments/server/resolve-enrollment-list-context";
@@ -16,6 +17,7 @@ import type {
   EnrollmentPermissionSet,
   EnrollmentRole,
 } from "@/features/enrollments/domain/types";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type EnrollmentListRelationshipContext = {
   customerLabel?: string;
@@ -37,6 +39,7 @@ export type EnrollmentsPageSuccess = {
   ownerLabels: Record<string, string>;
   filterWarning: string | null;
   context: EnrollmentListRelationshipContext | null;
+  operationalHints: EnrollmentListOperationalHints;
 };
 
 export type EnrollmentsPageResult =
@@ -149,6 +152,20 @@ export async function loadEnrollmentsPage(
     listResult.data.result.items.map((item) => item.ownerMemberId),
   );
 
+  const operationalHints = await loadEnrollmentListOperationalHints({
+    supabase,
+    organizationId: orgResult.organizationId,
+    role: orgResult.role,
+    enrollments: listResult.data.result.items.map((item) => ({
+      id: item.id,
+      status: item.status,
+      // List scan uses enrolledAt as the progress-reference fallback when no
+      // facts exist (detail uses created_at to match B1-C3 exactly).
+      createdAt: item.enrolledAt,
+      archivedAt: item.archivedAt,
+    })),
+  });
+
   const filterWarning =
     parsed.warnings.length > 0
       ? "Some filters were reset because they were invalid."
@@ -167,6 +184,7 @@ export async function loadEnrollmentsPage(
     ownerLabels,
     filterWarning,
     context,
+    operationalHints,
   };
 }
 

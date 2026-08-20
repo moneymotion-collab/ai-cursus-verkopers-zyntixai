@@ -12,6 +12,7 @@ import {
   ENROLLMENT_ID,
   ORG_ID,
 } from "../helpers/enrollment-test-fixtures";
+import { sampleEnrollmentOperationalSnapshot } from "../helpers/enrollment-operational-fixtures";
 
 vi.mock("@/components/ui/badge", () => ({
   Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
@@ -51,6 +52,7 @@ const baseViewModel: EnrollmentDetailViewModel = {
   programLabel: "Growth Lab",
   customerHref: "/customers/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb?org=11111111-1111-4111-8111-111111111111",
   programHref: "/programs/22222222-2222-4222-8222-222222222222?org=11111111-1111-4111-8111-111111111111",
+  operational: sampleEnrollmentOperationalSnapshot(),
 };
 
 describe("EnrollmentDetail read-only presentation (no workflow links)", () => {
@@ -87,10 +89,11 @@ describe("EnrollmentDetail read-only presentation (no workflow links)", () => {
     const html = renderToStaticMarkup(<EnrollmentDetail viewModel={baseViewModel} />);
     expect(html.toLowerCase()).not.toContain("deferred");
     expect(html).not.toContain("Progress tracking within this enrollment is deferred to a later phase.");
+    expect(html).toContain("Progress");
+    expect(html).toContain("Last meaningful progress");
     expect(html).not.toContain('aria-label="Progress actions"');
     expect(html).not.toContain("View progress");
     expect(html).not.toContain("Record progress");
-    expect(html).not.toContain("View attention");
   });
 
   it("renders View progress and optional Record progress when progressLinks are provided", () => {
@@ -101,15 +104,6 @@ describe("EnrollmentDetail read-only presentation (no workflow links)", () => {
           viewProgressHref: "/progress?org=org-1&enrollmentId=e1",
         }}
       />,
-    );
-    expect(withViewOnly).toContain(
-      "Progress for this enrollment is recorded and reviewed in the Progress workspace.",
-    );
-    expect(withViewOnly).toContain(
-      "Recording is available only for eligible roles when the enrollment is active or paused.",
-    );
-    expect(withViewOnly).not.toContain(
-      "You can add a new progress record while this enrollment is active or paused.",
     );
     expect(withViewOnly).toContain('aria-label="Progress actions"');
     expect(withViewOnly).toContain("View progress");
@@ -125,14 +119,11 @@ describe("EnrollmentDetail read-only presentation (no workflow links)", () => {
         }}
       />,
     );
-    expect(withRecord).toContain(
-      "You can add a new progress record while this enrollment is active or paused.",
-    );
     expect(withRecord).toContain("Record progress");
     expect(withRecord).toContain('href="/progress/new?org=org-1&amp;enrollmentId=e1"');
   });
 
-  it("renders View attention when attentionLinks are provided without counts", () => {
+  it("renders Attention summary and View all attention when attentionLinks are provided", () => {
     const html = renderToStaticMarkup(
       <EnrollmentDetail
         viewModel={baseViewModel}
@@ -142,13 +133,12 @@ describe("EnrollmentDetail read-only presentation (no workflow links)", () => {
       />,
     );
     expect(html).toContain('aria-label="Attention actions"');
-    expect(html).toContain("View attention");
+    expect(html).toContain("View all attention");
+    expect(html).toContain("No open Attention for this enrollment.");
     expect(html).toContain(
       `href="/attention?org=${ORG_ID}&amp;enrollmentId=${ENROLLMENT_ID}"`,
     );
     expect(html).not.toContain("attention items found");
-    expect(html).not.toMatch(/\d+\s+attention/i);
-    expect(html).not.toContain("Attention badge");
   });
 
   it("renders unavailable detail without enumeration hints", () => {

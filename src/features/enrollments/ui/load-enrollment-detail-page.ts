@@ -1,14 +1,11 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type {
-  EnrollmentDetailReadModel,
-  EnrollmentHistoryLoadState,
-  EnrollmentStatusHistoryEntry,
-} from "@/features/enrollments/domain/read-types";
+import type { EnrollmentDetailReadModel } from "@/features/enrollments/domain/read-types";
+import type { EnrollmentOperationalSnapshot } from "@/features/enrollments/domain/operational-metadata";
 import type {
   EnrollmentPermissionSet,
   EnrollmentRole,
 } from "@/features/enrollments/domain/types";
 import { loadEnrollmentDetailFoundation } from "@/features/enrollments/server/load-enrollment-foundations";
+import { loadEnrollmentOperationalSnapshot } from "@/features/enrollments/server/load-enrollment-operational-metadata";
 import { resolveEnrollmentPageOrganization } from "@/features/enrollments/server/resolve-enrollment-page-organization";
 import {
   resolveMemberLabel,
@@ -26,6 +23,11 @@ import {
   formatEnrollmentSourceLabel,
 } from "@/features/enrollments/ui/enrollment-presentation";
 import type { Database } from "@/types/database";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type {
+  EnrollmentHistoryLoadState,
+  EnrollmentStatusHistoryEntry,
+} from "@/features/enrollments/domain/read-types";
 
 const ENROLLMENT_ID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -54,6 +56,7 @@ export type EnrollmentDetailViewModel = {
   programLabel: string;
   customerHref?: string;
   programHref?: string;
+  operational: EnrollmentOperationalSnapshot;
 };
 
 export type EnrollmentDetailPageResult =
@@ -167,6 +170,16 @@ export async function loadEnrollmentDetailPage(
     ? `/programs/${encodeURIComponent(enrollment.program.id)}?org=${encodeURIComponent(orgResult.organizationId)}`
     : undefined;
 
+  const operational = await loadEnrollmentOperationalSnapshot({
+    supabase,
+    organizationId: orgResult.organizationId,
+    enrollmentId: enrollment.id,
+    enrollmentStatus: enrollment.status,
+    enrollmentCreatedAt: enrollment.createdAt,
+    enrollmentArchivedAt: enrollment.archivedAt,
+    role: orgResult.role,
+  });
+
   return {
     kind: "ready",
     organizationOptions: orgResult.organizationOptions,
@@ -185,6 +198,7 @@ export async function loadEnrollmentDetailPage(
       programLabel,
       customerHref,
       programHref,
+      operational,
     },
   };
 }

@@ -32,6 +32,26 @@ vi.mock("@/features/enrollments/server/load-enrollment-foundations", () => ({
   loadEnrollmentDetailFoundation: vi.fn(),
 }));
 
+vi.mock("@/features/enrollments/server/load-enrollment-operational-metadata", () => ({
+  loadEnrollmentOperationalSnapshot: vi.fn(async () => ({
+    enrollmentId: "00000000-0000-4000-8000-000000000001",
+    organizationId: "11111111-1111-4111-8111-111111111111",
+    progress: {
+      nonVoidedFactCount: 0,
+      latest: null,
+      progressReferenceAt: "2026-07-01T00:00:00.000Z",
+      ageCalendarDays: 0,
+      health: "healthy",
+      healthLabel: "Progress current",
+      staleEligible: true,
+      stale: false,
+    },
+    attention: { openCount: 0, items: [] },
+    nextAction: null,
+  })),
+  loadEnrollmentListOperationalHints: vi.fn(async () => ({ byEnrollmentId: {} })),
+}));
+
 vi.mock("@/features/enrollments/server/resolve-enrollment-labels", () => ({
   resolveMemberLabels: vi.fn(),
   resolveMemberLabel: (memberId: string | null | undefined, labels: Record<string, string>) => {

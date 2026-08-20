@@ -8,6 +8,7 @@ import { ProgramDetail } from "@/features/programs/ui/program-detail";
 import type { EnrollmentDetailViewModel } from "@/features/enrollments/ui/load-enrollment-detail-page";
 import type { ProgramDetailViewModel } from "@/features/programs/ui/load-program-detail-page";
 import { sampleEnrollmentDetail } from "../helpers/enrollment-test-fixtures";
+import { sampleEnrollmentOperationalSnapshot } from "../helpers/enrollment-operational-fixtures";
 import { sampleProgramDetail } from "../helpers/program-test-fixtures";
 
 vi.mock("@/components/ui/badge", () => ({
@@ -45,8 +46,9 @@ const enrollmentViewModel: EnrollmentDetailViewModel = {
   backHref: "/enrollments",
   customerLabel: "Acme Corp",
   programLabel: "Growth Lab",
-customerHref: undefined,
-    programHref: undefined,
+  customerHref: undefined,
+  programHref: undefined,
+  operational: sampleEnrollmentOperationalSnapshot(),
 };
 
 const programViewModel: ProgramDetailViewModel = {

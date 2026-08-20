@@ -262,6 +262,7 @@ export default async function EnrollmentsPage({ searchParams }: EnrollmentsPageP
           timeZone={result.timeZone}
           listState={result.urlState}
           ownerLabels={result.ownerLabels}
+          operationalHints={result.operationalHints}
           emptyTitle={emptyState.title}
           emptyDescription={emptyState.description}
           clearFiltersHref={emptyState.clearHref}
