@@ -327,3 +327,107 @@ After A2-FIX is deployed, repeat this A2 procedure from a fresh PRE baseline.
 4. Do **not** enable `SOCIAL_PUBLISHING_ENABLED`.
 5. Do **not** start SMM-B1.7-R2.
 6. Approve `SMM-B1.1-R A2-FIX` explicitly before any reconnect implementation or live OAuth retry.
+
+---
+
+## RETRY — 2026-08-20 — Production app not on A2-FIX HEAD
+
+A2-FIX was later closed (`1502573` / evidence HEAD `5eb86a2`) and the Production SQL RPC `finalize_social_reauthorization` is live. This retry **did not** execute live OAuth.
+
+Original A2 result above remains:
+
+```text
+SMM-B1.1-R A2 BLOCKED — reconnect callback cannot complete on the existing healthy Production Instagram connection
+```
+
+Retry result:
+
+```text
+SMM-B1.1-R A2 RETRY BLOCKED — PRODUCTION APP NOT ON APPROVED A2-FIX HEAD
+```
+
+### Approved Git HEAD
+
+| Check | Result |
+| --- | --- |
+| Branch | `core/platform-readiness-20260707` |
+| HEAD | `5eb86a200ecaaf51fafdda50cee32302e4e7254c` |
+| Upstream | `origin/core/platform-readiness-20260707` |
+| Divergence | `0 0` |
+| Worktree | clean |
+| A2-FIX implementation | `150257344f0c2d3e065d6156a808f2f8a809fbe1` (ancestor of HEAD) |
+
+### Production application deployment
+
+Inspected via Vercel CLI against aliases `www.zyntixai.com` and `zyntixai.vercel.app` (scope `guus-projects-ai`, project `zyntixai`). Not inferred from GitHub.
+
+| Field | Observed |
+| --- | --- |
+| Deployment id | `dpl_5fMUxiVsmt1sniak56htDWSS44mq` |
+| Deployment URL | `https://zyntixai-nj3xnqme1-guus-projects-ai.vercel.app` |
+| Target | production |
+| State | Ready |
+| Created | 2026-08-20 13:31:14 GMT+0200 |
+| Aliases | `https://www.zyntixai.com`, `https://zyntixai.vercel.app`, `https://zyntixai.com` |
+| `gitCommitSha` | `f559001dafc4656f173df7ffa478d32c4791afe5` |
+| `gitCommitMessage` | `fix(org): deny silent single-org fallback for foreign org query params` |
+| `gitCommitRef` | `core/platform-readiness-20260707` |
+| Action | `redeploy` of `dpl_89FSF8D5pKuJYuCuQnGvsw1PRscd` |
+
+`f559001` **is** an ancestor of `5eb86a2`, but it does **not** contain A2-FIX (`1502573`). No Production deployment in the current prod list carries `5eb86a2`, `1502573`, or later A2-FIX evidence SHAs.
+
+`www.zyntixai.com` currently points at this older Ready deployment.
+
+### Production SQL (safe read, no mutation)
+
+RPC `public.finalize_social_reauthorization` **is** present. Database is ahead of the application.
+
+### PRE baseline at retry (no OAuth)
+
+| Field | Value |
+| --- | --- |
+| Active Instagram connections | 1 |
+| Connection UUID | `24420652-d0b4-4237-9a75-51d89be50c65` |
+| Organization | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| Provider | `instagram` |
+| Status | `connected` |
+| Health | `healthy` |
+| Account type | `business` |
+| Identity fingerprint | `eefce660bad5c0ad` |
+| Credential present | yes |
+| Credential version | 1 |
+| Ordinary `authorization_pending` shells | 6 |
+| In-flight reauthorize intents | 0 |
+| OAuth intents | `connect/consumed=7` only |
+| `social_connection_events` | 8; latest `social_connection_established` at `2026-08-18 12:37:28+00` |
+| Events on this connection | initiated 1, established 1 |
+| Live OAuth this retry | **NO** |
+
+### Owner browser steps
+
+**Not issued.** Reconnect was not started because the Production app is not on the approved A2-FIX HEAD.
+
+### Production mutation summary (this retry)
+
+| Item | Result |
+| --- | --- |
+| Live OAuth | **NO** |
+| Existing Instagram connection reauthorized | **NO** |
+| Existing connection UUID changed | **NO** |
+| Instagram identity changed | **NO** |
+| Credential refreshed | **NO** |
+| New active connection | **NO** |
+| New ordinary pending shell | **NO** |
+| Disconnect | **NO** |
+| Publishing enabled | **NO** |
+| Provider content write | **NO** |
+| Instagram post created | **NO** |
+| Historical pending shells deleted | **NO** |
+
+### Required owner action
+
+1. Deploy approved HEAD `5eb86a200ecaaf51fafdda50cee32302e4e7254c` (or a later commit that contains A2-FIX) to Vercel **Production**.
+2. Confirm `www.zyntixai.com` aliases that Ready deployment and `gitCommitSha` matches.
+3. Re-authorize **SMM-B1.1-R A2** retry only after that confirmation.
+4. Do **not** click Reconnect Instagram until then.
+5. Do **not** start SMM-B1.7-R2.
