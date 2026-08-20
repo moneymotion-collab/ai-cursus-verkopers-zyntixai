@@ -5,23 +5,19 @@
 | Phase | **B1-C2 — Invitations Production Acceptance QA** |
 | Stage | **Stage 1 — Production preflight + readiness + controlled-test design** |
 | Date | 2026-08-20 |
-| Formal status | `OWNER ACTION REQUIRED — SEND EXACTLY ONE B1-C2 VIEWER INVITATION` |
-| Branch | `core/platform-readiness-20260707` |
-| Authoritative HEAD (Stage-1 start) | `cfefec5` |
-| B1-C1 | **CLOSED WITH EVIDENCE** |
-| Migrations this stage | **NONE** |
-| Product implementation this stage | **NONE** |
-| Real invitation emails | **0** |
+| Formal status | `OWNER ACTION REQUIRED — ACCEPT EXACTLY ONE B1-C2 VIEWER INVITATION` |
+| Stage | **Phase 4 — post-send verification + delivery OFF; acceptance ON pending** |
+| Real invitation emails | **1** (Owner-confirmed inbox receipt) |
 | Acceptance mutations | **0** |
 | Membership creates | **0** |
-| Provider writes | **0** |
-| Gate enables | **0** |
+| Provider writes (authorized window) | **1** |
+| Gate enables | delivery briefly ON then **OFF**; acceptance **ON** |
 
 ```text
-OWNER ACTION REQUIRED — SEND EXACTLY ONE B1-C2 VIEWER INVITATION
+OWNER ACTION REQUIRED — ACCEPT EXACTLY ONE B1-C2 VIEWER INVITATION
 ```
 
-**Strict stop:** Phase 3 gates ON + deploy Ready. Agent **must not** submit the invitation.
+**Strict stop:** Delivery gate restored **OFF**. Acceptance remains **ON**. Agent must **not** accept or consume the invitation.
 
 ---
 
@@ -441,60 +437,81 @@ None of the above is a silent Product defect requiring Stage-1 implementation.
 ## 23. Owner action required
 
 ```text
-OWNER ACTION REQUIRED — SEND EXACTLY ONE B1-C2 VIEWER INVITATION
+OWNER ACTION REQUIRED — ACCEPT EXACTLY ONE B1-C2 VIEWER INVITATION
 ```
 
-### Phase 3 controlled delivery window (OPEN — pre-submit)
+### Phase 4 — post-send verification + immediate delivery shutdown
 
 | Field | Value |
 | --- | --- |
-| Deployment | `dpl_Dzo874rjktrSXoDVqgGMUTWSkTMj` READY · aliased `https://www.zyntixai.com` |
-| `INVITATIONS_ENABLED` | **ON** (env update + deploy) |
-| `INVITATION_EMAIL_DELIVERY_ENABLED` | **ON** (env update + deploy) |
-| Acceptance effective | **ON** — Members rollout notice hidden; `/invite/accept` without continuation shows link-unavailable (not feature-disabled) |
-| Delivery effective | **ON** at config (Sensitive env); Members form still contains **static** help copy “delivery is not enabled yet” (not a live gate indicator) |
-| Allowlist | sole authorized `email_fp=dc8bd0d9c066` (unchanged this phase) |
-| Allowlist fail-closed | fixture/unit path: authorized allowed; non-allowlisted blocked before provider |
-| Social publishing | **OFF** · windows closed=1 consumed=2 · enrollments unchanged · R1-F paused |
-| Pending for target | **0** |
-| Membership for target | **0** |
-| Member baseline | **6** |
-| Delivery attempt baseline | **2** |
-| Provider email-write delta (Phase 3) | **0** |
-| Agent invite submit | **not performed** |
+| Owner submit count | **1** |
+| Invitation UUID | `008aa279-c18d-4c7b-97cf-5b90d09a7737` |
+| `email_fp` | `dc8bd0d9c066` |
+| Organization | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| Role | `viewer` |
+| Invitation status | `pending` |
+| Created at (UTC) | `2026-08-20 03:03:28.089365+00` |
+| Expires at (UTC) | `2026-08-27 03:03:28.089365+00` |
+| Token present | **yes** (hash only; raw never logged) |
+| Duplicate invitations for org+fp | **0** (exactly one) |
+| Delivery attempts before | **2** |
+| Delivery attempts after | **3** |
+| Provider delivery delta | **+1** |
+| Attempt for this invitation | **1** · operation=`create` · provider=`resend` · status=`submitted` · `provider_message_id` present · `failure_category` null |
+| Automatic retry / resend | **none** |
+| Real inbox receipt | **OWNER-CONFIRMED REAL INBOX DELIVERY = YES** |
+| Delivery gate after verify | **OFF** (`INVITATION_EMAIL_DELIVERY_ENABLED=false`) |
+| Acceptance gate | **ON** (`INVITATIONS_ENABLED` remains true) |
+| Shutdown deploy | `dpl_CNnnqPnMGkbJqSt6sQ2Xn6iRPMBd` READY · `https://www.zyntixai.com` |
+| Acceptance effective post-deploy | **ON** (rollout notice hidden; `/invite/accept` link-unavailable copy, not feature-disabled) |
+| Member count | **6** |
+| Target membership | **0** |
+| Auth users for recipient | **0** (invite-gated registration path) |
+| Remaining email deliveries authorized | **0** |
+| Remaining acceptances authorized | **1** |
+| Resend authorized | **false** |
+| Cleanup disposition | **A** |
+| Social publishing | **OFF** · windows closed=1 consumed=2 · enrollments `publishing_allowed`=1 · R1-F paused |
 
-### Owner must
+### Static delivery-copy UX finding (B1-C2)
 
-1. Open https://www.zyntixai.com/settings/members?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb  
-2. Hard refresh  
-3. Enter **only** the authorized QA recipient  
-4. Role **viewer**  
-5. Confirm org **ZyntixAI Production QA**  
-6. Click **Create invitation** **exactly once**  
-7. Do not resend / double-click  
-8. Report the exact visible result  
+Hardcoded help text in `invite-member-form.tsx`:
 
-Ignore static form help text about delivery not enabled — server delivery gate is ON for this window.
+> Create a pending invitation… Invitation email delivery is not enabled yet.
 
-After Owner reports success, next pass: inspect durable invite + one delivery attempt, then **turn DELIVERY OFF immediately** (acceptance stays ON while pending).
+This displayed while Production delivery was **ON** and the real email was delivered. **Classification: B1-C2 usability defect** (materially misleading Beta Owner about whether delivery works). Not fixed in this pass (shutdown prioritized).
+
+**Smallest proposed fix:** pass server `isInvitationEmailDeliveryEnabled()` into `InviteMemberForm` and render delivery help copy conditionally (enabled vs disabled). No migration. Ship after acceptance window or with resting-state restore—avoid extra deploys mid-acceptance unless Owner requests.
+
+### Owner acceptance instructions
+
+1. Open the invitation email already received.  
+2. Click the invitation/acceptance action **exactly once**.  
+3. Do not forward or resend.  
+4. Complete invite-gated registration using **only** the authorized QA email.  
+5. Complete email verification if required.  
+6. Continue through secure acceptance once.  
+7. Do not accept a second time.  
+8. Report the exact visible result.  
+
+Do **not** paste invitation URL, token, password, verification code, or session token.
+
+After Owner reports acceptance success, next pass verifies membership 6→7 / role viewer / audit / replay, then turns **acceptance OFF**.
 
 ---
 
 ## 24. Git state
 
-| Check | After Stage-1 evidence commit |
+| Check | Value |
 | --- | --- |
-| Implementation/test commit | none required (read-only Stage 1) |
-| Evidence | this document |
-| HEAD | see post-commit report |
-| Upstream / divergence / worktree | see post-commit report |
-| Forbidden commits | `playwright/.auth/`, cookies, tokens, `.vercel` — **not committed** |
+| Evidence | this document (Phase 4 update) |
+| Forbidden commits | auth state / tokens / secrets — **not committed** |
 
 ---
 
 ## Stage-1 verdict fields
 
-*(historical Stage-1 snapshot retained above; Phase 3 supersedes gate OFF resting state while window is open)*
+*(historical Stage-1 snapshot retained above; Phase 3–4 supersede gate resting state while acceptance window is open)*
 
 ```text
 organization_id=2fc07699-ece5-44b9-bbb3-abbc23e9fffb
