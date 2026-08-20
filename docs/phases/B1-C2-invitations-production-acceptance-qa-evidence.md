@@ -35,7 +35,7 @@ Safe resting state remains:
 - `INVITATION_EMAIL_DELIVERY_ENABLED` = **OFF** (fail-closed)
 - `SOCIAL_PUBLISHING_ENABLED` = **OFF** (unchanged; R1-F remains paused)
 
-No Stage-1 Product/schema defect blocks readiness. Owner must supply **one controlled QA recipient email** (or confirm reuse of the existing Option B candidate) before any later Phase 3+ work. **Membership cleanup disposition** from CB-Q1 remains an Owner prerequisite **before** enabling delivery/acceptance (not a Stage-1 mutation; leave-as-membership vs pause).
+No Stage-1 Product/schema defect blocks readiness. Owner supplied controlled QA recipient (`email_fp=dc8bd0d9c066`); clean-target PASS; no existing auth user (invite-gated registration path). **Allowlist confirmation**, **cleanup disposition**, and **explicit Phase 3 authorization** remain required before any gate enable.
 
 ---
 
@@ -232,28 +232,34 @@ Recipient must be:
 
 **Do not choose address in Stage 1.**
 
-### Existing dedicated candidate (masked; confirm reuse)
+### Owner-supplied controlled QA recipient (Stage-1 confirmation)
 
-From CB-Q1 Option B (not sent in that phase):
+Owner supplied a controlled QA recipient address in chat (full address not republished here).
 
 | Field | Value |
 | --- | --- |
-| `user_prefix` | `b7be51ce` |
-| `email_fp` | `c221bfd439a3` |
-| Auth user | exists (confirmed historically) |
-| QA org membership | none (historically) |
-| Pending invite | 0 baseline |
+| `email_fp` | `dc8bd0d9c066` |
+| Match to prior CB-E1-E inbox (`8359c74f65e0`) | **no** — new Stage-1 target |
+| Match to CB-Q1 Option B (`c221bfd439a3`) | **no** |
+| Auth `users` for this email | **0** |
+| QA org active membership | **0** |
+| QA org suspended membership | **0** |
+| Pending invitation | **0** |
+| Accepted / revoked history for org+email | **none** |
+| Other-org memberships | **0** |
+| Clean-target (membership + pending) | **PASS** |
+| Acceptance auth path | **invite-gated registration** (new account + email verification), not Option B existing-auth |
 
-Owner may **confirm reuse** of this account’s email **or** supply a different controlled address. Never paste passwords/tokens.
+**Allowlist:** Encrypted Production `INVITATION_EMAIL_RECIPIENT_ALLOWLIST` was not decrypted. Owner must ensure it includes this exact normalized recipient before Phase 3 delivery ON.
 
-### Clean-target check (define only; run before future delivery)
+### Clean-target check (executed read-only after Owner supplied address)
 
-Before Phase 4 create:
+Before Phase 4 create (re-verify immediately before create):
 
-1. `organization_members` active/suspended for org+email = none preferred;
-2. pending invitation for org+email = none;
-3. allowlist contains exact normalized recipient;
-4. auth user exists + email confirmed if Option B path.
+1. `organization_members` active/suspended for org+email = none — **PASS now**
+2. pending invitation for org+email = none — **PASS now**
+3. allowlist contains exact normalized recipient — **Owner confirm required**
+4. auth user — **absent now**; Product supports invite-gated signup before accept
 
 ---
 
@@ -435,17 +441,20 @@ None of the above is a silent Product defect requiring Stage-1 implementation.
 ## 23. Owner action required
 
 ```text
-OWNER ACTION REQUIRED — B1-C2 CONTROLLED PRODUCTION INVITATION TARGET
+OWNER ACTION REQUIRED — B1-C2 PHASE-3 PRECONDITIONS
 ```
 
-Provide **only**:
+Recipient address received (`email_fp=dc8bd0d9c066`). Still **STOP** before gate enable / email.
 
-1. **One controlled QA recipient email address** (or confirm reuse of Option B `user_prefix=b7be51ce` / `email_fp=c221bfd439a3`).
-2. Before any later Phase 3: **cleanup disposition** — (A) leave temporary Viewer membership after acceptance, or (B) pause controlled acceptance.
+Confirm before Phase 3:
+
+1. **Allowlist** — Production `INVITATION_EMAIL_RECIPIENT_ALLOWLIST` includes this exact recipient (reply masked ok, e.g. `email_fp=dc8bd0d9c066` updated=yes).
+2. **Cleanup disposition** — (A) leave temporary Viewer membership after acceptance, or (B) pause controlled acceptance.
+3. **Authorize Stage 2 / Phase 3** when ready — enable minimum gates + exactly one Owner invite for role `viewer` only after 1+2.
 
 Do **not** paste: email password, login password, auth token, invitation token, API key.
 
-Do **not** enable gates or send email until Owner authorizes Stage 2+.
+Gates remain OFF. No email sent.
 
 ---
 
