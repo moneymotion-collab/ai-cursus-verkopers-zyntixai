@@ -6,6 +6,7 @@ import { B19LifecyclePanel } from "@/features/social-media/ui/b19-lifecycle-pane
 import type { SocialSection } from "@/features/social-media/domain/social-navigation";
 import { buildSocialWorkspaceHref } from "@/features/social-media/domain/social-navigation";
 import type { SocialClosedBetaCustomerReadModel } from "@/features/social-media/domain/social-closed-beta-customer-read-model";
+import { findReconnectableInstagramConnection } from "@/features/social-media/domain/status";
 import styles from "./social-workspace-panel.module.css";
 
 type ConnectionRow = {
@@ -94,6 +95,8 @@ export function SocialWorkspacePanel({
       !connection.reauthorizationRequired,
   );
   const hasConnectedInstagram = publishableConnections.length > 0;
+  const reconnectableInstagram =
+    findReconnectableInstagramConnection(connections);
   const readOnly =
     closedBeta.enrollmentStatus === "paused" ||
     closedBeta.enrollmentStatus === "revoked";
@@ -246,7 +249,7 @@ export function SocialWorkspacePanel({
             <R1InstagramConnectPanel
               organizationId={organizationId}
               hasWorkspace={hasWorkspace}
-              hasConnectedInstagram={hasConnectedInstagram}
+              connectedConnectionId={reconnectableInstagram?.id ?? null}
             />
           ) : (
             <p className={styles.copy} role="status">

@@ -4,9 +4,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 
 const orgId = "11111111-1111-4111-8111-111111111111";
+const foreignOrgId = "99999999-9999-4999-8999-999999999999";
 const workspaceId = "22222222-2222-4222-8222-222222222222";
 const membershipId = "33333333-3333-4333-8333-333333333333";
 const userId = "44444444-4444-4444-8444-444444444444";
+const connectedId = "55555555-5555-4555-8555-555555555555";
 
 const enabledEnv = {
   SOCIAL_CONNECTIONS_ENABLED: "true",
@@ -22,6 +24,8 @@ function createSupabaseMock(options: {
   authenticated?: boolean;
   rpcResult?: unknown;
   rpcError?: { message: string } | null;
+  enrollmentStatus?: string;
+  connections?: Array<Record<string, unknown>>;
 }) {
   const authenticated = options.authenticated ?? true;
   const role = options.role ?? "owner";
@@ -34,36 +38,62 @@ function createSupabaseMock(options: {
         error: null,
       })),
     },
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          eq: vi.fn(async () => ({
-            data: authenticated
-              ? [
-                  {
-                    id: membershipId,
-                    organization_id: orgId,
-                    role,
-                    status: "active",
-                    user_id: userId,
-                  },
-                ]
-              : [],
-            error: null,
+    from: vi.fn((table: string) => {
+      if (table === "social_account_connections") {
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(async () => ({
+              data: options.connections ?? [],
+              error: null,
+            })),
+          })),
+        };
+      }
+      return {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            eq: vi.fn(async () => ({
+              data: authenticated
+                ? [
+                    {
+                      id: membershipId,
+                      organization_id: orgId,
+                      role,
+                      status: "active",
+                      user_id: userId,
+                    },
+                  ]
+                : [],
+              error: null,
+            })),
           })),
         })),
-      })),
-    })),
-    rpc: vi.fn(async () => ({
-      data: options.rpcResult ?? [
-        {
-          result_code: "success",
-          connection_id: "55555555-5555-4555-8555-555555555555",
-          intent_id: "66666666-6666-4666-8666-666666666666",
-        },
-      ],
-      error: options.rpcError ?? null,
-    })),
+      };
+    }),
+    rpc: vi.fn(async (fn: string) => {
+      if (fn === "get_social_closed_beta_enrollment_status") {
+        return {
+          data: [
+            {
+              result_code: "success",
+              enrollment_status: options.enrollmentStatus ?? "approved",
+              status_before_pause: null,
+            },
+          ],
+          error: null,
+        };
+      }
+      return {
+        data: options.rpcResult ?? [
+          {
+            result_code: "success",
+            connection_id: connectedId,
+            intent_id: "66666666-6666-4666-8666-666666666666",
+          },
+        ],
+        error: options.rpcError ?? null,
+      };
+    }),
   } as unknown as SupabaseClient<Database>;
 }
 
@@ -101,6 +131,10 @@ describe("SMM-B1.1-C Instagram connection initiation authorization", () => {
       expect(result.authorizationUrl).toContain("state=");
       expect(result.rawStateValue).toBeTruthy();
       expect(JSON.stringify(result)).not.toContain("ig-client-secret");
+      expect(supabase.rpc).toHaveBeenCalledWith(
+        "create_social_connection_intent",
+        expect.anything(),
+      );
     }
   });
 
@@ -113,6 +147,10 @@ describe("SMM-B1.1-C Instagram connection initiation authorization", () => {
         { env: enabledEnv },
       );
       expect(result).toEqual({ ok: false, code: "forbidden" });
+      expect(supabase.rpc).not.toHaveBeenCalledWith(
+        "create_social_connection_intent",
+        expect.anything(),
+      );
     }
   });
 
@@ -124,6 +162,96 @@ describe("SMM-B1.1-C Instagram connection initiation authorization", () => {
       { env: enabledEnv },
     );
     expect(result).toEqual({ ok: false, code: "unauthorized" });
+  });
+
+  it("denies a foreign organization", async () => {
+    const supabase = createSupabaseMock({});
+    const result = await initiateInstagramConnection(
+      supabase,
+      {
+        organizationId: foreignOrgId,
+        workspaceId,
+        provider: "instagram",
+      },
+      { env: enabledEnv },
+    );
+    expect(result).toEqual({ ok: false, code: "forbidden" });
+    expect(supabase.rpc).not.toHaveBeenCalledWith(
+      "create_social_connection_intent",
+      expect.anything(),
+    );
+  });
+
+  it("denies connect when closed-beta is not enrolled", async () => {
+    const supabase = createSupabaseMock({ enrollmentStatus: "not_enrolled" });
+    const result = await initiateInstagramConnection(
+      supabase,
+      { organizationId: orgId, workspaceId, provider: "instagram" },
+      { env: enabledEnv },
+    );
+    expect(result).toEqual({ ok: false, code: "closed_beta_not_enrolled" });
+    expect(supabase.rpc).not.toHaveBeenCalledWith(
+      "create_social_connection_intent",
+      expect.anything(),
+    );
+  });
+
+  it("returns already_connected without minting a pending shell", async () => {
+    const supabase = createSupabaseMock({
+      connections: [
+        {
+          id: connectedId,
+          workspace_id: workspaceId,
+          provider: "instagram",
+          status: "connected",
+          professional_account_type: "business",
+          external_account_id: "17841400000000000",
+          health: "healthy",
+          display_name: "demo",
+          capability_snapshot: ["publish_image"],
+          reauthorization_required_at: null,
+        },
+      ],
+    });
+    const result = await initiateInstagramConnection(
+      supabase,
+      { organizationId: orgId, workspaceId, provider: "instagram" },
+      { env: enabledEnv },
+    );
+    expect(result).toEqual({ ok: false, code: "already_connected" });
+    expect(supabase.rpc).not.toHaveBeenCalledWith(
+      "create_social_connection_intent",
+      expect.anything(),
+    );
+  });
+
+  it("does not treat historical pending shells as already connected", async () => {
+    const supabase = createSupabaseMock({
+      connections: [
+        {
+          id: "77777777-7777-4777-8777-777777777777",
+          workspace_id: workspaceId,
+          provider: "instagram",
+          status: "authorization_pending",
+          professional_account_type: null,
+          external_account_id: null,
+          health: "healthy",
+          display_name: null,
+          capability_snapshot: [],
+          reauthorization_required_at: null,
+        },
+      ],
+    });
+    const result = await initiateInstagramConnection(
+      supabase,
+      { organizationId: orgId, workspaceId, provider: "instagram" },
+      { env: enabledEnv },
+    );
+    expect(result.ok).toBe(true);
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      "create_social_connection_intent",
+      expect.anything(),
+    );
   });
 
   it("rejects unsupported providers and invalid workspace ids", async () => {

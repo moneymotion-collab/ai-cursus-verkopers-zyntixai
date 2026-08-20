@@ -15,6 +15,7 @@ import {
   type SocialClosedBetaEntitlementDenialCode,
 } from "@/features/social-media/domain/closed-beta-enrollment";
 import { canConnectWithClosedBetaEnrollment } from "@/features/social-media/domain/social-closed-beta-customer-read-model";
+import type { SocialConnectFailureCode } from "@/features/social-media/domain/results";
 
 type RpcCapableClient = {
   rpc: (
@@ -169,4 +170,20 @@ export async function assertClosedBetaConnectAllowed(
     return { ok: false, code: "closed_beta_not_enrolled" };
   }
   return { ok: true };
+}
+
+export function mapClosedBetaConnectFailure(
+  result: Extract<ClosedBetaConnectAssertResult, { ok: false }>,
+): { ok: false; code: SocialConnectFailureCode } {
+  if (
+    result.code === "closed_beta_not_enrolled" ||
+    result.code === "closed_beta_paused" ||
+    result.code === "closed_beta_revoked"
+  ) {
+    return { ok: false, code: result.code };
+  }
+  if (result.code === "forbidden") {
+    return { ok: false, code: "forbidden" };
+  }
+  return { ok: false, code: "internal_error" };
 }

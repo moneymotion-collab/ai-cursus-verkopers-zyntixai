@@ -40,6 +40,9 @@ describe("SMM-B1.1-C client-safe and secret scan", () => {
     expect(results).not.toContain("refreshToken");
     expect(results).not.toContain("authorizationCode");
     expect(results).not.toContain("clientSecret");
+    expect(results).not.toMatch(
+      /export type SocialReauthorizeResult =[\s\S]*?expectedExternalAccountId/,
+    );
   });
 
   it("keeps B1.1-B connection migration and documents B1.2 workspace foundation only as later social SQL", async () => {

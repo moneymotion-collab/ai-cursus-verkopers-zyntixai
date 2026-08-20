@@ -44,6 +44,5 @@ export async function initiateInstagramReauthorizationAction(
     ok: true,
     code: "authorization_redirect",
     authorizationUrl: result.authorizationUrl,
-    expectedExternalAccountId: result.expectedExternalAccountId,
   };
 }

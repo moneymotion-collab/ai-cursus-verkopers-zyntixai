@@ -9,7 +9,10 @@ import { isSocialInstagramConnectionsFeatureEnabled } from "@/features/social-me
 import { listActiveSocialWorkspaces } from "@/features/social-media/server/list-social-workspaces";
 import { createSocialWorkspace } from "@/features/social-media/server/workspace-repository";
 import { initiateInstagramConnection } from "@/features/social-media/server/initiate-instagram-connection";
-import { assertClosedBetaConnectAllowed } from "@/features/social-media/server/social-closed-beta-enrollment";
+import {
+  assertClosedBetaConnectAllowed,
+  mapClosedBetaConnectFailure,
+} from "@/features/social-media/server/social-closed-beta-enrollment";
 import { R1_INSTAGRAM_CONNECT_WORKSPACE_DISPLAY_NAME } from "@/features/social-media/domain/r1-connect-navigation";
 import type { SocialConnectResult } from "@/features/social-media/domain/results";
 import {
@@ -55,17 +58,7 @@ export async function startR1InstagramConnectAction(input: {
     orgContext.context.organizationId,
   );
   if (!connectEntitlement.ok) {
-    if (
-      connectEntitlement.code === "closed_beta_not_enrolled" ||
-      connectEntitlement.code === "closed_beta_paused" ||
-      connectEntitlement.code === "closed_beta_revoked"
-    ) {
-      return { ok: false, code: connectEntitlement.code };
-    }
-    if (connectEntitlement.code === "forbidden") {
-      return { ok: false, code: "forbidden" };
-    }
-    return { ok: false, code: "internal_error" };
+    return mapClosedBetaConnectFailure(connectEntitlement);
   }
 
   const listed = await listActiveSocialWorkspaces(

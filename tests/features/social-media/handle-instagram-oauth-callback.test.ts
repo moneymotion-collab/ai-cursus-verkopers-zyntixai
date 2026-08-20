@@ -30,6 +30,8 @@ function createSupabaseMock(options: {
   consumeCode?: string;
   upsertCode?: string;
   finalizeCode?: string;
+  expectedExternalAccountId?: string | null;
+  intentKind?: string;
 }) {
   return {
     auth: {
@@ -49,8 +51,9 @@ function createSupabaseMock(options: {
               workspace_id: workspaceId,
               provider: "instagram",
               return_path_id: "social_workspace",
-              intent_kind: "connect",
-              expected_external_account_id: null,
+              intent_kind: options.intentKind ?? "connect",
+              expected_external_account_id:
+                options.expectedExternalAccountId ?? null,
             },
           ],
           error: null,
@@ -176,6 +179,31 @@ describe("SMM-B1.1-C Instagram OAuth callback orchestration", () => {
           "publish_video",
         ]),
       }),
+    );
+  });
+
+  it("fail-closes reconnect when returned Instagram identity does not match", async () => {
+    const supabase = createSupabaseMock({
+      expectedExternalAccountId: "17841499999999999",
+      intentKind: "reauthorize",
+    });
+    const result = await handleInstagramOAuthCallback(
+      supabase,
+      {
+        query: { code: "auth-code", state: "ab".repeat(32) },
+        intentIdFromCookie: intentId,
+      },
+      { env: enabledEnv, fetchImpl: mockProviderFetch() },
+    );
+    expect(result.outcome).toBe("connection_failed");
+    expect(result.failureStage).toBe("professional_identity_fetch");
+    expect(supabase.rpc).not.toHaveBeenCalledWith(
+      "upsert_social_provider_credential",
+      expect.anything(),
+    );
+    expect(supabase.rpc).not.toHaveBeenCalledWith(
+      "finalize_social_connection",
+      expect.anything(),
     );
   });
 

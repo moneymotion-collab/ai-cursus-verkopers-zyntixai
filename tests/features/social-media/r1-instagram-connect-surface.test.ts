@@ -47,6 +47,26 @@ describe("SMM-B1.7-R1 minimal Instagram connect surface", () => {
     );
   });
 
+  it("wires Connect, Reconnect, and Disconnect as distinct Accounts actions", () => {
+    const panel = readFileSync(
+      join(
+        process.cwd(),
+        "src/features/social-media/ui/r1-instagram-connect-panel.tsx",
+      ),
+      "utf8",
+    );
+    expect(panel).toContain("startR1InstagramConnectAction");
+    expect(panel).toContain("initiateInstagramReauthorizationAction");
+    expect(panel).toContain("disconnectSocialConnectionAction");
+    expect(panel).toContain("Connect Instagram");
+    expect(panel).toContain("Reconnect Instagram");
+    expect(panel).toContain("Disconnect Instagram");
+    expect(panel).toContain("Confirm disconnect");
+    expect(panel).not.toContain("Reconnect / authorize Instagram");
+    expect(panel).toContain("if (pendingRef.current || isConnected)");
+    expect(panel).toContain("connectedConnectionId");
+  });
+
   it("keeps the R1 connect action server-only and publishing-agnostic", () => {
     const action = readFileSync(
       join(

@@ -165,6 +165,23 @@ describe("SMM-R1-C closed-beta customer access UX", () => {
     expect(page).toContain("socialNavVisible");
     expect(page).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
     expect(connectAction).toContain("assertClosedBetaConnectAllowed");
+    const genericInitiate = readFileSync(
+      join(
+        process.cwd(),
+        "src/features/social-media/server/initiate-instagram-connection.ts",
+      ),
+      "utf8",
+    );
+    expect(genericInitiate).toContain("assertClosedBetaConnectAllowed");
+    expect(genericInitiate).toContain("already_connected");
+    const genericAction = readFileSync(
+      join(
+        process.cwd(),
+        "src/features/social-media/actions/initiate-instagram-connection-action.ts",
+      ),
+      "utf8",
+    );
+    expect(genericAction).toContain("initiateInstagramConnection");
     expect(navLink).toContain("getSocialClosedBetaNavVisibleAction");
     expect(navLink).toContain('"use client"');
     expect(navAction).toContain("loadSocialClosedBetaEnrollmentStatus");

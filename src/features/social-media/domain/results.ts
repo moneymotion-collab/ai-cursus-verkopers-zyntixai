@@ -83,7 +83,6 @@ export type SocialReauthorizeResult =
       ok: true;
       code: "authorization_redirect";
       authorizationUrl: string;
-      expectedExternalAccountId: string;
     }
   | {
       ok: false;
@@ -107,6 +106,7 @@ export type SocialDisconnectResult =
         | "forbidden"
         | "not_found"
         | "conflict"
+        | "rate_limited"
         | "feature_disabled"
         | "internal_error";
     };

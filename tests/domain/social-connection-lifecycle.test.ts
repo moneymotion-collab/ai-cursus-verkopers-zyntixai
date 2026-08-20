@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  findReconnectableInstagramConnection,
   isActiveSocialConnectionStatus,
   isCapabilityEligibleSocialConnectionStatus,
+  isReconnectableSocialConnectionStatus,
   isSocialConnectionReauthorizationRequired,
   isSocialConnectionStatus,
   isTerminalSocialConnectionStatus,
@@ -38,6 +40,20 @@ describe("social connection lifecycle", () => {
       true,
     );
     expect(isSocialConnectionReauthorizationRequired("connected")).toBe(false);
+    expect(isReconnectableSocialConnectionStatus("connected")).toBe(true);
+    expect(isReconnectableSocialConnectionStatus("reauthorization_required")).toBe(
+      true,
+    );
+    expect(isReconnectableSocialConnectionStatus("authorization_pending")).toBe(
+      false,
+    );
+    expect(isReconnectableSocialConnectionStatus("disconnected")).toBe(false);
+    expect(
+      findReconnectableInstagramConnection([
+        { provider: "instagram", status: "authorization_pending" },
+        { provider: "instagram", status: "connected" },
+      ])?.status,
+    ).toBe("connected");
     expect(isTerminalSocialConnectionStatus("disconnected")).toBe(true);
     expect(isTerminalSocialConnectionStatus("revoked")).toBe(true);
     expect(isTerminalSocialConnectionStatus("connected")).toBe(false);

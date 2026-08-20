@@ -16,6 +16,12 @@ import { readInstagramOAuthConfig } from "@/features/social-media/server/instagr
 import { buildInstagramAuthorizationUrl } from "@/features/social-media/server/instagram-authorization-url";
 import { generateSocialOAuthState } from "@/features/social-media/server/oauth-state";
 import { createSocialConnectionIntent } from "@/features/social-media/server/oauth-intent-repository";
+import { listSocialAccountConnections } from "@/features/social-media/server/list-social-connections";
+import {
+  assertClosedBetaConnectAllowed,
+  mapClosedBetaConnectFailure,
+} from "@/features/social-media/server/social-closed-beta-enrollment";
+import { findReconnectableInstagramConnection } from "@/features/social-media/domain/status";
 import { SOCIAL_OAUTH_INTENT_COOKIE_MAX_AGE_SECONDS } from "@/features/social-media/server/oauth-intent-cookie";
 
 export const SOCIAL_OAUTH_INTENT_TTL_MS =
@@ -109,6 +115,25 @@ export async function initiateInstagramConnection(
     !canManageSocialConnections(orgContext.context.role, "active")
   ) {
     return { ok: false, code: "forbidden" };
+  }
+
+  const connectEntitlement = await assertClosedBetaConnectAllowed(
+    supabase,
+    orgContext.context.organizationId,
+  );
+  if (!connectEntitlement.ok) {
+    return mapClosedBetaConnectFailure(connectEntitlement);
+  }
+
+  const listed = await listSocialAccountConnections(
+    supabase,
+    orgContext.context.organizationId,
+  );
+  if (!listed.ok) {
+    return { ok: false, code: "internal_error" };
+  }
+  if (findReconnectableInstagramConnection(listed.connections)) {
+    return { ok: false, code: "already_connected" };
   }
 
   const config = readInstagramOAuthConfig(env);

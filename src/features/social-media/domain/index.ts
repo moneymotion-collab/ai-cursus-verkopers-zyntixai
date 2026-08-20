@@ -67,11 +67,14 @@ export {
   TERMINAL_SOCIAL_CONNECTION_STATUSES,
   CAPABILITY_ELIGIBLE_SOCIAL_CONNECTION_STATUSES,
   REAUTHORIZATION_REQUIRED_SOCIAL_CONNECTION_STATUSES,
+  RECONNECTABLE_SOCIAL_CONNECTION_STATUSES,
   isSocialConnectionStatus,
   isActiveSocialConnectionStatus,
   isTerminalSocialConnectionStatus,
   isCapabilityEligibleSocialConnectionStatus,
   isSocialConnectionReauthorizationRequired,
+  isReconnectableSocialConnectionStatus,
+  findReconnectableInstagramConnection,
 } from "@/features/social-media/domain/status";
 export type { SocialConnectionStatus } from "@/features/social-media/domain/status";
 

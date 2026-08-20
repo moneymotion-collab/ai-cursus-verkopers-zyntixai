@@ -44,6 +44,16 @@ export const REAUTHORIZATION_REQUIRED_SOCIAL_CONNECTION_STATUSES = [
   "reauthorization_required",
 ] as const satisfies readonly SocialConnectionStatus[];
 
+/**
+ * Established Instagram identities that must use reconnect/disconnect,
+ * not a new ordinary connect intent. Pending shells are excluded.
+ */
+export const RECONNECTABLE_SOCIAL_CONNECTION_STATUSES = [
+  "connected",
+  "reauthorization_required",
+  "permission_missing",
+] as const satisfies readonly SocialConnectionStatus[];
+
 export function isSocialConnectionStatus(
   value: string,
 ): value is SocialConnectionStatus {
@@ -80,4 +90,24 @@ export function isSocialConnectionReauthorizationRequired(
   return (
     REAUTHORIZATION_REQUIRED_SOCIAL_CONNECTION_STATUSES as readonly SocialConnectionStatus[]
   ).includes(status);
+}
+
+export function isReconnectableSocialConnectionStatus(
+  status: string,
+): boolean {
+  return (
+    RECONNECTABLE_SOCIAL_CONNECTION_STATUSES as readonly string[]
+  ).includes(status);
+}
+
+export function findReconnectableInstagramConnection<
+  T extends { provider: string; status: string },
+>(connections: T[]): T | null {
+  return (
+    connections.find(
+      (connection) =>
+        connection.provider === "instagram" &&
+        isReconnectableSocialConnectionStatus(connection.status),
+    ) ?? null
+  );
 }
