@@ -42,6 +42,8 @@ This slice is **implementation + automated verification only**. It does not clai
 | Divergence at start | `0 0` |
 | Worktree at start | clean |
 | Implementation HEAD | `8c47ae395743d6dee1c587d43a776139e0de2ac7` |
+| Evidence commit | `a8a46375fdcca60bb4696ed56edbf8d35ad252c0` |
+| Final HEAD | `a8a46375fdcca60bb4696ed56edbf8d35ad252c0` (pin commit follows) |
 | Database migration | **NONE** |
 
 ---
