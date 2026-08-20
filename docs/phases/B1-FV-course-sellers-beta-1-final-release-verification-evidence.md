@@ -328,7 +328,8 @@ No BLOCKED ratings.
 |---|---|
 | FV implementation | `f559001` (org selection + migration/boundary test alignment + FV browser pack) |
 | FV test harden | `5c08406` |
-| Evidence SHA | *(this commit)* |
+| Evidence SHA | `823479da876355944c03d5fcbb3c41f909360aba` |
+| Final HEAD | `823479da876355944c03d5fcbb3c41f909360aba` |
 | Branch | `core/platform-readiness-20260707` |
 | Divergence | `0 0` |
 | Worktree | clean |
