@@ -110,8 +110,11 @@ describe("SMM-R1-A closed-beta enrollment migration security", () => {
     expect(social).toContain(
       "20260818190346_add_social_closed_beta_enrollment_foundation.sql",
     );
+    expect(social).toContain(
+      "20260818194719_add_social_closed_beta_operator_mutation_wrappers.sql",
+    );
     expect(social.at(-1)).toContain(
-      "add_social_closed_beta_operator_mutation_wrappers",
+      "add_social_controlled_publish_window_binding",
     );
   });
 });

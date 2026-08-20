@@ -41,10 +41,32 @@ describe("security boundaries", () => {
     expect(source).not.toMatch(/\.from\(["']task_status_history["']\)\.(insert|update|delete)/);
   });
 
-  it("does not reference service-role secrets", () => {
-    expect(source).not.toMatch(/SERVICE_ROLE/i);
-    expect(source).not.toMatch(/service_role/);
-    expect(source).not.toMatch(/createClient\([^)]*service/i);
+  it("does not reference service-role secrets outside server-only modules", () => {
+    const allowed = new Set([
+      join(ROOT, "lib", "supabase", "service-role.ts").replace(/\\/g, "/"),
+      join(
+        ROOT,
+        "features",
+        "social-media",
+        "server",
+        "platform-operator-session.ts",
+      ).replace(/\\/g, "/"),
+    ]);
+
+    const offenders = collectSourceFiles(ROOT).filter((file) => {
+      const normalized = file.replace(/\\/g, "/");
+      if (allowed.has(normalized)) {
+        return false;
+      }
+      const content = readFileSync(file, "utf8");
+      return (
+        /SERVICE_ROLE/i.test(content) ||
+        /service_role/.test(content) ||
+        /createClient\([^)]*service/i.test(content)
+      );
+    });
+
+    expect(offenders).toEqual([]);
   });
 
   it("uses only public Supabase env vars in browser client", () => {

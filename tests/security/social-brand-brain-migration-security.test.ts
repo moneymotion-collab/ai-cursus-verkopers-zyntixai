@@ -138,6 +138,8 @@ describe("SMM-B1.3 brand brain domain contracts", () => {
       "20260818190346_add_social_closed_beta_enrollment_foundation.sql",
       "20260818191706_add_social_closed_beta_entitlement_defense_in_depth.sql",
       "20260818194719_add_social_closed_beta_operator_mutation_wrappers.sql",
+      "20260819101500_add_social_instagram_provider_4xx_diagnostic_hardening.sql",
+      "20260819120000_add_social_controlled_publish_window_binding.sql",
     ]);
   });
 });

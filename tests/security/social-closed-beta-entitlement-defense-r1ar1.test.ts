@@ -118,5 +118,8 @@ describe("SMM-R1-A-R1 entitlement defense-in-depth", () => {
     expect(social).toContain(
       "20260818194719_add_social_closed_beta_operator_mutation_wrappers.sql",
     );
+    expect(social.at(-1)).toContain(
+      "add_social_controlled_publish_window_binding",
+    );
   });
 });

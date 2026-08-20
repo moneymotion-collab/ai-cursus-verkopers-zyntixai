@@ -16,6 +16,16 @@ describe("multi-organization selection safety", () => {
     expect(result.requiresSelection).toBe(false);
   });
 
+  it("does not silently serve the only membership under a foreign org id", () => {
+    const result = resolveSelectedOrganization(
+      [memberships[0]],
+      "00000000-0000-4000-8000-000000000099",
+    );
+    expect(result.organizationId).toBeNull();
+    expect(result.requiresSelection).toBe(true);
+    expect(result.invalidSelection).toBe(true);
+  });
+
   it("uses a valid verified organization for multiple memberships", () => {
     const result = resolveSelectedOrganization(memberships, ORG_B);
     expect(result.organizationId).toBe(ORG_B);
