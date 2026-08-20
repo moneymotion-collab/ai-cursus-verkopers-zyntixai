@@ -51,8 +51,14 @@ describe("tasks UI accessibility landmarks", () => {
     expect(html).toContain('aria-label="Primary"');
     expect(html).toContain('for="organization-selector"');
     expect(html).toContain("Organization");
-    expect(html.replace(/value="[^"]*"/g, "")).not.toContain("02016e91-7237-4a20-aec3-6275d2e8a67f");
+    // Org UUIDs may appear in nav href query params; option labels must stay display names.
+    expect(
+      html.replace(/value="[^"]*"/g, "").replace(/href="[^"]*"/g, ""),
+    ).not.toContain("02016e91-7237-4a20-aec3-6275d2e8a67f");
     expect(html).toContain("Org Alpha");
+    expect(html).toContain(
+      'href="/tasks?org=02016e91-7237-4a20-aec3-6275d2e8a67f"',
+    );
   });
 
   it("renders semantic table headers and mobile card list", () => {

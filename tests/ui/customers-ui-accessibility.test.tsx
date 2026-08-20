@@ -33,8 +33,12 @@ describe("customers UI accessibility", () => {
     expect(leadsIndex).toBeGreaterThan(homeIndex);
     expect(customersIndex).toBeGreaterThan(leadsIndex);
     expect(tasksIndex).toBeGreaterThan(customersIndex);
-    expect(html).toContain('href="/customers"');
-    expect(html).toContain('href="/tasks"');
+    expect(html).toContain(
+      'href="/customers?org=11111111-1111-4111-8111-111111111111"',
+    );
+    expect(html).toContain(
+      'href="/tasks?org=11111111-1111-4111-8111-111111111111"',
+    );
     expect(html).toContain('aria-current="page"');
     expect(html.match(/<main\b/g)?.length).toBe(1);
   });
@@ -128,9 +132,9 @@ describe("customers UI accessibility", () => {
 });
 
 describe("customers app shell stylesheet contract", () => {
-  it("preserves tasks navigation link", () => {
+  it("preserves org-aware tasks and customers navigation helpers", () => {
     const shell = readFileSync(path.join(process.cwd(), "src/components/app-shell.tsx"), "utf8");
-    expect(shell).toContain('href="/tasks"');
-    expect(shell).toContain('href="/customers"');
+    expect(shell).toContain('withOrg("/tasks"');
+    expect(shell).toContain('withOrg("/customers"');
   });
 });

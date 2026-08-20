@@ -159,6 +159,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
 
         <MemberAdministrationRolloutNotice
           invitationAcceptanceEnabled={invitationAcceptanceEnabled}
+          invitationEmailDeliveryEnabled={invitationEmailDeliveryEnabled}
         />
 
         <InviteMemberForm

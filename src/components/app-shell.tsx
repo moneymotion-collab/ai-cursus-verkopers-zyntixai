@@ -5,26 +5,26 @@ import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organi
 import {
   PROGRAMS_NAV_LABEL,
   PROGRAMS_NAV_VISIBLE,
-  PROGRAMS_ROUTE,
+  buildProgramsListHref,
 } from "@/features/programs/domain/programs-navigation";
 import {
   ENROLLMENTS_NAV_LABEL,
   ENROLLMENTS_NAV_VISIBLE,
-  ENROLLMENTS_ROUTE,
+  buildEnrollmentsListHref,
 } from "@/features/enrollments/domain/enrollments-navigation";
 import {
   PROGRESS_NAV_LABEL,
   PROGRESS_NAV_VISIBLE,
-  PROGRESS_ROUTE,
+  buildProgressListHref,
 } from "@/features/progress/domain/progress-navigation";
 import {
   ATTENTION_NAV_LABEL,
   ATTENTION_NAV_VISIBLE,
-  ATTENTION_ROUTE,
+  buildAttentionListHref,
 } from "@/features/attention/domain/attention-navigation";
 import {
   MEMBERS_NAV_LABEL,
-  MEMBERS_ROUTE,
+  buildMembersListHref,
   resolveMembersNavVisible,
 } from "@/features/invitations/domain/members-navigation";
 import { SocialPrimaryNavLink } from "@/features/social-media/ui/social-primary-nav-link";
@@ -63,6 +63,14 @@ type AppShellProps = {
     | "members";
 };
 
+/** Preserve org query on primary nav so multi-org operators do not lose context. */
+function withOrg(path: string, organizationId?: string): string {
+  if (!organizationId) {
+    return path;
+  }
+  return `${path}?org=${encodeURIComponent(organizationId)}`;
+}
+
 export function AppShell({
   children,
   organizationOptions = [],
@@ -78,6 +86,15 @@ export function AppShell({
     organizationOptions,
     selectedOrganizationId,
   });
+  const homeHref = withOrg("/home", selectedOrganizationId);
+  const leadsHref = withOrg("/leads", selectedOrganizationId);
+  const customersHref = withOrg("/customers", selectedOrganizationId);
+  const programsHref = buildProgramsListHref(selectedOrganizationId);
+  const enrollmentsHref = buildEnrollmentsListHref(selectedOrganizationId);
+  const progressHref = buildProgressListHref(selectedOrganizationId);
+  const attentionHref = buildAttentionListHref(selectedOrganizationId);
+  const tasksHref = withOrg("/tasks", selectedOrganizationId);
+  const membersHref = buildMembersListHref(selectedOrganizationId);
 
   return (
     <div className={styles.shell}>
@@ -88,25 +105,21 @@ export function AppShell({
             <nav className={styles.nav} aria-label="Primary">
               <Link
                 className={styles.navLink}
-                href={
-                  selectedOrganizationId
-                    ? `/home?org=${encodeURIComponent(selectedOrganizationId)}`
-                    : "/home"
-                }
+                href={homeHref}
                 aria-current={activeNav === "home" ? "page" : undefined}
               >
                 Home
               </Link>
               <Link
                 className={styles.navLink}
-                href="/leads"
+                href={leadsHref}
                 aria-current={activeNav === "leads" ? "page" : undefined}
               >
                 Leads
               </Link>
               <Link
                 className={styles.navLink}
-                href="/customers"
+                href={customersHref}
                 aria-current={activeNav === "customers" ? "page" : undefined}
               >
                 Customers
@@ -114,7 +127,7 @@ export function AppShell({
               {PROGRAMS_NAV_VISIBLE ? (
                 <Link
                   className={styles.navLink}
-                  href={PROGRAMS_ROUTE}
+                  href={programsHref}
                   aria-current={activeNav === "programs" ? "page" : undefined}
                 >
                   {PROGRAMS_NAV_LABEL}
@@ -123,7 +136,7 @@ export function AppShell({
               {ENROLLMENTS_NAV_VISIBLE ? (
                 <Link
                   className={styles.navLink}
-                  href={ENROLLMENTS_ROUTE}
+                  href={enrollmentsHref}
                   aria-current={activeNav === "enrollments" ? "page" : undefined}
                 >
                   {ENROLLMENTS_NAV_LABEL}
@@ -132,7 +145,7 @@ export function AppShell({
               {PROGRESS_NAV_VISIBLE ? (
                 <Link
                   className={styles.navLink}
-                  href={PROGRESS_ROUTE}
+                  href={progressHref}
                   aria-current={activeNav === "progress" ? "page" : undefined}
                 >
                   {PROGRESS_NAV_LABEL}
@@ -141,7 +154,7 @@ export function AppShell({
               {ATTENTION_NAV_VISIBLE ? (
                 <Link
                   className={styles.navLink}
-                  href={ATTENTION_ROUTE}
+                  href={attentionHref}
                   aria-current={activeNav === "attention" ? "page" : undefined}
                 >
                   {ATTENTION_NAV_LABEL}
@@ -154,7 +167,7 @@ export function AppShell({
               />
               <Link
                 className={styles.navLink}
-                href="/tasks"
+                href={tasksHref}
                 aria-current={activeNav === "tasks" ? "page" : undefined}
               >
                 Tasks
@@ -162,11 +175,7 @@ export function AppShell({
               {showMembersNav ? (
                 <Link
                   className={styles.navLink}
-                  href={
-                    selectedOrganizationId
-                      ? `${MEMBERS_ROUTE}?org=${encodeURIComponent(selectedOrganizationId)}`
-                      : MEMBERS_ROUTE
-                  }
+                  href={membersHref}
                   aria-current={activeNav === "members" ? "page" : undefined}
                 >
                   {MEMBERS_NAV_LABEL}

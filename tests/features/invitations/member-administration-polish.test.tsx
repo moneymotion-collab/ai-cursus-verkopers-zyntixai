@@ -57,24 +57,41 @@ function readSrc(relativePath: string): string {
 }
 
 describe("Slice 4 gate-aware rollout notice", () => {
-  it("shows Acceptance-disabled and delivery-absent notice when gate OFF", () => {
+  it("shows Acceptance-disabled and delivery-disabled notice when both gates OFF", () => {
     const html = renderToStaticMarkup(
-      <MemberAdministrationRolloutNotice invitationAcceptanceEnabled={false} />,
+      <MemberAdministrationRolloutNotice
+        invitationAcceptanceEnabled={false}
+        invitationEmailDeliveryEnabled={false}
+      />,
     );
 
     expect(html).toContain("restricted rollout");
     expect(html.toLowerCase()).toContain("acceptance is currently disabled");
-    expect(html.toLowerCase()).toContain("email delivery");
-    expect(html.toLowerCase()).toContain("not enabled");
+    expect(html.toLowerCase()).toContain("email delivery is currently disabled");
     expect(html.toLowerCase()).not.toContain("email sent");
     expect(html.toLowerCase()).not.toContain("recipient notified");
     expect(html).not.toContain("INVITATIONS_ENABLED");
     expect(html).not.toContain("process.env");
   });
 
-  it("hides Acceptance-disabled notice when gate ON without claiming delivery", () => {
+  it("shows delivery-only notice when acceptance ON and delivery OFF", () => {
     const html = renderToStaticMarkup(
-      <MemberAdministrationRolloutNotice invitationAcceptanceEnabled />,
+      <MemberAdministrationRolloutNotice
+        invitationAcceptanceEnabled
+        invitationEmailDeliveryEnabled={false}
+      />,
+    );
+    expect(html).toContain("restricted rollout");
+    expect(html.toLowerCase()).toContain("email delivery is currently disabled");
+    expect(html.toLowerCase()).not.toContain("acceptance is currently disabled");
+  });
+
+  it("hides notice when both acceptance and delivery gates ON", () => {
+    const html = renderToStaticMarkup(
+      <MemberAdministrationRolloutNotice
+        invitationAcceptanceEnabled
+        invitationEmailDeliveryEnabled
+      />,
     );
 
     expect(html).toBe("");

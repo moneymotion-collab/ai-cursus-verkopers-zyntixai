@@ -31,8 +31,12 @@ describe("leads UI accessibility", () => {
     expect(leadsIndex).toBeGreaterThan(homeIndex);
     expect(customersIndex).toBeGreaterThan(leadsIndex);
     expect(tasksIndex).toBeGreaterThan(customersIndex);
-    expect(html).toContain('href="/leads"');
-    expect(html).toContain('href="/customers"');
+    expect(html).toContain(
+      'href="/leads?org=11111111-1111-4111-8111-111111111111"',
+    );
+    expect(html).toContain(
+      'href="/customers?org=11111111-1111-4111-8111-111111111111"',
+    );
     expect(html).toContain('aria-current="page"');
     expect(html.match(/<main\b/g)?.length).toBe(1);
   });

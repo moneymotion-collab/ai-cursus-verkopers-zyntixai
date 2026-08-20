@@ -130,6 +130,7 @@ function renderMemberAdminComposition(options: {
       </header>
       <MemberAdministrationRolloutNotice
         invitationAcceptanceEnabled={options.invitationAcceptanceEnabled}
+        invitationEmailDeliveryEnabled={false}
       />
       <InviteMemberForm
         organizationId={ORG_A}

@@ -31,7 +31,7 @@ describe("Attention AppShell navigation (B1.7.5-E)", () => {
       "utf8",
     );
     expect(shellSource).toContain("ATTENTION_NAV_VISIBLE");
-    expect(shellSource).toContain("ATTENTION_ROUTE");
+    expect(shellSource).toContain("buildAttentionListHref");
     expect(shellSource).not.toMatch(
       /from ["']@\/features\/attention\/server\//,
     );
