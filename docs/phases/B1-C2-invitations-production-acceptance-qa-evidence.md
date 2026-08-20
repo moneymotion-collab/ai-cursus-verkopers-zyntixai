@@ -5,7 +5,7 @@
 | Phase | **B1-C2 — Invitations Production Acceptance QA** |
 | Stage | **Stage 1 — Production preflight + readiness + controlled-test design** |
 | Date | 2026-08-20 |
-| Formal status | `OWNER ACTION REQUIRED — B1-C2 PHASE-3 DELIVERY AUTHORIZATION` |
+| Formal status | `OWNER ACTION REQUIRED — SEND EXACTLY ONE B1-C2 VIEWER INVITATION` |
 | Branch | `core/platform-readiness-20260707` |
 | Authoritative HEAD (Stage-1 start) | `cfefec5` |
 | B1-C1 | **CLOSED WITH EVIDENCE** |
@@ -18,10 +18,10 @@
 | Gate enables | **0** |
 
 ```text
-OWNER ACTION REQUIRED — B1-C2 PHASE-3 DELIVERY AUTHORIZATION
+OWNER ACTION REQUIRED — SEND EXACTLY ONE B1-C2 VIEWER INVITATION
 ```
 
-**Strict stop:** Allowlist precondition done. Still **before** Phase 3 gate enable and **before** first real email delivery.
+**Strict stop:** Phase 3 gates ON + deploy Ready. Agent **must not** submit the invitation.
 
 ---
 
@@ -441,35 +441,42 @@ None of the above is a silent Product defect requiring Stage-1 implementation.
 ## 23. Owner action required
 
 ```text
-OWNER ACTION REQUIRED — B1-C2 PHASE-3 DELIVERY AUTHORIZATION
+OWNER ACTION REQUIRED — SEND EXACTLY ONE B1-C2 VIEWER INVITATION
 ```
 
-### Allowlist precondition (completed)
+### Phase 3 controlled delivery window (OPEN — pre-submit)
 
 | Field | Value |
 | --- | --- |
-| Mechanism | Vercel Production Encrypted env `INVITATION_EMAIL_RECIPIENT_ALLOWLIST` |
-| Update method | `vercel env update … production --sensitive` |
-| Semantics | Closed-beta **sole-recipient set** (same pattern as CB-E1-E); Sensitive prior value not decryptable via CLI pull/run, so append-in-place was not possible |
-| `email_fp` authorized | `dc8bd0d9c066` |
-| Target present after update | **PASS** (value set to that authorized recipient only) |
-| Unintended additional recipients in this write | **none** (sole entry written) |
-| Cleanup disposition | **A** — leave temporary Viewer membership after successful acceptance until B1-C2 closure |
-| Delivery gate | **OFF** (Members UI: email delivery not enabled) |
-| Acceptance gate | **OFF** (Members UI: acceptance currently disabled) |
-| Social publishing | **OFF** |
-| Pending invitations | **0** |
-| Active members | **6** |
-| Total invitations (unchanged) | **14** |
-| Delivery attempts (unchanged) | **2** |
-| Provider email write delta | **0** |
-| Invitation create / accept / membership create | **0** |
+| Deployment | `dpl_Dzo874rjktrSXoDVqgGMUTWSkTMj` READY · aliased `https://www.zyntixai.com` |
+| `INVITATIONS_ENABLED` | **ON** (env update + deploy) |
+| `INVITATION_EMAIL_DELIVERY_ENABLED` | **ON** (env update + deploy) |
+| Acceptance effective | **ON** — Members rollout notice hidden; `/invite/accept` without continuation shows link-unavailable (not feature-disabled) |
+| Delivery effective | **ON** at config (Sensitive env); Members form still contains **static** help copy “delivery is not enabled yet” (not a live gate indicator) |
+| Allowlist | sole authorized `email_fp=dc8bd0d9c066` (unchanged this phase) |
+| Allowlist fail-closed | fixture/unit path: authorized allowed; non-allowlisted blocked before provider |
+| Social publishing | **OFF** · windows closed=1 consumed=2 · enrollments unchanged · R1-F paused |
+| Pending for target | **0** |
+| Membership for target | **0** |
+| Member baseline | **6** |
+| Delivery attempt baseline | **2** |
+| Provider email-write delta (Phase 3) | **0** |
+| Agent invite submit | **not performed** |
 
-Next Owner reply when ready:
+### Owner must
 
-**Authorize Phase 3** — enable only the minimum invitation delivery/acceptance gates, then exactly one Owner invite for role `viewer` to `email_fp=dc8bd0d9c066`.
+1. Open https://www.zyntixai.com/settings/members?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb  
+2. Hard refresh  
+3. Enter **only** the authorized QA recipient  
+4. Role **viewer**  
+5. Confirm org **ZyntixAI Production QA**  
+6. Click **Create invitation** **exactly once**  
+7. Do not resend / double-click  
+8. Report the exact visible result  
 
-Do **not** paste passwords or tokens. Gates remain OFF until that authorization.
+Ignore static form help text about delivery not enabled — server delivery gate is ON for this window.
+
+After Owner reports success, next pass: inspect durable invite + one delivery attempt, then **turn DELIVERY OFF immediately** (acceptance stays ON while pending).
 
 ---
 
@@ -486,6 +493,8 @@ Do **not** paste passwords or tokens. Gates remain OFF until that authorization.
 ---
 
 ## Stage-1 verdict fields
+
+*(historical Stage-1 snapshot retained above; Phase 3 supersedes gate OFF resting state while window is open)*
 
 ```text
 organization_id=2fc07699-ece5-44b9-bbb3-abbc23e9fffb
