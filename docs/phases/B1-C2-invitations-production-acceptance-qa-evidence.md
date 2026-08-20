@@ -3,15 +3,14 @@
 | Field | Value |
 | --- | --- |
 | Phase | **B1-C2 — Invitations Production Acceptance QA** |
-| Stage | **Stage 1 — Production preflight + readiness + controlled-test design** |
+| Stage | **Phase 4 — post-send verification + delivery OFF; acceptance ON pending** |
 | Date | 2026-08-20 |
 | Formal status | `OWNER ACTION REQUIRED — ACCEPT EXACTLY ONE B1-C2 VIEWER INVITATION` |
-| Stage | **Phase 4 — post-send verification + delivery OFF; acceptance ON pending** |
 | Real invitation emails | **1** (Owner-confirmed inbox receipt) |
 | Acceptance mutations | **0** |
 | Membership creates | **0** |
 | Provider writes (authorized window) | **1** |
-| Gate enables | delivery briefly ON then **OFF**; acceptance **ON** |
+| Gate state | delivery **OFF**; acceptance **ON** |
 
 ```text
 OWNER ACTION REQUIRED — ACCEPT EXACTLY ONE B1-C2 VIEWER INVITATION
