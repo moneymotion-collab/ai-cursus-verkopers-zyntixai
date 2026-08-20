@@ -5,7 +5,7 @@
 | Phase | **B1-C2 — Invitations Production Acceptance QA** |
 | Stage | **Stage 1 — Production preflight + readiness + controlled-test design** |
 | Date | 2026-08-20 |
-| Formal status | `OWNER ACTION REQUIRED — B1-C2 CONTROLLED PRODUCTION INVITATION TARGET` |
+| Formal status | `OWNER ACTION REQUIRED — B1-C2 PHASE-3 DELIVERY AUTHORIZATION` |
 | Branch | `core/platform-readiness-20260707` |
 | Authoritative HEAD (Stage-1 start) | `cfefec5` |
 | B1-C1 | **CLOSED WITH EVIDENCE** |
@@ -18,10 +18,10 @@
 | Gate enables | **0** |
 
 ```text
-OWNER ACTION REQUIRED — B1-C2 CONTROLLED PRODUCTION INVITATION TARGET
+OWNER ACTION REQUIRED — B1-C2 PHASE-3 DELIVERY AUTHORIZATION
 ```
 
-**Strict stop:** Stage 1 ends **before** Phase 3 (gate enable) and **before** first real email delivery.
+**Strict stop:** Allowlist precondition done. Still **before** Phase 3 gate enable and **before** first real email delivery.
 
 ---
 
@@ -441,20 +441,35 @@ None of the above is a silent Product defect requiring Stage-1 implementation.
 ## 23. Owner action required
 
 ```text
-OWNER ACTION REQUIRED — B1-C2 PHASE-3 PRECONDITIONS
+OWNER ACTION REQUIRED — B1-C2 PHASE-3 DELIVERY AUTHORIZATION
 ```
 
-Recipient address received (`email_fp=dc8bd0d9c066`). Still **STOP** before gate enable / email.
+### Allowlist precondition (completed)
 
-Confirm before Phase 3:
+| Field | Value |
+| --- | --- |
+| Mechanism | Vercel Production Encrypted env `INVITATION_EMAIL_RECIPIENT_ALLOWLIST` |
+| Update method | `vercel env update … production --sensitive` |
+| Semantics | Closed-beta **sole-recipient set** (same pattern as CB-E1-E); Sensitive prior value not decryptable via CLI pull/run, so append-in-place was not possible |
+| `email_fp` authorized | `dc8bd0d9c066` |
+| Target present after update | **PASS** (value set to that authorized recipient only) |
+| Unintended additional recipients in this write | **none** (sole entry written) |
+| Cleanup disposition | **A** — leave temporary Viewer membership after successful acceptance until B1-C2 closure |
+| Delivery gate | **OFF** (Members UI: email delivery not enabled) |
+| Acceptance gate | **OFF** (Members UI: acceptance currently disabled) |
+| Social publishing | **OFF** |
+| Pending invitations | **0** |
+| Active members | **6** |
+| Total invitations (unchanged) | **14** |
+| Delivery attempts (unchanged) | **2** |
+| Provider email write delta | **0** |
+| Invitation create / accept / membership create | **0** |
 
-1. **Allowlist** — Production `INVITATION_EMAIL_RECIPIENT_ALLOWLIST` includes this exact recipient (reply masked ok, e.g. `email_fp=dc8bd0d9c066` updated=yes).
-2. **Cleanup disposition** — (A) leave temporary Viewer membership after acceptance, or (B) pause controlled acceptance.
-3. **Authorize Stage 2 / Phase 3** when ready — enable minimum gates + exactly one Owner invite for role `viewer` only after 1+2.
+Next Owner reply when ready:
 
-Do **not** paste: email password, login password, auth token, invitation token, API key.
+**Authorize Phase 3** — enable only the minimum invitation delivery/acceptance gates, then exactly one Owner invite for role `viewer` to `email_fp=dc8bd0d9c066`.
 
-Gates remain OFF. No email sent.
+Do **not** paste passwords or tokens. Gates remain OFF until that authorization.
 
 ---
 
