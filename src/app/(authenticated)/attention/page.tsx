@@ -3,6 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { Pagination } from "@/components/ui/pagination";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ATTENTION_ROUTE } from "@/features/attention/domain/attention-navigation";
+import { AttentionEvaluateRulesActions } from "@/features/attention/ui/attention-evaluate-rules-actions";
 import { AttentionListFilters } from "@/features/attention/ui/attention-list-filters";
 import { AttentionListPresentation } from "@/features/attention/ui/attention-list";
 import { loadAttentionListPage } from "@/features/attention/ui/load-attention-list-page";
@@ -113,11 +114,18 @@ export default async function AttentionPage({ searchParams }: AttentionPageProps
         <header className={styles.pageHeader}>
           <h1>Attention</h1>
           <p className={styles.subtitle}>
-            Read-only attention items for {result.organizationName}. Times shown in{" "}
+            Attention items for {result.organizationName}. Times shown in{" "}
             {result.timeZone}.
           </p>
           <p className={styles.summary}>{countLabel}</p>
         </header>
+
+        {result.capabilities.canEvaluateRules ? (
+          <AttentionEvaluateRulesActions
+            organizationId={result.selectedOrganizationId}
+            returnPath={buildAttentionListHref(result.urlState)}
+          />
+        ) : null}
 
         {result.filterWarning ? (
           <Alert title="Filters adjusted" variant="warning">

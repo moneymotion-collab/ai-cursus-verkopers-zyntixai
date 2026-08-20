@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { reevaluateEnrollmentAttentionAfterProgress } from "@/features/attention/server/reevaluate-enrollment-attention-after-progress";
 import { resolveOrganizationContext } from "@/features/organizations/server/resolve-organization-context";
 import { isKnownProgressRole } from "@/features/progress/domain/permissions";
 import type {
@@ -110,6 +111,18 @@ async function runProgressMutation(
 
     if (result.committed) {
       revalidateProgressPaths(result.progressFactId);
+      if (result.ok && result.fact?.enrollmentId) {
+        try {
+          await reevaluateEnrollmentAttentionAfterProgress({
+            supabase,
+            organizationId: org.context.organizationId,
+            role: org.context.role,
+            enrollmentId: result.fact.enrollmentId,
+          });
+        } catch {
+          // Fail-soft: Progress commit remains authoritative.
+        }
+      }
     }
 
     return result;

@@ -26,6 +26,7 @@ import {
 } from "@/features/progress/domain/progress-navigation";
 import { canShowEnrollmentRecordProgressEntry } from "@/features/progress/ui/progress-pe-entry-visibility";
 import { buildAttentionListHref } from "@/features/attention/domain/attention-navigation";
+import { resolveAttentionPermissions } from "@/features/attention/domain/permissions";
 import { canShowEnrollmentViewAttentionEntry } from "@/features/attention/ui/attention-pe-entry-visibility";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
@@ -136,6 +137,8 @@ export default async function EnrollmentDetailPage({
       : undefined,
   };
 
+  const attentionPermissions = resolveAttentionPermissions(result.role);
+  const enrollmentReturnPath = `/enrollments/${encodeURIComponent(result.data.enrollment.id)}?org=${encodeURIComponent(result.selectedOrganizationId)}`;
   const attentionLinks = canShowEnrollmentViewAttentionEntry({
     role: result.role,
   })
@@ -144,6 +147,13 @@ export default async function EnrollmentDetailPage({
           organizationId: result.selectedOrganizationId,
           enrollmentId: result.data.enrollment.id,
         }),
+        evaluateRules: attentionPermissions.canEvaluateRules
+          ? {
+              organizationId: result.selectedOrganizationId,
+              enrollmentId: result.data.enrollment.id,
+              returnPath: enrollmentReturnPath,
+            }
+          : undefined,
       }
     : undefined;
 

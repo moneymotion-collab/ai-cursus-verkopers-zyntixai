@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { AttentionEvaluateRulesActions } from "@/features/attention/ui/attention-evaluate-rules-actions";
 import type { EnrollmentDetailViewModel } from "@/features/enrollments/ui/load-enrollment-detail-page";
 import {
   formatEnrollmentDate,
@@ -21,6 +22,12 @@ export type EnrollmentProgressLinks = {
 
 export type EnrollmentAttentionLinks = {
   viewAttentionHref: string;
+  /** Owner/Admin only — gated by canEvaluateRules before render. */
+  evaluateRules?: {
+    organizationId: string;
+    enrollmentId: string;
+    returnPath: string;
+  };
 };
 
 type EnrollmentDetailProps = {
@@ -187,6 +194,16 @@ export function EnrollmentDetail({
               <nav className={styles.attentionLinks} aria-label="Attention actions">
                 <a href={attentionLinks.viewAttentionHref}>View attention</a>
               </nav>
+              {attentionLinks.evaluateRules ? (
+                <AttentionEvaluateRulesActions
+                  organizationId={attentionLinks.evaluateRules.organizationId}
+                  enrollmentId={attentionLinks.evaluateRules.enrollmentId}
+                  returnPath={attentionLinks.evaluateRules.returnPath}
+                  heading="Refresh this enrollment’s Attention"
+                  description="Re-evaluates no-recent-progress for this enrollment only (14 UTC calendar days). Creates or updates one Attention item when stale; expires it when progress resumes."
+                  buttonLabel="Evaluate this enrollment"
+                />
+              ) : null}
             </>
           ) : null}
         </section>
