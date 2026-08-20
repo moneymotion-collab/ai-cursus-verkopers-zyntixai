@@ -34,6 +34,7 @@ That document still records `SMM-B1.1-R A2 BLOCKED`. This file does not rewrite 
 | Starting HEAD | `cb9cd0bdf745014609c582f24286ca2f93c0931f` |
 | A2 blocked evidence commit | `f91d93001a06df13ba94e793a19dfa606c85211b` |
 | Implementation HEAD | `150257344f0c2d3e065d6156a808f2f8a809fbe1` |
+| Evidence commit | `2b8ea40a744a5093960a46b4297b42d185cae243` |
 | Upstream at start | `origin/core/platform-readiness-20260707` |
 | Divergence at start | `0 0` |
 | Worktree at start | clean except expected uncommitted A2 blocked evidence |
