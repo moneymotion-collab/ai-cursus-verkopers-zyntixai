@@ -223,7 +223,11 @@ export type SocialSchedulerSkipReason =
   | "none_due"
   | "feature_disabled"
   | "format_unsupported"
-  | "credential_unavailable";
+  | "credential_unavailable"
+  | "controlled_scheduled_rollout_required"
+  | "publication_not_authorized_for_window"
+  | "controlled_window_exhausted"
+  | "controlled_window_expired";
 
 export type SocialSchedulerSafeSummary = {
   invocationId: string;
@@ -309,7 +313,96 @@ export function classifySchedulerStartCode(
     case "closed_beta_revoked":
     case "closed_beta_publish_not_allowed":
       return "closed_beta";
+    case "controlled_scheduled_rollout_required":
+      return "controlled_scheduled_rollout_required";
+    case "publication_not_authorized_for_window":
+      return "publication_not_authorized_for_window";
+    case "controlled_window_exhausted":
+      return "controlled_window_exhausted";
+    case "controlled_window_expired":
+      return "controlled_window_expired";
     default:
       return "unexpected";
   }
+}
+
+/**
+ * Domain matrix for B1.11-E controlled scheduled provider write.
+ * SQL claim remains authoritative; this is the testable contract.
+ */
+export function evaluateScheduledProviderWriteAuthorization(input: {
+  machineAuthenticated: boolean;
+  schedulingEnabled: boolean;
+  publishingEnabled: boolean;
+  publicationScheduled: boolean;
+  publicationDue: boolean;
+  withinGrace: boolean;
+  lifecycleEligible: boolean;
+  organizationMatch: boolean;
+  workspaceMatch: boolean;
+  connectionMatch: boolean;
+  approvedVersionReady: boolean;
+  mediaReady: boolean;
+  connectionConnected: boolean;
+  connectionHealthy: boolean;
+  reauthorizationRequired: boolean;
+  publishImageCapability: boolean;
+  closedBetaPublishingAllowed: boolean;
+  controlledWindowAllowed: boolean;
+  remainingOneShotBudget: boolean;
+  claimed: boolean;
+}): { allowed: true } | { allowed: false; reason: string } {
+  if (!input.machineAuthenticated) {
+    return { allowed: false, reason: "machine_auth_required" };
+  }
+  if (!input.schedulingEnabled) {
+    return { allowed: false, reason: "scheduling_disabled" };
+  }
+  if (!input.publishingEnabled) {
+    return { allowed: false, reason: "publishing_disabled" };
+  }
+  if (!input.publicationScheduled) {
+    return { allowed: false, reason: "not_scheduled" };
+  }
+  if (!input.publicationDue) {
+    return { allowed: false, reason: "none_due" };
+  }
+  if (!input.withinGrace) {
+    return { allowed: false, reason: "missed_window" };
+  }
+  if (!input.lifecycleEligible) {
+    return { allowed: false, reason: "conflict" };
+  }
+  if (!input.organizationMatch || !input.workspaceMatch || !input.connectionMatch) {
+    return { allowed: false, reason: "publication_not_authorized_for_window" };
+  }
+  if (!input.approvedVersionReady) {
+    return { allowed: false, reason: "workflow_not_ready" };
+  }
+  if (!input.mediaReady) {
+    return { allowed: false, reason: "workflow_not_ready" };
+  }
+  if (
+    !input.connectionConnected ||
+    !input.connectionHealthy ||
+    input.reauthorizationRequired
+  ) {
+    return { allowed: false, reason: "connection_ineligible" };
+  }
+  if (!input.publishImageCapability) {
+    return { allowed: false, reason: "capability_missing" };
+  }
+  if (!input.closedBetaPublishingAllowed) {
+    return { allowed: false, reason: "closed_beta" };
+  }
+  if (!input.controlledWindowAllowed) {
+    return { allowed: false, reason: "controlled_scheduled_rollout_required" };
+  }
+  if (!input.remainingOneShotBudget) {
+    return { allowed: false, reason: "controlled_window_exhausted" };
+  }
+  if (!input.claimed) {
+    return { allowed: false, reason: "skipped_locked" };
+  }
+  return { allowed: true };
 }

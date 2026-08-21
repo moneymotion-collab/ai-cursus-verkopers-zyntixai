@@ -409,6 +409,10 @@ describe("SMM-B1.11-C execute core gate + revalidation skip", () => {
     "none_due",
     "not_scheduled",
     "missed_window",
+    "controlled_scheduled_rollout_required",
+    "publication_not_authorized_for_window",
+    "controlled_window_exhausted",
+    "controlled_window_expired",
   ])("does not load credentials when start returns %s", async (code) => {
     const rpc = vi.fn(async (fn: string) => {
       if (fn === "scheduler_start_scheduled_publication_attempt") {

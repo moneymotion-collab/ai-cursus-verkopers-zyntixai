@@ -449,9 +449,12 @@ export {
   SOCIAL_CONTROLLED_PUBLISH_WINDOW_STATUSES,
   PUBLICATION_NOT_AUTHORIZED_FOR_WINDOW,
   CONTROLLED_WINDOW_EXHAUSTED,
+  CONTROLLED_SCHEDULED_ROLLOUT_REQUIRED,
+  CONTROLLED_WINDOW_EXPIRED,
   PREPARE_BLOCKED_BY_CONTROLLED_WINDOW_COPY,
   isSocialControlledPublishWindowStatus,
   evaluateControlledPublishWindowBinding,
+  evaluateScheduledControlledPublishWindowBinding,
   isPrepareBlockedByActiveControlledWindow,
   userSafeControlledWindowDenialMessage,
 } from "@/features/social-media/domain/controlled-publish-window";
@@ -522,6 +525,7 @@ export {
   authorizeSocialSchedulerCronRequest,
   createEmptySocialSchedulerSummary,
   classifySchedulerStartCode,
+  evaluateScheduledProviderWriteAuthorization,
 } from "@/features/social-media/domain/scheduler";
 export type {
   SocialSchedulerMode,
