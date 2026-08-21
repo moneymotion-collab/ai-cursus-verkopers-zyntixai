@@ -15,14 +15,23 @@ SMM-B1.1-R A2 CLOSED WITH EVIDENCE
 
 A2 evidence commit: `93996ce0572861743c0a3a022aeb52cb9b688a1f`
 
+**Latest status (2026-08-21 live window):**
+
+```text
+SMM-B1.7-R2 LIVE WINDOW READY — OWNER SINGLE EXECUTE REQUIRED
+CONTROLLED WINDOW OPEN
+PRODUCTION PUBLISHING GATE TEMPORARILY ON
+LIVE PROVIDER WRITE NOT YET EXECUTED
+```
+
+Historical PRE-PUBLISH banner below is preserved and is not rewritten.
+
 ```text
 SMM-B1.7-R2 PRE-PUBLISH READY — OWNER ACTION REQUIRED
 LIVE PROVIDER WRITE NOT EXECUTED
 SOCIAL_PUBLISHING_ENABLED REMAINS OFF
 SMM-B1.7-R2 NOT CLOSED
 ```
-
-This document is PRE-PUBLISH only. Sections M–Q (controlled Execute, provider stages, POST, owner visual confirmation, gate restore) are **not** filled until after explicit owner approval.
 
 ---
 
@@ -352,3 +361,131 @@ SMM-B1.7-R2 PRE-PUBLISH READY — OWNER ACTION REQUIRED
 ```
 
 Do **not** enable publishing until the owner explicitly approves the controlled Execute flow below.
+
+---
+
+## Owner Authorization (2026-08-21)
+
+Owner explicitly approved one real controlled Instagram Production publication.
+
+| Field | Value |
+| --- | --- |
+| Phase | `SMM-B1.7-R2 — CONTROLLED INSTAGRAM PRODUCTION PUBLISH` |
+| Authorized publication | `0ffb466f-b477-4d7e-87c4-fbb60d330012` |
+| max_execute_count | 1 |
+| Other publication UUIDs | **not** authorized |
+| Multiple Execute / uncertain retry | **not** authorized |
+
+---
+
+## Controlled Window
+
+Opened **while** `SOCIAL_PUBLISHING_ENABLED` was still OFF, via existing RPC `operator_open_social_controlled_publish_window`.
+
+| Field | Value |
+| --- | --- |
+| result_code | `success` |
+| window_id | `859cc66b-633a-48d4-9a5f-7420713778ca` |
+| organization_id | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| publication_id | `0ffb466f-b477-4d7e-87c4-fbb60d330012` |
+| status | `active` |
+| max_execute_count | 1 |
+| consumed_execute_count | 0 |
+| authorized_at | `2026-08-21 10:57:08.03826+00` |
+| consumed_at / closed_at | null |
+| reason | `SMM-B1.7-R2 controlled Instagram production publish` |
+| Active windows for org | **1** |
+| Target attempts at open | **0** |
+| SQL exec GUC at rest | unset / `exec_enabled_fn=false` (app kill switch still OFF at this moment) |
+
+No time-based expiry column exists on this contract; the window is one-shot (`max_execute_count=1`) until consume or close.
+
+---
+
+## Gate-On Deployment
+
+Production **only** `SOCIAL_PUBLISHING_ENABLED` updated to enabled (`true`). Unrelated env vars were not modified. Values were not printed.
+
+Then Production was rebuilt from the approved application source (redeploy of `dpl_3sN9418cBkcifu8YxHaMsobHXZ3n`, git SHA `db0a837c3c4435436a1736f657de2ea9365eadc9`).
+
+| Field | Value |
+| --- | --- |
+| ON deployment id | `dpl_7tb6DA4ahg7JbqC7bBeNTe6FBTfr` |
+| URL | `https://zyntixai-81dn890m7-guus-projects-ai.vercel.app` |
+| Target | production |
+| State | Ready |
+| Created | 2026-08-21 12:59:12 GMT+0200 |
+| Alias | `https://www.zyntixai.com` |
+| `gitCommitSha` | `db0a837c3c4435436a1736f657de2ea9365eadc9` |
+| Action | redeploy |
+| Provider write from enable/redeploy alone | **0** |
+
+---
+
+## Immediate PRE-Execute Snapshot
+
+Read immediately after the Ready ON deployment, before any Execute click.
+
+| Field | Value |
+| --- | --- |
+| Publication UUID | `0ffb466f-b477-4d7e-87c4-fbb60d330012` |
+| Status | `queued` |
+| Attempts | 0 |
+| Provider content ID | none |
+| Version | `67551ecd-ee87-4907-bae5-b34e000163ff` |
+| Connection | `24420652-d0b4-4237-9a75-51d89be50c65` |
+| Org / workspace | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` / `4ce070a9-d1bc-40f3-a44a-061274bca9cb` |
+| Window | active · same UUID · budget 1 · consumed 0 |
+| Connection status/health | `connected` / `healthy` |
+| Identity fingerprint | `eefce660bad5c0ad` |
+| Credential version | 2 |
+| Org attempts total | 5 |
+| Org publication events | 37 |
+| Latest historical attempt | `2026-08-19 11:43:20.72354+00` |
+| Other publications executed | **0** this window |
+
+Agent cannot authenticate as Owner in the Cursor browser. Live Execute is therefore owner-only.
+
+---
+
+## Owner Execute
+
+**Pending.** One click required. Do not retry.
+
+Canonical URL:
+
+`https://www.zyntixai.com/social?section=publish&org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb&publication=0ffb466f-b477-4d7e-87c4-fbb60d330012`
+
+Button: **Execute image publish** exactly once.
+
+---
+
+## Provider Stages
+
+Not yet executed.
+
+---
+
+## POST Database Verification
+
+Not yet executed.
+
+---
+
+## Instagram Visual Confirmation
+
+Not yet requested.
+
+---
+
+## Gate-Off Deployment
+
+Not yet executed. Global gate is **temporarily ON** until after the single Execute (or a failure/unknown stop).
+
+---
+
+## Live-window verdict
+
+```text
+SMM-B1.7-R2 LIVE WINDOW READY — OWNER SINGLE EXECUTE REQUIRED
+```
