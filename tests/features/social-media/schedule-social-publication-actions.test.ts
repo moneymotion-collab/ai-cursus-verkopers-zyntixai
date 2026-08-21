@@ -216,6 +216,29 @@ describe("SMM-B1.11-A schedule actions", () => {
     expect(second).toEqual({ ok: false, code: "conflict" });
   });
 
+  it("denies Staff and Viewer cancel-scheduled before RPC", async () => {
+    const rpc = vi.fn();
+    createSupabaseServerClient.mockResolvedValue({ rpc });
+    const { cancelScheduledSocialPublicationAction } = await import(
+      "@/features/social-media/actions/schedule-social-publication-actions"
+    );
+
+    mockOrg("staff");
+    const staff = await cancelScheduledSocialPublicationAction({
+      organizationId: ORG,
+      publicationId: PUB,
+    });
+    expect(staff).toEqual({ ok: false, code: "forbidden" });
+
+    mockOrg("viewer");
+    const viewer = await cancelScheduledSocialPublicationAction({
+      organizationId: ORG,
+      publicationId: PUB,
+    });
+    expect(viewer).toEqual({ ok: false, code: "forbidden" });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
   it("does not enable SOCIAL_PUBLISHING_ENABLED or call Execute", () => {
     const action = readFileSync(
       join(

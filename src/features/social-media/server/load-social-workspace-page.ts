@@ -16,7 +16,7 @@ import {
   type OrganizationOption,
 } from "@/features/tasks/ui/resolve-task-organization-selection";
 import type { OrganizationRole } from "@/features/tasks/domain/permissions";
-import { canManageSocialConnections } from "@/features/social-media/domain/permissions";
+import { canManageSocialConnections, canScheduleSocialPublication } from "@/features/social-media/domain/permissions";
 import {
   isSocialSection,
   type SocialSection,
@@ -45,6 +45,19 @@ import {
   buildSocialClosedBetaCustomerReadModel,
   type SocialClosedBetaCustomerReadModel,
 } from "@/features/social-media/domain/social-closed-beta-customer-read-model";
+import { loadSocialCalendar } from "@/features/social-media/server/load-social-calendar";
+import {
+  calendarWeekBoundsOrNull,
+  resolveSocialCalendarHrefState,
+  summarizeScheduledOverview,
+  type SocialCalendarEligiblePublication,
+  type SocialCalendarItemView,
+} from "@/features/social-media/domain/calendar";
+import {
+  isValidIanaTimeZone,
+  resolveSocialCalendarTimezone,
+  socialCalendarTimezoneOptions,
+} from "@/features/social-media/domain/calendar-timezone";
 
 function firstSearchParam(
   value: string | string[] | undefined,
@@ -100,6 +113,19 @@ export type SocialWorkspacePageResult =
       oauthFailureStage: string | null;
       explicitPublicationId: string | null;
       controlledPublishWindow: ActiveControlledPublishWindow | null;
+      canMutateSchedule: boolean;
+      calendarTimeZone: string;
+      calendarTimezoneConfigured: boolean;
+      calendarTimezoneOptions: string[];
+      calendarWeekStartDay: string;
+      calendarSelectedDay: string;
+      calendarVisibleStartIso: string | null;
+      calendarVisibleEndIso: string | null;
+      calendarItems: SocialCalendarItemView[];
+      calendarEligibleToSchedule: SocialCalendarEligiblePublication[];
+      calendarLoadError: string | null;
+      scheduledThisWeekCount: number;
+      nextScheduledAt: string | null;
     };
 
 export async function loadSocialWorkspacePage(
@@ -137,10 +163,13 @@ export async function loadSocialWorkspacePage(
   const orgIds = membershipsResult.memberships.map((m) => m.organizationId);
   const { data: orgRows } = await supabase
     .from("organizations")
-    .select("id, name")
+    .select("id, name, timezone")
     .in("id", orgIds);
   const namesById = Object.fromEntries(
     (orgRows ?? []).map((row) => [row.id, row.name]),
+  );
+  const timezoneById = Object.fromEntries(
+    (orgRows ?? []).map((row) => [row.id, row.timezone]),
   );
   const organizationOptions = buildOrganizationOptions(
     membershipsResult.memberships,
@@ -225,16 +254,46 @@ export async function loadSocialWorkspacePage(
   const oauthFailureStage =
     stageRaw && isSocialOAuthFailureStage(stageRaw) ? stageRaw : null;
 
-  const [workspacesResult, inventory, controlledWindowResult] = await Promise.all([
-    listActiveSocialWorkspaces(supabase, organizationId),
-    listSocialLifecycleInventory(
-      supabase,
-      organizationId,
-      new Date().toISOString(),
-      publishingEnabled,
-    ),
-    loadActiveControlledPublishWindow(supabase, organizationId),
-  ]);
+  const tzParamRaw = firstSearchParam(rawSearchParams.tz);
+  const calendarTimezone = resolveSocialCalendarTimezone({
+    organizationTimeZone: timezoneById[organizationId],
+    selectedTimeZone:
+      tzParamRaw && isValidIanaTimeZone(tzParamRaw) ? tzParamRaw : null,
+  });
+  const now = new Date();
+  const hrefState = resolveSocialCalendarHrefState({
+    weekParam: firstSearchParam(rawSearchParams.week),
+    dayParam: firstSearchParam(rawSearchParams.day),
+    timeZone: calendarTimezone.displayTimeZone,
+    now,
+  });
+  const weekBounds = calendarWeekBoundsOrNull(
+    hrefState.weekStartDay,
+    calendarTimezone.displayTimeZone,
+  );
+
+  const [workspacesResult, inventory, controlledWindowResult, calendarResult] =
+    await Promise.all([
+      listActiveSocialWorkspaces(supabase, organizationId),
+      listSocialLifecycleInventory(
+        supabase,
+        organizationId,
+        now.toISOString(),
+        publishingEnabled,
+      ),
+      loadActiveControlledPublishWindow(supabase, organizationId),
+      section === "calendar" && weekBounds
+        ? loadSocialCalendar({
+            supabase,
+            organizationId,
+            role,
+            timeZone: calendarTimezone.displayTimeZone,
+            visibleStartIso: weekBounds.startIso,
+            visibleEndIso: weekBounds.endIso,
+            now,
+          })
+        : Promise.resolve(null),
+    ]);
 
   if (!workspacesResult.ok || !inventory.ok || !controlledWindowResult.ok) {
     return {
@@ -254,6 +313,34 @@ export async function loadSocialWorkspacePage(
 
   const explicitPublicationId =
     firstSearchParam(rawSearchParams.publication)?.trim() || null;
+
+  const overviewWeekBounds =
+    weekBounds ??
+    calendarWeekBoundsOrNull(
+      hrefState.weekStartDay,
+      calendarTimezone.displayTimeZone,
+    );
+  const overviewSummary = summarizeScheduledOverview({
+    publications: inventory.publications,
+    visibleStartIso: overviewWeekBounds?.startIso ?? now.toISOString(),
+    visibleEndIso:
+      overviewWeekBounds?.endIso ??
+      new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    nowIso: now.toISOString(),
+  });
+
+  const calendarLoaded =
+    calendarResult && calendarResult.ok
+      ? calendarResult
+      : { items: [] as SocialCalendarItemView[], eligibleToSchedule: [] };
+  const calendarLoadError =
+    section !== "calendar"
+      ? null
+      : !weekBounds
+        ? "Unable to resolve the calendar week for this timezone."
+        : calendarResult && !calendarResult.ok
+          ? "Unable to load the calendar. Try again."
+          : null;
 
   return {
     kind: "success",
@@ -292,5 +379,20 @@ export async function loadSocialWorkspacePage(
     oauthFailureStage,
     explicitPublicationId,
     controlledPublishWindow: controlledWindowResult.window,
+    canMutateSchedule: canScheduleSocialPublication(role, "active"),
+    calendarTimeZone: calendarTimezone.displayTimeZone,
+    calendarTimezoneConfigured: calendarTimezone.configured,
+    calendarTimezoneOptions: socialCalendarTimezoneOptions(
+      calendarTimezone.displayTimeZone,
+    ),
+    calendarWeekStartDay: hrefState.weekStartDay,
+    calendarSelectedDay: hrefState.selectedDay,
+    calendarVisibleStartIso: weekBounds?.startIso ?? null,
+    calendarVisibleEndIso: weekBounds?.endIso ?? null,
+    calendarItems: calendarLoaded.items,
+    calendarEligibleToSchedule: calendarLoaded.eligibleToSchedule,
+    calendarLoadError,
+    scheduledThisWeekCount: overviewSummary.scheduledThisWeek,
+    nextScheduledAt: overviewSummary.nextScheduledAt,
   };
 }

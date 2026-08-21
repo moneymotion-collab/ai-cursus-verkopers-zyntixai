@@ -118,6 +118,7 @@ export {
   canApproveSocialContent,
   canViewSocialContent,
   resolveSocialContentPermissions,
+  canScheduleSocialPublication,
 } from "@/features/social-media/domain/permissions";
 
 export {
@@ -487,3 +488,34 @@ export type {
   SocialClosedBetaCustomerReadModel,
   SocialClosedBetaCustomerActionMatrix,
 } from "@/features/social-media/domain/social-closed-beta-customer-read-model";
+
+export {
+  SOCIAL_SCHEDULE_MISS_GRACE_SECONDS,
+  SOCIAL_PUBLICATION_SCHEDULE_ELIGIBLE_STATUSES,
+  SOCIAL_PUBLICATION_SCHEDULE_BLOCKED_STATUSES,
+  parseUnambiguousExecutionInstant,
+  isFutureExecutionInstant,
+  resolveSocialPublicationScheduleEligibility,
+} from "@/features/social-media/domain/scheduling";
+
+export {
+  SOCIAL_CALENDAR_AUTOMATIC_EXECUTION_ENABLED,
+  resolveSocialCalendarStatusKind,
+  socialCalendarStatusLabel,
+  publicationIsScheduledCalendarItem,
+  projectPublicationToCalendarItem,
+  resolveCalendarMutationFlags,
+  userSafeSocialScheduleActionMessage,
+} from "@/features/social-media/domain/calendar";
+export type {
+  SocialCalendarItemView,
+  SocialCalendarEligiblePublication,
+  SocialCalendarStatusKind,
+} from "@/features/social-media/domain/calendar";
+
+export {
+  isValidIanaTimeZone,
+  resolveSocialCalendarTimezone,
+  convertLocalWallTimeToUtcIso,
+  getZonedWeekUtcBounds,
+} from "@/features/social-media/domain/calendar-timezone";

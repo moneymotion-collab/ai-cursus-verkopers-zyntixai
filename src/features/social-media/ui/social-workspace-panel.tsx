@@ -3,10 +3,16 @@
 import { R1InstagramConnectPanel } from "@/features/social-media/ui/r1-instagram-connect-panel";
 import { B18InstagramPublishPanel } from "@/features/social-media/ui/b18-instagram-publish-panel";
 import { B19LifecyclePanel } from "@/features/social-media/ui/b19-lifecycle-panel";
+import { SocialCalendarPanel } from "@/features/social-media/ui/social-calendar-panel";
 import type { SocialSection } from "@/features/social-media/domain/social-navigation";
 import { buildSocialWorkspaceHref } from "@/features/social-media/domain/social-navigation";
 import type { SocialClosedBetaCustomerReadModel } from "@/features/social-media/domain/social-closed-beta-customer-read-model";
 import { findReconnectableInstagramConnection } from "@/features/social-media/domain/status";
+import type {
+  SocialCalendarEligiblePublication,
+  SocialCalendarItemView,
+} from "@/features/social-media/domain/calendar";
+import { formatSocialCalendarInstant } from "@/features/social-media/domain/calendar-timezone";
 import styles from "./social-workspace-panel.module.css";
 
 type ConnectionRow = {
@@ -38,6 +44,8 @@ type PublicationRow = {
   status: string;
   contentFormat: string | null;
   createdAt: string;
+  intendedExecuteAt: string;
+  executionMode: string;
   connectionId: string;
   attemptCount: number;
   hasExternalPublicationId: boolean;
@@ -68,6 +76,17 @@ type SocialWorkspacePanelProps = {
     maxExecuteCount: number;
     consumedExecuteCount: number;
   } | null;
+  canMutateSchedule: boolean;
+  calendarTimeZone: string;
+  calendarTimezoneConfigured: boolean;
+  calendarTimezoneOptions: string[];
+  calendarWeekStartDay: string;
+  calendarSelectedDay: string;
+  calendarItems: SocialCalendarItemView[];
+  calendarEligibleToSchedule: SocialCalendarEligiblePublication[];
+  calendarLoadError: string | null;
+  scheduledThisWeekCount: number;
+  nextScheduledAt: string | null;
 };
 
 export function SocialWorkspacePanel({
@@ -86,6 +105,17 @@ export function SocialWorkspacePanel({
   blockedPublicationCount,
   explicitPublicationId,
   controlledPublishWindow = null,
+  canMutateSchedule,
+  calendarTimeZone,
+  calendarTimezoneConfigured,
+  calendarTimezoneOptions,
+  calendarWeekStartDay,
+  calendarSelectedDay,
+  calendarItems,
+  calendarEligibleToSchedule,
+  calendarLoadError,
+  scheduledThisWeekCount,
+  nextScheduledAt,
 }: SocialWorkspacePanelProps) {
   const publishableConnections = connections.filter(
     (connection) =>
@@ -142,6 +172,7 @@ export function SocialWorkspacePanel({
       ["overview", "Overview"],
       ["accounts", "Accounts"],
       ["publish", "Publish"],
+      ["calendar", "Calendar"],
       ["activity", "Activity"],
     ] as const
   ).filter(([id]) => {
@@ -216,6 +247,17 @@ export function SocialWorkspacePanel({
             <li>Succeeded publications: {succeededPublicationCount}</li>
             <li>Needs attention: {blockedPublicationCount}</li>
             <li>
+              Scheduled this week: {scheduledThisWeekCount}
+              {nextScheduledAt
+                ? ` · next ${
+                    formatSocialCalendarInstant(
+                      nextScheduledAt,
+                      calendarTimeZone,
+                    )?.dateLabel ?? nextScheduledAt
+                  } ${calendarTimeZone}`
+                : ""}
+            </li>
+            <li>
               Historical leftovers (not active): {pendingShellCount} pending
               shells · {historicalQueueCount} queued fixtures
             </li>
@@ -230,9 +272,10 @@ export function SocialWorkspacePanel({
           </div>
           <p className={styles.scopeNote}>
             Closed beta scope: Instagram account connection, controlled image
-            publish (when enabled), and publication activity. Brand strategy,
-            content calendar, Stories/Reels, multi-provider support, and
-            analytics/AI features are not included here.
+            publish (when enabled), publication calendar scheduling, and
+            publication activity. Brand strategy, Stories/Reels, multi-provider
+            support, and analytics/AI features are not included here. Automatic
+            scheduled posting is not enabled in this rollout yet.
           </p>
         </section>
       ) : null}
@@ -335,6 +378,23 @@ export function SocialWorkspacePanel({
         </section>
       ) : null}
 
+      {section === "calendar" ? (
+        <SocialCalendarPanel
+          organizationId={organizationId}
+          timeZone={calendarTimeZone}
+          timezoneConfigured={calendarTimezoneConfigured}
+          timezoneOptions={calendarTimezoneOptions}
+          weekStartDay={calendarWeekStartDay}
+          selectedDay={calendarSelectedDay}
+          items={calendarItems}
+          eligibleToSchedule={calendarEligibleToSchedule}
+          canMutateSchedule={canMutateSchedule}
+          loadError={calendarLoadError}
+          explicitPublicationId={explicitPublicationId}
+          readOnly={readOnly}
+        />
+      ) : null}
+
       {section === "activity" ? (
         <section aria-labelledby="social-activity-title">
           <h2 id="social-activity-title">Activity</h2>
@@ -347,6 +407,7 @@ export function SocialWorkspacePanel({
             publishingEnabled={
               publishingEnabled && closedBeta.publishingEntitlementAllowed
             }
+            timeZone={calendarTimeZone}
             connections={connections}
             publications={publications}
             healthyConnectedCount={healthyConnectedCount}

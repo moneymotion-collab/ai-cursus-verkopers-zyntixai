@@ -221,8 +221,8 @@ export default async function SocialWorkspacePage({ searchParams }: PageProps) {
           <p className={styles.betaBadge}>{result.closedBeta.betaBadgeLabel}</p>
           <h1>Social</h1>
           <p className={styles.subtitle}>
-            Instagram accounts, controlled image publishing, and publication
-            activity for {result.organizationName}.
+            Instagram accounts, calendar scheduling, controlled image
+            publishing, and publication activity for {result.organizationName}.
           </p>
           <p className={styles.notice} role="status">
             {result.closedBeta.customerHeadline}
@@ -251,6 +251,17 @@ export default async function SocialWorkspacePage({ searchParams }: PageProps) {
           blockedPublicationCount={result.blockedPublicationCount}
           explicitPublicationId={result.explicitPublicationId}
           controlledPublishWindow={result.controlledPublishWindow}
+          canMutateSchedule={result.canMutateSchedule}
+          calendarTimeZone={result.calendarTimeZone}
+          calendarTimezoneConfigured={result.calendarTimezoneConfigured}
+          calendarTimezoneOptions={result.calendarTimezoneOptions}
+          calendarWeekStartDay={result.calendarWeekStartDay}
+          calendarSelectedDay={result.calendarSelectedDay}
+          calendarItems={result.calendarItems}
+          calendarEligibleToSchedule={result.calendarEligibleToSchedule}
+          calendarLoadError={result.calendarLoadError}
+          scheduledThisWeekCount={result.scheduledThisWeekCount}
+          nextScheduledAt={result.nextScheduledAt}
         />
       </div>
     </AppShell>

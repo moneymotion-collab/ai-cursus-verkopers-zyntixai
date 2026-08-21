@@ -1,7 +1,7 @@
 .root {
   display: grid;
   gap: 1.5rem;
-  max-width: 54rem;
+  max-width: 72rem;
 }
 
 .betaStatus {

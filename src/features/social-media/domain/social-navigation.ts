@@ -16,6 +16,7 @@ export const SOCIAL_SECTIONS = [
   "overview",
   "accounts",
   "publish",
+  "calendar",
   "activity",
 ] as const;
 
@@ -43,6 +44,10 @@ export type SocialWorkspaceHrefParams = {
   oauthOutcome?: string;
   oauthFailureStage?: string;
   publicationId?: string;
+  /** Calendar view state only. Never authorizes access. */
+  week?: string;
+  day?: string;
+  timeZone?: string;
 };
 
 export function buildSocialWorkspaceHref(
@@ -63,6 +68,17 @@ export function buildSocialWorkspaceHref(
   }
   if (params.publicationId) {
     search.set("publication", params.publicationId);
+  }
+  if (params.section === "calendar") {
+    if (params.week) {
+      search.set("week", params.week);
+    }
+    if (params.day) {
+      search.set("day", params.day);
+    }
+    if (params.timeZone) {
+      search.set("tz", params.timeZone);
+    }
   }
   const query = search.toString();
   return query.length > 0 ? `${SOCIAL_ROUTE}?${query}` : SOCIAL_ROUTE;

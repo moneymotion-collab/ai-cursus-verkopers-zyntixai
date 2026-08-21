@@ -32,6 +32,14 @@ describe("SMM-B1.10 Social Beta 1 integration", () => {
     ).toBe(
       "/social?org=11111111-1111-4111-8111-111111111111&section=accounts",
     );
+    expect(
+      buildSocialWorkspaceHref({
+        organizationId: "11111111-1111-4111-8111-111111111111",
+        section: "calendar",
+      }),
+    ).toBe(
+      "/social?org=11111111-1111-4111-8111-111111111111&section=calendar",
+    );
   });
 
   it("allowlists /social for safe-return and protected paths", () => {

@@ -9,6 +9,7 @@ import {
   requestSocialPublicationRetryAction,
   resolveUnknownExternalPublicationAction,
 } from "@/features/social-media/actions/b19-lifecycle-actions";
+import { formatSocialCalendarInstant } from "@/features/social-media/domain/calendar-timezone";
 import styles from "./b19-lifecycle-panel.module.css";
 
 type ConnectionRow = {
@@ -39,6 +40,8 @@ type PublicationRow = {
   status: string;
   contentFormat: string | null;
   createdAt: string;
+  intendedExecuteAt: string;
+  executionMode: string;
   connectionId: string;
   attemptCount: number;
   hasExternalPublicationId: boolean;
@@ -50,6 +53,7 @@ type PublicationRow = {
 type B19LifecyclePanelProps = {
   organizationId: string;
   publishingEnabled: boolean;
+  timeZone: string;
   connections: ConnectionRow[];
   publications: PublicationRow[];
   healthyConnectedCount: number;
@@ -57,6 +61,17 @@ type B19LifecyclePanelProps = {
   queuedPublicationCount: number;
   succeededPublicationCount: number;
 };
+
+function scheduledLabel(
+  intendedExecuteAt: string,
+  timeZone: string,
+): string {
+  const formatted = formatSocialCalendarInstant(intendedExecuteAt, timeZone);
+  if (!formatted) {
+    return intendedExecuteAt;
+  }
+  return `${formatted.dateLabel} ${formatted.timeLabel} ${timeZone}`;
+}
 
 function failureMessage(code: string): string {
   switch (code) {
@@ -82,6 +97,7 @@ function failureMessage(code: string): string {
 export function B19LifecyclePanel({
   organizationId,
   publishingEnabled,
+  timeZone,
   connections,
   publications,
   healthyConnectedCount,
@@ -191,8 +207,14 @@ export function B19LifecyclePanel({
                   {publication.hasExternalPublicationId ? "present" : "absent"}
                 </p>
                 <p className={styles.meta}>
-                  created {publication.createdAt} · connection …
-                  {publication.connectionId.slice(-8)} · pub …
+                  created {publication.createdAt}
+                  {publication.executionMode === "scheduled"
+                    ? ` · scheduled for ${scheduledLabel(
+                        publication.intendedExecuteAt,
+                        timeZone,
+                      )}`
+                    : ""}{" "}
+                  · connection …{publication.connectionId.slice(-8)} · pub …
                   {publication.id.slice(-8)}
                 </p>
                 {publication.actionBlockedReason ? (

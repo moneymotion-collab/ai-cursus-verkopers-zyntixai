@@ -65,4 +65,17 @@ describe("SMM-B1.11-A immediate publishing regression", () => {
     expect(prepare).toContain('p_execution_mode: "immediate"');
     expect(prepare).toContain("p_intended_execute_at: null");
   });
+
+  it("calendar UX does not call the Instagram adapter or enable publishing", () => {
+    const calendar = readFileSync(
+      join(
+        process.cwd(),
+        "src/features/social-media/ui/social-calendar-panel.tsx",
+      ),
+      "utf8",
+    );
+    expect(calendar).not.toContain("executeB18InstagramImagePublicationAction");
+    expect(calendar).not.toContain("SOCIAL_PUBLISHING_ENABLED");
+    expect(calendar).not.toContain("createInstagramPublishingAdapter");
+  });
 });
