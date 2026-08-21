@@ -439,8 +439,10 @@ describe("SMM-B1.11-C execute core gate + revalidation skip", () => {
 });
 
 describe("SMM-B1.11-C route and cron static contracts", () => {
-  it("configures Vercel Cron, maxDuration, and machine auth without member session", () => {
-    const vercel = readFileSync(join(process.cwd(), "vercel.json"), "utf8");
+  it("keeps the worker route without native Vercel Social Cron", () => {
+    const vercel = JSON.parse(
+      readFileSync(join(process.cwd(), "vercel.json"), "utf8"),
+    ) as { crons?: Array<{ path?: string; schedule?: string }> };
     const route = readFileSync(
       join(process.cwd(), "src/app/api/cron/social-publications/route.ts"),
       "utf8",
@@ -459,13 +461,15 @@ describe("SMM-B1.11-C route and cron static contracts", () => {
       ),
       "utf8",
     );
-    expect(vercel).toContain(SOCIAL_SCHEDULER_CRON_PATH);
-    expect(vercel).toContain(SOCIAL_SCHEDULER_CRON_SCHEDULE);
-    expect(vercel).toContain("0 0 * * *");
-    expect(vercel).not.toContain("*/5 * * * *");
-    expect(SOCIAL_SCHEDULER_CRON_SCHEDULE).toBe("0 0 * * *");
-    expect(vercel).not.toContain("inngest");
-    expect(vercel).not.toContain("qstash");
+    expect(vercel.crons ?? []).toEqual([]);
+    expect(SOCIAL_SCHEDULER_CRON_SCHEDULE).toBe("*/5 * * * *");
+    expect(SOCIAL_SCHEDULER_CRON_SCHEDULE).toBe(
+      SOCIAL_SCHEDULER_CRON_SCHEDULE_TARGET,
+    );
+    expect(JSON.stringify(vercel)).not.toContain(SOCIAL_SCHEDULER_CRON_PATH);
+    expect(JSON.stringify(vercel)).not.toContain("0 0 * * *");
+    expect(JSON.stringify(vercel)).not.toContain("inngest");
+    expect(JSON.stringify(vercel)).not.toContain("qstash");
     expect(route).toContain("export const maxDuration = 300");
     expect(SOCIAL_SCHEDULER_MAX_DURATION_SECONDS).toBe(300);
     expect(route).toContain("authorizeSocialSchedulerCronHeader");
@@ -482,6 +486,7 @@ describe("SMM-B1.11-C route and cron static contracts", () => {
 
   it("keeps the 15-minute miss policy while naming the Supabase 5-minute timer", () => {
     expect(SOCIAL_SCHEDULE_MISS_GRACE_SECONDS).toBe(900);
+    expect(SOCIAL_SCHEDULER_CRON_SCHEDULE).toBe("*/5 * * * *");
     expect(SOCIAL_SCHEDULER_CRON_SCHEDULE_TARGET).toBe("*/5 * * * *");
     expect(SOCIAL_SCHEDULER_SUPABASE_CRON_JOB_NAME).toBe(
       "zyntixai_social_publication_scheduler_5m",

@@ -14,11 +14,11 @@ export const SOCIAL_SCHEDULING_ENABLED_ENV = "SOCIAL_SCHEDULING_ENABLED";
 
 export const SOCIAL_SCHEDULER_CRON_PATH = "/api/cron/social-publications";
 
-/** Intended Beta 1 cadence. Hobby Production currently allows only daily Vercel Cron. */
+/** Authoritative Production timer cadence (Supabase pg_cron). */
 export const SOCIAL_SCHEDULER_CRON_SCHEDULE_TARGET = "*/5 * * * *";
 
-/** Deployed cadence under the current Vercel Hobby plan (once per day, 00:00 UTC). */
-export const SOCIAL_SCHEDULER_CRON_SCHEDULE = "0 0 * * *";
+/** Deployed Production timer cadence. Native Vercel Cron is absent after PR1 cutover. */
+export const SOCIAL_SCHEDULER_CRON_SCHEDULE = "*/5 * * * *";
 
 /** Canonical worker origin. Supabase Cron may only invoke this host. */
 export const SOCIAL_SCHEDULER_CANONICAL_ORIGIN = "https://www.zyntixai.com";
@@ -36,7 +36,7 @@ export const SOCIAL_SCHEDULER_VAULT_SECRET_NAME =
   "zyntixai_social_scheduler_cron_secret";
 
 export const SOCIAL_SCHEDULER_CRON_CADENCE_EXPLANATION =
-  "Target is every 5 minutes (three ticks inside the locked 15-minute miss grace owned by B1.11-D). Native Vercel Cron on Hobby remains 0 0 * * * during the SMM-B1.11-E-PR1 cutover. The intended Production timer is Supabase pg_cron */5 * * * * invoking the existing Vercel worker. Timing remains UTC due instant + later grace, not an exact cron second. Authorized dry-run HTTP invocation of the same route does not wait for a daily tick.";
+  "Authoritative Production timer is Supabase pg_cron */5 * * * * invoking the existing Vercel worker. That gives approximately T, T+5, T+10, and T+15 checks inside the locked 900-second miss grace. Native Vercel Social Cron is absent. Timing remains UTC due instant + later grace, not an exact cron second.";
 
 /** Route maxDuration target. Instagram container poll sleeps up to 240s plus HTTP. */
 export const SOCIAL_SCHEDULER_MAX_DURATION_SECONDS = 300;
