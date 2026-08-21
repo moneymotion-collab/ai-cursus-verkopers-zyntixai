@@ -562,13 +562,17 @@ Open Social Attention: **0**. No rows created at/after LIVE start. Specifically 
 
 ### Owner visual confirmation
 
-**PENDING.** Cursor cannot infer Instagram visual confirmation from provider success. Phase B1.11-E remains open until the owner attests:
+```text
+INSTAGRAM SCHEDULED PUBLISH VISUAL CONFIRMATION = PASS
+```
 
-`INSTAGRAM SCHEDULED PUBLISH VISUAL CONFIRMATION = PASS`
+The owner inspected the intended Instagram Business account and confirmed the scheduled test IMAGE was visibly present and matched this controlled automatic scheduled publication. That completes the final owner-side requirement for B1.11-E. Cursor did not infer visual confirmation from provider success.
 
 ### Owner cleanup
 
-Not recorded. The owner may delete the Instagram test post after visual confirmation. That does not reverse local `succeeded`.
+`OWNER POST-VERIFICATION CLEANUP: not recorded / not required for closure`
+
+The owner has not stated that the Instagram test post was deleted. Visual confirmation is sufficient for phase closure. Local publication remains `succeeded`.
 
 ---
 
@@ -591,7 +595,7 @@ Not recorded. The owner may delete the Instagram test post after visual confirma
 | Scheduling gate | false | false |
 | Publishing gate | false | false |
 | Timer | Supabase `*/5` | Supabase `*/5` |
-| Owner visual confirmation | no | **PENDING** |
+| Owner visual confirmation | pending | **PASS** |
 
 ---
 
@@ -618,10 +622,86 @@ No implementation changed during LIVE. No additional tests were run. No second P
 
 ---
 
-## LIVE verdict (this stop)
+## LIVE verdict (prior stop)
 
 ```text
 SMM-B1.11-E PROVIDER PASS — OWNER VISUAL CONFIRMATION REQUIRED
 ```
 
-B1.11-E is **not** closed. Full close requires owner visual confirmation of the Instagram IMAGE post, then evidence of that attestation.
+That stop recorded provider success with gates restored OFF. Owner visual confirmation was still required. The owner has now supplied it. See **FINAL CLOSURE** below.
+
+---
+
+## FINAL CLOSURE
+
+### Owner visual verification
+
+```text
+INSTAGRAM SCHEDULED PUBLISH VISUAL CONFIRMATION = PASS
+```
+
+The owner inspected the intended Instagram Business account. The scheduled test IMAGE was visibly present and matched the controlled automatic scheduled publication `ae6caf94-2fc7-4653-a085-0228d32e0c53`. This completes the final owner-side requirement for B1.11-E.
+
+`OWNER POST-VERIFICATION CLEANUP: not recorded / not required for closure`
+
+### Provider verification
+
+- Automatic Supabase Cron `*/5` triggered execution (runid 49, `2026-08-21 18:05:00.112954+00`).
+- One controlled attempt: `2e7e7f00-bd4c-4097-942c-49cbe37ca2da`, claim generation 1, outcome `succeeded`, ~73.8 s.
+- Exactly one `media_publish`.
+- Provider content ID persisted: `18116980474912030`.
+- Publication `succeeded` at `2026-08-21 18:06:15.712944+00`.
+- Seconds late at claim: 8.32 (`<= 900`).
+- Unknown outcome: 0.
+
+### Isolation
+
+- Controlled window `54aed609-ac06-477f-923a-8fdfc0061ab7`: max 1, consumed 1, remaining 0, not reusable.
+- No second provider write.
+- Other publications executed: 0.
+
+### Connection integrity
+
+- Connection `24420652-d0b4-4237-9a75-51d89be50c65`
+- Status: connected
+- Health: healthy
+- Fingerprint: `eefce660bad5c0ad`
+- Credential version: 2
+
+Read-back at evidence closure unchanged.
+
+### Safety closure
+
+- `SOCIAL_SCHEDULING_ENABLED=false`
+- `SOCIAL_PUBLISHING_ENABLED=false`
+- OFF Production deployment `dpl_FwFUcuLq9YUCLjGqX77XvRgGmW6m` Ready, aliased to `https://www.zyntixai.com`
+- Post-OFF automatic tick `2026-08-21 18:10:00`: dry-run, claimed 0, `providerWriteAttempted=false`
+- Later automatic tick observed at evidence closure (`2026-08-21 18:25:00`): still dry-run, scheduling false, publishing false, claimed 0, `providerWriteAttempted=false`
+- Supabase Cron remains the authoritative timer: 1 active `*/5 * * * *` → `/api/cron/social-publications`
+- Vercel native Social Cron: 0
+
+No implementation, schema, config, gate, timer, or Production mutation in this evidence-only closure.
+
+### Tests (unchanged)
+
+Full Vitest: `2626 passed / 2 failed / 2628 total`
+
+Known unrelated failures:
+
+1. `tests/features/invitations/load-member-administration-page.test.ts`
+2. `tests/ui/programs-enrollments-stale-copy-remediation.test.ts`
+
+TypeScript PASS. Social lint PASS. Next build PASS. Not rerun for this documentation stop.
+
+### Final conclusion
+
+```text
+INSTAGRAM CONTROLLED AUTOMATIC SCHEDULED PUBLISH PASS
+SMM-B1.11-E CLOSED WITH EVIDENCE
+```
+
+Next planned phase, **not started**:
+
+`SMM-B1.11-F — Instagram Story IMAGE Domain + Provider`
+
+`NOT STARTED — REQUIRES OWNER APPROVAL`
