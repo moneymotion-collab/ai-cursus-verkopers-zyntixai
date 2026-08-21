@@ -1,14 +1,26 @@
 # SMM-B1.11-G — Controlled Scheduled Instagram Story IMAGE Production — Evidence
 
+Current technical status:
+
+```text
+SMM-B1.11-G PROVIDER PASS — OWNER STORY VISUAL CONFIRMATION REQUIRED
+```
+
+G is **not** fully closed. Owner visual confirmation is still required. Do not infer it from provider success.
+
+PRE-LIVE chronology is preserved below. LIVE / POST sections follow after section X.
+
+---
+
 ## PRE-LIVE
 
-Highest permitted verdict for this prompt:
+Highest permitted verdict for the PRE-LIVE prompt:
 
 ```text
 SMM-B1.11-G PRE-LIVE READY — OWNER EXACT STORY PUBLISH APPROVAL REQUIRED
 ```
 
-This file does **not** record a LIVE PASS. No Instagram Story container, `media_publish`, or Instagram Story was created. Both global execution gates remain OFF.
+At PRE-LIVE close: no Instagram Story container, `media_publish`, or Instagram Story existed. Both global execution gates were OFF.
 
 ---
 
@@ -479,3 +491,271 @@ Exactly ONE Instagram Story IMAGE test Story on `zyntixai`.
 ### Story lifetime
 
 Instagram Stories are temporary platform content. Visual confirmation is still required after provider success. Do not infer owner confirmation automatically.
+
+---
+
+# LIVE AUTHORIZATION
+
+Quoted owner authorization:
+
+```text
+Ik approve publication 93ea15e8-f2bb-4ce3-b8af-c090dea49bd2 voor één controlled automatic scheduled Instagram Story IMAGE publish binnen SMM-B1.11-G.
+```
+
+Scope: exactly that Story UUID, connection `24420652-d0b4-4237-9a75-51d89be50c65`, one controlled window, max execute 1, one fresh future schedule, one automatic Supabase Cron execution, one final `media_publish`, one resulting Instagram Story IMAGE test Story, zero other provider writes.
+
+LIVE start HEAD: `817522fc4bd2e22331f4b9c989560c84cecf0a8b`. Divergence `0 0`. Worktree clean. No application code change.
+
+Prechecks matched PRE-LIVE: Story queued/immediate, attempts 0, provider ID none, window none, connection ready, timer `*/5` with Vercel native Social Cron 0, both gates OFF, scheduler-eligible scheduled count 0.
+
+---
+
+# LIVE SETUP
+
+### Controlled window
+
+Opened while both gates were OFF via `operator_open_social_controlled_publish_window` + `operator_set_social_controlled_publish_window_expiry`.
+
+| Field | Value |
+| --- | --- |
+| window_id | `d5c81d3d-c7e3-4d08-8595-bb137ae2b66d` |
+| organization_id | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| workspace_id | `4ce070a9-d1bc-40f3-a44a-061274bca9cb` |
+| connection_id | `24420652-d0b4-4237-9a75-51d89be50c65` |
+| publication_id | `93ea15e8-f2bb-4ce3-b8af-c090dea49bd2` |
+| status at open | `active` |
+| max_execute_count | 1 |
+| consumed | 0 |
+| remaining | 1 |
+| created_at | `2026-08-21 19:48:30.143864+00` |
+| expires_at | `2026-08-21 20:43:44.615649+00` (~55 minutes) |
+
+Read-back matched. Gates still OFF.
+
+### Fresh UTC schedule
+
+DB now at schedule step: `2026-08-21 19:48:54.372188+00`. Chosen instant **13 minutes** out.
+
+Authoritative RPC `schedule_social_publication` as Owner `928bbcaf-6117-4fef-84a3-d1d8611373e9`.
+
+| Field | Value |
+| --- | --- |
+| result_code | `success` |
+| publication_id | `93ea15e8-f2bb-4ce3-b8af-c090dea49bd2` |
+| execution_mode | `scheduled` |
+| intended_execute_at | `2026-08-21 20:01:54.372188+00` |
+| next_attempt_at | `2026-08-21 20:01:54.372188+00` |
+| variant_version_id | `6d5547a9-c6ed-4556-8ade-62798019ea8c` (unchanged) |
+| connection_id | `24420652-d0b4-4237-9a75-51d89be50c65` (unchanged) |
+| status | `queued` |
+| attempts | 0 |
+| provider content ID | none |
+| event | `social_publication_scheduled` |
+
+No attempt. No provider call.
+
+Expected automatic ticks: `19:55` and `20:00` pre-due; first due tick `20:05`; later `20:10` still inside 900s and window expiry.
+
+### Calendar evidence
+
+Canonical: `/social?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb&section=calendar`
+
+Org timezone unset → display **UTC**.
+
+| Field | Value |
+| --- | --- |
+| UUID | `93ea15e8-f2bb-4ce3-b8af-c090dea49bd2` |
+| Label | Story |
+| Account | `zyntixai` |
+| UTC instant | `2026-08-21 20:01:54` |
+| Calendar day (UTC) | `2026-08-21` |
+| Calendar time (UTC) | `20:01` |
+| State | scheduled / queued |
+
+Authenticated screenshot was not required; server/data contract is authoritative.
+
+### Isolation assertion immediately before gates ON
+
+```text
+ONLY AUTHORIZED STORY UUID 93ea15e8-f2bb-4ce3-b8af-c090dea49bd2 CAN BECOME AUTOMATICALLY PROVIDER-EXECUTABLE
+```
+
+Scheduled queued publications: **1** (the authorized Story UUID only). Due-now: 0. Claimed/processing: 0. Active windows: 1, remaining 1, bound to that UUID. Four leftover B1.8 immediate IMAGE rows were left untouched and are not scheduler-eligible.
+
+### Gate activation + Production ON deployment
+
+- `SOCIAL_SCHEDULING_ENABLED=true`
+- `SOCIAL_PUBLISHING_ENABLED=true`
+
+No other feature gates changed. Values not printed.
+
+| Field | Value |
+| --- | --- |
+| ON deployment | `dpl_PDJEPmjvZER7d1x1uMmBJJM7CNgX` |
+| URL | `https://zyntixai-n3amrh6fd-guus-projects-ai.vercel.app` |
+| Target | production |
+| Ready | yes |
+| Canonical alias | `https://www.zyntixai.com` |
+| Code HEAD | `817522fc4bd2e22331f4b9c989560c84cecf0a8b` |
+| Worker route | `/api/cron/social-publications` present |
+| Vercel native Social Cron | **0** |
+| Supabase Social Cron | 1 × `*/5 * * * *` |
+
+### Pre-due automatic ticks (gates ON, no claim)
+
+| UTC | http id | cron runid | mode | scheduling | publishing | claimed | providerWriteAttempted |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 19:50:00 | 38 | 70 | dry-run | false | false | 0 | false |
+| 19:55:00 | 39 | 71 | execute | true | true | 0 | false |
+| 20:00:00 | 40 | 72 | execute | true | true | 0 | false |
+
+19:55/20:00: target still queued, attempts 0, window remaining 1. No manual scheduler call.
+
+---
+
+# AUTOMATIC EXECUTION
+
+Due: `2026-08-21 20:01:54.372188+00`. First automatic eligible tick: `20:05:00`.
+
+| Correlation | Value |
+| --- | --- |
+| Supabase cron | runid **73**, start `2026-08-21 20:05:00.095104+00`, succeeded |
+| pg_net / HTTP response id | **41**, status 200, created `2026-08-21 20:05:00.11085+00` |
+| Vercel invocationId | `e84f47b1-3390-4a2e-a2a5-85ac303e2aa5` |
+| Worker id | `sched_6449e91f206b4c7d` |
+| durationMs | 73419 |
+| mode | execute |
+| dueDiscovered | 1 |
+| dueWithinGrace | 1 |
+| claimed | 1 |
+| succeeded | 1 |
+| unknownOutcome | 0 |
+| publicationIds | `93ea15e8-f2bb-4ce3-b8af-c090dea49bd2` only |
+| attentionUpserted | 0 |
+| providerWriteAttempted | true |
+| Claim timestamp | `2026-08-21 20:05:01.781807+00` |
+| Seconds late at claim | **187.41** (`<= 900`) |
+
+No Execute button. No `vercel crons run`. No manual `invoke_social_publication_scheduler`. No direct adapter call.
+
+### Claim / attempt
+
+| Field | Value |
+| --- | --- |
+| Window consume | consumed 1 → remaining 0 at `2026-08-21 20:05:01.781807+00` |
+| Window event | `execute_consumed` |
+| Publication event | `social_publication_claimed` `source=scheduler` `claim_generation=1` |
+| Attempt UUID | `afba243d-4e60-49b0-9b02-c59aebfb8af7` |
+| Attempt number | 1 |
+| operation_id | `op_7c117c78849f491a8119d30c61c22f94` |
+| started_at | `2026-08-21 20:05:01.781807+00` |
+| finished_at | `2026-08-21 20:06:13.727638+00` |
+| duration | ~72.0 s |
+| outcome | `succeeded` |
+
+Second Cron `20:10:00` (http 42) still saw gates ON (OFF alias not yet live) but **claimed=0** and **providerWriteAttempted=false** because the one-shot window was already consumed.
+
+### Story provider stages
+
+This was a **Story** execution, not a feed IMAGE:
+
+- Bound `content_format = story`
+- Claim-time shape: Story IMAGE JPEG
+- Required capability: `publish_story` (`requiredCapabilityForContentFormat("story")`)
+- Adapter Story branch: `image_url` + `mediaType: "STORIES"`; caption and `alt_text` omitted
+- Private JPEG → HMAC signed delivery (TTL 3600s; URL not logged here)
+- Container create → poll until `FINISHED` (wall time ~73 s matches wait + one publish)
+- Exactly one `media_publish`
+- Provider content ID persisted: `18111265202036012` (distinct from B1.11-E feed IMAGE `18116980474912030`)
+
+Success diagnostics are not persisted on the attempt row (`provider_step` remains null on healthy success, same as B1.11-E). `media_publish` count = **1**. No UEO.
+
+---
+
+# SAFE GATE CLOSURE
+
+Terminal result observed at `2026-08-21 20:06:13.727638+00`. Both Production gates restored to exact `"false"` immediately, then Production redeployed. Visual confirmation was **not** waited on.
+
+| Field | Value |
+| --- | --- |
+| OFF deployment | `dpl_Ad6mqFNp3YRhs6XrPQbr3RPhuyCa` |
+| URL | `https://zyntixai-6twmdspqm-guus-projects-ai.vercel.app` |
+| Target | production |
+| Ready | yes |
+| Canonical alias | `https://www.zyntixai.com` |
+| Code HEAD | `817522fc4bd2e22331f4b9c989560c84cecf0a8b` |
+| Scheduling gate | false |
+| Publishing gate | false |
+
+Post-OFF automatic tick:
+
+| UTC | http id | cron runid | mode | scheduling | publishing | claimed | providerWriteAttempted |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 20:15:00 | 43 | 75 | dry-run | false | false | 0 | false |
+
+Scheduler returned to fail-closed operation. Supabase Cron remains 1 × `*/5 * * * *`. Vercel native Social Cron remains 0.
+
+---
+
+# POST
+
+### Publication / attempt / provider
+
+Same UUID `93ea15e8-f2bb-4ce3-b8af-c090dea49bd2`. Status `succeeded`. `completed_at` present. Provider content ID `18111265202036012`. `last_failure_class` null. Attempts PRE 0 / POST **1**. Execution mode remains `scheduled`. `intended_execute_at` preserved. Window max 1 / consumed 1 / remaining 0 / status `consumed`.
+
+### Isolation
+
+Other publications claimed / attempted / succeeded during the gate-ON period: **0**. Worker `publicationIds` contained only the authorized Story UUID. Four historical immediate B1.8 queued IMAGE rows remain `queued` / `immediate` / attempt_count 0.
+
+### Connection
+
+Unchanged: `24420652-d0b4-4237-9a75-51d89be50c65`, connected, healthy, fingerprint `eefce660bad5c0ad`, credential version **2**, `publish_story` present, one connected Instagram. No reconnect / OAuth / identity change / credential rotation.
+
+### Attention
+
+Open Social Attention for missed / unknown / reauth / permission / failed: **0**.
+
+---
+
+# OWNER VISUAL CONFIRMATION
+
+```text
+PENDING
+```
+
+Cursor must **not** infer visual confirmation from publication `succeeded`, provider ID `18111265202036012`, or Graph success.
+
+Required owner response after inspecting the intended Instagram Business account (`zyntixai`):
+
+```text
+INSTAGRAM SCHEDULED STORY VISUAL CONFIRMATION = PASS
+```
+
+Do not automatically delete the Story. Instagram Stories expire naturally. Cleanup is optional after visual confirmation.
+
+---
+
+# PRE / POST
+
+| Field | PRE | POST |
+| --- | --- | --- |
+| Publication UUID | `93ea15e8-f2bb-4ce3-b8af-c090dea49bd2` | same |
+| Content format | Story | Story |
+| Media | JPEG 1080×1920, 60777 bytes | same |
+| Status | queued | succeeded |
+| Execution mode | immediate (Prepare clock) | scheduled |
+| Intended execute time | Prepare clock only | `2026-08-21 20:01:54.372188+00` |
+| Attempts | 0 | 1 |
+| Provider content ID | none | `18111265202036012` |
+| Story container count | 0 | 1 (then one `media_publish`) |
+| `media_publish` count | 0 | 1 |
+| Window remaining | 1 after live setup | 0 |
+| Other publications executed | 0 | 0 |
+| Connection UUID | `24420652-d0b4-4237-9a75-51d89be50c65` | same |
+| Fingerprint | `eefce660bad5c0ad` | same |
+| Credential version | 2 | 2 |
+| Failure Attention | 0 baseline | 0 |
+| Scheduling gate | false | false |
+| Publishing gate | false | false |
+| Timer | Supabase `*/5` | Supabase `*/5` |
+| Visual Story confirmation | no | **PENDING** |
