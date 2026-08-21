@@ -8,6 +8,13 @@ export type AttentionDedupeIdentity = {
   signalKey: AttentionRuleKey | "manual";
 };
 
+export type AttentionSourceDedupeIdentity = {
+  organizationId: string;
+  sourceType: "enrollment" | "social_publication" | "social_connection";
+  sourceEntityId: string;
+  signalKey: AttentionRuleKey | "manual";
+};
+
 /**
  * Domain invariant:
  * At most one *non-terminal* Attention Item per dedupe key.
@@ -53,6 +60,18 @@ export function buildManualAttentionDedupeKey(params: {
     enrollmentId: params.enrollmentId,
     signalKey: "manual",
   });
+}
+
+export function buildAttentionSourceDedupeKey(
+  identity: AttentionSourceDedupeIdentity,
+): string {
+  return [
+    "attention",
+    identity.sourceType,
+    identity.organizationId.trim(),
+    identity.sourceEntityId.trim(),
+    identity.signalKey,
+  ].join(":");
 }
 
 /** True when an existing non-terminal Item with this key blocks creating another. */

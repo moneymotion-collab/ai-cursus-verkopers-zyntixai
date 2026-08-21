@@ -18,13 +18,15 @@ import {
 } from "@/features/social-media/domain/calendar";
 import { buildSocialWorkspaceHref } from "@/features/social-media/domain/social-navigation";
 import {
+  cancelMissedSocialPublicationAction,
   cancelScheduledSocialPublicationAction,
+  rescheduleMissedSocialPublicationAction,
   rescheduleSocialPublicationAction,
   scheduleSocialPublicationAction,
 } from "@/features/social-media/actions/schedule-social-publication-actions";
 import styles from "./social-calendar-panel.module.css";
 
-type FormMode = "idle" | "schedule" | "reschedule";
+type FormMode = "idle" | "schedule" | "reschedule" | "recover";
 
 type SocialCalendarPanelProps = {
   organizationId: string;
@@ -167,7 +169,7 @@ export function SocialCalendarPanel({
     return { ok: true, iso: converted.iso };
   }
 
-  function onSchedule(kind: "schedule" | "reschedule") {
+  function onSchedule(kind: "schedule" | "reschedule" | "recover") {
     if (!mutationsAllowed) return;
     const publicationId = targetPublicationId.trim();
     if (!publicationId) {
@@ -187,36 +189,51 @@ export function SocialCalendarPanel({
       });
       return;
     }
-    runMutation(kind === "schedule" ? "Schedule" : "Reschedule", async () => {
-      const result =
-        kind === "schedule"
-          ? await scheduleSocialPublicationAction({
-              organizationId,
-              publicationId,
-              intendedExecuteAt: instant.iso,
-            })
-          : await rescheduleSocialPublicationAction({
-              organizationId,
-              publicationId,
-              intendedExecuteAt: instant.iso,
-            });
-      if (!result.ok) {
-        setFeedback({
-          kind: "error",
-          message: userSafeSocialScheduleActionMessage(result.code),
-        });
-        return;
-      }
-      setFeedback({
-        kind: "success",
-        message:
+    runMutation(
+      kind === "schedule"
+        ? "Schedule"
+        : kind === "recover"
+          ? "Reschedule missed"
+          : "Reschedule",
+      async () => {
+        const result =
           kind === "schedule"
-            ? "Scheduled. The same publication now appears on the calendar."
-            : "Rescheduled. The previous time was replaced; no duplicate was created.",
-      });
-      setMode("idle");
-      router.refresh();
-    });
+            ? await scheduleSocialPublicationAction({
+                organizationId,
+                publicationId,
+                intendedExecuteAt: instant.iso,
+              })
+            : kind === "recover"
+              ? await rescheduleMissedSocialPublicationAction({
+                  organizationId,
+                  publicationId,
+                  intendedExecuteAt: instant.iso,
+                })
+              : await rescheduleSocialPublicationAction({
+                  organizationId,
+                  publicationId,
+                  intendedExecuteAt: instant.iso,
+                });
+        if (!result.ok) {
+          setFeedback({
+            kind: "error",
+            message: userSafeSocialScheduleActionMessage(result.code),
+          });
+          return;
+        }
+        setFeedback({
+          kind: "success",
+          message:
+            kind === "recover"
+              ? "Missed publication rescheduled. The same publication UUID now has a new time."
+              : kind === "schedule"
+                ? "Scheduled. The same publication now appears on the calendar."
+                : "Rescheduled. The previous time was replaced; no duplicate was created.",
+        });
+        setMode("idle");
+        router.refresh();
+      },
+    );
   }
 
   function onCancel(publicationId: string) {
@@ -413,13 +430,87 @@ export function SocialCalendarPanel({
                   {item.calendarStatus === "scheduled_future"
                     ? ` · Scheduled for ${item.localTimeLabel}`
                     : ""}
+                  {item.calendarStatus === "schedule_missed"
+                    ? " · Missed — more than 15 minutes late; not posted automatically"
+                    : ""}
                   {item.calendarStatus === "scheduled_due"
                     ? " · Intended time has passed; automatic execution is not enabled yet"
                     : ""}
                   {item.hasMedia ? " · Media attached" : ""}
                 </p>
-                {mutationsAllowed && (item.canReschedule || item.canCancel) ? (
+                {mutationsAllowed &&
+                (item.canReschedule ||
+                  item.canCancel ||
+                  item.canRecoverMissed) ? (
                   <div className={styles.actions}>
+                    {item.canRecoverMissed ? (
+                      <button
+                        type="button"
+                        className={styles.secondaryButton}
+                        disabled={pending}
+                        onClick={() =>
+                          openSchedule(item.publicationId, "recover")
+                        }
+                      >
+                        Reschedule missed
+                      </button>
+                    ) : null}
+                    {item.canRecoverMissed ? (
+                      cancelArmedId === item.publicationId ? (
+                        <>
+                          <button
+                            type="button"
+                            className={styles.dangerButton}
+                            disabled={pending}
+                            onClick={() => {
+                              runMutation("Cancel missed", async () => {
+                                const result =
+                                  await cancelMissedSocialPublicationAction({
+                                    organizationId,
+                                    publicationId: item.publicationId,
+                                  });
+                                if (!result.ok) {
+                                  setFeedback({
+                                    kind: "error",
+                                    message:
+                                      userSafeSocialScheduleActionMessage(
+                                        result.code,
+                                      ),
+                                  });
+                                  return;
+                                }
+                                setFeedback({
+                                  kind: "success",
+                                  message:
+                                    "Missed publication cancelled. It remains in history.",
+                                });
+                                setCancelArmedId(null);
+                                router.refresh();
+                              });
+                            }}
+                          >
+                            Confirm cancel missed
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.secondaryButton}
+                            disabled={pending}
+                            onClick={() => setCancelArmedId(null)}
+                          >
+                            Keep missed
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.secondaryButton}
+                          disabled={pending}
+                          onClick={() => setCancelArmedId(item.publicationId)}
+                        >
+                          Cancel missed
+                        </button>
+                      )
+                    ) : null}
                     {item.canReschedule ? (
                       <button
                         type="button"
@@ -481,9 +572,13 @@ export function SocialCalendarPanel({
       {mutationsAllowed ? (
         <section className={styles.formCard} aria-labelledby="calendar-schedule-form-title">
           <h2 id="calendar-schedule-form-title">
-            {mode === "reschedule" ? "Reschedule publication" : "Schedule publication"}
+            {mode === "recover"
+              ? "Reschedule missed publication"
+              : mode === "reschedule"
+                ? "Reschedule publication"
+                : "Schedule publication"}
           </h2>
-          {eligibleToSchedule.length === 0 && mode !== "reschedule" ? (
+          {eligibleToSchedule.length === 0 && mode !== "reschedule" && mode !== "recover" ? (
             <p className={styles.empty}>
               No eligible publication is ready to schedule. Prepare approved
               image content first.
@@ -493,7 +588,13 @@ export function SocialCalendarPanel({
               className={styles.formGrid}
               onSubmit={(event) => {
                 event.preventDefault();
-                onSchedule(mode === "reschedule" ? "reschedule" : "schedule");
+                onSchedule(
+                  mode === "recover"
+                    ? "recover"
+                    : mode === "reschedule"
+                      ? "reschedule"
+                      : "schedule",
+                );
               }}
               noValidate
             >
@@ -505,12 +606,14 @@ export function SocialCalendarPanel({
                   id="calendar-publication"
                   className={styles.select}
                   value={targetPublicationId}
-                  disabled={pending || mode === "reschedule"}
+                  disabled={pending || mode === "reschedule" || mode === "recover"}
                   aria-invalid={feedback?.field === "publication"}
                   onChange={(event) => setTargetPublicationId(event.target.value)}
                 >
                   <option value="">Select a publication</option>
-                  {(mode === "reschedule"
+                  {(mode === "recover"
+                    ? items.filter((item) => item.canRecoverMissed)
+                    : mode === "reschedule"
                     ? items.filter((item) => item.canReschedule)
                     : eligibleToSchedule
                   ).map((row) => (
@@ -573,7 +676,9 @@ export function SocialCalendarPanel({
                 >
                   {pending
                     ? "Saving…"
-                    : mode === "reschedule"
+                    : mode === "recover"
+                      ? "Confirm missed reschedule"
+                      : mode === "reschedule"
                       ? "Confirm reschedule"
                       : "Schedule"}
                 </button>

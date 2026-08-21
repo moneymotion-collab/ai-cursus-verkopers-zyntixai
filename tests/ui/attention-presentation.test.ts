@@ -157,7 +157,7 @@ describe("attention empty state (B1.7.5-A/C)", () => {
   it("distinguishes workspace empty from filtered no-results", () => {
     const empty = resolveAttentionEmptyState();
     expect(empty.title).toBe("No attention items yet");
-    expect(empty.description).toContain("detected for enrollments");
+    expect(empty.description).toContain("detected for enrollments or Social operations");
     expect(resolveAttentionEmptyState({ hasActiveFilters: true }).title).toBe(
       "No attention items match these filters",
     );

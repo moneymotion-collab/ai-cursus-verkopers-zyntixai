@@ -79,7 +79,7 @@ export async function loadSocialCalendar(input: {
       client
         .from("social_publications")
         .select(
-          "id, organization_id, connection_id, provider, status, execution_mode, intended_execute_at, variant_version_id",
+          "id, organization_id, connection_id, provider, status, execution_mode, intended_execute_at, variant_version_id, last_failure_class",
         )
         .eq("organization_id", input.organizationId)
         .eq("execution_mode", "scheduled")
@@ -89,7 +89,7 @@ export async function loadSocialCalendar(input: {
       client
         .from("social_publications")
         .select(
-          "id, organization_id, connection_id, provider, status, execution_mode, intended_execute_at, variant_version_id",
+          "id, organization_id, connection_id, provider, status, execution_mode, intended_execute_at, variant_version_id, last_failure_class",
         )
         .eq("organization_id", input.organizationId)
         .eq("execution_mode", "immediate")
@@ -222,6 +222,7 @@ export async function loadSocialCalendar(input: {
         timeZone: input.timeZone,
         now: input.now,
         role: input.role,
+        lastFailureClass: asString(record.last_failure_class),
       });
       if (item) {
         items.push(item);

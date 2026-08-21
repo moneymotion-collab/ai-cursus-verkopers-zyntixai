@@ -152,6 +152,7 @@ describe("SMM-B1.11-C worker dry-run and execute", () => {
         SOCIAL_SCHEDULING_ENABLED: "false",
         SOCIAL_PUBLISHING_ENABLED: "false",
       },
+      nowMs: Date.parse("2026-08-21T12:00:30.000Z"),
       executePublication,
     });
     expect(result.mode).toBe("dry-run");
@@ -179,6 +180,7 @@ describe("SMM-B1.11-C worker dry-run and execute", () => {
         SOCIAL_SCHEDULING_ENABLED: "true",
         SOCIAL_PUBLISHING_ENABLED: "false",
       },
+      nowMs: Date.parse("2026-08-21T12:00:30.000Z"),
       executePublication,
     });
     expect(result.mode).toBe("dry-run");
@@ -195,6 +197,7 @@ describe("SMM-B1.11-C worker dry-run and execute", () => {
         SOCIAL_SCHEDULING_ENABLED: "false",
         SOCIAL_PUBLISHING_ENABLED: "true",
       },
+      nowMs: Date.parse("2026-08-21T12:00:30.000Z"),
       executePublication,
     });
     expect(result.mode).toBe("dry-run");
@@ -251,7 +254,25 @@ describe("SMM-B1.11-C worker dry-run and execute", () => {
       due_at: "2026-08-21T11:00:00.000Z",
       seconds_late: 3601,
     };
-    const rpc = vi.fn().mockResolvedValue({ data: [stale], error: null });
+    const rpc = vi.fn().mockImplementation(async (fn: string) => {
+      if (fn === "scheduler_list_due_scheduled_social_publications") {
+        return { data: [stale], error: null };
+      }
+      if (fn === "scheduler_mark_scheduled_publication_missed") {
+        return {
+          data: [
+            {
+              result_code: "success",
+              publication_id: stale.publication_id,
+              attention_item_id: "55555555-5555-4555-8555-555555555555",
+              attention_created: true,
+            },
+          ],
+          error: null,
+        };
+      }
+      return { data: null, error: { message: `unexpected ${fn}` } };
+    });
     const executePublication = vi.fn();
     const result = await runSocialPublicationScheduler({
       supabase: mockSupabase(rpc),
@@ -263,9 +284,17 @@ describe("SMM-B1.11-C worker dry-run and execute", () => {
       executePublication,
     });
     expect(result.dueStale).toBe(1);
+    expect(result.missedMarked).toBe(1);
+    expect(result.attentionUpserted).toBe(1);
     expect(result.skipReasons.missed_window).toBe(1);
     expect(executePublication).not.toHaveBeenCalled();
     expect(result.providerWriteAttempted).toBe(false);
+    expect(rpc).toHaveBeenCalledWith(
+      "scheduler_mark_scheduled_publication_missed",
+      expect.objectContaining({
+        p_publication_id: stale.publication_id,
+      }),
+    );
   });
 
   it("counts a second worker skip when start loses the claim", async () => {

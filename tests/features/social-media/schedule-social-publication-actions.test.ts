@@ -239,6 +239,108 @@ describe("SMM-B1.11-A schedule actions", () => {
     expect(rpc).not.toHaveBeenCalled();
   });
 
+  it("Owner reschedules a missed publication through the narrow recovery RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: [
+        {
+          result_code: "success",
+          publication_id: PUB,
+          intended_execute_at: FUTURE,
+          next_attempt_at: FUTURE,
+          execution_mode: "scheduled",
+          variant_version_id: VERSION,
+          connection_id: CONNECTION,
+        },
+      ],
+      error: null,
+    });
+    createSupabaseServerClient.mockResolvedValue({ rpc });
+    mockOrg("owner");
+
+    const { rescheduleMissedSocialPublicationAction } = await import(
+      "@/features/social-media/actions/schedule-social-publication-actions"
+    );
+    const result = await rescheduleMissedSocialPublicationAction({
+      organizationId: ORG,
+      publicationId: PUB,
+      intendedExecuteAt: FUTURE,
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.publicationId).toBe(PUB);
+      expect(result.intendedExecuteAt).toBe(FUTURE);
+    }
+    expect(rpc).toHaveBeenCalledWith(
+      "reschedule_missed_social_publication",
+      expect.objectContaining({
+        p_organization_id: ORG,
+        p_publication_id: PUB,
+        p_intended_execute_at: FUTURE,
+      }),
+    );
+  });
+
+  it("denies Staff and Viewer missed recovery before RPC", async () => {
+    const rpc = vi.fn();
+    createSupabaseServerClient.mockResolvedValue({ rpc });
+    const {
+      rescheduleMissedSocialPublicationAction,
+      cancelMissedSocialPublicationAction,
+    } = await import(
+      "@/features/social-media/actions/schedule-social-publication-actions"
+    );
+
+    mockOrg("staff");
+    expect(
+      await rescheduleMissedSocialPublicationAction({
+        organizationId: ORG,
+        publicationId: PUB,
+        intendedExecuteAt: FUTURE,
+      }),
+    ).toEqual({ ok: false, code: "forbidden" });
+    expect(
+      await cancelMissedSocialPublicationAction({
+        organizationId: ORG,
+        publicationId: PUB,
+      }),
+    ).toEqual({ ok: false, code: "forbidden" });
+
+    mockOrg("viewer");
+    expect(
+      await rescheduleMissedSocialPublicationAction({
+        organizationId: ORG,
+        publicationId: PUB,
+        intendedExecuteAt: FUTURE,
+      }),
+    ).toEqual({ ok: false, code: "forbidden" });
+    expect(
+      await cancelMissedSocialPublicationAction({
+        organizationId: ORG,
+        publicationId: PUB,
+      }),
+    ).toEqual({ ok: false, code: "forbidden" });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("rejects foreign org missed recovery without calling RPC", async () => {
+    const rpc = vi.fn();
+    createSupabaseServerClient.mockResolvedValue({ rpc });
+    resolveOrganizationContext.mockResolvedValue({
+      ok: false,
+      error: { code: "ORG_ACCESS_DENIED" },
+    });
+    const { rescheduleMissedSocialPublicationAction } = await import(
+      "@/features/social-media/actions/schedule-social-publication-actions"
+    );
+    const result = await rescheduleMissedSocialPublicationAction({
+      organizationId: OTHER_ORG,
+      publicationId: PUB,
+      intendedExecuteAt: FUTURE,
+    });
+    expect(result).toEqual({ ok: false, code: "forbidden" });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
   it("does not enable SOCIAL_PUBLISHING_ENABLED or call Execute", () => {
     const action = readFileSync(
       join(

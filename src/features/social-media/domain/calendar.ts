@@ -31,6 +31,7 @@ export type SocialCalendarStatusKind =
   | "failed_retryable"
   | "failed_terminal"
   | "manual_intervention"
+  | "schedule_missed"
   | "unknown_external_outcome"
   | "cancelled"
   | "ready_to_schedule";
@@ -54,9 +55,11 @@ export type SocialCalendarItemView = {
   hasMedia: boolean;
   connectionDisplayName: string | null;
   accountLabel: string;
+  lastFailureClass: string | null;
   canSchedule: boolean;
   canReschedule: boolean;
   canCancel: boolean;
+  canRecoverMissed: boolean;
 };
 
 export type SocialCalendarEligiblePublication = {
@@ -80,6 +83,7 @@ export function resolveSocialCalendarStatusKind(input: {
   executionMode: string;
   intendedExecuteAt: string;
   now: Date;
+  lastFailureClass?: string | null;
 }): SocialCalendarStatusKind {
   if (input.status === "claimed") return "claimed";
   if (input.status === "processing") return "processing";
@@ -87,6 +91,9 @@ export function resolveSocialCalendarStatusKind(input: {
   if (input.status === "cancelled") return "cancelled";
   if (input.status === "failed_retryable") return "failed_retryable";
   if (input.status === "failed_terminal") return "failed_terminal";
+  if (input.status === "manual_intervention" && input.lastFailureClass === "schedule_missed") {
+    return "schedule_missed";
+  }
   if (input.status === "manual_intervention") return "manual_intervention";
   if (input.status === "unknown_external_outcome") {
     return "unknown_external_outcome";
@@ -121,6 +128,8 @@ export function socialCalendarStatusLabel(
       return "Failed";
     case "manual_intervention":
       return "Needs attention";
+    case "schedule_missed":
+      return "Missed";
     case "unknown_external_outcome":
       return "Unknown outcome";
     case "cancelled":
@@ -266,6 +275,7 @@ export function projectPublicationToCalendarItem(input: {
   timeZone: string;
   now: Date;
   role: OrganizationRole | string | null | undefined;
+  lastFailureClass?: string | null;
 }): SocialCalendarItemView | null {
   if (input.executionMode !== "scheduled") {
     return null;
@@ -290,7 +300,12 @@ export function projectPublicationToCalendarItem(input: {
     executionMode: input.executionMode,
     intendedExecuteAt: input.intendedExecuteAt,
     now: input.now,
+    lastFailureClass: input.lastFailureClass,
   });
+  const canRecoverMissed =
+    canScheduleSocialPublication(input.role, "active") &&
+    input.status === "manual_intervention" &&
+    input.lastFailureClass === "schedule_missed";
   const accountLabel =
     input.connectionDisplayName?.trim() ||
     `${providerDisplayLabel(input.provider)} account`;
@@ -317,9 +332,11 @@ export function projectPublicationToCalendarItem(input: {
     hasMedia: input.hasMedia,
     connectionDisplayName: input.connectionDisplayName,
     accountLabel,
+    lastFailureClass: input.lastFailureClass ?? null,
     canSchedule: flags.canSchedule,
     canReschedule: flags.canReschedule,
     canCancel: flags.canCancel,
+    canRecoverMissed,
   };
 }
 

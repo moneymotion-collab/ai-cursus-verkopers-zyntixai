@@ -128,7 +128,7 @@ function requireFutureInstant(
 
 async function callScheduleRpc(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
-  fn: "schedule_social_publication" | "reschedule_social_publication",
+  fn: "schedule_social_publication" | "reschedule_social_publication" | "reschedule_missed_social_publication",
   organizationId: string,
   publicationId: string,
   intendedExecuteAtIso: string,
@@ -227,6 +227,73 @@ export async function rescheduleSocialPublicationAction(input: {
     publicationId,
     instant.iso,
   );
+}
+
+export async function rescheduleMissedSocialPublicationAction(input: {
+  organizationId: string;
+  publicationId: string;
+  intendedExecuteAt: string;
+}): Promise<ScheduleSocialPublicationActionResult> {
+  const gate = await assertOwnerAdminScheduler(input.organizationId);
+  if (!gate.ok) return gate;
+  const publicationId = input.publicationId?.trim();
+  if (!publicationId) {
+    return { ok: false, code: "invalid_request" };
+  }
+  const instant = requireFutureInstant(input.intendedExecuteAt);
+  if (!instant.ok) return instant;
+  return callScheduleRpc(
+    gate.supabase,
+    "reschedule_missed_social_publication",
+    gate.organizationId,
+    publicationId,
+    instant.iso,
+  );
+}
+
+export async function cancelMissedSocialPublicationAction(input: {
+  organizationId: string;
+  publicationId: string;
+}): Promise<CancelScheduledSocialPublicationActionResult> {
+  const gate = await assertOwnerAdminScheduler(input.organizationId);
+  if (!gate.ok) return gate;
+  const publicationId = input.publicationId?.trim();
+  if (!publicationId) {
+    return { ok: false, code: "invalid_request" };
+  }
+  try {
+    const { data, error } = await gate.supabase.rpc(
+      "cancel_missed_social_publication" as never,
+      {
+        p_organization_id: gate.organizationId,
+        p_publication_id: publicationId,
+      } as never,
+    );
+    if (error) {
+      return { ok: false, code: "internal_error" };
+    }
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row || typeof row !== "object") {
+      return { ok: false, code: "internal_error" };
+    }
+    const record = row as Record<string, unknown>;
+    const resultCode =
+      typeof record.result_code === "string" ? record.result_code : null;
+    if (resultCode !== "success") {
+      return { ok: false, code: mapRpcFailure(resultCode) };
+    }
+    return {
+      ok: true,
+      resultCode: "success",
+      publicationId:
+        typeof record.publication_id === "string"
+          ? record.publication_id
+          : publicationId,
+      status: typeof record.status === "string" ? record.status : null,
+    };
+  } catch {
+    return { ok: false, code: "internal_error" };
+  }
 }
 
 export async function cancelScheduledSocialPublicationAction(input: {

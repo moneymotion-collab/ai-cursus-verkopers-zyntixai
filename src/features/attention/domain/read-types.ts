@@ -47,9 +47,9 @@ export type AttentionItemListItemReadModel = {
   organizationId: string;
   sourceType: AttentionSourceType;
   sourceEntityId: string;
-  enrollmentId: string;
-  customerId: string;
-  programId: string;
+  enrollmentId: string | null;
+  customerId: string | null;
+  programId: string | null;
   title: string;
   summary: string | null;
   status: AttentionItemStatus;
@@ -80,7 +80,7 @@ export type AttentionSignalReadModel = {
   id: string;
   organizationId: string;
   attentionItemId: string;
-  enrollmentId: string;
+  enrollmentId: string | null;
   signalOrigin: AttentionSignalOrigin;
   ruleKey: AttentionRuleKey | null;
   explanation: string;
@@ -114,9 +114,10 @@ export type AttentionItemDetailReadModel = {
   organizationId: string;
   sourceType: AttentionSourceType;
   sourceEntityId: string;
-  enrollmentId: string;
-  customerId: string;
-  programId: string;
+  enrollmentId: string | null;
+  customerId: string | null;
+  programId: string | null;
+  socialActionHref?: string | null;
   title: string;
   summary: string | null;
   status: AttentionItemStatus;

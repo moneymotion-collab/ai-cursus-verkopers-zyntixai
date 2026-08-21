@@ -293,7 +293,7 @@ async function loadAttentionItemGate(
     return { ok: false, error: attentionItemUnavailableError() };
   }
 
-  const row = data as AttentionItemDetailRow;
+  const row = data as unknown as AttentionItemDetailRow;
   if (!isAttentionItemStatus(row.status)) {
     return {
       ok: false,
@@ -364,9 +364,13 @@ export async function listAttentionItems(
     return { ok: false, error: normalizeAttentionError(error) };
   }
 
-  const rows = (data ?? []) as AttentionItemListRow[];
-  const customerIds = [...new Set(rows.map((row) => row.customer_id))];
-  const programIds = [...new Set(rows.map((row) => row.program_id))];
+  const rows = (data ?? []) as unknown as AttentionItemListRow[];
+  const customerIds = [
+    ...new Set(rows.map((row) => row.customer_id).filter((id): id is string => Boolean(id))),
+  ];
+  const programIds = [
+    ...new Set(rows.map((row) => row.program_id).filter((id): id is string => Boolean(id))),
+  ];
   const [customerLabels, programLabels] = await Promise.all([
     loadCustomerLabels(params.supabase, params.organizationId, customerIds),
     loadProgramLabels(params.supabase, params.organizationId, programIds),
@@ -410,24 +414,30 @@ export async function getAttentionItemById(
 
   const [enrollmentResult, customerResult, programResult, signalsResult, eventsResult] =
     await Promise.all([
-      params.supabase
-        .from("enrollments")
-        .select(ATTENTION_ENROLLMENT_SUMMARY_SELECT_COLUMNS)
-        .eq("organization_id", params.organizationId)
-        .eq("id", row.enrollment_id)
-        .maybeSingle(),
-      params.supabase
-        .from("customers")
-        .select(ATTENTION_CUSTOMER_SUMMARY_SELECT_COLUMNS)
-        .eq("organization_id", params.organizationId)
-        .eq("id", row.customer_id)
-        .maybeSingle(),
-      params.supabase
-        .from("programs")
-        .select(ATTENTION_PROGRAM_SUMMARY_SELECT_COLUMNS)
-        .eq("organization_id", params.organizationId)
-        .eq("id", row.program_id)
-        .maybeSingle(),
+      row.enrollment_id
+        ? params.supabase
+            .from("enrollments")
+            .select(ATTENTION_ENROLLMENT_SUMMARY_SELECT_COLUMNS)
+            .eq("organization_id", params.organizationId)
+            .eq("id", row.enrollment_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      row.customer_id
+        ? params.supabase
+            .from("customers")
+            .select(ATTENTION_CUSTOMER_SUMMARY_SELECT_COLUMNS)
+            .eq("organization_id", params.organizationId)
+            .eq("id", row.customer_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      row.program_id
+        ? params.supabase
+            .from("programs")
+            .select(ATTENTION_PROGRAM_SUMMARY_SELECT_COLUMNS)
+            .eq("organization_id", params.organizationId)
+            .eq("id", row.program_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
       params.supabase
         .from("attention_signals")
         .select(ATTENTION_SIGNAL_SELECT_COLUMNS)

@@ -62,6 +62,14 @@ export function resolveAttentionCustomerLabel(
   return trimmed && trimmed.length > 0 ? trimmed : "Unknown customer";
 }
 
+export function resolveSocialAttentionSourceLabel(
+  sourceType: string | null | undefined,
+): string {
+  if (sourceType === "social_publication") return "Instagram publication";
+  if (sourceType === "social_connection") return "Instagram account";
+  return "Social";
+}
+
 export function resolveAttentionProgramLabel(
   name: string | null | undefined,
 ): string {
@@ -140,8 +148,14 @@ export function toAttentionListItemPresentation(
     titleLabel: resolveAttentionTitleLabel(item.title),
     statusLabel: resolveAttentionStatusLabel(item.status),
     severityLabel: resolveAttentionSeverityLabel(item.severity),
-    customerLabel: resolveAttentionCustomerLabel(item.customerDisplayName),
-    programLabel: resolveAttentionProgramLabel(item.programName),
+    customerLabel:
+      item.sourceType === "enrollment"
+        ? resolveAttentionCustomerLabel(item.customerDisplayName)
+        : resolveSocialAttentionSourceLabel(item.sourceType),
+    programLabel:
+      item.sourceType === "enrollment"
+        ? resolveAttentionProgramLabel(item.programName)
+        : "Social",
     assigneeLabel: resolveAttentionAssigneeLabel(
       item.assigneeDisplayName,
       item.assigneeMemberId,
@@ -193,12 +207,29 @@ export function resolveAttentionTypeLabelFromDetail(
   if (primarySignal?.ruleKey === "enrollment_no_recent_progress") {
     return "No recent progress";
   }
+  if (primarySignal?.ruleKey === "scheduled_publication_missed") {
+    return "Missed scheduled publication";
+  }
+  if (primarySignal?.ruleKey === "publication_result_unknown") {
+    return "Unknown publish result";
+  }
+  if (primarySignal?.ruleKey === "social_account_reauthorization_required") {
+    return "Account reconnection required";
+  }
+  if (primarySignal?.ruleKey === "provider_permission_missing") {
+    return "Publish permission missing";
+  }
+  if (primarySignal?.ruleKey === "scheduled_publication_failed") {
+    return "Scheduled publication failed";
+  }
   if (primarySignal?.signalOrigin === "manual") {
     return "Manual signal";
   }
   if (primarySignal?.signalOrigin === "rule") {
     return "Rule signal";
   }
+  if (item.sourceType === "social_publication") return "Instagram publication";
+  if (item.sourceType === "social_connection") return "Instagram account";
   return item.sourceType === "enrollment" ? "Enrollment" : "Attention";
 }
 
@@ -220,8 +251,14 @@ export function toAttentionDetailPresentation(
     statusLabel: resolveAttentionStatusLabel(item.status),
     severityLabel: resolveAttentionSeverityLabel(item.severity),
     attentionTypeLabel: resolveAttentionTypeLabelFromDetail(item),
-    customerLabel: resolveAttentionCustomerLabel(customerName),
-    programLabel: resolveAttentionProgramLabel(programName),
+    customerLabel:
+      item.sourceType === "enrollment"
+        ? resolveAttentionCustomerLabel(customerName)
+        : resolveSocialAttentionSourceLabel(item.sourceType),
+    programLabel:
+      item.sourceType === "enrollment"
+        ? resolveAttentionProgramLabel(programName)
+        : "Social",
     enrollmentStatusLabel: enrollmentStatus
       ? enrollmentStatus.charAt(0).toUpperCase() + enrollmentStatus.slice(1)
       : null,

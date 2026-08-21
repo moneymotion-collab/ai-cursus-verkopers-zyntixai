@@ -84,6 +84,21 @@ function resolveAttentionTypeLabel(
     if (item.primaryRuleKey === "enrollment_no_recent_progress") {
       return "No recent progress";
     }
+    if (item.primaryRuleKey === "scheduled_publication_missed") {
+      return "Missed scheduled publication";
+    }
+    if (item.primaryRuleKey === "publication_result_unknown") {
+      return "Unknown publish result";
+    }
+    if (item.primaryRuleKey === "social_account_reauthorization_required") {
+      return "Account reconnection required";
+    }
+    if (item.primaryRuleKey === "provider_permission_missing") {
+      return "Publish permission missing";
+    }
+    if (item.primaryRuleKey === "scheduled_publication_failed") {
+      return "Scheduled publication failed";
+    }
     return item.primaryRuleKey;
   }
   if (item.primarySignalOrigin && isAttentionSignalOrigin(item.primarySignalOrigin)) {

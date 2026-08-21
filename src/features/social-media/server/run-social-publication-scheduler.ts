@@ -17,6 +17,7 @@ import {
   isMissedBeyondSchedulerGrace,
   resolveSocialSchedulerMode,
   socialSchedulerAllowsClaim,
+  socialSchedulerAllowsMissedMutation,
   type SocialSchedulerDueRow,
   type SocialSchedulerSafeSummary,
   type SocialSchedulerSkipReason,
@@ -32,6 +33,54 @@ type RpcCapableClient = {
     error: { message?: string; code?: string } | null;
   }>;
 };
+
+async function markScheduledPublicationMissed(
+  supabase: SupabaseClient<Database>,
+  organizationId: string,
+  publicationId: string,
+): Promise<{ ok: boolean; attentionUpserted: boolean }> {
+  const client = supabase as unknown as RpcCapableClient;
+  const { data, error } = await client.rpc(
+    "scheduler_mark_scheduled_publication_missed",
+    {
+      p_organization_id: organizationId,
+      p_publication_id: publicationId,
+    },
+  );
+  if (error) {
+    return { ok: false, attentionUpserted: false };
+  }
+  const row = firstRow(data);
+  const code = asString(row?.result_code);
+  const attentionId = asString(row?.attention_item_id);
+  return {
+    ok: code === "success" || code === "already_missed",
+    attentionUpserted: Boolean(attentionId),
+  };
+}
+
+async function upsertInterventionAttention(
+  supabase: SupabaseClient<Database>,
+  organizationId: string,
+  publicationId: string,
+  hintCode: string,
+): Promise<boolean> {
+  const client = supabase as unknown as RpcCapableClient;
+  const { data, error } = await client.rpc(
+    "scheduler_upsert_social_intervention_attention",
+    {
+      p_organization_id: organizationId,
+      p_publication_id: publicationId,
+      p_hint_code: hintCode,
+    },
+  );
+  if (error) {
+    return false;
+  }
+  const row = firstRow(data);
+  const code = asString(row?.result_code);
+  return code === "success";
+}
 
 function firstRow(data: unknown): Record<string, unknown> | null {
   const candidate = Array.isArray(data) ? data[0] : data;
@@ -170,20 +219,58 @@ export async function runSocialPublicationScheduler(input: {
         isMissedBeyondSchedulerGrace({ nowMs, dueAtMs })
       ) {
         summary.dueStale += 1;
+      } else {
+        summary.dueWithinGrace += 1;
       }
     }
 
     logScheduler("social_scheduler_due_discovered", {
       invocationId,
       dueDiscovered: summary.dueDiscovered,
+      dueWithinGrace: summary.dueWithinGrace,
       dueStale: summary.dueStale,
     });
 
+    const allowMissed = socialSchedulerAllowsMissedMutation({
+      schedulingEnabled,
+    });
     const allowClaim = socialSchedulerAllowsClaim({
       mode,
       schedulingEnabled,
       publishingEnabled,
     });
+
+    const markedIds = new Set<string>();
+    if (allowMissed) {
+      for (const row of due) {
+        const dueAtMs = row.dueAt ? Date.parse(row.dueAt) : Number.NaN;
+        if (
+          !Number.isFinite(dueAtMs) ||
+          !isMissedBeyondSchedulerGrace({ nowMs, dueAtMs })
+        ) {
+          continue;
+        }
+        const marked = await markScheduledPublicationMissed(
+          input.supabase,
+          row.organizationId,
+          row.publicationId,
+        );
+        if (marked.ok) {
+          markedIds.add(row.publicationId);
+          summary.missedMarked += 1;
+          incrementSkip(summary, "missed_window");
+          if (marked.attentionUpserted) {
+            summary.attentionUpserted += 1;
+          }
+          logScheduler("social_scheduler_missed_marked", {
+            invocationId,
+            publicationId: row.publicationId,
+          });
+        } else {
+          incrementSkip(summary, "missed_window");
+        }
+      }
+    }
 
     if (!allowClaim) {
       summary.durationMs = Date.now() - started;
@@ -191,6 +278,8 @@ export async function runSocialPublicationScheduler(input: {
         invocationId,
         mode,
         claimed: 0,
+        missedMarked: summary.missedMarked,
+        attentionUpserted: summary.attentionUpserted,
         providerWriteAttempted: false,
         durationMs: summary.durationMs,
       });
@@ -201,6 +290,9 @@ export async function runSocialPublicationScheduler(input: {
       input.executePublication ?? executeScheduledSocialPublication;
     const batch = due.slice(0, SOCIAL_SCHEDULER_EXECUTE_BATCH_LIMIT);
     for (const row of batch) {
+      if (markedIds.has(row.publicationId)) {
+        continue;
+      }
       const dueAtMs = row.dueAt ? Date.parse(row.dueAt) : Number.NaN;
       if (
         Number.isFinite(dueAtMs) &&
@@ -236,6 +328,22 @@ export async function runSocialPublicationScheduler(input: {
           } else {
             incrementSkip(summary, classified);
           }
+          if (
+            result.reason === "capability_missing" ||
+            result.reason === "connection_ineligible" ||
+            result.reason === "credential_unavailable" ||
+            result.reason === "format_unsupported"
+          ) {
+            const upserted = await upsertInterventionAttention(
+              input.supabase,
+              row.organizationId,
+              row.publicationId,
+              result.reason,
+            );
+            if (upserted) {
+              summary.attentionUpserted += 1;
+            }
+          }
         }
         if ("providerWriteAttempted" in result && result.providerWriteAttempted) {
           summary.providerWriteAttempted = true;
@@ -258,8 +366,26 @@ export async function runSocialPublicationScheduler(input: {
         summary.retryable += 1;
       } else if (result.outcome === "unknown_external_outcome") {
         summary.unknownOutcome += 1;
+        const upserted = await upsertInterventionAttention(
+          input.supabase,
+          row.organizationId,
+          row.publicationId,
+          "unknown_external_outcome",
+        );
+        if (upserted) {
+          summary.attentionUpserted += 1;
+        }
       } else {
         summary.terminal += 1;
+        const upserted = await upsertInterventionAttention(
+          input.supabase,
+          row.organizationId,
+          row.publicationId,
+          "failed_terminal",
+        );
+        if (upserted) {
+          summary.attentionUpserted += 1;
+        }
       }
       logScheduler("social_scheduler_result", {
         invocationId,
@@ -282,6 +408,8 @@ export async function runSocialPublicationScheduler(input: {
     invocationId,
     mode: summary.mode,
     claimed: summary.claimed,
+    missedMarked: summary.missedMarked,
+    attentionUpserted: summary.attentionUpserted,
     providerWriteAttempted: summary.providerWriteAttempted,
     durationMs: summary.durationMs,
   });

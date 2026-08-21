@@ -193,6 +193,7 @@ describe("attention signal and source types", () => {
     expect([...ATTENTION_SIGNAL_ORIGINS]).toEqual(["manual", "rule"]);
     expect(isAttentionSignalOrigin("ai")).toBe(false);
     expect(isAttentionRuleKey(ENROLLMENT_NO_RECENT_PROGRESS_RULE_KEY)).toBe(true);
+    expect(isAttentionRuleKey("scheduled_publication_missed")).toBe(true);
     expect(isAttentionRuleKey("other_rule")).toBe(false);
     expect(ATTENTION_PRIMARY_SOURCE_TYPE).toBe("enrollment");
     expect(validateAttentionSignalOriginValue("manual").ok).toBe(true);

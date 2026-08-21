@@ -512,6 +512,7 @@ export {
   resolveSocialSchedulerMode,
   socialSchedulerAllowsClaim,
   socialSchedulerAllowsProviderWrite,
+  socialSchedulerAllowsMissedMutation,
   isDueScheduledClock,
   isMissedBeyondSchedulerGrace,
   authorizeSocialSchedulerCronRequest,

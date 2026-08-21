@@ -45,6 +45,7 @@ type PublicationRow = {
   connectionId: string;
   attemptCount: number;
   hasExternalPublicationId: boolean;
+  lastFailureClass: string | null;
   operatorAction: string;
   actionBlockedReason: string | null;
   attempts: AttemptRow[];
@@ -202,7 +203,11 @@ export function B19LifecyclePanel({
             {publications.map((publication) => (
               <li key={publication.id} className={styles.card}>
                 <p>
-                  {publication.contentFormat ?? "format?"} · {publication.status} ·
+                  {publication.contentFormat ?? "format?"} · {publication.status}
+                  {publication.lastFailureClass === "schedule_missed"
+                    ? " · missed schedule (not posted automatically)"
+                    : ""}{" "}
+                  ·
                   attempts {publication.attemptCount} · external id{" "}
                   {publication.hasExternalPublicationId ? "present" : "absent"}
                 </p>

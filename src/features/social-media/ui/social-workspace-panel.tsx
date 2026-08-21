@@ -49,6 +49,7 @@ type PublicationRow = {
   connectionId: string;
   attemptCount: number;
   hasExternalPublicationId: boolean;
+  lastFailureClass: string | null;
   operatorAction: string;
   actionBlockedReason: string | null;
   isHistoricalLeftover: boolean;

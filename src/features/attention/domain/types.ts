@@ -7,11 +7,20 @@ export type AttentionItemStatus =
 
 export type AttentionSeverity = "low" | "medium" | "high" | "critical";
 
-export type AttentionSourceType = "enrollment";
+export type AttentionSourceType =
+  | "enrollment"
+  | "social_publication"
+  | "social_connection";
 
 export type AttentionSignalOrigin = "manual" | "rule";
 
-export type AttentionRuleKey = "enrollment_no_recent_progress";
+export type AttentionRuleKey =
+  | "enrollment_no_recent_progress"
+  | "scheduled_publication_missed"
+  | "publication_result_unknown"
+  | "social_account_reauthorization_required"
+  | "provider_permission_missing"
+  | "scheduled_publication_failed";
 
 export type AttentionEventType =
   | "created"

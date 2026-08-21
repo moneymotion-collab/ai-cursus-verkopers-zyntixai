@@ -81,6 +81,12 @@ export function socialSchedulerAllowsProviderWrite(input: {
   return socialSchedulerAllowsClaim(input);
 }
 
+export function socialSchedulerAllowsMissedMutation(input: {
+  schedulingEnabled: string | undefined | null;
+}): boolean {
+  return parseSocialSchedulingEnabled(input.schedulingEnabled);
+}
+
 export const SOCIAL_SCHEDULER_DUE_ELIGIBLE_STATUSES = [
   "pending",
   "queued",
@@ -211,6 +217,9 @@ export type SocialSchedulerSafeSummary = {
   publishingEnabled: boolean;
   dueDiscovered: number;
   dueStale: number;
+  dueWithinGrace: number;
+  missedMarked: number;
+  attentionUpserted: number;
   claimed: number;
   skipped: number;
   succeeded: number;
@@ -236,6 +245,9 @@ export function createEmptySocialSchedulerSummary(input: {
     publishingEnabled: input.publishingEnabled,
     dueDiscovered: 0,
     dueStale: 0,
+    dueWithinGrace: 0,
+    missedMarked: 0,
+    attentionUpserted: 0,
     claimed: 0,
     skipped: 0,
     succeeded: 0,

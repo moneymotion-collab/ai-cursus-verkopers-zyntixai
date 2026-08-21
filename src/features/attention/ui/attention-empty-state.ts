@@ -38,6 +38,6 @@ export function resolveAttentionEmptyState(
   return {
     title: "No attention items yet",
     description:
-      "When Attention items are detected for enrollments in this organization, they appear here.",
+      "When Attention items are detected for enrollments or Social operations in this organization, they appear here.",
   };
 }

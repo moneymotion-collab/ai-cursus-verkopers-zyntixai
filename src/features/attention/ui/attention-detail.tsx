@@ -74,6 +74,7 @@ export function AttentionDetail({
     customerHref,
     programHref,
     enrollmentHref,
+    socialHref,
     backHref,
     organizationTimezone,
     assigneeMemberId,
@@ -225,6 +226,16 @@ export function AttentionDetail({
           aria-labelledby="attention-context-heading"
         >
           <h2 id="attention-context-heading">Related context</h2>
+          {socialHref ? (
+            <dl className={styles.metaGrid}>
+              <div>
+                <dt>Social</dt>
+                <dd>
+                  <a href={socialHref}>{detail.customerLabel}</a>
+                </dd>
+              </div>
+            </dl>
+          ) : (
           <dl className={styles.metaGrid}>
             <div>
               <dt>Customer</dt>
@@ -257,6 +268,7 @@ export function AttentionDetail({
               </dd>
             </div>
           </dl>
+          )}
         </section>
       </div>
 

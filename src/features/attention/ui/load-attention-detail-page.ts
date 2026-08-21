@@ -26,6 +26,7 @@ import {
   parseAttentionListReturnState,
   type AttentionListUrlState,
 } from "@/features/attention/ui/attention-list-search-params";
+import { buildSocialWorkspaceHref } from "@/features/social-media/domain/social-navigation";
 import {
   toAttentionDetailPresentation,
   toAttentionSafeErrorPresentation,
@@ -48,6 +49,7 @@ export type AttentionDetailViewModel = {
   customerHref: string | null;
   programHref: string | null;
   enrollmentHref: string | null;
+  socialHref?: string | null;
   backHref: string;
   organizationTimezone: string;
   assigneeMemberId: string | null;
@@ -275,6 +277,19 @@ export async function loadAttentionDetailPage(
       enrollmentHref: item.enrollment
         ? `/enrollments/${item.enrollment.id}?org=${encodeURIComponent(orgResult.organizationId)}`
         : null,
+      socialHref:
+        item.sourceType === "social_connection"
+          ? buildSocialWorkspaceHref({
+              organizationId: orgResult.organizationId,
+              section: "accounts",
+            })
+          : item.sourceType === "social_publication"
+            ? buildSocialWorkspaceHref({
+                organizationId: orgResult.organizationId,
+                section: "activity",
+                publicationId: item.sourceEntityId,
+              })
+            : null,
       backHref,
       organizationTimezone: orgResult.timezone,
       assigneeMemberId: item.assigneeMemberId,

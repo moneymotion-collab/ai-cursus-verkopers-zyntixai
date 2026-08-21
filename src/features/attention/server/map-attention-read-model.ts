@@ -5,7 +5,7 @@ import {
   isAttentionEventType,
 } from "@/features/attention/domain/events";
 import { utcCalendarDaysBetween } from "@/features/attention/domain/eligibility";
-import { ATTENTION_PRIMARY_SOURCE_TYPE } from "@/features/attention/domain/source";
+import { ATTENTION_PRIMARY_SOURCE_TYPE, isAttentionSourceType } from "@/features/attention/domain/source";
 import {
   isAttentionItemStatus,
   isTerminalAttentionStatus,
@@ -56,7 +56,10 @@ export type AttentionItemListRow = Pick<
   | "archived_at"
   | "created_at"
   | "updated_at"
->;
+> & {
+  source_type?: string | null;
+  source_entity_id?: string | null;
+};
 
 export type AttentionItemDetailRow = Pick<
   Tables<"attention_items">,
@@ -85,7 +88,10 @@ export type AttentionItemDetailRow = Pick<
   | "updated_by_member_id"
   | "created_at"
   | "updated_at"
->;
+> & {
+  source_type?: string | null;
+  source_entity_id?: string | null;
+};
 
 export type AttentionSignalRow = Pick<
   Tables<"attention_signals">,
@@ -237,6 +243,21 @@ function sanitizeEventPayload(payload: Json): Record<string, unknown> | null {
   return Object.keys(safe).length > 0 ? safe : null;
 }
 
+function resolveAttentionSource(row: {
+  source_type?: string | null;
+  source_entity_id?: string | null;
+  enrollment_id: string | null;
+}): { sourceType: "enrollment" | "social_publication" | "social_connection"; sourceEntityId: string } {
+  const sourceType = isAttentionSourceType(row.source_type ?? "")
+    ? row.source_type
+    : ATTENTION_PRIMARY_SOURCE_TYPE;
+  const sourceEntityId = row.source_entity_id ?? row.enrollment_id;
+  return {
+    sourceType: sourceType as "enrollment" | "social_publication" | "social_connection",
+    sourceEntityId: sourceEntityId ?? "",
+  };
+}
+
 export function mapAttentionEnrollmentSummary(
   row: AttentionEnrollmentSummaryRow,
 ): AttentionEnrollmentSummary {
@@ -291,13 +312,15 @@ export function mapAttentionItemListItem(
     return severity;
   }
 
+  const source = resolveAttentionSource(row);
+
   return {
     ok: true,
     data: {
       id: row.id,
       organizationId: row.organization_id,
-      sourceType: ATTENTION_PRIMARY_SOURCE_TYPE,
-      sourceEntityId: row.enrollment_id,
+      sourceType: source.sourceType,
+      sourceEntityId: source.sourceEntityId,
       enrollmentId: row.enrollment_id,
       customerId: row.customer_id,
       programId: row.program_id,
@@ -547,16 +570,19 @@ export function mapAttentionItemDetail(
     return severity;
   }
 
+  const source = resolveAttentionSource(row);
+
   return {
     ok: true,
     data: {
       id: row.id,
       organizationId: row.organization_id,
-      sourceType: ATTENTION_PRIMARY_SOURCE_TYPE,
-      sourceEntityId: row.enrollment_id,
+      sourceType: source.sourceType,
+      sourceEntityId: source.sourceEntityId,
       enrollmentId: row.enrollment_id,
       customerId: row.customer_id,
       programId: row.program_id,
+      socialActionHref: null,
       title: row.title,
       summary: row.summary,
       status: status.data,

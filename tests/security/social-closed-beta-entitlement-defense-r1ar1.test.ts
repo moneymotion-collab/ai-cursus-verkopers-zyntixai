@@ -125,7 +125,7 @@ describe("SMM-R1-A-R1 entitlement defense-in-depth", () => {
       "20260821114627_add_social_publication_scheduling_domain.sql",
     );
     expect(social.at(-1)).toContain(
-      "add_social_scheduler_worker_domain",
+      "add_social_attention_missed_window_domain",
     );
   });
 });
