@@ -2,11 +2,16 @@ import { describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
+  SOCIAL_SCHEDULER_CANONICAL_ORIGIN,
   SOCIAL_SCHEDULER_CRON_PATH,
   SOCIAL_SCHEDULER_CRON_SCHEDULE,
+  SOCIAL_SCHEDULER_CRON_SCHEDULE_TARGET,
   SOCIAL_SCHEDULER_DISCOVERY_LIMIT,
   SOCIAL_SCHEDULER_EXECUTE_BATCH_LIMIT,
   SOCIAL_SCHEDULER_MAX_DURATION_SECONDS,
+  SOCIAL_SCHEDULER_SUPABASE_CRON_JOB_NAME,
+  SOCIAL_SCHEDULER_SUPABASE_TRIGGER_FUNCTION,
+  SOCIAL_SCHEDULER_VAULT_SECRET_NAME,
   authorizeSocialSchedulerCronRequest,
   isDueScheduledClock,
   isMissedBeyondSchedulerGrace,
@@ -473,5 +478,21 @@ describe("SMM-B1.11-C route and cron static contracts", () => {
     expect(execute).toContain("createInstagramPublishingAdapter");
     expect(execute).toContain("scheduler_start_scheduled_publication_attempt");
     expect(execute).not.toContain("b18_start_controlled_publication_attempt");
+  });
+
+  it("keeps the 15-minute miss policy while naming the Supabase 5-minute timer", () => {
+    expect(SOCIAL_SCHEDULE_MISS_GRACE_SECONDS).toBe(900);
+    expect(SOCIAL_SCHEDULER_CRON_SCHEDULE_TARGET).toBe("*/5 * * * *");
+    expect(SOCIAL_SCHEDULER_SUPABASE_CRON_JOB_NAME).toBe(
+      "zyntixai_social_publication_scheduler_5m",
+    );
+    expect(SOCIAL_SCHEDULER_SUPABASE_TRIGGER_FUNCTION).toBe(
+      "private.invoke_social_publication_scheduler",
+    );
+    expect(SOCIAL_SCHEDULER_VAULT_SECRET_NAME).toBe(
+      "zyntixai_social_scheduler_cron_secret",
+    );
+    expect(SOCIAL_SCHEDULER_CANONICAL_ORIGIN).toBe("https://www.zyntixai.com");
+    expect(SOCIAL_SCHEDULER_EXECUTE_BATCH_LIMIT).toBe(1);
   });
 });

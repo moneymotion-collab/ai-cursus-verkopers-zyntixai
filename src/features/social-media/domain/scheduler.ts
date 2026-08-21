@@ -20,8 +20,23 @@ export const SOCIAL_SCHEDULER_CRON_SCHEDULE_TARGET = "*/5 * * * *";
 /** Deployed cadence under the current Vercel Hobby plan (once per day, 00:00 UTC). */
 export const SOCIAL_SCHEDULER_CRON_SCHEDULE = "0 0 * * *";
 
+/** Canonical worker origin. Supabase Cron may only invoke this host. */
+export const SOCIAL_SCHEDULER_CANONICAL_ORIGIN = "https://www.zyntixai.com";
+
+/** Private Postgres timer function. No URL/org/publication/secret parameters. */
+export const SOCIAL_SCHEDULER_SUPABASE_TRIGGER_FUNCTION =
+  "private.invoke_social_publication_scheduler";
+
+/** Named pg_cron job. Command must only call the private trigger function. */
+export const SOCIAL_SCHEDULER_SUPABASE_CRON_JOB_NAME =
+  "zyntixai_social_publication_scheduler_5m";
+
+/** Vault secret name for the existing Vercel CRON_SECRET. Never store the value in Git. */
+export const SOCIAL_SCHEDULER_VAULT_SECRET_NAME =
+  "zyntixai_social_scheduler_cron_secret";
+
 export const SOCIAL_SCHEDULER_CRON_CADENCE_EXPLANATION =
-  "Target is every 5 minutes (three ticks inside the locked 15-minute miss grace owned by B1.11-D). Current Production is on the Vercel Hobby plan, which allows only daily Cron Jobs, so the deployed expression is 0 0 * * * (00:00 UTC) until the project is upgraded to Pro. Timing remains UTC due instant + later grace, not an exact cron second. Authorized dry-run HTTP invocation of the same route does not wait for the daily tick.";
+  "Target is every 5 minutes (three ticks inside the locked 15-minute miss grace owned by B1.11-D). Native Vercel Cron on Hobby remains 0 0 * * * during the SMM-B1.11-E-PR1 cutover. The intended Production timer is Supabase pg_cron */5 * * * * invoking the existing Vercel worker. Timing remains UTC due instant + later grace, not an exact cron second. Authorized dry-run HTTP invocation of the same route does not wait for a daily tick.";
 
 /** Route maxDuration target. Instagram container poll sleeps up to 240s plus HTTP. */
 export const SOCIAL_SCHEDULER_MAX_DURATION_SECONDS = 300;

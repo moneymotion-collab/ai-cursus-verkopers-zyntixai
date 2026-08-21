@@ -119,6 +119,7 @@ describe("SMM-B1.6 publishing migration security", () => {
       "20260821114627_add_social_publication_scheduling_domain.sql",
       "20260821123346_add_social_scheduler_worker_domain.sql",
       "20260821130449_add_social_attention_missed_window_domain.sql",
+      "20260821135320_add_social_publication_scheduler_pg_cron_trigger.sql",
     ]);
   });
 
