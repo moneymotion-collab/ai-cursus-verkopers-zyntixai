@@ -173,6 +173,7 @@ export type LoadedSocialCredentialEnvelope = {
 export async function loadEncryptedSocialProviderCredentialEnvelope(
   supabase: SupabaseClient<Database>,
   connectionId: string,
+  options?: { rpcName?: string },
 ): Promise<
   | { ok: true; envelope: LoadedSocialCredentialEnvelope }
   | { ok: false; reason: string }
@@ -180,7 +181,7 @@ export async function loadEncryptedSocialProviderCredentialEnvelope(
   const client = supabase as unknown as RpcCapableClient;
   try {
     const { data, error } = await client.rpc(
-      "load_social_provider_credential_envelope",
+      options?.rpcName ?? "load_social_provider_credential_envelope",
       { p_connection_id: connectionId },
     );
     if (error) {

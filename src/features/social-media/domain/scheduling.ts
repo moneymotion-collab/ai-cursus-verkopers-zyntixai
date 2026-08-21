@@ -6,11 +6,15 @@
 
 import type { SocialPublicationStatus } from "./publishing";
 
-/** Locked B1.11-D missed policy. B1.11-A records it only; does not execute it. */
+/**
+ * Locked 15-minute miss grace.
+ * B1.11-C may refuse obviously stale scheduled work instead of auto-publishing.
+ * B1.11-D owns missed classification, manual intervention, and Attention.
+ */
 export const SOCIAL_SCHEDULE_MISS_GRACE_SECONDS = 15 * 60;
 
 export const SOCIAL_SCHEDULE_MISS_POLICY =
-  "B1.11-D: scheduler may still execute up to 15 minutes late; later than 15 minutes must not auto-publish." as const;
+  "B1.11-D: scheduler may still execute up to 15 minutes late; later than 15 minutes must not auto-publish. B1.11-C safety-refuses beyond this grace without Attention." as const;
 
 /** Statuses that may receive schedule / reschedule / scheduled-cancel. */
 export const SOCIAL_PUBLICATION_SCHEDULE_ELIGIBLE_STATUSES = [

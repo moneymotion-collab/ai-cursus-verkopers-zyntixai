@@ -499,6 +499,33 @@ export {
 } from "@/features/social-media/domain/scheduling";
 
 export {
+  SOCIAL_SCHEDULING_ENABLED_ENV,
+  SOCIAL_SCHEDULER_CRON_PATH,
+  SOCIAL_SCHEDULER_CRON_SCHEDULE,
+  SOCIAL_SCHEDULER_CRON_SCHEDULE_TARGET,
+  SOCIAL_SCHEDULER_MAX_DURATION_SECONDS,
+  SOCIAL_SCHEDULER_CLAIM_LEASE_SECONDS,
+  SOCIAL_SCHEDULER_EXECUTE_BATCH_LIMIT,
+  SOCIAL_SCHEDULER_DISCOVERY_LIMIT,
+  SOCIAL_SCHEDULER_CRON_SECRET_ENV,
+  parseSocialSchedulingEnabled,
+  resolveSocialSchedulerMode,
+  socialSchedulerAllowsClaim,
+  socialSchedulerAllowsProviderWrite,
+  isDueScheduledClock,
+  isMissedBeyondSchedulerGrace,
+  authorizeSocialSchedulerCronRequest,
+  createEmptySocialSchedulerSummary,
+  classifySchedulerStartCode,
+} from "@/features/social-media/domain/scheduler";
+export type {
+  SocialSchedulerMode,
+  SocialSchedulerSafeSummary,
+  SocialSchedulerDueRow,
+  SocialSchedulerSkipReason,
+} from "@/features/social-media/domain/scheduler";
+
+export {
   SOCIAL_CALENDAR_AUTOMATIC_EXECUTION_ENABLED,
   resolveSocialCalendarStatusKind,
   socialCalendarStatusLabel,

@@ -67,8 +67,11 @@ describe("SMM-R1-B operator mutation wrapper migration security", () => {
     expect(social).toContain(
       "20260820120000_add_social_reauthorization_connected_finalize.sql",
     );
+    expect(social).toContain(
+      "20260821114627_add_social_publication_scheduling_domain.sql",
+    );
     expect(social.at(-1)).toContain(
-      "add_social_publication_scheduling_domain",
+      "add_social_scheduler_worker_domain",
     );
   });
 });

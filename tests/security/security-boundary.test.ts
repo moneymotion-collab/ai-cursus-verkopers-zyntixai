@@ -51,6 +51,13 @@ describe("security boundaries", () => {
         "server",
         "platform-operator-session.ts",
       ).replace(/\\/g, "/"),
+      join(
+        ROOT,
+        "features",
+        "social-media",
+        "server",
+        "scheduler-service-client.ts",
+      ).replace(/\\/g, "/"),
     ]);
 
     const offenders = collectSourceFiles(ROOT).filter((file) => {
