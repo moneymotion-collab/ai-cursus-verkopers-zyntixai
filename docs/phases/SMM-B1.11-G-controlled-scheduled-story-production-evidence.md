@@ -1,14 +1,13 @@
 # SMM-B1.11-G — Controlled Scheduled Instagram Story IMAGE Production — Evidence
 
-Current technical status:
+Current status:
 
 ```text
-SMM-B1.11-G PROVIDER PASS — OWNER STORY VISUAL CONFIRMATION REQUIRED
+INSTAGRAM CONTROLLED AUTOMATIC SCHEDULED STORY PUBLISH PASS
+SMM-B1.11-G CLOSED WITH EVIDENCE
 ```
 
-G is **not** fully closed. Owner visual confirmation is still required. Do not infer it from provider success.
-
-PRE-LIVE chronology is preserved below. LIVE / POST sections follow after section X.
+PRE-LIVE chronology is preserved below. LIVE / POST sections follow after section X. Owner visual confirmation is recorded in **FINAL CLOSURE**.
 
 ---
 
@@ -717,21 +716,37 @@ Open Social Attention for missed / unknown / reauth / permission / failed: **0**
 
 ---
 
+## LIVE verdict (prior stop)
+
+```text
+SMM-B1.11-G PROVIDER PASS — OWNER STORY VISUAL CONFIRMATION REQUIRED
+```
+
+That stop recorded provider success with gates restored OFF. Owner visual confirmation was still required. The owner has now supplied it. See **FINAL CLOSURE** below.
+
+---
+
 # OWNER VISUAL CONFIRMATION
+
+Prior recorded state after LIVE provider pass:
 
 ```text
 PENDING
 ```
 
-Cursor must **not** infer visual confirmation from publication `succeeded`, provider ID `18111265202036012`, or Graph success.
-
-Required owner response after inspecting the intended Instagram Business account (`zyntixai`):
+Owner has now explicitly confirmed:
 
 ```text
 INSTAGRAM SCHEDULED STORY VISUAL CONFIRMATION = PASS
 ```
 
-Do not automatically delete the Story. Instagram Stories expire naturally. Cleanup is optional after visual confirmation.
+The owner visually inspected the intended Instagram Business account. The controlled scheduled Story was visibly present. This completes the final owner-side acceptance requirement for B1.11-G.
+
+Do not infer this from publication `succeeded`, provider ID `18111265202036012`, or Graph success. The PASS above is owner-supplied, not inferred.
+
+`OWNER POST-VERIFICATION CLEANUP: not recorded / not required for closure`
+
+Instagram Story expiry/deletion is not required for B1.11-G closure.
 
 ---
 
@@ -758,4 +773,92 @@ Do not automatically delete the Story. Instagram Stories expire naturally. Clean
 | Scheduling gate | false | false |
 | Publishing gate | false | false |
 | Timer | Supabase `*/5` | Supabase `*/5` |
-| Visual Story confirmation | no | **PENDING** |
+| Story visual confirmation | pending | PASS |
+
+---
+
+# FINAL CLOSURE
+
+## Owner visual verification
+
+```text
+INSTAGRAM SCHEDULED STORY VISUAL CONFIRMATION = PASS
+```
+
+The owner visually inspected the intended Instagram Business account. The controlled scheduled Story was visibly present. This completes the final owner-side acceptance requirement for B1.11-G.
+
+No screenshots, UI placement, impression counts, Story analytics, viewers, or engagement are recorded. The owner did not state that the Story was manually deleted.
+
+`OWNER POST-VERIFICATION CLEANUP: not recorded / not required for closure`
+
+Instagram Story expiry/deletion is not required for B1.11-G closure.
+
+## Automatic scheduling verification
+
+- Fresh future Story schedule: `2026-08-21 20:01:54.372188+00`
+- Automatic Supabase Cron runid `73` at `2026-08-21 20:05:00.095104+00` (HTTP request ID `41`, Vercel invocation `e84f47b1-3390-4a2e-a2a5-85ac303e2aa5`)
+- No manual Execute
+- Claim inside 900-second grace: **187.41** seconds late — PASS
+
+## Story provider verification
+
+- `publish_story` present on connection `24420652-d0b4-4237-9a75-51d89be50c65`
+- Story IMAGE (JPEG `1080×1920`, `60777` bytes)
+- Instagram container used `media_type=STORIES`
+- No Story `caption`; no Story `alt_text`
+- Provider processing reached `FINISHED`
+- Exactly one `media_publish`
+- Provider content ID persisted: `18111265202036012`
+- Publication `93ea15e8-f2bb-4ce3-b8af-c090dea49bd2` `succeeded` at `2026-08-21 20:06:13.727638+00`
+- Exactly one attempt: `afba243d-4e60-49b0-9b02-c59aebfb8af7` (`succeeded`, claim generation 1, worker `sched_6449e91f206b4c7d`)
+- No retry. No UEO.
+
+## Controlled rollout verification
+
+- Exact one-shot window `d5c81d3d-c7e3-4d08-8595-bb137ae2b66d`
+- max execute count = `1`
+- consumed = `1`
+- remaining = `0`
+- status = `consumed`
+- Other publications executed = `0`
+
+## Connection integrity
+
+- Same connection `24420652-d0b4-4237-9a75-51d89be50c65`
+- connected
+- healthy
+- fingerprint `eefce660bad5c0ad` unchanged
+- credential version `2`
+- `publish_story` present
+- one active Instagram connection
+- No reconnect / OAuth / identity replacement / credential rotation during G
+
+## Safety closure
+
+- Scheduling gate OFF: `SOCIAL_SCHEDULING_ENABLED=false`
+- Publishing gate OFF: `SOCIAL_PUBLISHING_ENABLED=false`
+- Production Ready: OFF deployment `dpl_Ad6mqFNp3YRhs6XrPQbr3RPhuyCa`, canonical alias `https://www.zyntixai.com`
+- Subsequent automatic scheduler tick `2026-08-21 20:15:00`: Cron run `75`, HTTP `43`, `mode=dry-run`, claimed `0`, `providerWriteAttempted=false`
+- Supabase Cron remains the authoritative timer: 1 active `*/5 * * * *` → Vercel worker
+- Vercel native Social Cron: `0`
+
+No implementation, schema, config, gate, timer, or Production mutation in this evidence-only closure.
+
+## Tests (unchanged)
+
+No Vitest, TypeScript, lint, or build rerun. B1.11-F / G technical evidence already recorded. No code changed. No runtime implementation validation is needed beyond evidence integrity.
+
+## Final conclusion
+
+```text
+INSTAGRAM CONTROLLED AUTOMATIC SCHEDULED STORY PUBLISH PASS
+SMM-B1.11-G CLOSED WITH EVIDENCE
+```
+
+Next planned phase, **not started**:
+
+`SMM-B1.11-FV — Stories + Scheduling Final Verification`
+
+`NOT STARTED — REQUIRES OWNER APPROVAL`
+
+Do not start Analytics, Story VIDEO, Story sequencing, or recurring daily Story automation.
