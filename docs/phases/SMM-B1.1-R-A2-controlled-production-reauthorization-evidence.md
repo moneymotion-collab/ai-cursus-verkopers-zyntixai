@@ -2,9 +2,22 @@
 
 **Phase:** `SMM-B1.1-R A2 — CONTROLLED PRODUCTION REAUTHORIZATION ONLY`  
 **Date:** 2026-08-20  
+**Latest POST verification:** 2026-08-21  
 **Authoritative branch:** `core/platform-readiness-20260707`  
 **Production Supabase project:** `dmctinrcjvsgmoxwwodw`  
 **Canonical origin:** `https://www.zyntixai.com`
+
+**Latest status (2026-08-21):**
+
+```text
+INSTAGRAM PRODUCTION OAUTH PASS
+SMM-B1.1-R A2 CLOSED WITH EVIDENCE
+SMM-B1.7-R2 NOT STARTED
+```
+
+Historical blocked attempts below are preserved and are not rewritten.
+
+---
 
 ```text
 SMM-B1.1-R A2 BLOCKED — reconnect callback cannot complete on the existing healthy Production Instagram connection
@@ -431,3 +444,207 @@ RPC `public.finalize_social_reauthorization` **is** present. Database is ahead o
 3. Re-authorize **SMM-B1.1-R A2** retry only after that confirmation.
 4. Do **not** click Reconnect Instagram until then.
 5. Do **not** start SMM-B1.7-R2.
+
+---
+
+## RETRY — 2026-08-21 — Controlled Production Reauthorization POST verification
+
+Owner completed Production **Reconnect Instagram** using the intended existing Instagram Business account. This section is a **read-only** POST verification. No second OAuth flow was started. No Connect / Reconnect / Disconnect was clicked by the verifier. Publishing was not enabled. SMM-B1.7-R2 was not started.
+
+A2-FIX reference: implementation `150257344f0c2d3e065d6156a808f2f8a809fbe1`; prior retry blocked because Production still served `f559001`.
+
+### Owner flow (reported completed)
+
+1. Open `https://www.zyntixai.com/social`
+2. Existing Instagram account shown as connected
+3. Click **Reconnect Instagram** (not Connect, not Disconnect)
+4. Authorize the same Instagram Business account
+5. OAuth callback returned to ZyntixAI
+
+Verifier did not emulate Meta login and did not start another Reconnect.
+
+### POST connection
+
+| Field | POST |
+| --- | --- |
+| Active Instagram connections | **1** |
+| Connection UUID | `24420652-d0b4-4237-9a75-51d89be50c65` |
+| Organization | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| Workspace | `4ce070a9-d1bc-40f3-a44a-061274bca9cb` |
+| Provider | `instagram` |
+| Account type | `business` |
+| Status | `connected` |
+| Health | `healthy` |
+| Identity fingerprint | `eefce660bad5c0ad` |
+| `connected_at` | `2026-08-18 12:37:28.746184+00` (unchanged from original connect) |
+| `updated_at` | `2026-08-21 10:30:16.759794+00` |
+| `reauthorization_required_at` | null |
+
+### POST credential (metadata only)
+
+| Field | POST |
+| --- | --- |
+| Credential present | yes |
+| Credential id | `5c259900-6d60-4fdb-875c-60097daff514` |
+| Envelope count for this connection | **1** |
+| Credential version | **2** |
+| Encryption version | 1 (metadata only) |
+| Envelope `created_at` | `2026-08-18 12:37:28.333391+00` (same envelope as PRE) |
+| Envelope `updated_at` / `last_refreshed_at` | `2026-08-21 10:30:16.624813+00` |
+
+No access token, ciphertext, encryption key, or client secret was retrieved.
+
+### POST reauthorization intents
+
+Non-expired in-flight `reauthorize` intents: **0**
+
+Successful retry intent:
+
+| Field | Value |
+| --- | --- |
+| Intent UUID | `20013068-f582-4aff-afa6-d71c3dd84800` |
+| Kind | `reauthorize` |
+| Status | `consumed` |
+| Created | `2026-08-21 10:29:49.632657+00` |
+| Expires | `2026-08-21 10:44:49.576+00` |
+| Consumed | `2026-08-21 10:30:14.662448+00` (exactly once) |
+| Bound connection | `24420652-d0b4-4237-9a75-51d89be50c65` |
+| Bound organization | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| Expected external identity bound | yes (value not recorded) |
+
+Historical leftover from the failed 2026-08-20 launch attempt — **preserved, not deleted, not consumed**:
+
+| Field | Value |
+| --- | --- |
+| Intent UUID | `3b342e31-6d6a-4f64-a29f-14c3de8f0d1c` |
+| Kind | `reauthorize` |
+| Status | `pending` |
+| Created | `2026-08-20 12:22:55.638134+00` |
+| Expires | `2026-08-20 12:37:55.383+00` |
+| Consumed | null |
+| Expired | yes |
+| Bound connection | `24420652-d0b4-4237-9a75-51d89be50c65` |
+
+OAuth status totals: `connect/consumed=7`; `reauthorize/consumed=1`; `reauthorize/pending=1` (expired leftover only). Raw OAuth state was not recorded.
+
+Ordinary `finalize_social_connection` still rejects status `connected`. The connection remained `connected` with original `connected_at`. The new `social_connection_reauthorized` event is the established A2-FIX audit from `finalize_social_reauthorization`. Postgres statement logs for the RPC name were not available in the queried window; the event + consumed reauthorize intent + same-envelope version increment is the Production evidence.
+
+### POST ordinary pending shells
+
+Count: **6** (unchanged). Same historical UUIDs:
+
+- `2e95f4df-f757-48ec-bb67-ad38b63f029c`
+- `26cf7ed0-cd9b-444a-9abf-7d0752a83c32`
+- `8e844090-d54a-4b0d-a92e-c79c26f944b5`
+- `327c1115-5d06-482b-a416-f7009b4d5560`
+- `7dd435ba-9bfd-4eee-9696-8f558ce969cd`
+- `60ecf884-fc9f-49d1-b803-6608ea216aeb`
+
+No seventh ordinary pending shell. Historical shells were not deleted.
+
+### POST audit / events
+
+| Field | POST |
+| --- | --- |
+| `social_connection_events` total | **9** (was 8) |
+| `social_connection_reauthorized` on this connection | **1** (was 0) |
+| New `social_connection_established` after original connect | **0** |
+| Disconnect / revoked events | **0** |
+
+New event:
+
+| Field | Value |
+| --- | --- |
+| Event UUID | `b584a80c-9017-4acc-b394-52afeb3c7016` |
+| Type | `social_connection_reauthorized` |
+| Connection | `24420652-d0b4-4237-9a75-51d89be50c65` |
+| Organization | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| Actor source | `member` |
+| Actor member present | yes (id not recorded) |
+| Timestamp | `2026-08-21 10:30:16.759794+00` |
+
+Events on this connection remain: initiated 1, established 1, reauthorized 1. Org-wide types: initiated 7, established 1, reauthorized 1.
+
+### Publishing safety
+
+| Check | Result |
+| --- | --- |
+| `social_publications` total | 11 (unchanged vs PRE A2: queued 6, succeeded 3, manual_intervention 2) |
+| Latest publication create | `2026-08-19 11:01:56.801808+00` |
+| Latest publication update/complete | `2026-08-19 11:44:32.7778+00` |
+| Publications created since 2026-08-20 | **0** |
+| Publications updated/completed at or after reconnect (`2026-08-21 10:29+00`) | **0** |
+| Publication attempts started at or after reconnect | **0** |
+| Publication events at or after reconnect | **0** |
+| Disconnect events | **0** |
+| `SOCIAL_PUBLISHING_ENABLED` | not re-read from Vercel in this POST check; A1 remains `false`; no publication execution occurred |
+
+### PRE / POST comparison
+
+| Field | PRE | POST | Verdict |
+| --- | --- | --- | --- |
+| Active Instagram connections | 1 | 1 | pass |
+| Connection UUID | `24420652-d0b4-4237-9a75-51d89be50c65` | `24420652-d0b4-4237-9a75-51d89be50c65` | unchanged |
+| Organization | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` | unchanged |
+| Workspace | `4ce070a9-d1bc-40f3-a44a-061274bca9cb` | `4ce070a9-d1bc-40f3-a44a-061274bca9cb` | unchanged |
+| Provider | Instagram | Instagram | unchanged |
+| Identity fingerprint | `eefce660bad5c0ad` | `eefce660bad5c0ad` | unchanged |
+| Status | connected | connected | connected |
+| Health | healthy | healthy | healthy |
+| Credential version | 1 | 2 | increment |
+| Ordinary pending shells | 6 | 6 | unchanged |
+| Reauthorized events | 0 | 1 | increment |
+| In-flight reauth intents | 0 | 0 | consumed |
+| Provider content write | 0 | 0 | unchanged |
+
+### Identity and tenant safety
+
+- Same connection UUID
+- Same organization
+- Same workspace
+- Same provider
+- Same identity fingerprint
+- No duplicate active Instagram connection
+- Historical expired reauthorize leftover preserved
+
+### Regression (no code change)
+
+Narrow A2-FIX suite rerun after POST verification (repository only; Production not mutated):
+
+```text
+npx vitest run tests/features/social-media/handle-instagram-oauth-reauthorization.test.ts tests/features/social-media/handle-instagram-oauth-callback.test.ts tests/features/social-media/resolve-social-credential-upsert-target.test.ts tests/features/social-media/initiate-instagram-reauthorization.test.ts tests/features/social-media/oauth-client-safety.test.ts tests/domain/social-connection-lifecycle.test.ts tests/security/social-a2-fix-reauthorization-finalize-security.test.ts tests/security/social-connection-migration-security.test.ts tests/security/social-closed-beta-operator-r1b-migration-security.test.ts tests/security/social-closed-beta-enrollment-migration-security.test.ts tests/security/social-closed-beta-entitlement-defense-r1ar1.test.ts
+```
+
+**11 files, 68 passed / 0 failed**
+
+Full Vitest was **not** rerun: no implementation change in this POST verification; last full-suite evidence remains the A2-FIX close (2488 pass / 2 pre-existing non-Social fails).
+
+### Production mutation summary
+
+| Item | Result |
+| --- | --- |
+| Live OAuth | **YES** |
+| Existing Instagram connection reauthorized | **YES** |
+| Existing connection UUID changed | **NO** |
+| Instagram identity changed | **NO** |
+| Credential refreshed | **YES** |
+| Credential version | `1 → 2` |
+| New active Instagram connection | **NO** |
+| New ordinary pending shell | **NO** |
+| `social_connection_reauthorized` event | **YES** |
+| Disconnect | **NO** |
+| Publishing enabled | **NO** |
+| Provider content write | **NO** |
+| Instagram post created | **NO** |
+| Historical pending shells deleted | **NO** |
+| Historical expired reauthorize leftover deleted | **NO** |
+| SMM-B1.7-R2 started | **NO** |
+
+### Retry verdict
+
+```text
+INSTAGRAM PRODUCTION OAUTH PASS
+SMM-B1.1-R A2 CLOSED WITH EVIDENCE
+```
+
+Do **not** start SMM-B1.7-R2. Do **not** enable publishing. Do **not** publish a test post. The controlled Production publish phase requires a separate explicit owner authorization.
