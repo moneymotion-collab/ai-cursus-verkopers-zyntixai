@@ -66,6 +66,7 @@ describe("SMM-B1.1-C client-safe and secret scan", () => {
       "20260819101500_add_social_instagram_provider_4xx_diagnostic_hardening.sql",
       "20260819120000_add_social_controlled_publish_window_binding.sql",
       "20260820120000_add_social_reauthorization_connected_finalize.sql",
+      "20260821114627_add_social_publication_scheduling_domain.sql",
     ]);
     expect(names.some((name) => name.includes("oauth") && name.includes("instagram"))).toBe(
       false,

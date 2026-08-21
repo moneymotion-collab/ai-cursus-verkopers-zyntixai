@@ -55,6 +55,17 @@ export function canManageSocialConnections(
   return role === "owner" || role === "admin";
 }
 
+/**
+ * B1.11-A execution-clock mutations (schedule / reschedule / cancel scheduled).
+ * Owner/Admin only. Distinct from editorial slot `canManageSchedule` (Staff).
+ */
+export function canScheduleSocialPublication(
+  role: OrganizationRole | string | null | undefined,
+  membershipStatus: MembershipStatus | string | null | undefined,
+): boolean {
+  return canManageSocialConnections(role, membershipStatus);
+}
+
 export function canViewSocialConnections(
   role: OrganizationRole | string | null | undefined,
   membershipStatus: MembershipStatus | string | null | undefined,

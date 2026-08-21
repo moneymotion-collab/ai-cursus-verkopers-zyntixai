@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   canManageSocialConnections,
+  canScheduleSocialPublication,
   canViewSocialConnections,
   isOrganizationUsableForSocialConnectionMutation,
   resolveSocialConnectionPermissions,
@@ -14,6 +15,7 @@ describe("social connection permissions", () => {
     for (const role of ["owner", "admin"] as const) {
       const permissions = resolveSocialConnectionPermissions(role, "active");
       expect(canManageSocialConnections(role, "active")).toBe(true);
+      expect(canScheduleSocialPublication(role, "active")).toBe(true);
       expect(permissions).toEqual({
         canViewConnection: true,
         canConnect: true,
@@ -25,6 +27,7 @@ describe("social connection permissions", () => {
 
   it("denies active staff connect, reauthorize, and disconnect", () => {
     expect(canManageSocialConnections("staff", "active")).toBe(false);
+    expect(canScheduleSocialPublication("staff", "active")).toBe(false);
     expect(canViewSocialConnections("staff", "active")).toBe(true);
     expect(resolveSocialConnectionPermissions("staff", "active")).toEqual({
       canViewConnection: true,
@@ -36,6 +39,7 @@ describe("social connection permissions", () => {
 
   it("keeps viewer read-only", () => {
     expect(canManageSocialConnections("viewer", "active")).toBe(false);
+    expect(canScheduleSocialPublication("viewer", "active")).toBe(false);
     expect(canViewSocialConnections("viewer", "active")).toBe(true);
     expect(resolveSocialConnectionPermissions("viewer", "active")).toEqual({
       canViewConnection: true,
