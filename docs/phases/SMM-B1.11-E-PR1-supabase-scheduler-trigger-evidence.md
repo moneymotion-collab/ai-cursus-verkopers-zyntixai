@@ -1,6 +1,22 @@
 # SMM-B1.11-E-PR1 — Supabase 5-Minute Scheduler Trigger — Evidence
 
-## 1. Executive verdict
+## 1. Executive verdict (final)
+
+```text
+SMM-B1.11-E-PR1 CLOSED WITH EVIDENCE — SUPABASE 5-MINUTE TRIGGER READY
+```
+
+```text
+B1.11-E INFRASTRUCTURE PREREQUISITES SATISFIED
+```
+
+`SMM-B1.11-E — Controlled Scheduled IMAGE Production` is **NOT STARTED**.
+
+The first-session record below is unchanged chronology. It ended with `OWNER SECRET SYNC REQUIRED` while Vault had 0 rows. The continuation after owner Vault sync follows that historical record.
+
+---
+
+## 1. First-session verdict (historical)
 
 ```text
 SMM-B1.11-E-PR1 IMPLEMENTATION READY — OWNER SECRET SYNC REQUIRED
@@ -367,10 +383,199 @@ Allowed mutations: enable `pg_cron` / `pg_net`; create private trigger; register
 
 ---
 
-## Next phase
+## Next phase (first session)
 
 `SMM-B1.11-E — Controlled Scheduled IMAGE Production`
 
 **NOT STARTED — REQUIRES EXPLICIT OWNER APPROVAL**
 
 Do not enable `SOCIAL_SCHEDULING_ENABLED`. Do not enable `SOCIAL_PUBLISHING_ENABLED`. Do not schedule a Production publication. Do not open a controlled window. Do not invoke Instagram.
+
+---
+
+# Continuation after owner Vault sync
+
+Owner confirmed the existing Vercel Production `CRON_SECRET` was stored in Vault under `zyntixai_social_scheduler_cron_secret`. No plaintext was printed, selected, rotated, or committed.
+
+At resume, `src/types/database.generated.ts` had an unrelated BOM-only dirty diff. It was restored to HEAD so the worktree matched the required clean baseline. No generated-types content was committed.
+
+## A. Repository state (resume)
+
+| Check | Value |
+| --- | --- |
+| Resume HEAD | `fe1643b825f79cf01baa92fd534a40ab7a2bd048` |
+| Cutover commit | `0d503e8` |
+| Branch | `core/platform-readiness-20260707` |
+| Divergence at resume | `0 0` |
+| Worktree at resume after BOM restore | clean |
+
+## B. Vault presence
+
+| Item | Value |
+| --- | --- |
+| Name | `zyntixai_social_scheduler_cron_secret` |
+| Row count | **1** |
+| Secret UUID | `1e335440-14fd-4cb7-8b43-a55d658112a6` |
+| Created | `2026-08-21 16:46:08.594007+00` |
+| Plaintext inspected | **NO** |
+
+## C. Trusted manual invocation
+
+`select result_code, http_request_id from private.invoke_social_publication_scheduler();`
+
+| Field | Value |
+| --- | --- |
+| Invoked at | `2026-08-21 16:50:29.800572+00` |
+| `result_code` | `queued` (not `secret_missing`) |
+| `http_request_id` | 2 |
+
+## D. Supabase→Vercel authentication proof
+
+`net._http_response` id 2: `status_code = 200`, `timed_out = false`, `error_msg` null. Body `ok: true`, `mode: dry-run`. Not 401. No browser/session involved. Authorization header was not logged in this evidence.
+
+## E. Dry-run result (manual)
+
+`invocationId=04f190aa-f7ea-447d-8390-b8b0878818fd`  
+`schedulingEnabled=false` `publishingEnabled=false`  
+`claimed=0` `missedMarked=0` `attentionUpserted=0` `providerWriteAttempted=false`  
+`dueDiscovered=0`
+
+## F–H. Automatic cadence and Cron correlation
+
+Pre-cutover authenticated automatic ticks (required pair):
+
+| Run | Supabase Cron | HTTP id | Vercel invocation | Auth | Mode | Claimed | Provider write |
+| --- | --- | ---: | --- | --- | --- | ---: | --- |
+| Automatic A | `2026-08-21 16:50:00.062198+00` runid 34 succeeded | 1 | `789aa1ce-2a20-484c-b02b-a2e9d0cdb60f` | 200 | dry-run | 0 | false |
+| Manual | `2026-08-21 16:50:29.800572+00` trusted invoke | 2 | `04f190aa-f7ea-447d-8390-b8b0878818fd` | 200 | dry-run | 0 | false |
+| Automatic B | `2026-08-21 16:55:00.371338+00` runid 35 succeeded | 3 | `b2912bcd-3b30-4385-8c8a-8c0244062906` | 200 | dry-run | 0 | false |
+
+First-session fail-closed tick `2026-08-21 14:05:00` remains historical (secret missing). Ticks between 14:05 and 16:45 were also fail-closed until Vault sync at 16:46.
+
+## I. Zero mutation evidence
+
+Before and after manual + automatic A/B:
+
+| Item | Count |
+| --- | --- |
+| Scheduled publications | 0 |
+| Claimed / processing | 0 |
+| Attempts after R2 | 0 |
+| Social Attention | 0 |
+| Active controlled windows | 0 |
+| Instagram | 1 connected / healthy / credential version 2 |
+| `private.social_publishing_execution_enabled()` | false |
+
+## J. Vercel Cron removal
+
+`vercel.json` crons set to `[]`. Worker route, `maxDuration = 300`, machine auth, batch 1, and 900-second miss policy remain.
+
+Cutover commit: `0d503e8` `chore(smm): cut scheduler timer over to supabase cron`
+
+## K. Production redeploy
+
+| Item | Value |
+| --- | --- |
+| Deployment ID | `dpl_8BYmiQ3RHrby2cgJX8oRXcZopjiY` |
+| Target | production |
+| Ready | **YES** (`readyState: READY`) |
+| Canonical alias | `https://www.zyntixai.com` |
+| Native Vercel Cron | **0** (`vercel crons list`: No cron jobs found) |
+| Worker route in build | `/api/cron/social-publications` present |
+
+## L. Post-cutover automatic invocation
+
+Deploy Ready at `2026-08-21T17:00:49Z`. Next automatic tick:
+
+| Run | Supabase Cron | HTTP id | Vercel invocation | Auth | Mode | Claimed | Provider write |
+| --- | --- | ---: | --- | --- | --- | ---: | --- |
+| Post-cutover | `2026-08-21 17:05:00.287861+00` runid 37 succeeded | 5 | `3512853d-bbe7-4fd9-97b7-15eca39ffcfb` | 200 | dry-run | 0 | false |
+
+This hit canonical `https://www.zyntixai.com` after the new Production alias. Supabase Cron remained independent of the removed Vercel native Cron.
+
+A 17:00:00 tick (http id 4) occurred during the deploy window and is not used as post-cutover proof.
+
+## M. Final timer inventory
+
+| Timer | Count | Detail |
+| --- | --- | --- |
+| Supabase Cron | **1** | `zyntixai_social_publication_scheduler_5m` `*/5 * * * *` active true; command `select private.invoke_social_publication_scheduler();` |
+| Vercel native Social Cron | **0** | none |
+| Vercel worker route | **1** | Ready, machine-authenticated, `maxDuration=300` |
+
+**ONE TIMER → ONE WORKER.**
+
+## N. Gate state
+
+Worker dry-run JSON on every observed invocation: `schedulingEnabled=false`, `publishingEnabled=false`.  
+`private.social_publishing_execution_enabled()` = false.
+
+## O. Cost state
+
+**No new paid subscription.** Supabase Free. Vercel Hobby unchanged. No Inngest / QStash / GitHub Actions / BullMQ / Redis.
+
+## P. B1.11-E readiness matrix (final)
+
+| Prerequisite | Status |
+| --- | --- |
+| Scheduling domain | PASS |
+| Calendar UX | PASS |
+| Scheduler worker | PASS |
+| Machine auth | PASS |
+| Supabase→Vercel auth | PASS |
+| Claim/idempotency | PASS |
+| Missed window | PASS |
+| Attention | PASS |
+| Runtime | PASS |
+| 5-minute automatic cadence | PASS |
+| One effective timer | PASS |
+| Instagram connection health | PASS |
+| Scheduling gate OFF | PASS |
+| Publishing gate OFF | PASS |
+| Active controlled window absent | PASS |
+
+`B1.11-E INFRASTRUCTURE PREREQUISITES SATISFIED`
+
+## Q. Authorization boundary
+
+B1.11-E is **not started**. Gates remain OFF. No Production publication was scheduled. No controlled window. No Instagram provider write.
+
+Cadence vs 900-second policy: `*/5 * * * *` provides approximately T, T+5, T+10, T+15 checks inside the locked grace. Exact-second scheduling is not claimed. The 900-second threshold is unchanged.
+
+## Tests / static (cutover)
+
+| Command | Result |
+| --- | --- |
+| PR1 + worker + missed-window + C/D + immediate-publish | 59 passed / 6 files |
+| `npx vitest run` | **2598 passed / 2 failed / 2600 total** |
+| Known pre-existing failures | `tests/features/invitations/load-member-administration-page.test.ts`; `tests/ui/programs-enrollments-stale-copy-remediation.test.ts` |
+| `npx tsc --noEmit` | pass |
+| `npx next lint` | No ESLint warnings or errors |
+| `npx next build` | pass; `/api/cron/social-publications` present |
+
+Full-suite total rose from 2593 to 2600 because PR1 tests were added. The two failures are the same known non-Social tests.
+
+## Final Production mutation audit
+
+| Item | Result |
+| --- | --- |
+| Production scheduled publication created | **NO** |
+| Publication claim | **NO** |
+| Publication attempt | **NO** |
+| Missed mutation | **NO** |
+| Social Attention mutation | **NO** |
+| Provider credentials loaded for execution | **NO** |
+| Instagram adapter | **NO** |
+| Instagram container | **NO** |
+| `media_publish` | **NO** |
+| Instagram post | **NO** |
+| Connection mutation | **NO** |
+| Credential version mutation | **NO** |
+| Controlled publishing window | **NO** |
+
+## Next phase (final)
+
+`SMM-B1.11-E — Controlled Scheduled IMAGE Production`
+
+**NOT STARTED — REQUIRES EXPLICIT OWNER APPROVAL**
+
