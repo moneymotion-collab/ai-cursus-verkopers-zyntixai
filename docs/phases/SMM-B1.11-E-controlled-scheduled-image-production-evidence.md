@@ -293,19 +293,31 @@ Baseline at PR1 close was `2598 passed / 2 failed / 2600 total`.
 
 ## P. Production deployment
 
-Code deploy is required so the worker classifies the new start codes. Schema is already applied on Production (fail-closed consume lives in Postgres even before the app deploy).
+| Item | Value |
+| --- | --- |
+| Implementation commit | `0ea9133f36f74f43b481a5486d855bca2aa1816d` |
+| Production deployment | `dpl_3djunk5tZzP476JjiA7f8wvsuoyJ` |
+| Ready | yes |
+| Canonical alias | `https://www.zyntixai.com` |
+| Vercel native Social Cron | 0 (`vercel crons list`: none) |
+| Supabase Cron | still 1 × `*/5 * * * *` → canonical worker |
 
-Gates remain OFF. Vercel native Social Cron remains absent. Supabase Cron still calls the canonical worker.
+Gates remain OFF. Fail-closed window consume is live in Postgres. The app deploy classifies the new start codes.
 
 ---
 
 ## Q. Production dry-run
 
-Observed during PRE-LIVE (and to be re-checked after app deploy):
+Observed automatic ticks, including around app deploy:
 
-`mode=dry-run`, `schedulingEnabled=false`, `publishingEnabled=false`, `claimed=0`, `providerWriteAttempted=false`.
+| UTC | mode | schedulingEnabled | publishingEnabled | claimed | providerWriteAttempted |
+| --- | --- | --- | --- | --- | --- |
+| 2026-08-21 17:20:00 | dry-run | false | false | 0 | false |
+| 2026-08-21 17:25:00 | dry-run | false | false | 0 | false |
+| 2026-08-21 17:30:00 | dry-run | false | false | 0 | false |
+| 2026-08-21 17:35:00 | dry-run | false | false | 0 | false |
 
-No controlled execution budget consumed by dry-run (`active_windows = 0`).
+Post-alias tick `17:35:00` is after `dpl_3djunk5tZzP476JjiA7f8wvsuoyJ` Ready + `www.zyntixai.com` alias. No controlled execution budget consumed (`active_windows = 0`).
 
 ---
 
