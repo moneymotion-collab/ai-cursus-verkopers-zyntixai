@@ -12,6 +12,7 @@ import type {
   SocialPublicationExecutionInput,
   SocialPublicationMediaReference,
 } from "@/features/social-media/domain/publishing";
+import { isScheduledInstagramImagePublicationShape } from "@/features/social-media/domain/publishing";
 import { isSocialPublishingFeatureEnabled } from "@/features/social-media/server/social-publishing-feature";
 import { assertClosedBetaPublishAllowed } from "@/features/social-media/server/social-closed-beta-enrollment";
 import { loadEncryptedSocialProviderCredentialEnvelope } from "@/features/social-media/server/credential-repository";
@@ -417,7 +418,10 @@ export async function executeB18ImagePublication(
   const version = versionSelect.data as Record<string, unknown>;
   const contentFormat = asString(version.content_format);
   const mediaSnapshot = parseMediaSnapshot(version.media_snapshot);
-  if (contentFormat !== "image" || mediaSnapshot.length !== 1) {
+  if (
+    !contentFormat ||
+    !isScheduledInstagramImagePublicationShape(contentFormat, mediaSnapshot)
+  ) {
     await completeAttempt(rpcClient, {
       organizationId,
       attemptId,
@@ -516,7 +520,7 @@ export async function executeB18ImagePublication(
     connectionId,
     provider: "instagram",
     variantVersionId,
-    contentFormat: "image",
+    contentFormat,
     mediaSnapshot,
     operationId,
     externalAccountId,

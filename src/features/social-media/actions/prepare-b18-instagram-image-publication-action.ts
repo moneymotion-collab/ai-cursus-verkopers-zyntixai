@@ -41,6 +41,12 @@ export type PrepareB18InstagramImagePublicationActionResult =
         | "internal_error";
     };
 
+function preparePlacement(
+  value: string,
+): "feed" | "story" {
+  return value === "story" ? "story" : "feed";
+}
+
 /**
  * Owner/Admin prepare path: upload JPEG + materialize content/publication rows.
  * Does not enable SOCIAL_PUBLISHING_ENABLED and does not call Meta.
@@ -60,6 +66,13 @@ export async function prepareB18InstagramImagePublicationAction(
     typeof formData.get("connectionId") === "string"
       ? String(formData.get("connectionId")).trim()
       : "";
+  const placementRaw =
+    typeof formData.get("placement") === "string"
+      ? String(formData.get("placement")).trim()
+      : "feed";
+  const placement = preparePlacement(placementRaw);
+  const requiredCapability =
+    placement === "story" ? "publish_story" : "publish_image";
   const file = formData.get("file");
   if (!organizationId || !connectionId || !(file instanceof File)) {
     return { ok: false, code: "invalid_request" };
@@ -128,7 +141,7 @@ export async function prepareB18InstagramImagePublicationAction(
       row.id === connectionId &&
       row.provider === "instagram" &&
       row.status === "connected" &&
-      row.capabilitySnapshot.includes("publish_image") &&
+      row.capabilitySnapshot.includes(requiredCapability) &&
       !row.reauthorizationRequired,
   );
   if (!connection) {
@@ -145,6 +158,7 @@ export async function prepareB18InstagramImagePublicationAction(
     workspaceId: workspace.id,
     connectionId: connection.id,
     jpegBytes: buffer,
+    placement,
   });
 
   if (!prepared.ok) {

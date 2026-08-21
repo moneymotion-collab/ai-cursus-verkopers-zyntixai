@@ -122,7 +122,8 @@ export function SocialWorkspacePanel({
     (connection) =>
       connection.provider === "instagram" &&
       connection.status === "connected" &&
-      connection.capabilitySnapshot.includes("publish_image") &&
+      (connection.capabilitySnapshot.includes("publish_image") ||
+        connection.capabilitySnapshot.includes("publish_story")) &&
       !connection.reauthorizationRequired,
   );
   const hasConnectedInstagram = publishableConnections.length > 0;
@@ -328,7 +329,7 @@ export function SocialWorkspacePanel({
 
       {section === "publish" && readOnly ? (
         <section aria-labelledby="social-publish-readonly-title">
-          <h2 id="social-publish-readonly-title">Publish image</h2>
+          <h2 id="social-publish-readonly-title">Publish IMAGE</h2>
           <p className={styles.copy} role="status">
             {closedBeta.customerBody}
           </p>
@@ -337,14 +338,14 @@ export function SocialWorkspacePanel({
 
       {section === "publish" && !readOnly ? (
         <section aria-labelledby="social-publish-title">
-          <h2 id="social-publish-title">Publish image</h2>
+          <h2 id="social-publish-title">Publish IMAGE</h2>
           <p className={styles.copy}>
             {closedBeta.prepareAllowed
               ? closedBeta.publishingEntitlementAllowed
                 ? closedBeta.globalPublishingEnabled
-                  ? "Prepare and execute a feed image when connection readiness allows."
-                  : "Prepare a feed image. Publishing is temporarily unavailable at platform level."
-                : "Prepare a feed image. Publishing access has not been enabled for your organization yet."
+                  ? "Prepare and execute a feed IMAGE or Story IMAGE when connection readiness allows."
+                  : "Prepare a feed IMAGE or Story IMAGE. Publishing is temporarily unavailable at platform level."
+                : "Prepare a feed IMAGE or Story IMAGE. Publishing access has not been enabled for your organization yet."
               : "Prepare and publish are unavailable in this closed-beta state."}
           </p>
           <B18InstagramPublishPanel

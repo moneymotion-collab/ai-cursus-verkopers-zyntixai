@@ -11,6 +11,7 @@ import {
   isSocialPublishingExecutionEnabled,
   parseSocialPublishingEnabled,
   requiredCapabilityForContentFormat,
+  isScheduledInstagramImagePublicationShape,
   resolvePublishingAdapterOrUnavailable,
 } from "@/features/social-media/domain/publishing";
 import { IMPLEMENTED_SOCIAL_PROVIDERS } from "@/features/social-media/domain/provider";
@@ -31,10 +32,41 @@ describe("SMM-B1.6 publishing domain contracts", () => {
 
   it("maps formats to capabilities without provider hard-coding in core", () => {
     expect(requiredCapabilityForContentFormat("story")).toBe("publish_story");
+    expect(requiredCapabilityForContentFormat("image")).toBe("publish_image");
     expect(requiredCapabilityForContentFormat("short_video")).toBe(
       "publish_short",
     );
     expect(requiredCapabilityForContentFormat("text")).toBeNull();
+  });
+
+  it("treats feed IMAGE and Story IMAGE as scheduler-supported shapes only", () => {
+    const imageMedia = [
+      {
+        assetId: "a1",
+        sortOrder: 0,
+        assetRole: "primary",
+        storageObjectKey: "org/a.jpg",
+        mimeType: "image/jpeg",
+        mediaCategory: "image",
+      },
+    ];
+    expect(
+      isScheduledInstagramImagePublicationShape("image", imageMedia),
+    ).toBe(true);
+    expect(
+      isScheduledInstagramImagePublicationShape("story", imageMedia),
+    ).toBe(true);
+    expect(
+      isScheduledInstagramImagePublicationShape("story", [
+        { ...imageMedia[0]!, mediaCategory: "video", mimeType: "video/mp4" },
+      ]),
+    ).toBe(false);
+    expect(
+      isScheduledInstagramImagePublicationShape("carousel", imageMedia),
+    ).toBe(false);
+    expect(
+      isScheduledInstagramImagePublicationShape("short_video", imageMedia),
+    ).toBe(false);
   });
 
   it("keeps empty production registry fail-closed", () => {

@@ -198,6 +198,38 @@ describe("SMM-R1-E-R2-P1 Prepare durability / idempotency", () => {
     );
   });
 
+  it("prepares Story IMAGE on the existing publication aggregate with story format", async () => {
+    const { supabase, rpcCalls } = createSupabaseMock({
+      existing: null,
+      publicationIdOnCreate: "pub-story-new",
+    });
+
+    const result = await prepareB18ImagePublication(supabase as never, {
+      organizationId: ORG,
+      brandId: BRAND,
+      workspaceId: WORKSPACE,
+      connectionId: CONNECTION,
+      jpegBytes: JPEG_BYTES,
+      placement: "story",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.publicationId).toBe("pub-story-new");
+    expect(result.created).toBe(true);
+    expect(uploadMock).toHaveBeenCalledWith(
+      expect.objectContaining({ placement: "story" }),
+    );
+    const variantCall = rpcCalls.find((c) => c.fn === "create_social_content_variant");
+    expect(variantCall?.args.p_content_format).toBe("story");
+    const createCall = rpcCalls.find((c) => c.fn === "create_social_publication");
+    expect(String(createCall?.args.p_idempotency_key ?? "")).toMatch(
+      /^b18story_24420652d0b4_/,
+    );
+  });
+
   it("creates a new publication when no existing idempotency row matches", async () => {
     const { supabase, rpcCalls } = createSupabaseMock({
       existing: null,

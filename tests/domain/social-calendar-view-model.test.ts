@@ -152,6 +152,28 @@ describe("SMM-B1.11-B calendar view model", () => {
     expect(canScheduleSocialPublication("viewer", "active")).toBe(false);
   });
 
+  it("labels Story separately from feed IMAGE", () => {
+    const item = projectPublicationToCalendarItem({
+      publicationId: "aaa11111-1111-4111-8111-111111111111",
+      provider: "instagram",
+      executionMode: "scheduled",
+      intendedExecuteAt: "2026-08-21T09:00:00.000Z",
+      status: "queued",
+      contentFormat: "story",
+      title: "Story one",
+      caption: "editorial copy only",
+      hasMedia: true,
+      connectionDisplayName: "Brand IG",
+      timeZone: "UTC",
+      now: NOW,
+      role: "owner",
+    });
+    expect(item).not.toBeNull();
+    expect(item?.contentFormatLabel).toBe("Story");
+    expect(item?.contentFormat).toBe("story");
+    expect(item?.accountLabel).toContain("Brand IG");
+  });
+
   it("groups one publication per day without duplicating ids", () => {
     const item = projectPublicationToCalendarItem({
       publicationId: "aaa11111-1111-4111-8111-111111111111",

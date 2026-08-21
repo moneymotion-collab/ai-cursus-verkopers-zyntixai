@@ -308,7 +308,11 @@ describe("SMM-B1.7 Instagram publishing adapter", () => {
         const body = JSON.parse(String(init?.body));
         expect(body.media_type).toBe("STORIES");
         expect(body.caption).toBeUndefined();
+        expect(body.alt_text).toBeUndefined();
+        expect(body.video_url).toBeUndefined();
         expect(body.image_url).toBeTruthy();
+        expect(url).toContain("https://graph.instagram.com/v26.0/");
+        expect(url).toContain("/17841400000000000/media");
         return jsonResponse({ id: "container_story" });
       }
       return jsonResponse({}, 404);
@@ -323,6 +327,85 @@ describe("SMM-B1.7 Instagram publishing adapter", () => {
       outcome: "succeeded",
       externalPublicationId: "media_story",
     });
+    const publishCalls = fetchImpl.mock.calls.filter(([url]) =>
+      String(url).includes("/media_publish"),
+    );
+    const processingCalls = fetchImpl.mock.calls.filter(([url]) =>
+      String(url).includes("fields=status_code"),
+    );
+    expect(publishCalls).toHaveLength(1);
+    expect(processingCalls.length).toBeGreaterThan(0);
+  });
+
+  it("B1.11-F: Story VIDEO fails closed with zero Graph writes", async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse({}, 500));
+    const adapter = adapterDeps(fetchImpl);
+    const result = await adapter.publish({
+      ...baseInput,
+      contentFormat: "story",
+      mediaSnapshot: [
+        {
+          ...baseInput.mediaSnapshot[0]!,
+          mediaCategory: "video",
+          mimeType: "video/mp4",
+          storageObjectKey: "org-1/k1.mp4",
+        },
+      ],
+    });
+    expect(result.outcome).toBe("failed_terminal");
+    if (result.outcome !== "failed_terminal") {
+      return;
+    }
+    expect(result.safeErrorCode).toBe("instagram_unsupported_format");
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("B1.11-F: missing publish_story does not call Meta", async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse({}, 500));
+    const adapter = adapterDeps(fetchImpl, {
+      connectionCapabilities: ["publish_image"],
+    });
+    const result = await adapter.publish({
+      ...baseInput,
+      contentFormat: "story",
+    });
+    expect(result.outcome).toBe("failed_terminal");
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("B1.11-F: Story container IN_PROGRESS does not media_publish until FINISHED", async () => {
+    let statusCalls = 0;
+    let publishCalls = 0;
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("fields=status_code")) {
+        statusCalls += 1;
+        if (statusCalls === 1) {
+          return jsonResponse({ status_code: "IN_PROGRESS" });
+        }
+        return jsonResponse({ status_code: "FINISHED" });
+      }
+      if (url.includes("/media_publish")) {
+        publishCalls += 1;
+        return jsonResponse({ id: "media_story_ready" });
+      }
+      if (url.includes("/media")) {
+        const body = JSON.parse(String(init?.body));
+        expect(body.media_type).toBe("STORIES");
+        return jsonResponse({ id: "container_story_wait" });
+      }
+      return jsonResponse({}, 404);
+    });
+    const adapter = adapterDeps(fetchImpl);
+    const result = await adapter.publish({
+      ...baseInput,
+      contentFormat: "story",
+    });
+    expect(result).toEqual({
+      outcome: "succeeded",
+      externalPublicationId: "media_story_ready",
+    });
+    expect(statusCalls).toBe(2);
+    expect(publishCalls).toBe(1);
   });
 
   it("R1-E-R2-P4: image IN_PROGRESS then FINISHED before single media_publish", async () => {

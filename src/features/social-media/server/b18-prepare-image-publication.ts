@@ -10,6 +10,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import {
   B18_CONTENT_ITEM_TITLE,
+  B18_CONTENT_STORY_ITEM_TITLE,
   B18_CONTROLLED_IMAGE_CAPTION,
 } from "@/features/social-media/domain/b18-publish-navigation";
 import { isPrepareIdempotentReuseStatus } from "@/features/social-media/domain/lifecycle";
@@ -125,6 +126,7 @@ export async function prepareB18ImagePublication(
     jpegBytes: Uint8Array;
     widthPx?: number;
     heightPx?: number;
+    placement?: "feed" | "story";
     env?: Record<string, string | undefined>;
   },
 ): Promise<
@@ -138,11 +140,16 @@ export async function prepareB18ImagePublication(
     return { ok: false, reason: "invalid_input" };
   }
 
+  const placement = input.placement === "story" ? "story" : "feed";
+  const contentFormat = placement === "story" ? "story" : "image";
+  const contentTitle =
+    placement === "story" ? B18_CONTENT_STORY_ITEM_TITLE : B18_CONTENT_ITEM_TITLE;
   const contentFingerprint = createHash("sha256")
     .update(input.jpegBytes)
     .digest("hex")
     .slice(0, 40);
-  const baseIdempotencyKey = `b18_${connectionId.replace(/-/g, "").slice(0, 12)}_${contentFingerprint}`;
+  const keyPrefix = placement === "story" ? "b18story" : "b18";
+  const baseIdempotencyKey = `${keyPrefix}_${connectionId.replace(/-/g, "").slice(0, 12)}_${contentFingerprint}`;
 
   try {
     const existingQuery = await (
@@ -213,6 +220,7 @@ export async function prepareB18ImagePublication(
     bytes: input.jpegBytes,
     widthPx: input.widthPx,
     heightPx: input.heightPx,
+    placement,
     env: input.env,
   });
   if (!uploaded.ok) {
@@ -261,7 +269,7 @@ export async function prepareB18ImagePublication(
   const contentResult = await rpcRow(client, "create_social_content_item", {
     p_organization_id: organizationId,
     p_brand_id: brandId,
-    p_internal_title: B18_CONTENT_ITEM_TITLE,
+    p_internal_title: contentTitle,
     p_concept_summary: null,
     p_primary_message: null,
     p_campaign_id: null,
@@ -288,8 +296,8 @@ export async function prepareB18ImagePublication(
     p_organization_id: organizationId,
     p_content_id: contentId,
     p_planned_provider: "instagram",
-    p_content_format: "image",
-    p_title: B18_CONTENT_ITEM_TITLE,
+    p_content_format: contentFormat,
+    p_title: contentTitle,
     p_caption: B18_CONTROLLED_IMAGE_CAPTION,
     p_description: null,
     p_cta_text: null,
@@ -343,7 +351,10 @@ export async function prepareB18ImagePublication(
     {
       p_organization_id: organizationId,
       p_variant_id: variantId,
-      p_change_note: "B1.8 controlled IMAGE version",
+      p_change_note:
+        placement === "story"
+          ? "Controlled Story IMAGE version"
+          : "B1.8 controlled IMAGE version",
     },
   );
   if (!versionResult.ok) {

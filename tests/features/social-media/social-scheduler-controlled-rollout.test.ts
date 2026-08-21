@@ -128,12 +128,14 @@ describe("SMM-B1.11-E controlled scheduled window binding", () => {
   });
 
   it("denies the wrong publication, workspace, and connection", () => {
+    const nowMs = Date.parse("2026-08-21T12:00:00.000Z");
     expect(
       evaluateScheduledControlledPublishWindowBinding({
         activeWindow: activeWindow(),
         requestedPublicationId: PUB_B,
         requestedWorkspaceId: WS,
         requestedConnectionId: CONN,
+        nowMs,
       }).reason,
     ).toBe(PUBLICATION_NOT_AUTHORIZED_FOR_WINDOW);
     expect(
@@ -142,6 +144,7 @@ describe("SMM-B1.11-E controlled scheduled window binding", () => {
         requestedPublicationId: PUB_A,
         requestedWorkspaceId: "99999999-9999-4999-8999-999999999999",
         requestedConnectionId: CONN,
+        nowMs,
       }).reason,
     ).toBe(PUBLICATION_NOT_AUTHORIZED_FOR_WINDOW);
     expect(
@@ -150,6 +153,7 @@ describe("SMM-B1.11-E controlled scheduled window binding", () => {
         requestedPublicationId: PUB_A,
         requestedWorkspaceId: WS,
         requestedConnectionId: "99999999-9999-4999-8999-999999999999",
+        nowMs,
       }).reason,
     ).toBe(PUBLICATION_NOT_AUTHORIZED_FOR_WINDOW);
   });
@@ -166,6 +170,7 @@ describe("SMM-B1.11-E controlled scheduled window binding", () => {
       evaluateScheduledControlledPublishWindowBinding({
         activeWindow: activeWindow({ consumedExecuteCount: 1 }),
         requestedPublicationId: PUB_A,
+        nowMs: Date.parse("2026-08-21T12:00:00.000Z"),
       }).reason,
     ).toBe(CONTROLLED_WINDOW_EXHAUSTED);
     expect(

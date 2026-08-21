@@ -1,5 +1,5 @@
 /**
- * Scheduled IMAGE publication executor (SMM-B1.11-C).
+ * Scheduled IMAGE / Story IMAGE publication executor (SMM-B1.11-C / B1.11-F).
  * Reuses the Instagram adapter and attempt lifecycle. Trigger is scheduler, not Owner session.
  * TypeScript gates must both be ON before this is invoked. Dry-run must never call it.
  */
@@ -8,9 +8,12 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
-import type {
-  SocialPublicationExecutionInput,
-  SocialPublicationMediaReference,
+import {
+  isScheduledInstagramImagePublicationShape,
+  requiredCapabilityForContentFormat,
+  type SocialPublicationExecutionInput,
+  type SocialPublicationMediaReference,
+  type SocialPublishingProviderDiagnostics,
 } from "@/features/social-media/domain/publishing";
 import { isSocialPublishingFeatureEnabled } from "@/features/social-media/server/social-publishing-feature";
 import { isSocialSchedulingFeatureEnabled } from "@/features/social-media/server/social-scheduling-feature";
@@ -23,7 +26,6 @@ import {
   logInstagramProviderDiagnostic,
   type InstagramProviderDiagnostics,
 } from "@/features/social-media/server/instagram-publishing/diagnostics";
-import type { SocialPublishingProviderDiagnostics } from "@/features/social-media/domain/publishing";
 
 type RpcCapableClient = {
   rpc: (
@@ -361,8 +363,8 @@ export async function executeScheduledSocialPublication(
     !variantVersionId ||
     provider !== "instagram" ||
     !operationId ||
-    contentFormat !== "image" ||
-    mediaSnapshot.length !== 1 ||
+    !contentFormat ||
+    !isScheduledInstagramImagePublicationShape(contentFormat, mediaSnapshot) ||
     !externalAccountId
   ) {
     await completeAttempt(rpcClient, {
@@ -377,11 +379,13 @@ export async function executeScheduledSocialPublication(
     return { ok: false, reason: "invalid_input", claimed: true, providerWriteAttempted: false };
   }
 
+  const requiredCapability = requiredCapabilityForContentFormat(contentFormat);
   if (
     connectionStatus !== "connected" ||
     connectionHealth !== "healthy" ||
     reauthorizationRequired ||
-    !capabilities.includes("publish_image")
+    !requiredCapability ||
+    !capabilities.includes(requiredCapability)
   ) {
     await completeAttempt(rpcClient, {
       organizationId,
@@ -442,7 +446,7 @@ export async function executeScheduledSocialPublication(
     connectionId,
     provider: "instagram",
     variantVersionId,
-    contentFormat: "image",
+    contentFormat,
     mediaSnapshot,
     operationId,
     externalAccountId,

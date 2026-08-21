@@ -275,6 +275,11 @@ export function createInstagramPublishingAdapter(
       } else if (media.length < 1) {
         return "unsupported_capability";
       }
+      if (input.contentFormat === "story") {
+        if (media.length !== 1 || media[0]?.mediaCategory !== "image") {
+          return "unsupported_capability";
+        }
+      }
 
       if (!deps.skipQuotaPreflight) {
         const quota = await fetchInstagramContentPublishingLimit({
@@ -394,6 +399,9 @@ export function createInstagramPublishingAdapter(
         if (!primary) {
           return failureFromReason("media_invalid");
         }
+        if (format === "story" && primary.mediaCategory !== "image") {
+          return failureFromReason("unsupported_format");
+        }
         const url = await mintUrl(input, primary, deps.env);
         if (!url.ok) {
           return url.result;
@@ -410,17 +418,14 @@ export function createInstagramPublishingAdapter(
             caption,
             altText: input.altText ?? undefined,
           };
-        } else if (format === "story" && primary.mediaCategory === "image") {
+        } else if (format === "story") {
+          if (primary.mediaCategory !== "image") {
+            return failureFromReason("unsupported_format");
+          }
           request = {
             kind: "image",
             imageUrl: url.url,
             mediaType: "STORIES",
-          };
-        } else if (format === "story") {
-          request = {
-            kind: "video",
-            mediaType: "STORIES",
-            videoUrl: url.url,
           };
         } else if (format === "short_video") {
           request = {

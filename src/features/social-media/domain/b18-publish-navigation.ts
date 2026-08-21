@@ -12,6 +12,9 @@ export const B18_CONTROLLED_IMAGE_CAPTION =
 export const B18_CONTENT_ITEM_TITLE =
   "B1.8 controlled image publish" as const;
 
+export const B18_CONTENT_STORY_ITEM_TITLE =
+  "Controlled Instagram Story IMAGE" as const;
+
 export function isB18InstagramPublishPathname(pathname: string): boolean {
   return (
     pathname === B18_INSTAGRAM_PUBLISH_ROUTE ||

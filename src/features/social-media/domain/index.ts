@@ -378,11 +378,24 @@ export {
   isSocialPublishingExecutionEnabled,
   isSocialPublicationStatus,
   requiredCapabilityForContentFormat,
+  isScheduledInstagramImagePublicationShape,
   createEmptySocialPublishingAdapterRegistry,
   resolvePublishingAdapterOrUnavailable,
   isRetryableFailureClass,
   computePublicationBackoffSeconds,
 } from "@/features/social-media/domain/publishing";
+export {
+  INSTAGRAM_STORY_IMAGE_MAX_BYTES,
+  INSTAGRAM_STORY_IMAGE_MIME_TYPE,
+  INSTAGRAM_STORY_IMAGE_RECOMMENDED_ASPECT,
+  isInstagramStoryImageMimeType,
+  isValidInstagramStoryImageDimensions,
+  evaluateInstagramStoryImageConstraints,
+} from "@/features/social-media/domain/story-image";
+export type {
+  InstagramStoryImageConstraintFailure,
+  InstagramStoryImageConstraintResult,
+} from "@/features/social-media/domain/story-image";
 export type {
   SocialPublicationStatus,
   SocialPublicationExecutionMode,

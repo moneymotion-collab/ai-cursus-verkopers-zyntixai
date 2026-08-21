@@ -45,7 +45,7 @@ type Feedback =
     }
   | { kind: "error"; message: string };
 
-function prepareFailureMessage(code: string): string {
+function prepareFailureMessage(code: string, placement: "feed" | "story"): string {
   switch (code) {
     case "feature_disabled":
       return "Instagram connection gates are disabled for this environment.";
@@ -60,23 +60,31 @@ function prepareFailureMessage(code: string): string {
     case "closed_beta_revoked":
       return "Social closed beta access was revoked for this organization.";
     case "invalid_jpeg":
-      return "Upload a valid JPEG (320–1440px wide, aspect 4:5–1.91, ≤8 MB).";
+      return placement === "story"
+        ? "Upload a valid Story JPEG (≤8 MB). 9:16 is recommended to avoid cropping."
+        : "Upload a valid JPEG (320–1440px wide, aspect 4:5–1.91, ≤8 MB).";
     case "workspace_not_found":
       return "Social workspace was not found. Connect Instagram first.";
     case "connection_not_found":
-      return "No connected Instagram account with publish_image was found.";
+      return placement === "story"
+        ? "No connected Instagram account with publish_story was found."
+        : "No connected Instagram account with publish_image was found.";
     case "workflow_not_ready":
       return "Workflow readiness failed. Try again.";
     case "connection_ineligible":
       return "The selected Instagram connection is not eligible.";
     case "capability_missing":
-      return "publish_image capability is missing on the connection.";
+      return placement === "story"
+        ? "publish_story capability is missing on the connection."
+        : "publish_image capability is missing on the connection.";
     case "invalid_request":
       return "The prepare request was invalid.";
     case "controlled_window_prepare_blocked":
       return "A controlled publication is currently authorized for execution. Finish or close that window before preparing another publication.";
     default:
-      return "Unable to prepare the controlled IMAGE publication.";
+      return placement === "story"
+        ? "Unable to prepare the Story IMAGE publication."
+        : "Unable to prepare the controlled IMAGE publication.";
   }
 }
 
@@ -127,8 +135,14 @@ export function B18InstagramPublishPanel({
   authorizedPublicationId = null,
 }: B18InstagramPublishPanelProps) {
   const pendingRef = useRef(false);
+  const [placement, setPlacement] = useState<"feed" | "story">("feed");
+  const requiredCapability =
+    placement === "story" ? "publish_story" : "publish_image";
+  const placementConnections = publishableConnections.filter((connection) =>
+    connection.capabilitySnapshot.includes(requiredCapability),
+  );
   const [connectionId, setConnectionId] = useState(
-    publishableConnections[0]?.id ?? "",
+    placementConnections[0]?.id ?? "",
   );
   const boundPublicationId =
     authorizedPublicationId?.trim() || initialPublicationId || null;
@@ -165,30 +179,40 @@ export function B18InstagramPublishPanel({
     if (!connectionId) {
       setFeedback({
         kind: "error",
-        message: "Select a connected Instagram account with publish_image.",
+        message: `Select a connected Instagram account with ${requiredCapability}.`,
       });
       return;
     }
 
     pendingRef.current = true;
-    setFeedback({ kind: "pending", label: "Preparing controlled IMAGE publication…" });
+    setFeedback({
+      kind: "pending",
+      label:
+        placement === "story"
+          ? "Preparing Story IMAGE publication…"
+          : "Preparing controlled IMAGE publication…",
+    });
     try {
       const body = new FormData();
       body.set("organizationId", organizationId);
       body.set("connectionId", connectionId);
+      body.set("placement", placement);
       body.set("file", fileInput.files[0]);
       const result = await prepareB18InstagramImagePublicationAction(body);
       if (!result.ok) {
         setFeedback({
           kind: "error",
-          message: prepareFailureMessage(result.code),
+          message: prepareFailureMessage(result.code, placement),
         });
         return;
       }
       if (!result.publicationId) {
         setFeedback({
           kind: "error",
-          message: "Unable to prepare the controlled IMAGE publication.",
+          message:
+            placement === "story"
+              ? "Unable to prepare the Story IMAGE publication."
+              : "Unable to prepare the controlled IMAGE publication.",
         });
         return;
       }
@@ -204,7 +228,10 @@ export function B18InstagramPublishPanel({
     } catch {
       setFeedback({
         kind: "error",
-        message: "Unable to prepare the controlled IMAGE publication.",
+        message:
+          placement === "story"
+            ? "Unable to prepare the Story IMAGE publication."
+            : "Unable to prepare the controlled IMAGE publication.",
       });
     } finally {
       pendingRef.current = false;
@@ -250,15 +277,16 @@ export function B18InstagramPublishPanel({
 
   return (
     <section className={styles.panel} aria-labelledby="instagram-publish-title">
-      <h2 id="instagram-publish-title">Publish Instagram image</h2>
+      <h2 id="instagram-publish-title">Publish Instagram IMAGE</h2>
       <p className={styles.copy}>
-        Prepare uploads a JPEG and creates a publication record. Execute stays
-        unavailable until publishing access and platform availability allow it.
+        Prepare a feed IMAGE or a Story IMAGE. Story IMAGE support is
+        implemented; Production Story publishing remains in controlled rollout.
+        Story video is not available.
       </p>
       <ul className={styles.meta}>
         <li>Workspace: {hasWorkspace ? "ready" : "connect Instagram first"}</li>
         <li>
-          Publishable Instagram connections: {publishableConnections.length}
+          Accounts with {requiredCapability}: {placementConnections.length}
         </li>
         <li>
           Execute:{" "}
@@ -276,10 +304,11 @@ export function B18InstagramPublishPanel({
           {prepareBlockedReason ??
             "Preparing content is unavailable for this organization."}
         </p>
-      ) : publishableConnections.length === 0 ? (
+      ) : placementConnections.length === 0 ? (
         <p className={styles.copy}>
-          No connected Instagram account with image publish capability. Connect
-          an account first.
+          No connected Instagram account with{" "}
+          {placement === "story" ? "Story" : "feed image"} publish capability.
+          Connect an account first.
         </p>
       ) : (
         <form
@@ -289,6 +318,44 @@ export function B18InstagramPublishPanel({
             void onPrepare(event.currentTarget);
           }}
         >
+          <fieldset className={styles.fieldset}>
+            <legend className={styles.label}>Placement</legend>
+            <label className={styles.radio}>
+              <input
+                type="radio"
+                name="placement"
+                value="feed"
+                checked={placement === "feed"}
+                onChange={() => {
+                  setPlacement("feed");
+                  const next = publishableConnections.find((row) =>
+                    row.capabilitySnapshot.includes("publish_image"),
+                  );
+                  setConnectionId(next?.id ?? "");
+                }}
+                disabled={feedback.kind === "pending"}
+              />
+              Feed
+            </label>
+            <label className={styles.radio}>
+              <input
+                type="radio"
+                name="placement"
+                value="story"
+                checked={placement === "story"}
+                onChange={() => {
+                  setPlacement("story");
+                  const next = publishableConnections.find((row) =>
+                    row.capabilitySnapshot.includes("publish_story"),
+                  );
+                  setConnectionId(next?.id ?? "");
+                }}
+                disabled={feedback.kind === "pending"}
+              />
+              Story
+            </label>
+          </fieldset>
+
           <label className={styles.label} htmlFor="b18-connection">
             Instagram connection
           </label>
@@ -299,7 +366,7 @@ export function B18InstagramPublishPanel({
             onChange={(event) => setConnectionId(event.target.value)}
             disabled={feedback.kind === "pending"}
           >
-            {publishableConnections.map((connection) => (
+            {placementConnections.map((connection) => (
               <option key={connection.id} value={connection.id}>
                 {(connection.displayName || "Instagram").trim()}
                 {connection.externalAccountId
@@ -312,6 +379,11 @@ export function B18InstagramPublishPanel({
           <label className={styles.label} htmlFor="b18-file">
             JPEG file
           </label>
+          <p className={styles.copy}>
+            {placement === "story"
+              ? "Story IMAGE: JPEG up to 8 MB. 9:16 is recommended to avoid cropping."
+              : "Feed IMAGE: JPEG, 320–1440px wide, aspect 4:5–1.91, up to 8 MB."}
+          </p>
           <input
             id="b18-file"
             name="file"
@@ -329,7 +401,9 @@ export function B18InstagramPublishPanel({
           >
             {feedback.kind === "pending" && feedback.label.startsWith("Preparing")
               ? feedback.label
-              : "Prepare IMAGE publication"}
+              : placement === "story"
+                ? "Prepare Story IMAGE"
+                : "Prepare IMAGE publication"}
           </button>
         </form>
       )}

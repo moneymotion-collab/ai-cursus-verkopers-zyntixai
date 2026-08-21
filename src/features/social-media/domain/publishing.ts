@@ -131,6 +131,20 @@ export type SocialPublicationMediaReference = {
   mediaCategory: string;
 };
 
+export function isScheduledInstagramImagePublicationShape(
+  format: string,
+  mediaSnapshot: readonly SocialPublicationMediaReference[],
+): boolean {
+  if (mediaSnapshot.length !== 1) {
+    return false;
+  }
+  const primary = mediaSnapshot[0];
+  if (!primary || primary.mediaCategory !== "image") {
+    return false;
+  }
+  return format === "image" || format === "story";
+}
+
 export type SocialPublicationExecutionInput = {
   publicationId: string;
   organizationId: string;

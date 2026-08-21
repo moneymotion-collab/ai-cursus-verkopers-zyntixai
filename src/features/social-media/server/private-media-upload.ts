@@ -15,8 +15,10 @@ import { SOCIAL_PRIVATE_MEDIA_STORAGE_KEY_ENV } from "@/features/social-media/se
 import {
   isJpegMagic,
   isValidInstagramFeedImageDimensions,
+  isValidInstagramStoryImagePixelSize,
   readJpegDimensions,
 } from "@/features/social-media/server/jpeg-dimensions";
+import { INSTAGRAM_STORY_IMAGE_MAX_BYTES } from "@/features/social-media/domain/story-image";
 
 const MIN_BYTES = 1;
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -77,11 +79,16 @@ export async function uploadPrivateSocialJpeg(input: {
   bytes: Uint8Array;
   widthPx?: number;
   heightPx?: number;
+  /** Feed IMAGE uses 4:5–1.91 / 320–1440. Story IMAGE uses official JPEG + 8 MB only. */
+  placement?: "feed" | "story";
   env?: Record<string, string | undefined>;
 }): Promise<PrivateMediaUploadSuccess | PrivateMediaUploadFailure> {
   const env = input.env ?? process.env;
+  const placement = input.placement === "story" ? "story" : "feed";
   const organizationId = input.organizationId.trim();
-  if (!organizationId || input.bytes.length < MIN_BYTES || input.bytes.length > MAX_BYTES) {
+  const maxBytes =
+    placement === "story" ? INSTAGRAM_STORY_IMAGE_MAX_BYTES : MAX_BYTES;
+  if (!organizationId || input.bytes.length < MIN_BYTES || input.bytes.length > maxBytes) {
     return { ok: false, reason: "invalid_size" };
   }
   if (!isJpegMagic(input.bytes)) {
@@ -104,7 +111,11 @@ export async function uploadPrivateSocialJpeg(input: {
     height = dims.height;
   }
 
-  if (!isValidInstagramFeedImageDimensions(width, height)) {
+  const dimensionsOk =
+    placement === "story"
+      ? isValidInstagramStoryImagePixelSize(width, height)
+      : isValidInstagramFeedImageDimensions(width, height);
+  if (!dimensionsOk) {
     return { ok: false, reason: "invalid_dimensions" };
   }
 

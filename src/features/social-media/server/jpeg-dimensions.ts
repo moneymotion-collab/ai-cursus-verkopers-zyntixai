@@ -90,3 +90,15 @@ export function isValidInstagramFeedImageDimensions(
   const aspect = width / height;
   return aspect + Number.EPSILON >= MIN_ASPECT && aspect - Number.EPSILON <= MAX_ASPECT;
 }
+
+export function isValidInstagramStoryImagePixelSize(
+  width: number,
+  height: number,
+): boolean {
+  return (
+    Number.isInteger(width) &&
+    Number.isInteger(height) &&
+    width > 0 &&
+    height > 0
+  );
+}

@@ -29,6 +29,21 @@
   gap: 0.5rem;
 }
 
+.fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.radio {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-weight: 500;
+}
+
 .label {
   font-weight: 600;
 }
