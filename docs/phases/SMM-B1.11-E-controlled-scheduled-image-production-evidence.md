@@ -329,6 +329,299 @@ See the compact approval package in the assistant PRE-LIVE report. Exact publica
 
 ---
 
-## LIVE / POST
+## LIVE AUTHORIZATION
 
-_Reserved. Do not fill until the owner-approved controlled automatic Production write has completed._
+Owner approval (quoted scope only):
+
+> I approve SMM-B1.11-E controlled automatic scheduled Instagram IMAGE publish for publication ae6caf94-2fc7-4653-a085-0228d32e0c53.
+
+Applies only to:
+
+- publication `ae6caf94-2fc7-4653-a085-0228d32e0c53`
+- Instagram connection `24420652-d0b4-4237-9a75-51d89be50c65`
+- one automatic scheduled provider execution
+- one final Instagram `media_publish`
+- one resulting test IMAGE post
+
+No other provider write was authorized. Execute was not pressed. The scheduler was not invoked manually after the publication could become executable.
+
+LIVE start repository:
+
+| Check | Value |
+| --- | --- |
+| Branch | `core/platform-readiness-20260707` |
+| HEAD | `7fb9e27fe5060c80041e68c037fe7840d4e4fba1` |
+| Upstream | `origin/core/platform-readiness-20260707` |
+| Divergence | `0 0` |
+| Worktree | clean |
+| Implementation commit | `0ea9133f36f74f43b481a5486d855bca2aa1816d` |
+
+---
+
+## LIVE SETUP
+
+### Controlled window
+
+Opened while both execution gates were still OFF, via `operator_open_social_controlled_publish_window` + `operator_set_social_controlled_publish_window_expiry`.
+
+| Field | Value |
+| --- | --- |
+| window_id | `54aed609-ac06-477f-923a-8fdfc0061ab7` |
+| organization_id | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| workspace_id | `4ce070a9-d1bc-40f3-a44a-061274bca9cb` |
+| connection_id | `24420652-d0b4-4237-9a75-51d89be50c65` |
+| publication_id | `ae6caf94-2fc7-4653-a085-0228d32e0c53` |
+| status at open | `active` |
+| max_execute_count | 1 |
+| consumed | 0 |
+| remaining | 1 |
+| expires_at | `2026-08-21 18:46:22.177133+00` (~55 minutes) |
+
+Read-back matched org / workspace / connection / publication. Unexpired. Gates still OFF at this moment.
+
+### Scheduling mutation
+
+Authoritative RPC `schedule_social_publication` at DB now `2026-08-21 17:51:53+00` to a fresh future instant **13 minutes** out.
+
+| Field | Value |
+| --- | --- |
+| result_code | `success` |
+| publication_id | `ae6caf94-2fc7-4653-a085-0228d32e0c53` |
+| execution_mode | `scheduled` |
+| intended_execute_at | `2026-08-21 18:04:53.592293+00` |
+| next_attempt_at | `2026-08-21 18:04:53.592293+00` |
+| variant_version_id | `7a114018-50ab-4a4b-b53e-6b702079c4d5` (unchanged) |
+| connection_id | `24420652-d0b4-4237-9a75-51d89be50c65` (unchanged) |
+| status | `queued` |
+| attempts | 0 |
+| provider content ID | none |
+| event | `social_publication_scheduled` |
+
+No attempt. No provider call.
+
+### Calendar evidence
+
+Canonical: `/social?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb&section=calendar`
+
+Organization `timezone` is unset, so Calendar default display is **UTC** (not server-local).
+
+| Field | Value |
+| --- | --- |
+| UUID | `ae6caf94-2fc7-4653-a085-0228d32e0c53` |
+| UTC instant | `2026-08-21 18:04:53` |
+| Calendar day (UTC) | `2026-08-21` |
+| Calendar time (UTC) | `18:04` |
+| Explicit timezone | `UTC` (org unconfigured; `Europe/Amsterdam` would show `20:04`) |
+| Account | Instagram `zyntixai` / connection `24420652-d0b4-4237-9a75-51d89be50c65` |
+| Format | IMAGE |
+| State | scheduled / queued |
+
+Authenticated browser screenshot was not required; server/data contract is authoritative.
+
+### Isolation assertion immediately before gates ON
+
+Scheduled publications: **1** (the authorized UUID only). Due-now scheduled: **0**. Claimed/processing: **0**. Active windows: **1**, remaining budget **1**, bound to the authorized UUID. Other queued immediates cannot consume this window. Scheduler cannot pick immediate rows.
+
+**ONLY `ae6caf94-2fc7-4653-a085-0228d32e0c53` can become provider-executable.**
+
+### Gate activation + Production ON deployment
+
+Production env only:
+
+- `SOCIAL_SCHEDULING_ENABLED=true`
+- `SOCIAL_PUBLISHING_ENABLED=true`
+
+No other feature gates changed. Values not printed.
+
+| Field | Value |
+| --- | --- |
+| ON deployment | `dpl_9Bh6ymbkwb1j4J31xXfR2VgNeGGk` |
+| URL | `https://zyntixai-nwqy6x5zn-guus-projects-ai.vercel.app` |
+| Target | production |
+| Ready | yes |
+| Created | `2026-08-21 17:53:40+00` |
+| Canonical alias | `https://www.zyntixai.com` |
+| Code HEAD | `7fb9e27fe5060c80041e68c037fe7840d4e4fba1` |
+| Worker route | `/api/cron/social-publications` present |
+| Vercel native Social Cron | **0** |
+| Supabase Social Cron | 1 × `*/5 * * * *` |
+
+### Pre-due automatic ticks (gates ON, no claim)
+
+| UTC | http id | cron runid | mode | scheduling | publishing | claimed | providerWriteAttempted |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 17:50:00 | 14 | 46 | dry-run | false | false | 0 | false |
+| 17:55:00 | 15 | 47 | execute | true | true | 0 | false |
+| 18:00:00 | 16 | 48 | execute | true | true | 0 | false |
+
+17:55 is after the ON alias. Target still queued, attempts 0, window remaining 1. This is live-gate verification **without** a manual scheduler call.
+
+---
+
+## AUTOMATIC EXECUTION
+
+Due: `2026-08-21 18:04:53.592293+00`. Next automatic tick: `18:05:00`.
+
+| Correlation | Value |
+| --- | --- |
+| Supabase cron | runid **49**, start `2026-08-21 18:05:00.112954+00`, status succeeded |
+| pg_net / HTTP response id | **17**, status 200, created `2026-08-21 18:05:00.135513+00` |
+| Vercel invocationId | `43cbdbbe-9953-4dbf-94d5-412ec602d63e` |
+| Worker id | `sched_c402901790564d10` |
+| durationMs | 75353 |
+| mode | execute |
+| dueDiscovered | 1 |
+| dueWithinGrace | 1 |
+| claimed | 1 |
+| succeeded | 1 |
+| unknownOutcome | 0 |
+| publicationIds | `ae6caf94-2fc7-4653-a085-0228d32e0c53` only |
+| attentionUpserted | 0 |
+| providerWriteAttempted | true |
+| Claim timestamp | `2026-08-21 18:05:01.911292+00` |
+| Seconds late at claim | **8.32** (`<= 900`) |
+
+No Execute button. No `vercel crons run`. No manual `invoke_social_publication_scheduler`. No direct adapter call.
+
+### Claim / attempt
+
+| Field | Value |
+| --- | --- |
+| Window consume | consumed 1 → remaining 0 at `2026-08-21 18:05:01.911292+00` (same instant as claim) |
+| Event | `social_publication_claimed` `source=scheduler` `claim_generation=1` |
+| Attempt UUID | `2e7e7f00-bd4c-4097-942c-49cbe37ca2da` |
+| Attempt number | 1 |
+| operation_id | `op_e827cacd0ba8438f88864d7a7fcad71b` |
+| started_at | `2026-08-21 18:05:01.911292+00` |
+| finished_at | `2026-08-21 18:06:15.712944+00` |
+| duration | ~73.8 s |
+| outcome | `succeeded` |
+
+### Provider stages (ordered)
+
+Adapter IMAGE path is create container → poll until `FINISHED` → exactly one `media_publish`. Success diagnostics are not persisted on the attempt row (`provider_step` remains null on healthy success, same as B1.7-R2). Ordered evidence:
+
+1. Window consume (one-shot remaining 1 → 0)
+2. Scheduler claim (`source=scheduler`, generation 1)
+3. Attempt started
+4. Credential / readiness load (connection stayed connected / healthy / credential version 2; no reauth)
+5. Media delivery preparation (JPEG already `ready`)
+6. Instagram container create
+7. Poll processing until provider ready (`FINISHED` required before publish; ~74 s wall time matches wait + publish)
+8. Exactly one final `media_publish`
+9. Provider content ID persisted: `18116980474912030`
+10. Publication `succeeded` at `2026-08-21 18:06:15.712944+00`
+
+`media_publish` count = **1**. No UEO. No second Cron write. No second window.
+
+---
+
+## SAFE GATE CLOSURE
+
+Terminal result observed at `2026-08-21 18:06:15+00`. Both Production gates restored to exact `"false"` immediately, then Production redeployed. Visual confirmation was **not** waited on.
+
+| Field | Value |
+| --- | --- |
+| OFF deployment | `dpl_FwFUcuLq9YUCLjGqX77XvRgGmW6m` |
+| URL | `https://zyntixai-gr4etepi1-guus-projects-ai.vercel.app` |
+| Target | production |
+| Ready | yes |
+| Created | `2026-08-21 18:08:34+00` |
+| Canonical alias | `https://www.zyntixai.com` |
+| Code HEAD | `7fb9e27fe5060c80041e68c037fe7840d4e4fba1` |
+| Scheduling gate | false |
+| Publishing gate | false |
+
+Post-OFF automatic tick:
+
+| UTC | http id | cron runid | mode | scheduling | publishing | claimed | providerWriteAttempted |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 18:10:00 | 18 | 50 | dry-run | false | false | 0 | false |
+
+Scheduler returned to fail-closed operation. Supabase Cron remains 1 × `*/5 * * * *`. Vercel native Social Cron remains 0.
+
+---
+
+## POST
+
+### Publication / attempt / provider
+
+Same UUID `ae6caf94-2fc7-4653-a085-0228d32e0c53`. Status `succeeded`. `completed_at` present. Provider content ID `18116980474912030`. `last_failure_class` null. Attempts PRE 0 / POST **1**. Window max 1 / consumed 1 / remaining 0 / status `consumed` / not reusable.
+
+### Isolation
+
+Other publications claimed / attempted / succeeded during the gate-ON period: **0**. Worker `publicationIds` contained only the authorized UUID.
+
+### Connection
+
+Unchanged: `24420652-d0b4-4237-9a75-51d89be50c65`, connected, healthy, fingerprint `eefce660bad5c0ad`, credential version **2**, one connected Instagram. No reconnect / OAuth / identity change / credential rotation.
+
+### Attention
+
+Open Social Attention: **0**. No rows created at/after LIVE start. Specifically absent: `scheduled_publication_missed`, `publication_result_unknown`, `social_account_reauthorization_required`, `provider_permission_missing`, `scheduled_publication_failed`.
+
+### Owner visual confirmation
+
+**PENDING.** Cursor cannot infer Instagram visual confirmation from provider success. Phase B1.11-E remains open until the owner attests:
+
+`INSTAGRAM SCHEDULED PUBLISH VISUAL CONFIRMATION = PASS`
+
+### Owner cleanup
+
+Not recorded. The owner may delete the Instagram test post after visual confirmation. That does not reverse local `succeeded`.
+
+---
+
+## PRE / POST table
+
+| Field | PRE | POST |
+| --- | --- | --- |
+| Publication status | queued | succeeded |
+| Execution mode | immediate | scheduled |
+| Intended execute time | historical prepare `2026-08-19 09:33:21+00` (not a live schedule) | `2026-08-21 18:04:53.592293+00` |
+| Attempts | 0 | 1 |
+| Provider content ID | none | `18116980474912030` |
+| media_publish count | 0 | 1 |
+| Window remaining | n/a (0 active) → setup remaining 1 | 0 |
+| Other publications executed | 0 | 0 |
+| Connection UUID | `24420652-d0b4-4237-9a75-51d89be50c65` | same |
+| Fingerprint | `eefce660bad5c0ad` | same |
+| Credential version | 2 | 2 |
+| Social failure Attention | 0 | 0 |
+| Scheduling gate | false | false |
+| Publishing gate | false | false |
+| Timer | Supabase `*/5` | Supabase `*/5` |
+| Owner visual confirmation | no | **PENDING** |
+
+---
+
+## Production mutation summary
+
+Authorized mutations only:
+
+1. Open one-shot window `54aed609-ac06-477f-923a-8fdfc0061ab7` for the approved UUID.
+2. Finite expiry `2026-08-21 18:46:22+00`.
+3. `schedule_social_publication` to `2026-08-21 18:04:53.592293+00`.
+4. Production `SOCIAL_SCHEDULING_ENABLED=true` and `SOCIAL_PUBLISHING_ENABLED=true`.
+5. Production deploy `dpl_9Bh6ymbkwb1j4J31xXfR2VgNeGGk`.
+6. Automatic Cron claimed and published once.
+7. Both gates restored `false`.
+8. Production deploy `dpl_FwFUcuLq9YUCLjGqX77XvRgGmW6m`.
+
+No second window. No second publication. No manual Execute. No Stories. No Analytics. No B1.11-F.
+
+---
+
+## LIVE tests
+
+No implementation changed during LIVE. No additional tests were run. No second Production provider write was created.
+
+---
+
+## LIVE verdict (this stop)
+
+```text
+SMM-B1.11-E PROVIDER PASS — OWNER VISUAL CONFIRMATION REQUIRED
+```
+
+B1.11-E is **not** closed. Full close requires owner visual confirmation of the Instagram IMAGE post, then evidence of that attestation.
