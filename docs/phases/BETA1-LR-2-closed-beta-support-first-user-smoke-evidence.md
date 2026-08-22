@@ -10,6 +10,8 @@ This is **not** a close. Support/feedback is implemented and deployed. Public re
 
 Owner support-contact and ~390px mobile visual confirmations are now recorded. Authenticated first-user desktop smoke remains outstanding and is **not** inferred from those lines.
 
+Desktop smoke discovered **BETA1-LR-2-R1** (ambiguous Tasks assignee `Teamlid` labels). R1 is implemented and deployed separately. Desktop first-user smoke stays **PENDING** until the owner supplies the R1 visual PASS and then continues the remaining desktop walk.
+
 Do not treat the following as true until the owner checkpoint in §P is PASSed:
 
 ```text
@@ -260,7 +262,15 @@ Still outstanding (not inferred):
 BETA1-LR-2 FIRST-USER DESKTOP VISUAL SMOKE = PASS
 ```
 
-Minimum remaining owner checkpoint. Use `https://www.zyntixai.com` only. Tester: `testtest34567810@gmail.com`. Do not enroll Social. Do not publish.
+Desktop first-user smoke discovered R1 (repeated Tasks assignee `Teamlid` labels). Do not resume or close the desktop line until the owner first confirms:
+
+```text
+BETA1-LR-2-R1 TASK ASSIGNEE LABELS VISUAL CONFIRMATION = PASS
+```
+
+Evidence: `docs/phases/BETA1-LR-2-R1-task-assignee-labels-remediation-evidence.md`.
+
+Minimum remaining owner checkpoint after that R1 line. Use `https://www.zyntixai.com` only. Tester: `testtest34567810@gmail.com`. Do not enroll Social. Do not publish.
 
 ### Desktop
 
@@ -290,11 +300,15 @@ BETA1-LR-2 SUPPORT + FEEDBACK CONTACT VISUAL CONFIRMATION = PASS
 
 ## Q. Defects Found / Remediation
 
+Desktop first-user smoke discovered:
+
 ```text
-None.
+BETA1-LR-2-R1 — TASK ASSIGNEE LABELS AMBIGUOUS
 ```
 
-Planned support gap only. R1 invite-continuation code was not modified.
+Repeated `Teamlid` / `Team member` labels on `/tasks` for org `2fc07699-ece5-44b9-bbb3-abbc23e9fffb`. Classified P1 usability/data-honesty. Not a tenant leak. Remediation evidence: `docs/phases/BETA1-LR-2-R1-task-assignee-labels-remediation-evidence.md`.
+
+Support-contact implementation and the already-recorded mobile/support PASSes were not reopened. LR-1 invite-continuation code was not modified.
 
 ---
 
@@ -314,7 +328,7 @@ Planned support gap only. R1 invite-continuation code was not modified.
 | --- | --- | --- |
 | Support contact exists | PASS | AppShell footer mailto when env set; Production env present |
 | Feedback path exists | PASS | Same control; owner visual confirmation recorded in §P |
-| Desktop first-user journey | PENDING | Login smoke PASS; authenticated desktop walk still needs owner |
+| Desktop first-user journey | PENDING | Login smoke PASS; desktop walk discovered R1 and is paused pending R1 visual PASS |
 | ~390px mobile smoke | PASS | Exact owner ~390px line recorded in §P |
 | Critical empty states | PASS | Reviewed; truthful; no rewrite required |
 | Critical error/denied states | PASS | Register/invite/org/error panels fail closed and honest |
@@ -326,7 +340,7 @@ Planned support gap only. R1 invite-continuation code was not modified.
 | Typecheck | PASS | `npx tsc --noEmit` |
 | Lint | PASS | Targeted ESLint |
 | Build | PASS | Local + Production Ready |
-| Owner visual checkpoint | PENDING | Support + ~390px PASS; desktop first-user line still required |
+| Owner visual checkpoint | PENDING | Support + ~390px PASS; R1 assignee labels + desktop first-user lines still required |
 
 Do not close LR-2 while any required row is PENDING or FAIL.
 
