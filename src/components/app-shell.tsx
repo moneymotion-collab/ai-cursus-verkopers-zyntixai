@@ -29,6 +29,10 @@ import {
   resolveMembersNavVisible,
 } from "@/features/invitations/domain/members-navigation";
 import { SocialPrimaryNavLink } from "@/features/social-media/ui/social-primary-nav-link";
+import {
+  CLOSED_BETA_SUPPORT_LABEL,
+  resolveClosedBetaSupportMailto,
+} from "@/features/support/closed-beta-support-contact";
 import { OrgAwareLink } from "./org-aware-link";
 
 type AppShellProps = {
@@ -284,6 +288,7 @@ export function AppShell({
     organizationOptions,
     selectedOrganizationId,
   });
+  const supportMailto = resolveClosedBetaSupportMailto();
 
   return (
     <div className={styles.shell}>
@@ -344,6 +349,13 @@ export function AppShell({
       <main id="main-content" className={styles.main}>
         {children}
       </main>
+      {supportMailto ? (
+        <footer className={styles.footer}>
+          <a className={styles.supportLink} href={supportMailto}>
+            {CLOSED_BETA_SUPPORT_LABEL}
+          </a>
+        </footer>
+      ) : null}
     </div>
   );
 }
