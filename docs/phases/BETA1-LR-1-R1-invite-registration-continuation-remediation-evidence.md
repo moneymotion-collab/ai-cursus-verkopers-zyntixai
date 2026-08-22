@@ -6,7 +6,7 @@
 BETA1-LR-1-R1 CLOSED WITH EVIDENCE — INVITE REGISTRATION CONTINUATION PRODUCTION VERIFIED
 ```
 
-This closes **only** the R1 remediation. Parent `BETA1-LR-1` remains open until its separate owner line `BETA1-LR-1 TESTER REACHED /HOME IN CORRECT ORG = PASS` is explicitly supplied. That line has **not** been received and is not inferred from this R1 close.
+This closes **only** the R1 remediation. The parent `/home` line was later supplied separately and is recorded in `docs/phases/BETA1-LR-1-closed-beta-admission-activation-evidence.md`.
 
 ---
 
@@ -171,7 +171,7 @@ BETA1-LR-1-R1 INVITE REGISTRATION CONTINUATION VISUAL CONFIRMATION = PASS
 
 This is visual confirmation that the repaired invitation flow no longer dead-ended on `Workspace creation unavailable` and that invitation registration continuation behaved correctly in Production.
 
-The parent line `BETA1-LR-1 TESTER REACHED /HOME IN CORRECT ORG = PASS` was **not** supplied and is **not** recorded as PASS.
+The parent line `BETA1-LR-1 TESTER REACHED /HOME IN CORRECT ORG = PASS` was later supplied separately and is recorded on the parent evidence, not as an R1-only claim.
 
 ---
 

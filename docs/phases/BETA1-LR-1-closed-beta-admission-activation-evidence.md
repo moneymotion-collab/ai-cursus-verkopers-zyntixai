@@ -3,33 +3,24 @@
 ## A. Phase Verdict
 
 ```text
-BETA1-LR-1 PROVIDER/OWNER VERIFICATION REQUIRED
-```
-
-PATH B (invite-only) is the chosen admission strategy. Repository architecture, server-side public-registration denial, invitation security, tenant binding, and abuse/idempotency remain verified. Production invitation **acceptance** and **email delivery** are now ON for exactly one allowlisted tester. Public owner registration remains OFF. Social scheduling/publishing remain OFF.
-
-No implementation defect required a code change.
-
-Remediation `BETA1-LR-1-R1` is **closed** (`docs/phases/BETA1-LR-1-R1-invite-registration-continuation-remediation-evidence.md`). Owner confirmed:
-
-```text
-BETA1-LR-1-R1 INVITE REGISTRATION CONTINUATION VISUAL CONFIRMATION = PASS
-```
-
-Parent LR-1 stays open. The remaining owner confirmation is still:
-
-```text
-BETA1-LR-1 TESTER REACHED /HOME IN CORRECT ORG = PASS
-```
-
-That parent line has **not** been supplied and is not inferred from the R1 close.
-
-This phase is therefore **not closed**. Do not treat the following as true until the owner checkpoint below is PASSed:
-
-```text
 BETA1-LR-1 CLOSED WITH EVIDENCE — INVITE-ONLY CLOSED-BETA ADMISSION PRODUCTION VERIFIED
 ZYNTIXAI CLOSED-BETA ADMISSION PATH B READY
 ```
+
+PATH B (invite-only) is the chosen admission strategy. Repository architecture, server-side public-registration denial, invitation security, tenant binding, and abuse/idempotency remain verified. Production invitation **acceptance** and **email delivery** remain ON for exactly one allowlisted tester. Public owner registration remains OFF. Social scheduling/publishing remain OFF.
+
+Owner confirmations now recorded:
+
+```text
+BETA1-LR-1-R1 INVITE REGISTRATION CONTINUATION VISUAL CONFIRMATION = PASS
+BETA1-LR-1 TESTER REACHED /HOME IN CORRECT ORG = PASS
+```
+
+The second line was supplied by the owner on `2026-08-22` (message timestamp `13:59` local / `11:59 UTC` class). It is recorded exactly and is not inferred from R1.
+
+This close proves **invite-only closed-beta admission** for the authorized tester on the authorized org. It does **not** prove mobile smoke, support/feedback readiness, Social enrollment, Social publishing, or Beta 1 final launch readiness.
+
+Remediation `BETA1-LR-1-R1` remains closed (`docs/phases/BETA1-LR-1-R1-invite-registration-continuation-remediation-evidence.md`).
 
 ---
 
@@ -49,8 +40,9 @@ ZYNTIXAI CLOSED-BETA ADMISSION PATH B READY
 | Evidence commit | this commit |
 | Canonical Production app | `https://www.zyntixai.com` |
 | Activation baseline HEAD | `15a6331419021c5965a72e3bcef7ce984b3d575b` |
-| Current Production deploy | `dpl_2bdTfkX851mJiJZzJngtzqY3hdGH` Ready (aliases `www.zyntixai.com`, `zyntixai.com`, `zyntixai.vercel.app`) |
-| Prior Production deploy (rollback candidate) | `dpl_Ad6mqFNp3YRhs6XrPQbr3RPhuyCa` |
+| Current Production deploy | `dpl_7EJKLuNFxcWTZXSqUWTpEwkbgpQd` Ready (aliases `www.zyntixai.com`, `zyntixai.com`, `zyntixai.vercel.app`) |
+| Prior Production deploy (R1 rollback / PATH B first flip) | `dpl_2bdTfkX851mJiJZzJngtzqY3hdGH` |
+| Prior Production deploy (pre-activation rollback) | `dpl_Ad6mqFNp3YRhs6XrPQbr3RPhuyCa` |
 
 HEAD matched `15a6331` (clean, `0 0`) before this activation. No reset or discard. No implementation commit.
 
@@ -277,7 +269,7 @@ Code path covers:
 | Foreign org manipulation | fail closed (no client org field) |
 | Feature OFF | `feature_disabled` / FeatureDisabledState; exchange does not seal |
 
-Live gate is ON (UnavailableState vs FeatureDisabledState). Live acceptance of the authorized tester invite is **PENDING** owner email + browser confirmation. Cursor did not create or accept the invitation.
+Live gate remains ON (UnavailableState vs FeatureDisabledState). Owner/tester acceptance is now complete: invitation `accepted`, one `staff` membership on the authorized org, and owner `/home` PASS recorded in §O.
 
 ---
 
@@ -358,38 +350,30 @@ Application rollback candidate: promote `dpl_Ad6mqFNp3YRhs6XrPQbr3RPhuyCa` **and
 
 ## O. Manual Owner Verification
 
-```text
-PENDING
-```
-
-O1 (tester identity) is complete. Gates are ON. Cursor did **not** send the invitation. Stop for the owner/tester browser path.
-
-Use a private/incognito window for the **tester**. Keep the Owner session in a normal window.
-
-1. Log in as Owner/Admin: `https://www.zyntixai.com/login`
-2. Open `https://www.zyntixai.com/settings/members?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb`
-3. Confirm org **ZyntixAI Production QA** and that the restricted-rollout warning is **gone**
-4. Invite exactly `testtest34567810@gmail.com`
-5. Role: **Staff** (`staff` — product cannot grant Owner)
-6. Do not resend repeatedly
-7. Open `testtest34567810@gmail.com`
-8. Confirm receipt. Expected subject: `You're invited to join ZyntixAI Production QA on ZyntixAI`. Expected historical sender: `ZyntixAI <invites@invites.zyntixai.com>` (confirm against the received mail)
-9. Open the invite CTA in a clean incognito/private session (`https://www.zyntixai.com/invite/accept/exchange?token=…`)
-10. Authenticate through invite-mode register if required (this mailbox is not an existing auth user)
-11. Accept exactly once
-12. Confirm organization `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` (ZyntixAI Production QA)
-13. Confirm route `/home?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb`
-14. Do not enroll Social
-15. Do not publish anything
-
-### Required PASS wording
+Recorded `2026-08-22` (owner `/home` message timestamp `13:59` local / `11:59 UTC` class).
 
 ```text
-BETA1-LR-1 INVITE DELIVERY + ACCEPTANCE VISUAL CONFIRMATION = PASS
 BETA1-LR-1 TESTER REACHED /HOME IN CORRECT ORG = PASS
 ```
 
-Until those two lines exist, LR-1 stays `PROVIDER/OWNER VERIFICATION REQUIRED`.
+Prior R1 visual confirmation (already recorded; not restated as a stronger parent claim):
+
+```text
+BETA1-LR-1-R1 INVITE REGISTRATION CONTINUATION VISUAL CONFIRMATION = PASS
+```
+
+The original §O delivery+acceptance wording was not separately re-supplied. Parent close uses the two authorized lines above plus supporting Production state (accepted Staff invite, one staff membership on the authorized org). The unused original line is **not** invented.
+
+Supporting tester/invitation state after the owner `/home` PASS (read-only; no secrets; state not altered):
+
+| Check | State |
+| --- | --- |
+| Auth user | exists; email confirmed |
+| Membership count | **1** (no duplicate) |
+| Target org | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` (ZyntixAI Production QA) |
+| Membership | **1 active** `staff` |
+| Latest invite | **accepted**, role `staff`, `accepted_at` set |
+| Invite rows for tester | 1 |
 
 ---
 
@@ -405,10 +389,7 @@ No implementation commit.
 
 ## Q. Residual Risks
 
-Launch blockers for *this* phase (operational):
-
-* Parent owner line still outstanding: `BETA1-LR-1 TESTER REACHED /HOME IN CORRECT ORG = PASS`
-* R1 continuation defect is closed and is no longer an LR-1 remediation blocker
+No remaining LR-1 launch-admission blocker.
 
 Not launch blockers (leave for later):
 
@@ -427,17 +408,17 @@ Not launch blockers (leave for later):
 | Invite-only strategy enforced | PASS | PATH B chosen; PATH A remains OFF; no other admission route found |
 | Public registration remains OFF | PASS | Env absent; live `/register` → `307 /login?registration=disabled`; server actions fail-closed |
 | Invitation creation | PASS | Tenant-scoped action + RPC + role matrix + rate limit; Members UI exists |
-| Email delivery | PENDING | Gate ON + allowlist bound; no LR-1 send until owner creates the invite |
+| Email delivery | PASS | Gate ON + allowlist bound; owner completed the invite email path |
 | Token security | PASS | Live malformed token clears cookie; unknown 64-hex seals shape-only; accept RPC still fail-closed |
-| Acceptance | PENDING | Live FeatureDisabledState gone; real tester accept not yet walked |
-| Correct org membership | PENDING | Org `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` verified; live membership not yet created |
+| Acceptance | PASS | Invitation `accepted`; live unauthenticated `/invite/accept` still UnavailableState (gate ON, no token) |
+| Correct org membership | PASS | 1 active `staff` on `2fc07699-ece5-44b9-bbb3-abbc23e9fffb`; no duplicate |
 | Tenant isolation | PASS | Org re-resolved on create; accept has no org arg; members `?org=` uses `resolveSelectedOrganization` (no silent fallback) |
-| Abuse/idempotency | PASS | CB-R1/G1 tests + pending still 0 |
-| Auth regression | PASS | 181 focused tests after deploy; `/register` still disabled; `/login` 200 |
-| Production config | PASS | Only PATH B invitation gates + allowlist; Social untouched dry-run |
-| Owner manual verification | PENDING | R1 visual continuation PASS recorded; parent `/home` line still required |
+| Abuse/idempotency | PASS | CB-R1/G1 tests; tester has exactly one membership |
+| Auth regression | PASS | Prior 181 focused tests; live `/register` still disabled; `/login` 200 |
+| Production config | PASS | PATH B invitation gates + allowlist; Social latest tick dry-run |
+| Owner manual verification | PASS | Exact `/home` line recorded; R1 visual continuation already PASS |
 
-Do not close LR-1 while any required row is PENDING.
+All required LR-1 rows are PASS.
 
 ---
 
@@ -502,21 +483,29 @@ Owner named tester + org. This subsection is the activation record requested for
 
 ### G. Owner Verification
 
-R1 continuation:
-
 ```text
 BETA1-LR-1-R1 INVITE REGISTRATION CONTINUATION VISUAL CONFIRMATION = PASS
-```
-
-Parent `/home` confirmation:
-
-```text
-PENDING
+BETA1-LR-1 TESTER REACHED /HOME IN CORRECT ORG = PASS
 ```
 
 ### H. Final Gate Matrix
 
-R1 is closed. Parent manual `/home` row remains PENDING. See §R.
+All required rows PASS. See §R.
+
+### I. Production Post-Close Recheck (`2026-08-22`)
+
+Read-only. No Production mutation.
+
+| Check | State |
+| --- | --- |
+| Deployment | `dpl_7EJKLuNFxcWTZXSqUWTpEwkbgpQd` Ready |
+| Alias | `https://www.zyntixai.com` (also `zyntixai.com`, `zyntixai.vercel.app`) |
+| Public registration | OFF / absent — `GET /register` → `307 /login?registration=disabled` |
+| Invitation delivery | ON (`INVITATION_EMAIL_DELIVERY_ENABLED` present Encrypted; unchanged) |
+| Invitation acceptance | ON — unauthenticated `/invite/accept` = UnavailableState |
+| Allowlist | `INVITATION_EMAIL_RECIPIENT_ALLOWLIST` present Encrypted; intended scope remains exactly `testtest34567810@gmail.com` (value not dumped) |
+| Social scheduling | OFF — latest tick `2026-08-22 12:00:00+00` dry-run |
+| Social publishing | OFF — `providerWriteAttempted=false` |
 
 ---
 
@@ -526,6 +515,6 @@ R1 is closed. Parent manual `/home` row remains PENDING. See §R.
 | --- | --- |
 | Evidence path | `docs/phases/BETA1-LR-1-closed-beta-admission-activation-evidence.md` |
 | Implementation commit | none |
-| Prior evidence commit | `15a6331419021c5965a72e3bcef7ce984b3d575b` |
+| Prior evidence commit | `750476e517816ea2e019f878c1cd9eb2c2a1ce45` |
 | This evidence commit | this commit |
 | Branch | `core/platform-readiness-20260707` |
