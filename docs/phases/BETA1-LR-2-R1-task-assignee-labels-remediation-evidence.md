@@ -3,24 +3,18 @@
 ## M. Final Verdict
 
 ```text
-BETA1-LR-2-R1 IMPLEMENTED AND DEPLOYED — OWNER VISUAL REVERIFICATION REQUIRED
-```
-
-This is **not** a close. The Tasks assignee selector now uses an org-scoped display-label RPC so colleagues are distinguishable. Owner visual recheck on Production is still required.
-
-Do not treat the following as true until the owner supplies the exact line in §L:
-
-```text
 BETA1-LR-2-R1 CLOSED WITH EVIDENCE — TASK ASSIGNEE LABELS PRODUCTION VERIFIED
 ```
 
-The parent later received an explicit owner line (not inferred here):
+The Tasks assignee selector uses an org-scoped display-label RPC so colleagues are distinguishable. Owner visual recheck on Production is now recorded in §L.
+
+The parent first-user desktop smoke was already recorded separately:
 
 ```text
 BETA1-LR-2 FIRST-USER DESKTOP VISUAL SMOKE = PASS
 ```
 
-That parent line does **not** substitute for the R1-specific confirmation in §L.
+Parent LR-2 remains closed and is not reopened.
 
 ---
 
@@ -208,26 +202,17 @@ No invitation / Social / registration env mutation in R1.
 
 ## L. Owner Visual Verification
 
-```text
-PENDING
-```
+Recorded `2026-08-22` `15:44` local / `13:44 UTC`.
 
-Recorded `2026-08-22` `14:59` local / `12:59 UTC`: the owner supplied the **parent** desktop smoke PASS after this R1 deploy. The exact R1 confirmation below was **not** received and is not invented.
-
-Minimum remaining R1 checkpoint. Use `https://www.zyntixai.com` only. Tester: `testtest34567810@gmail.com`. Do not enroll Social. Do not publish.
-
-1. Open `https://www.zyntixai.com/tasks?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb`.
-2. Open **Cessionaris** / Assignee.
-3. Confirm `Elke cessionaris` remains first.
-4. Confirm member entries are meaningfully distinguishable.
-5. Confirm there are no repeated ambiguous `Teamlid` entries where a real name exists.
-6. Confirm selecting/filtering still works and the layout remains usable.
-
-Required PASS wording:
+Received:
 
 ```text
 BETA1-LR-2-R1 TASK ASSIGNEE LABELS VISUAL CONFIRMATION = PASS
 ```
+
+Earlier the same day (`14:59` local / `12:59 UTC`) the owner had already supplied the parent desktop smoke PASS. This R1 line is the separate assignee-label confirmation.
+
+Target rechecked: `https://www.zyntixai.com/tasks?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb` — **Cessionaris** / Assignee.
 
 ---
 

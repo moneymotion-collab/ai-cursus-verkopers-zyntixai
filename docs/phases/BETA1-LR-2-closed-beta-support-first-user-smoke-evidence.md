@@ -8,13 +8,13 @@ BETA1-LR-2 CLOSED WITH EVIDENCE — CLOSED-BETA SUPPORT + FIRST-USER EXPERIENCE 
 
 Support/feedback is implemented and deployed. Owner visual confirmation is now complete for support contact, ~390px mobile smoke, and first-user desktop smoke. Public registration remains OFF. Invite-only admission remains ON. Social scheduling/publishing remain OFF.
 
-Desktop smoke discovered **BETA1-LR-2-R1** (ambiguous Tasks assignee `Teamlid` labels). R1 was implemented and deployed before this desktop PASS. The owner supplied the exact parent desktop line after that deploy. This close does **not** invent:
+Desktop smoke discovered **BETA1-LR-2-R1** (ambiguous Tasks assignee `Teamlid` labels). R1 was implemented and deployed before the desktop PASS. The owner later also supplied the exact R1 confirmation:
 
 ```text
 BETA1-LR-2-R1 TASK ASSIGNEE LABELS VISUAL CONFIRMATION = PASS
 ```
 
-That R1-specific line was not received. R1 evidence remains in `docs/phases/BETA1-LR-2-R1-task-assignee-labels-remediation-evidence.md`.
+R1 is now `BETA1-LR-2-R1 CLOSED WITH EVIDENCE — TASK ASSIGNEE LABELS PRODUCTION VERIFIED`. Evidence: `docs/phases/BETA1-LR-2-R1-task-assignee-labels-remediation-evidence.md`.
 
 This phase does **not** prove Beta 1 final launch readiness, Social enrollment, Social publishing, or a full Course Sellers re-FV.
 
@@ -255,7 +255,11 @@ BETA1-LR-2 ~390PX MOBILE VISUAL SMOKE = PASS
 BETA1-LR-2 FIRST-USER DESKTOP VISUAL SMOKE = PASS
 ```
 
-The desktop line was received after R1 was implemented and deployed. The separate R1 confirmation string was **not** received and is not invented here.
+The desktop line was received after R1 was implemented and deployed. The separate R1 confirmation was later received at `15:44` local / `13:44 UTC`:
+
+```text
+BETA1-LR-2-R1 TASK ASSIGNEE LABELS VISUAL CONFIRMATION = PASS
+```
 
 ### Desktop
 
@@ -293,7 +297,7 @@ BETA1-LR-2-R1 — TASK ASSIGNEE LABELS AMBIGUOUS
 
 Repeated `Teamlid` / `Team member` labels on `/tasks` for org `2fc07699-ece5-44b9-bbb3-abbc23e9fffb`. Classified P1 usability/data-honesty. Not a tenant leak. Remediation evidence: `docs/phases/BETA1-LR-2-R1-task-assignee-labels-remediation-evidence.md`.
 
-R1 was implemented and deployed (`e7db52c59bb187e059be7739dd20dc54b5897b3a`, Production `dpl_3J99ggB892zvWqJaSVFEAKq6Sh5u`) before the owner supplied the desktop PASS. Support-contact implementation and the already-recorded mobile/support PASSes were not reopened. LR-1 invite-continuation code was not modified.
+R1 was implemented and deployed (`e7db52c59bb187e059be7739dd20dc54b5897b3a`, Production `dpl_3J99ggB892zvWqJaSVFEAKq6Sh5u`) before the owner supplied the desktop PASS. The R1 visual confirmation was later recorded separately. Support-contact implementation and the already-recorded mobile/support PASSes were not reopened. LR-1 invite-continuation code was not modified.
 
 ---
 
@@ -327,7 +331,7 @@ R1 was implemented and deployed (`e7db52c59bb187e059be7739dd20dc54b5897b3a`, Pro
 | Build | PASS | Local + Production Ready |
 | Owner visual checkpoint | PASS | All three required parent visual lines recorded in §P |
 
-Parent LR-2 required visual lines are complete. The separate R1 assignee-label confirmation string was not received and is not treated as PASS.
+Parent LR-2 required visual lines are complete. R1 assignee-label visual confirmation is now also recorded and closed.
 
 ---
 
