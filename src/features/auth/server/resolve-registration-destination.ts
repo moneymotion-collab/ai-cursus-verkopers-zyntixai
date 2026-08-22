@@ -7,6 +7,7 @@ import {
 } from "@/features/auth/server/complete-owner-provisioning";
 import { resolveAuthenticatedLanding } from "@/features/auth/server/resolve-authenticated-landing";
 import { isPublicRegistrationEnabled } from "@/features/auth/server/public-registration";
+import { shouldResumeInvitationAdmissionBeforeOwnerCompletion } from "@/features/invitations/server/invitations-feature";
 import {
   hasTrustedInvitationAuthContext,
   type InvitationAuthState,
@@ -59,8 +60,14 @@ export async function resolvePostAuthDestination(
     };
   }
 
+  // PATH B: resume invitation before generic owner workspace creation.
+  // Do not auto-accept, auto-provision, or trust a client org id.
+  if (shouldResumeInvitationAdmissionBeforeOwnerCompletion()) {
+    return { kind: "invite_accept", path: INVITE_ACCEPT_PATH };
+  }
+
   // Zero memberships: explicit owner completion UI only when public registration on.
-  // Flag-off: still land on /register/complete which renders unavailable (no mutation).
+  // Flag-off + invitations-off: /register/complete renders unavailable (no mutation).
   return { kind: "complete_registration", path: REGISTER_COMPLETE_PATH };
 }
 

@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { getPublicSupabaseEnv } from "@/lib/env/public";
+import { resolveCanonicalRedirectOrigin } from "@/lib/env/site-origin";
 import {
   isPasswordResetDestination,
   resolveSafeReturnPath,
@@ -37,7 +38,8 @@ function isEmailOtpType(value: string): value is EmailOtpType {
  * NEVER auto-provisions owner Organizations (OD-APP-B3 / B4).
  */
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  const redirectOrigin = resolveCanonicalRedirectOrigin(request.url);
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
   const otpTypeRaw = searchParams.get("type");
@@ -48,7 +50,9 @@ export async function GET(request: NextRequest) {
   const isRecoveryDestination = isPasswordResetDestination(safeNext);
 
   const cookiesToSet: CookieToSet[] = [];
-  let response = NextResponse.redirect(new URL("/register/check-email", origin));
+  let response = NextResponse.redirect(
+    new URL("/register/check-email", redirectOrigin),
+  );
 
   const { url, publishableKey } = getPublicSupabaseEnv();
   const supabase = createServerClient<Database>(url, publishableKey, {
@@ -63,7 +67,7 @@ export async function GET(request: NextRequest) {
   });
 
   function finalize(targetPath: string) {
-    response = NextResponse.redirect(new URL(targetPath, origin));
+    response = NextResponse.redirect(new URL(targetPath, redirectOrigin));
     cookiesToSet.forEach(({ name, value, options }) => {
       response.cookies.set(name, value, options);
     });

@@ -197,4 +197,40 @@ describe("auth callback route", () => {
     );
     expect(response.headers.get("location")).not.toContain("check-email");
   });
+
+  it("does not keep invite/auth redirects on a Vercel alias when SITE_URL is canonical", async () => {
+    const previousSite = process.env.NEXT_PUBLIC_SITE_URL;
+    process.env.NEXT_PUBLIC_SITE_URL = "https://www.zyntixai.com";
+    exchangeCodeForSessionMock.mockResolvedValue({ error: null });
+    getUserMock.mockResolvedValue({
+      data: { user: { id: "user-1", email_confirmed_at: "2026-01-01T00:00:00Z" } },
+      error: null,
+    });
+    resolvePostAuthDestinationMock.mockResolvedValue({
+      kind: "invite_accept",
+      path: "/invite/accept",
+    });
+
+    try {
+      const response = await GET(
+        new NextRequest(
+          "https://zyntixai.vercel.app/auth/callback?code=signup-code&next=%2Finvite%2Faccept",
+        ),
+      );
+
+      expect(response.headers.get("location")).toBe(
+        "https://www.zyntixai.com/invite/accept",
+      );
+      expect(response.headers.get("location")).not.toContain("vercel.app");
+      expect(response.headers.get("location")).not.toContain(
+        "/register/complete",
+      );
+    } finally {
+      if (previousSite === undefined) {
+        delete process.env.NEXT_PUBLIC_SITE_URL;
+      } else {
+        process.env.NEXT_PUBLIC_SITE_URL = previousSite;
+      }
+    }
+  });
 });

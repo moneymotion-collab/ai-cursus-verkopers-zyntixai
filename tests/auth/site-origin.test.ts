@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildAuthCallbackUrl,
+  resolveCanonicalRedirectOrigin,
   resolveSiteOrigin,
 } from "@/lib/env/site-origin";
 
@@ -24,6 +25,23 @@ describe("resolveSiteOrigin", () => {
 
   it("uses local default when no env values are present", () => {
     expect(resolveSiteOrigin({})).toBe("http://127.0.0.1:3000");
+  });
+});
+
+describe("resolveCanonicalRedirectOrigin", () => {
+  it("keeps Production auth redirects on NEXT_PUBLIC_SITE_URL instead of a Vercel alias", () => {
+    expect(
+      resolveCanonicalRedirectOrigin(
+        "https://zyntixai.vercel.app/auth/callback?code=signup-code",
+        { NEXT_PUBLIC_SITE_URL: "https://www.zyntixai.com" },
+      ),
+    ).toBe("https://www.zyntixai.com");
+  });
+
+  it("uses the request origin when no site URL is configured", () => {
+    expect(
+      resolveCanonicalRedirectOrigin("http://localhost:3000/auth/callback", {}),
+    ).toBe("http://localhost:3000");
   });
 });
 

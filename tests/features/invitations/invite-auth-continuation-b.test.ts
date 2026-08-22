@@ -104,7 +104,18 @@ describe("Slice B owner-provisioning gate", () => {
     expect(completeOwnerMock).not.toHaveBeenCalled();
   });
 
-  it("zero memberships without invite routes to /register/complete without provisioning", async () => {
+  it("zero memberships without invite cookies resume /invite/accept on PATH B", async () => {
+    const path = await resolvePostLoginDestination({} as never, "/leads", {
+      invitationCookies: {},
+      authenticatedUserId: USER_A,
+    });
+    expect(path).toBe("/invite/accept");
+    expect(path).not.toBe("/register/complete");
+    expect(completeOwnerMock).not.toHaveBeenCalled();
+  });
+
+  it("zero memberships without invite remain on /register/complete when invitations are OFF", async () => {
+    process.env.INVITATIONS_ENABLED = "false";
     const path = await resolvePostLoginDestination({} as never, "/leads", {
       invitationCookies: {},
       authenticatedUserId: USER_A,

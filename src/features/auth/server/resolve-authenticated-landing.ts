@@ -10,6 +10,7 @@ import {
   buildOnboardingPath,
   buildProductDestination,
 } from "@/features/onboarding/domain/onboarding-steps";
+import { shouldResumeInvitationAdmissionBeforeOwnerCompletion } from "@/features/invitations/server/invitations-feature";
 import {
   hasTrustedInvitationAuthContext,
   type InvitationCookieBag,
@@ -43,6 +44,9 @@ export async function resolveAuthenticatedLanding(
   const membershipsResult = await listActiveOrganizationMemberships(supabase);
 
   if (!membershipsResult.ok || membershipsResult.memberships.length === 0) {
+    if (shouldResumeInvitationAdmissionBeforeOwnerCompletion()) {
+      return "/invite/accept";
+    }
     return "/register/complete";
   }
 
@@ -66,8 +70,9 @@ export async function resolveAuthenticatedLanding(
  * Post-login destination: allowlisted return path, with `/` resolved via org landing.
  * Product return paths for incomplete orgs are rewritten to onboarding.
  *
- * Zero-membership users never auto-provision. Trusted Invitation context may
- * honor safe `/invite/accept`; otherwise route to `/register/complete`.
+ * Zero-membership users never auto-provision. Trusted Invitation context and
+ * PATH B (invitations ON, public registration OFF) resume `/invite/accept`
+ * instead of generic workspace creation.
  */
 export async function resolvePostLoginDestination(
   supabase: SupabaseClient<Database>,
@@ -90,6 +95,9 @@ export async function resolvePostLoginDestination(
 
   const membershipsResult = await listActiveOrganizationMemberships(supabase);
   if (!membershipsResult.ok || membershipsResult.memberships.length === 0) {
+    if (shouldResumeInvitationAdmissionBeforeOwnerCompletion()) {
+      return "/invite/accept";
+    }
     return "/register/complete";
   }
 

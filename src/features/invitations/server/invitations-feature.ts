@@ -29,3 +29,18 @@ export function isInvitationsFeatureEnabled(
 ): boolean {
   return parseInvitationsFeatureEnabled(env.INVITATIONS_ENABLED);
 }
+
+/**
+ * PATH B closed-beta: invite admission outranks generic owner workspace
+ * creation. When invitations are ON and public registration is not exact
+ * "true", a verified user with no membership must resume /invite/accept
+ * instead of /register/complete.
+ */
+export function shouldResumeInvitationAdmissionBeforeOwnerCompletion(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  if (!isInvitationsFeatureEnabled(env)) {
+    return false;
+  }
+  return env.PUBLIC_REGISTRATION_ENABLED?.trim().toLowerCase() !== "true";
+}
