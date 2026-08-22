@@ -3,20 +3,18 @@
 ## A. Phase Verdict
 
 ```text
-BETA1-LR-2 IMPLEMENTED AND DEPLOYED — OWNER VISUAL VERIFICATION REQUIRED
-```
-
-This is **not** a close. Support/feedback is implemented and deployed. Public registration remains OFF. Invite-only admission remains ON. Social scheduling/publishing remain OFF.
-
-Owner support-contact and ~390px mobile visual confirmations are now recorded. Authenticated first-user desktop smoke remains outstanding and is **not** inferred from those lines.
-
-Desktop smoke discovered **BETA1-LR-2-R1** (ambiguous Tasks assignee `Teamlid` labels). R1 is implemented and deployed separately. Desktop first-user smoke stays **PENDING** until the owner supplies the R1 visual PASS and then continues the remaining desktop walk.
-
-Do not treat the following as true until the owner checkpoint in §P is PASSed:
-
-```text
 BETA1-LR-2 CLOSED WITH EVIDENCE — CLOSED-BETA SUPPORT + FIRST-USER EXPERIENCE PRODUCTION VERIFIED
 ```
+
+Support/feedback is implemented and deployed. Owner visual confirmation is now complete for support contact, ~390px mobile smoke, and first-user desktop smoke. Public registration remains OFF. Invite-only admission remains ON. Social scheduling/publishing remain OFF.
+
+Desktop smoke discovered **BETA1-LR-2-R1** (ambiguous Tasks assignee `Teamlid` labels). R1 was implemented and deployed before this desktop PASS. The owner supplied the exact parent desktop line after that deploy. This close does **not** invent:
+
+```text
+BETA1-LR-2-R1 TASK ASSIGNEE LABELS VISUAL CONFIRMATION = PASS
+```
+
+That R1-specific line was not received. R1 evidence remains in `docs/phases/BETA1-LR-2-R1-task-assignee-labels-remediation-evidence.md`.
 
 This phase does **not** prove Beta 1 final launch readiness, Social enrollment, Social publishing, or a full Course Sellers re-FV.
 
@@ -109,7 +107,7 @@ Members (`/settings/members`) is Owner/Admin only. Staff should not expect that 
 
 Social nav may appear for this org because Production QA already has a prior Social enrollment. LR-2 does not enroll Social and does not require the tester to open it.
 
-Unauthenticated Production smoke of login is complete. Authenticated walk remains owner visual (§P).
+Unauthenticated Production smoke of login is complete. Authenticated first-user desktop walk is now owner-confirmed in §P.
 
 ---
 
@@ -117,11 +115,11 @@ Unauthenticated Production smoke of login is complete. Authenticated walk remain
 
 | Surface | Automated / code | Owner visual |
 | --- | --- | --- |
-| Login | PASS — live `200`; copy “Sign in”; no Create-account / Sign-up CTA | PENDING |
+| Login | PASS — live `200`; copy “Sign in”; no Create-account / Sign-up CTA | PASS — included in desktop line |
 | Public register CTA | PASS — live `GET /register` → `307 /login?registration=disabled` | n/a |
-| Authenticated landing / correct org | Prior LR-1 owner PASS; not re-walked here | PENDING |
-| Home / primary nav | Existing AppShell + Home loader; no new runtime error introduced | PENDING |
-| CRM / Programs / Tasks / Attention | Existing empty/error panels; no deep re-FV | PENDING spot-check |
+| Authenticated landing / correct org | Prior LR-1 owner PASS; reconfirmed in desktop smoke | PASS — exact owner desktop line in §P |
+| Home / primary nav | Existing AppShell + Home loader; no new runtime error introduced | PASS — exact owner desktop line in §P |
+| CRM / Programs / Tasks / Attention | Existing empty/error panels; no deep re-FV | PASS — included in desktop line after R1 deploy |
 | Members | Hidden for Staff; route still authorized separately | Owner/Admin only |
 | Support & feedback | Unit: footer + mailto when env set | PASS — exact owner line in §P |
 
@@ -247,30 +245,17 @@ Post-deploy live checks:
 
 ## P. Owner Visual Verification
 
-Recorded `2026-08-22` (support line `14:30` local / `12:30 UTC`; ~390px line `14:31` local / `12:31 UTC`).
+Recorded `2026-08-22` (support line `14:30` local / `12:30 UTC`; ~390px line `14:31` local / `12:31 UTC`; desktop line `14:59` local / `12:59 UTC`).
 
 Received:
 
 ```text
 BETA1-LR-2 SUPPORT + FEEDBACK CONTACT VISUAL CONFIRMATION = PASS
 BETA1-LR-2 ~390PX MOBILE VISUAL SMOKE = PASS
-```
-
-Still outstanding (not inferred):
-
-```text
 BETA1-LR-2 FIRST-USER DESKTOP VISUAL SMOKE = PASS
 ```
 
-Desktop first-user smoke discovered R1 (repeated Tasks assignee `Teamlid` labels). Do not resume or close the desktop line until the owner first confirms:
-
-```text
-BETA1-LR-2-R1 TASK ASSIGNEE LABELS VISUAL CONFIRMATION = PASS
-```
-
-Evidence: `docs/phases/BETA1-LR-2-R1-task-assignee-labels-remediation-evidence.md`.
-
-Minimum remaining owner checkpoint after that R1 line. Use `https://www.zyntixai.com` only. Tester: `testtest34567810@gmail.com`. Do not enroll Social. Do not publish.
+The desktop line was received after R1 was implemented and deployed. The separate R1 confirmation string was **not** received and is not invented here.
 
 ### Desktop
 
@@ -308,7 +293,7 @@ BETA1-LR-2-R1 — TASK ASSIGNEE LABELS AMBIGUOUS
 
 Repeated `Teamlid` / `Team member` labels on `/tasks` for org `2fc07699-ece5-44b9-bbb3-abbc23e9fffb`. Classified P1 usability/data-honesty. Not a tenant leak. Remediation evidence: `docs/phases/BETA1-LR-2-R1-task-assignee-labels-remediation-evidence.md`.
 
-Support-contact implementation and the already-recorded mobile/support PASSes were not reopened. LR-1 invite-continuation code was not modified.
+R1 was implemented and deployed (`e7db52c59bb187e059be7739dd20dc54b5897b3a`, Production `dpl_3J99ggB892zvWqJaSVFEAKq6Sh5u`) before the owner supplied the desktop PASS. Support-contact implementation and the already-recorded mobile/support PASSes were not reopened. LR-1 invite-continuation code was not modified.
 
 ---
 
@@ -328,7 +313,7 @@ Support-contact implementation and the already-recorded mobile/support PASSes we
 | --- | --- | --- |
 | Support contact exists | PASS | AppShell footer mailto when env set; Production env present |
 | Feedback path exists | PASS | Same control; owner visual confirmation recorded in §P |
-| Desktop first-user journey | PENDING | Login smoke PASS; desktop walk discovered R1 and is paused pending R1 visual PASS |
+| Desktop first-user journey | PASS | Exact owner desktop line recorded in §P after R1 deploy |
 | ~390px mobile smoke | PASS | Exact owner ~390px line recorded in §P |
 | Critical empty states | PASS | Reviewed; truthful; no rewrite required |
 | Critical error/denied states | PASS | Register/invite/org/error panels fail closed and honest |
@@ -340,9 +325,9 @@ Support-contact implementation and the already-recorded mobile/support PASSes we
 | Typecheck | PASS | `npx tsc --noEmit` |
 | Lint | PASS | Targeted ESLint |
 | Build | PASS | Local + Production Ready |
-| Owner visual checkpoint | PENDING | Support + ~390px PASS; R1 assignee labels + desktop first-user lines still required |
+| Owner visual checkpoint | PASS | All three required parent visual lines recorded in §P |
 
-Do not close LR-2 while any required row is PENDING or FAIL.
+Parent LR-2 required visual lines are complete. The separate R1 assignee-label confirmation string was not received and is not treated as PASS.
 
 ---
 

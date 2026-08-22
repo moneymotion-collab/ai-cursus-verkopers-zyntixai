@@ -14,11 +14,13 @@ Do not treat the following as true until the owner supplies the exact line in §
 BETA1-LR-2-R1 CLOSED WITH EVIDENCE — TASK ASSIGNEE LABELS PRODUCTION VERIFIED
 ```
 
-Do **not** infer:
+The parent later received an explicit owner line (not inferred here):
 
 ```text
 BETA1-LR-2 FIRST-USER DESKTOP VISUAL SMOKE = PASS
 ```
+
+That parent line does **not** substitute for the R1-specific confirmation in §L.
 
 ---
 
@@ -210,7 +212,9 @@ No invitation / Social / registration env mutation in R1.
 PENDING
 ```
 
-Minimum owner checkpoint. Use `https://www.zyntixai.com` only. Tester: `testtest34567810@gmail.com`. Do not enroll Social. Do not publish.
+Recorded `2026-08-22` `14:59` local / `12:59 UTC`: the owner supplied the **parent** desktop smoke PASS after this R1 deploy. The exact R1 confirmation below was **not** received and is not invented.
+
+Minimum remaining R1 checkpoint. Use `https://www.zyntixai.com` only. Tester: `testtest34567810@gmail.com`. Do not enroll Social. Do not publish.
 
 1. Open `https://www.zyntixai.com/tasks?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb`.
 2. Open **Cessionaris** / Assignee.
