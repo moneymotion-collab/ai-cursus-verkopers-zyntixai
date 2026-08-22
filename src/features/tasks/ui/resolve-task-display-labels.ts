@@ -5,6 +5,11 @@ import type {
   TaskReadModel,
 } from "@/features/tasks/domain/read-types";
 import type { Database } from "@/types/database";
+import { MEMBER_DISPLAY_FALLBACK_LABEL } from "@/features/tasks/domain/member-display-label";
+import {
+  listOrganizationMemberLabels,
+  memberLabelMap,
+} from "@/features/tasks/server/list-organization-member-labels";
 
 export type TaskDisplayLabelBundle = {
   members: Record<string, string>;
@@ -20,7 +25,6 @@ export type TaskLabelReferences = {
   programIds: string[];
 };
 
-const MEMBER_FALLBACK = "Team member";
 const LEAD_FALLBACK = "Linked lead";
 const CUSTOMER_FALLBACK = "Linked customer";
 const PROGRAM_FALLBACK = "Linked program";
@@ -109,28 +113,15 @@ export async function resolveTaskDisplayLabels(
   const bundle = emptyLabelBundle();
 
   if (references.memberIds.length > 0) {
-    const { data: members } = await supabase
-      .from("organization_members")
-      .select("id, user_id")
-      .eq("organization_id", organizationId)
-      .in("id", references.memberIds);
-
-    const userIds = uniqueIds((members ?? []).map((row) => row.user_id));
-    const profileNames: Record<string, string> = {};
-
-    if (userIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, display_name")
-        .in("id", userIds);
-
-      for (const profile of profiles ?? []) {
-        profileNames[profile.id] = normalizeLabel(profile.display_name, MEMBER_FALLBACK);
-      }
-    }
-
-    for (const member of members ?? []) {
-      bundle.members[member.id] = profileNames[member.user_id] ?? MEMBER_FALLBACK;
+    const labels = memberLabelMap(
+      await listOrganizationMemberLabels(
+        supabase,
+        organizationId,
+        references.memberIds,
+      ),
+    );
+    for (const memberId of references.memberIds) {
+      bundle.members[memberId] = labels[memberId] ?? MEMBER_DISPLAY_FALLBACK_LABEL;
     }
   }
 
@@ -180,7 +171,7 @@ export function resolveMemberLabel(
   if (!memberId) {
     return "Unassigned";
   }
-  return labels.members[memberId] ?? MEMBER_FALLBACK;
+  return labels.members[memberId] ?? MEMBER_DISPLAY_FALLBACK_LABEL;
 }
 
 export function resolveLinkedContextLabel(

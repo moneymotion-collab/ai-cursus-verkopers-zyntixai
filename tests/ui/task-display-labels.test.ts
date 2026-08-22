@@ -15,7 +15,10 @@ const LEAD_ID = "44444444-4444-4444-8444-444444444444";
 const CUSTOMER_ID = "55555555-5555-4555-8555-555555555555";
 const PROGRAM_ID = "66666666-6666-4666-8666-666666666666";
 
-function createLabelSupabase(responses: Record<string, QueryResult>) {
+function createLabelSupabase(
+  responses: Record<string, QueryResult>,
+  rpcRows: Array<{ membership_id: string; display_label: string }> = [],
+) {
   const from = vi.fn((table: string) => {
     const response = responses[table];
     if (!response) {
@@ -28,8 +31,9 @@ function createLabelSupabase(responses: Record<string, QueryResult>) {
     chain.select = vi.fn(() => chain);
     return chain;
   });
+  const rpc = vi.fn().mockResolvedValue({ data: rpcRows, error: null });
 
-  return { from } as unknown as SupabaseClient<Database>;
+  return { from, rpc } as unknown as SupabaseClient<Database>;
 }
 
 type QueryResult = { data: unknown[]; error: null };
@@ -116,26 +120,18 @@ describe("resolveTaskDisplayLabels", () => {
     expect(refs.programIds).toEqual([PROGRAM_ID]);
   });
 
-  it("batches member and profile reads with explicit columns and organization scope", async () => {
-    const supabase = createLabelSupabase({
-      organization_members: {
-        data: [
-          { id: MEMBER_A, user_id: "user-a" },
-          { id: MEMBER_B, user_id: "user-b" },
-        ],
-        error: null,
+  it("uses org-scoped member labels without reading colleague profiles directly", async () => {
+    const supabase = createLabelSupabase(
+      {
+        leads: { data: [{ id: LEAD_ID, display_name: "Acme Lead" }], error: null },
+        customers: { data: [{ id: CUSTOMER_ID, display_name: "Acme Customer" }], error: null },
+        programs: { data: [{ id: PROGRAM_ID, name: "Sales Program" }], error: null },
       },
-      profiles: {
-        data: [
-          { id: "user-a", display_name: "Alex Morgan" },
-          { id: "user-b", display_name: "  " },
-        ],
-        error: null,
-      },
-      leads: { data: [{ id: LEAD_ID, display_name: "Acme Lead" }], error: null },
-      customers: { data: [{ id: CUSTOMER_ID, display_name: "Acme Customer" }], error: null },
-      programs: { data: [{ id: PROGRAM_ID, name: "Sales Program" }], error: null },
-    });
+      [
+        { membership_id: MEMBER_A, display_label: "Alex Morgan" },
+        { membership_id: MEMBER_B, display_label: "Team member" },
+      ],
+    );
 
     const labels = await resolveTaskDisplayLabels(supabase, ORG_ID, {
       memberIds: [MEMBER_A, MEMBER_B],
@@ -149,7 +145,8 @@ describe("resolveTaskDisplayLabels", () => {
     expect(labels.leads[LEAD_ID]).toBe("Acme Lead");
     expect(labels.customers[CUSTOMER_ID]).toBe("Acme Customer");
     expect(labels.programs[PROGRAM_ID]).toBe("Sales Program");
-    expect(supabase.from).toHaveBeenCalledTimes(5);
+    expect(supabase.from).toHaveBeenCalledTimes(3);
+    expect(supabase.rpc).toHaveBeenCalled();
   });
 
   it("uses neutral fallbacks and never returns raw UUID labels", async () => {
@@ -205,11 +202,12 @@ describe("resolveTaskDisplayLabels", () => {
     expect(enrollmentLabel).toBe("Acme Customer · Sales Program");
   });
 
-  it("falls back safely when label queries fail at call sites", async () => {
+  it("falls back safely when member-label RPC fails", async () => {
     const supabase = {
       from: vi.fn(() => {
         throw new Error("query failed");
       }),
+      rpc: vi.fn().mockRejectedValue(new Error("rpc failed")),
     } as unknown as SupabaseClient<Database>;
 
     const result = await resolveTaskDisplayLabels(supabase, ORG_ID, {
@@ -217,12 +215,7 @@ describe("resolveTaskDisplayLabels", () => {
       leadIds: [],
       customerIds: [],
       programIds: [],
-    }).catch(() => ({
-      members: {},
-      leads: {},
-      customers: {},
-      programs: {},
-    }));
+    });
 
     expect(resolveMemberLabel(MEMBER_A, result)).toBe("Team member");
   });

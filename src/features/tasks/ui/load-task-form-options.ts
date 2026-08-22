@@ -1,5 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { MEMBER_DISPLAY_FALLBACK_LABEL } from "@/features/tasks/domain/member-display-label";
+import {
+  listOrganizationMemberLabels,
+  memberLabelMap,
+} from "@/features/tasks/server/list-organization-member-labels";
 
 export const MAX_TASK_FORM_OPTIONS = 100;
 
@@ -38,7 +43,6 @@ export type TaskFormOptions = {
   };
 };
 
-const MEMBER_FALLBACK = "Team member";
 const LEAD_FALLBACK = "Linked lead";
 const CUSTOMER_FALLBACK = "Linked customer";
 const PROGRAM_FALLBACK = "Linked program";
@@ -80,23 +84,20 @@ export async function loadTaskFormOptions(
     .limit(MAX_TASK_FORM_OPTIONS + 1);
 
   const memberRows = members ?? [];
-  const userIds = uniqueIds(memberRows.map((row) => row.user_id));
-  const profileNames: Record<string, string> = {};
+  const memberSlice = memberRows.slice(0, MAX_TASK_FORM_OPTIONS);
+  const memberLabels = memberLabelMap(
+    memberSlice.length > 0
+      ? await listOrganizationMemberLabels(
+          supabase,
+          organizationId,
+          memberSlice.map((row) => row.id),
+        )
+      : [],
+  );
 
-  if (userIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, display_name")
-      .in("id", userIds);
-
-    for (const profile of profiles ?? []) {
-      profileNames[profile.id] = normalizeLabel(profile.display_name, MEMBER_FALLBACK);
-    }
-  }
-
-  const memberOptions: TaskMemberOption[] = memberRows.slice(0, MAX_TASK_FORM_OPTIONS).map((row) => ({
+  const memberOptions: TaskMemberOption[] = memberSlice.map((row) => ({
     value: row.id,
-    label: profileNames[row.user_id] ?? MEMBER_FALLBACK,
+    label: memberLabels[row.id] ?? MEMBER_DISPLAY_FALLBACK_LABEL,
   }));
 
   const { data: leadRows } = await supabase
