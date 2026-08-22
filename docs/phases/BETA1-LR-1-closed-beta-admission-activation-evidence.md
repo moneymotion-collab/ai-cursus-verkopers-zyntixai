@@ -10,12 +10,19 @@ PATH B (invite-only) is the chosen admission strategy. Repository architecture, 
 
 No implementation defect required a code change.
 
-Remediation `BETA1-LR-1-R1` is deployed (`dpl_7EJKLuNFxcWTZXSqUWTpEwkbgpQd`) after the tester hit `Workspace creation unavailable` on `zyntixai.vercel.app/register/complete`. See `docs/phases/BETA1-LR-1-R1-invite-registration-continuation-remediation-evidence.md`. Parent LR-1 stays open until owner retest PASS.
+Remediation `BETA1-LR-1-R1` is **closed** (`docs/phases/BETA1-LR-1-R1-invite-registration-continuation-remediation-evidence.md`). Owner confirmed:
 
-The remaining launch-admission blocker is the owner/tester visual path:
+```text
+BETA1-LR-1-R1 INVITE REGISTRATION CONTINUATION VISUAL CONFIRMATION = PASS
+```
 
-* Owner must create one Staff invite to `testtest34567810@gmail.com` from org `2fc07699-ece5-44b9-bbb3-abbc23e9fffb`;
-* tester must receive the email, accept in a private browser, and land on `/home?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb`.
+Parent LR-1 stays open. The remaining owner confirmation is still:
+
+```text
+BETA1-LR-1 TESTER REACHED /HOME IN CORRECT ORG = PASS
+```
+
+That parent line has **not** been supplied and is not inferred from the R1 close.
 
 This phase is therefore **not closed**. Do not treat the following as true until the owner checkpoint below is PASSed:
 
@@ -400,7 +407,8 @@ No implementation commit.
 
 Launch blockers for *this* phase (operational):
 
-* Owner visual PASS not yet recorded (invite + email + accept + `/home` in the authorized org)
+* Parent owner line still outstanding: `BETA1-LR-1 TESTER REACHED /HOME IN CORRECT ORG = PASS`
+* R1 continuation defect is closed and is no longer an LR-1 remediation blocker
 
 Not launch blockers (leave for later):
 
@@ -427,7 +435,7 @@ Not launch blockers (leave for later):
 | Abuse/idempotency | PASS | CB-R1/G1 tests + pending still 0 |
 | Auth regression | PASS | 181 focused tests after deploy; `/register` still disabled; `/login` 200 |
 | Production config | PASS | Only PATH B invitation gates + allowlist; Social untouched dry-run |
-| Owner manual verification | PENDING | §O — two PASS lines required |
+| Owner manual verification | PENDING | R1 visual continuation PASS recorded; parent `/home` line still required |
 
 Do not close LR-1 while any required row is PENDING.
 
@@ -494,13 +502,21 @@ Owner named tester + org. This subsection is the activation record requested for
 
 ### G. Owner Verification
 
+R1 continuation:
+
+```text
+BETA1-LR-1-R1 INVITE REGISTRATION CONTINUATION VISUAL CONFIRMATION = PASS
+```
+
+Parent `/home` confirmation:
+
 ```text
 PENDING
 ```
 
 ### H. Final Gate Matrix
 
-Manual rows remain PENDING until the two owner PASS lines exist. See §R.
+R1 is closed. Parent manual `/home` row remains PENDING. See §R.
 
 ---
 

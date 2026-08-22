@@ -3,10 +3,10 @@
 ## M. Final Remediation Verdict
 
 ```text
-BETA1-LR-1-R1 IMPLEMENTED AND DEPLOYED — OWNER REVERIFICATION REQUIRED
+BETA1-LR-1-R1 CLOSED WITH EVIDENCE — INVITE REGISTRATION CONTINUATION PRODUCTION VERIFIED
 ```
 
-Parent phase `BETA1-LR-1` remains **not closed**. Do not treat owner invitation PASS as complete until the two R1 PASS lines exist.
+This closes **only** the R1 remediation. Parent `BETA1-LR-1` remains open until its separate owner line `BETA1-LR-1 TESTER REACHED /HOME IN CORRECT ORG = PASS` is explicitly supplied. That line has **not** been received and is not inferred from this R1 close.
 
 ---
 
@@ -159,9 +159,77 @@ No invitation/Social/registration env mutation in R1.
 
 ---
 
+## Owner Reverification
+
+Recorded `2026-08-22` during this closure run (owner message timestamp `13:57` local / `11:57 UTC` class).
+
+Exact owner confirmation:
+
+```text
+BETA1-LR-1-R1 INVITE REGISTRATION CONTINUATION VISUAL CONFIRMATION = PASS
+```
+
+This is visual confirmation that the repaired invitation flow no longer dead-ended on `Workspace creation unavailable` and that invitation registration continuation behaved correctly in Production.
+
+The parent line `BETA1-LR-1 TESTER REACHED /HOME IN CORRECT ORG = PASS` was **not** supplied and is **not** recorded as PASS.
+
+---
+
+## Production Post-Reverification State
+
+Read-only recheck after owner PASS. No Production mutation.
+
+| Check | State |
+| --- | --- |
+| Deployment | `dpl_7EJKLuNFxcWTZXSqUWTpEwkbgpQd` Ready |
+| Alias | `https://www.zyntixai.com` (also `zyntixai.com`, `zyntixai.vercel.app`) |
+| Public registration | OFF — `GET /register` → `307 /login?registration=disabled` |
+| Invitation delivery | ON (`INVITATION_EMAIL_DELIVERY_ENABLED=true`; unchanged) |
+| Invitation acceptance | ON — unauthenticated `/invite/accept` still UnavailableState (gate ON, no token) |
+| Allowlist | exactly `testtest34567810@gmail.com` (not rewritten in this closure) |
+| Social scheduling | OFF — latest tick `2026-08-22 11:55:00+00` dry-run |
+| Social publishing | OFF — `providerWriteAttempted=false` |
+
+---
+
 ## K. Tester / Invitation State
 
-No secrets. No second invite created.
+Supporting DB state after the owner flow. No secrets. State was **not** altered to clean evidence.
+
+| Check | After owner R1 verification |
+| --- | --- |
+| Auth user | exists; email confirmed |
+| Membership count | **1** (no duplicate) |
+| Target org | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` (ZyntixAI Production QA) |
+| Membership | **1 active** `staff` |
+| Latest invite | **accepted**, role `staff` |
+| Invite rows for tester | 1 |
+
+This supports that the continuation path reached invitation acceptance and created exactly one intended membership. It is **not** treated as the parent `/home` visual PASS.
+
+---
+
+## Final Remediation Gate Matrix
+
+| Gate | Result | Evidence |
+| --- | --- | --- |
+| Implementation deployed | PASS | `7bf4f13` on `dpl_7EJKLuNFxcWTZXSqUWTpEwkbgpQd` |
+| Focused regression valid | PASS | 202 passed / 20 files at implement; no code change since |
+| TypeScript | PASS | prior `npx tsc --noEmit` |
+| Lint | PASS | prior targeted ESLint |
+| Build | PASS | prior `npx next build` + Production Ready |
+| Public registration OFF | PASS | live `307 /login?registration=disabled` |
+| Invite-only gates controlled | PASS | delivery ON, acceptance ON, allowlist single tester |
+| Social gates OFF | PASS | dry-run tick; no provider write |
+| No new tenant/security defect | PASS | one staff membership on authorized org; no duplicate |
+| Owner visual confirmation | PASS | exact R1 line recorded above |
+| Remediation-specific blocker | PASS | none |
+
+---
+
+## K-pre-retry (historical)
+
+Pre-retry snapshot (kept for audit; superseded by post-reverification §K):
 
 | Check | State |
 | --- | --- |
@@ -169,38 +237,16 @@ No secrets. No second invite created.
 | Email confirmed | yes (`2026-08-22 11:30:23+00`) |
 | Any membership | **no** |
 | Target-org membership | **no** |
-| Latest invite | **pending**, role `staff`, org `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
-| Invite rows for tester | 1 |
-
-Safest retry: **reuse the existing pending invite**. Do not create another. Resend once only if the original email CTA is lost (resend rotates the token).
+| Latest invite | **pending**, role `staff` |
+| Invite rows | 1 |
 
 ---
 
 ## L. Owner Retry Procedure
 
-Use `https://www.zyntixai.com` only. Do **not** use `zyntixai.vercel.app`.
+Retry was executed by the owner. R1 visual continuation is PASS. The parent `/home` confirmation remains outstanding for BETA1-LR-1.
 
-Tester window: **private/incognito**.
-
-1. Do not create a new invitation.
-2. Tester opens the **existing** Staff invite email CTA  
-   (`https://www.zyntixai.com/invite/accept/exchange?token=…`).
-3. If asked to sign in: use the **existing** `testtest34567810@gmail.com` account. Do not register again.
-4. Confirm **Invitation ready** (not Workspace creation unavailable).
-5. Accept once.
-6. Confirm workspace **ZyntixAI Production QA** (`2fc07699-ece5-44b9-bbb3-abbc23e9fffb`).
-7. Confirm `/home?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb`.
-8. If the original CTA is missing: Owner resends **once** from  
-   `https://www.zyntixai.com/settings/members?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb`, then repeat from step 2.
-9. If the tester is already signed in and hits `/register/complete` on www, it should now redirect to `/invite/accept`; they still need the email CTA to accept.
-10. Do not enroll Social. Do not publish.
-
-### Required PASS wording
-
-```text
-BETA1-LR-1-R1 INVITE REGISTRATION CONTINUATION VISUAL CONFIRMATION = PASS
-BETA1-LR-1 TESTER REACHED /HOME IN CORRECT ORG = PASS
-```
+Historical retry steps (for audit): use `https://www.zyntixai.com` only; reopen the existing Staff invite; sign in as the existing tester; Accept once; do not enroll Social.
 
 ---
 
@@ -210,5 +256,6 @@ BETA1-LR-1 TESTER REACHED /HOME IN CORRECT ORG = PASS
 | --- | --- |
 | Evidence path | `docs/phases/BETA1-LR-1-R1-invite-registration-continuation-remediation-evidence.md` |
 | Implementation commit | `7bf4f1363ebab2267f3083ff2291e169d261c5c3` |
-| Evidence commit | this commit |
+| Prior evidence commit | `b2e0de2d4f80743e4fcb1b856fb82597b97191a5` |
+| Closure evidence commit | this commit |
 | Branch | `core/platform-readiness-20260707` |
