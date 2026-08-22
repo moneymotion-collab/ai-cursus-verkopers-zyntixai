@@ -10,6 +10,8 @@ PATH B (invite-only) is the chosen admission strategy. Repository architecture, 
 
 No implementation defect required a code change.
 
+Remediation `BETA1-LR-1-R1` is deployed (`dpl_7EJKLuNFxcWTZXSqUWTpEwkbgpQd`) after the tester hit `Workspace creation unavailable` on `zyntixai.vercel.app/register/complete`. See `docs/phases/BETA1-LR-1-R1-invite-registration-continuation-remediation-evidence.md`. Parent LR-1 stays open until owner retest PASS.
+
 The remaining launch-admission blocker is the owner/tester visual path:
 
 * Owner must create one Staff invite to `testtest34567810@gmail.com` from org `2fc07699-ece5-44b9-bbb3-abbc23e9fffb`;
