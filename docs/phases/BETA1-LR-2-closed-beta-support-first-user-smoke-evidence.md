@@ -6,7 +6,9 @@
 BETA1-LR-2 IMPLEMENTED AND DEPLOYED — OWNER VISUAL VERIFICATION REQUIRED
 ```
 
-This is **not** a close. Support/feedback is implemented and deployed. Public registration remains OFF. Invite-only admission remains ON. Social scheduling/publishing remain OFF. Owner visual confirmation of the authenticated first-user and ~390px journeys is still required.
+This is **not** a close. Support/feedback is implemented and deployed. Public registration remains OFF. Invite-only admission remains ON. Social scheduling/publishing remain OFF.
+
+Owner support-contact visual confirmation is now recorded. Authenticated first-user desktop smoke and ~390px mobile smoke remain outstanding and are **not** inferred from the support PASS.
 
 Do not treat the following as true until the owner checkpoint in §P is PASSed:
 
@@ -119,7 +121,7 @@ Unauthenticated Production smoke of login is complete. Authenticated walk remain
 | Home / primary nav | Existing AppShell + Home loader; no new runtime error introduced | PENDING |
 | CRM / Programs / Tasks / Attention | Existing empty/error panels; no deep re-FV | PENDING spot-check |
 | Members | Hidden for Staff; route still authorized separately | Owner/Admin only |
-| Support & feedback | Unit: footer + mailto when env set | PENDING open composer |
+| Support & feedback | Unit: footer + mailto when env set | PASS — exact owner line in §P |
 
 ---
 
@@ -243,11 +245,22 @@ Post-deploy live checks:
 
 ## P. Owner Visual Verification
 
+Recorded `2026-08-22` (owner message timestamp `14:30` local / `12:30 UTC` class).
+
+Received:
+
 ```text
-PENDING
+BETA1-LR-2 SUPPORT + FEEDBACK CONTACT VISUAL CONFIRMATION = PASS
 ```
 
-Minimum owner checkpoint. Use `https://www.zyntixai.com` only. Tester: `testtest34567810@gmail.com`. Do not enroll Social. Do not publish.
+Still outstanding (not inferred):
+
+```text
+BETA1-LR-2 FIRST-USER DESKTOP VISUAL SMOKE = PASS
+BETA1-LR-2 ~390PX MOBILE VISUAL SMOKE = PASS
+```
+
+Minimum remaining owner checkpoint. Use `https://www.zyntixai.com` only. Tester: `testtest34567810@gmail.com`. Do not enroll Social. Do not publish.
 
 ### Desktop
 
@@ -300,9 +313,9 @@ Planned support gap only. R1 invite-continuation code was not modified.
 | Gate | Result | Evidence |
 | --- | --- | --- |
 | Support contact exists | PASS | AppShell footer mailto when env set; Production env present |
-| Feedback path exists | PASS | Same control; prefilled closed-beta subject/body |
-| Desktop first-user journey | PENDING | Login smoke PASS; authenticated walk needs owner |
-| ~390px mobile smoke | PENDING | CSS contract PASS; authenticated 390px needs owner |
+| Feedback path exists | PASS | Same control; owner visual confirmation recorded in §P |
+| Desktop first-user journey | PENDING | Login smoke PASS; authenticated walk still needs owner |
+| ~390px mobile smoke | PENDING | CSS contract PASS; authenticated 390px still needs owner |
 | Critical empty states | PASS | Reviewed; truthful; no rewrite required |
 | Critical error/denied states | PASS | Register/invite/org/error panels fail closed and honest |
 | Tenant honesty | PASS | No new org trust; R1 continuation untouched |
@@ -313,7 +326,7 @@ Planned support gap only. R1 invite-continuation code was not modified.
 | Typecheck | PASS | `npx tsc --noEmit` |
 | Lint | PASS | Targeted ESLint |
 | Build | PASS | Local + Production Ready |
-| Owner visual checkpoint | PENDING | §P |
+| Owner visual checkpoint | PENDING | Support contact PASS; desktop + ~390px lines still required |
 
 Do not close LR-2 while any required row is PENDING or FAIL.
 
@@ -325,5 +338,6 @@ Do not close LR-2 while any required row is PENDING or FAIL.
 | --- | --- |
 | Evidence path | `docs/phases/BETA1-LR-2-closed-beta-support-first-user-smoke-evidence.md` |
 | Implementation commit | `0c38e608c98843c0199d29989455a4baa0b03458` |
+| Prior evidence commit | `e739f2ddca53e38d9f3c0ede2155f4581d40b707` |
 | This evidence commit | this commit |
 | Branch | `core/platform-readiness-20260707` |
