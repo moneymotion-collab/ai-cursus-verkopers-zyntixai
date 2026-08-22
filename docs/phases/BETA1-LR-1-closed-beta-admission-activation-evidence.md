@@ -6,15 +6,14 @@
 BETA1-LR-1 PROVIDER/OWNER VERIFICATION REQUIRED
 ```
 
-PATH B (invite-only) is the chosen admission strategy. Repository architecture, server-side public-registration denial, invitation security, tenant binding, and abuse/idempotency are verified in current code and focused tests. Live Production still has invitation acceptance and invitation email delivery fail-closed OFF.
+PATH B (invite-only) is the chosen admission strategy. Repository architecture, server-side public-registration denial, invitation security, tenant binding, and abuse/idempotency remain verified. Production invitation **acceptance** and **email delivery** are now ON for exactly one allowlisted tester. Public owner registration remains OFF. Social scheduling/publishing remain OFF.
 
-No implementation defect required a code change. No Production gate was mutated in this phase.
+No implementation defect required a code change.
 
-The remaining launch-admission blocker is operational, not a product-code defect:
+The remaining launch-admission blocker is the owner/tester visual path:
 
-* the intended tester mailbox has not been named;
-* invitation delivery must not be enabled against an unknown or leftover allowlist;
-* owner email + browser confirmation of `receive invite → accept → correct org → /home` has not occurred.
+* Owner must create one Staff invite to `testtest34567810@gmail.com` from org `2fc07699-ece5-44b9-bbb3-abbc23e9fffb`;
+* tester must receive the email, accept in a private browser, and land on `/home?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb`.
 
 This phase is therefore **not closed**. Do not treat the following as true until the owner checkpoint below is PASSed:
 
@@ -40,9 +39,11 @@ ZYNTIXAI CLOSED-BETA ADMISSION PATH B READY
 | Implementation commit | none |
 | Evidence commit | this commit |
 | Canonical Production app | `https://www.zyntixai.com` |
-| Current Production deploy | `dpl_Ad6mqFNp3YRhs6XrPQbr3RPhuyCa` Ready (aliases `www.zyntixai.com`, `zyntixai.com`, `zyntixai.vercel.app`) |
+| Activation baseline HEAD | `15a6331419021c5965a72e3bcef7ce984b3d575b` |
+| Current Production deploy | `dpl_2bdTfkX851mJiJZzJngtzqY3hdGH` Ready (aliases `www.zyntixai.com`, `zyntixai.com`, `zyntixai.vercel.app`) |
+| Prior Production deploy (rollback candidate) | `dpl_Ad6mqFNp3YRhs6XrPQbr3RPhuyCa` |
 
-HEAD matched the authoritative LR-0 SHA before this evidence commit. No reset or discard. Later documentation commits after last Social implementation remain docs-only; the live Production alias is unchanged.
+HEAD matched `15a6331` (clean, `0 0`) before this activation. No reset or discard. No implementation commit.
 
 ---
 
@@ -52,7 +53,7 @@ HEAD matched the authoritative LR-0 SHA before this evidence commit. No reset or
 PATH B — INVITE-ONLY
 ```
 
-Public owner registration remains OFF so a non-invited visitor cannot provision a new closed-beta workspace from `/register`. Existing authenticated users can still sign in. Invitation acceptance is the only intended admission path, and it stays fail-closed until the owner names a tester mailbox and the delivery allowlist is bound to that mailbox.
+Public owner registration remains OFF so a non-invited visitor cannot provision a new closed-beta workspace from `/register`. Existing authenticated users can still sign in. Invitation acceptance is the only intended admission path and is now Production-enabled for the single allowlisted tester.
 
 PATH A (`PUBLIC_REGISTRATION_ENABLED=true`) was not activated.
 
@@ -124,10 +125,10 @@ Live Production values for Sensitive env contents were **not** dumped. Classific
 
 | Gate | Current Production | Desired LR-1 | Purpose | Production mutation required? |
 | --- | --- | --- | --- | --- |
-| `PUBLIC_REGISTRATION_ENABLED` | **Absent** from Production env list → parser OFF. Live `GET /register` → `307 /login?registration=disabled` | Remain OFF / unset | Owner self-signup + org create | **No** |
-| `INVITATIONS_ENABLED` | Present (Sensitive). Live `/invite/accept` renders **Invitation unavailable**. Shape-valid exchange `303 /invite/accept` with **no Set-Cookie** (no seal) | exact `true` after tester mailbox is known + redeploy | Accept, invite-mode register, exchange seal | **Yes, later** — not in this commit |
-| `INVITATION_EMAIL_DELIVERY_ENABLED` | Present (Sensitive). Resting intended OFF (CB-E1-E / CB-G1 / LR-0). Delivery not exercised this phase | exact `true` only with a bound tester allowlist | Resend send | **Yes, later** — not until tester email exists |
-| `INVITATION_EMAIL_RECIPIENT_ALLOWLIST` | Present (Sensitive, created with historical CB-E1-E). Value not re-read | **Exactly the intended tester mailbox** (comma-separated normalized emails). Empty allowlist + delivery ON = `configuration_error` (no send) | Fail-closed recipients | **Yes, later** — owner must name the address first |
+| `PUBLIC_REGISTRATION_ENABLED` | **Absent** before and after. Live `GET /register` still `307 /login?registration=disabled` | Remain OFF / unset | Owner self-signup + org create | **No** — not added |
+| `INVITATIONS_ENABLED` | Before: not exact `true` (FeatureDisabledState). After: exact `true` + deploy `dpl_2bdTfkX851mJiJZzJngtzqY3hdGH` | exact `true` | Accept, invite-mode register, exchange seal | **Done** |
+| `INVITATION_EMAIL_DELIVERY_ENABLED` | Before: not exact `true`. After: exact `true` | exact `true` with bound tester allowlist | Resend send | **Done** |
+| `INVITATION_EMAIL_RECIPIENT_ALLOWLIST` | Before: Present Encrypted (CB-E1-E era). Value not dumped. After: overwritten to exactly `testtest34567810@gmail.com` | **Exactly that mailbox** | Fail-closed recipients | **Done** — historical recipients not preserved |
 | `INVITATION_EMAIL_FROM` / `RESEND_API_KEY` | Present | Keep (required when delivery ON) | Sender + provider | No (already provisioned) |
 | `INVITE_CONTINUATION_SECRET` | Present | Keep, ≥ 32 chars | Seal continuation cookie | No |
 | `NEXT_PUBLIC_SITE_URL` | Present | Production origin (`https://www.zyntixai.com`) | Invite URL origin; never client-supplied | No |
@@ -155,13 +156,13 @@ Server enforcement (not UI-only):
 * `registerAction` — `registration_disabled` unless invite-mode or public-owner mode.
 * `completeRegistrationAction` — refuses owner provision when public registration is OFF (`OWNER_ONBOARDING_UNAVAILABLE_MESSAGE`). Invite cookies, if present while invitations are ON, divert to `/invite/accept` instead of creating a workspace.
 
-Live Production (`https://www.zyntixai.com`, deploy `dpl_Ad6mqFNp3YRhs6XrPQbr3RPhuyCa`):
+Live Production before and after activation (`https://www.zyntixai.com`):
 
-| Request | Result |
-| --- | --- |
-| `GET /register` | `307 Location: /login?registration=disabled` |
-| `GET /login` | `200` (normal sign-in remains available) |
-| `GET /settings/members` (unauthenticated) | `307 Location: /login?next=%2Fsettings%2Fmembers` |
+| Request | Before (`dpl_Ad6mqFNp3YRhs6XrPQbr3RPhuyCa`) | After (`dpl_2bdTfkX851mJiJZzJngtzqY3hdGH`) |
+| --- | --- | --- |
+| `GET /register` | `307 Location: /login?registration=disabled` | **same** `307 /login?registration=disabled` |
+| `GET /login` | `200` | `200` |
+| `GET /settings/members` (unauthenticated) | `307 /login?next=%2Fsettings%2Fmembers` | unchanged contract (auth required) |
 
 `PUBLIC_REGISTRATION_ENABLED` is not present in the Production env inventory. Missing → fail-closed OFF.
 
@@ -182,15 +183,29 @@ No secondary public admission route was found. Password recovery is explicitly *
 * Raw token never appears on the public action result type.
 * Delivery is orchestrated only after a successful mutation (denied creates → zero provider calls).
 
-Production inventory at this checkpoint (no PII):
+Authorized organization (verified before send):
+
+| Check | Result |
+| --- | --- |
+| ID | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| Name | ZyntixAI Production QA |
+| Status | `active` |
+| Active Owner/Admin memberships | 2 |
+| Active members | 7 |
+| Pending invites on this org | 0 |
+| Tester already a member | no |
+| Tester existing auth user | no |
+| Members URL | `https://www.zyntixai.com/settings/members?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| Org selection | `resolveSelectedOrganization` — foreign/`org` mismatch → `organization_required`, no silent fallback |
+| Create bind | `createInvitationAction` re-resolves via `resolveOrganizationContext`; RPC uses that org only |
+
+Production invitation inventory after activation (still no Cursor-created invite):
 
 | Invitation status | Count |
 | --- | --- |
 | pending | **0** |
 | accepted | 4 |
 | revoked | 11 |
-
-No leftover pending token can be accepted if acceptance is later enabled before a new invite is created.
 
 ---
 
@@ -211,9 +226,7 @@ Email contract (template):
 * No remote assets; token only in the CTA URL
 * Delivery ledger: `private.organization_invitation_delivery_attempts` (generation + idempotency unique indexes)
 
-Current ledger: **3** rows, all `submitted` (historical CB delivery; none sent in LR-1).
-
-**No Production email was sent in this phase.** Delivery was not enabled. Allowlist value was not re-opened.
+Ledger before activation: **3** rows, all `submitted` (historical CB delivery). Cursor did **not** create an invitation or send mail in this activation. The first LR-1 Production email is the owner-created Staff invite in §O.
 
 ---
 
@@ -231,12 +244,13 @@ Current ledger: **3** rows, all `submitted` (historical CB delivery; none sent i
 * Wrong logged-in email → `email_mismatch`; invitation remains pending (cookies retained per OD-APP-C1).
 * Foreign org cannot be injected: accept has no org argument; RPC uses the invitation row.
 
-Live Production (acceptance OFF):
+Live Production after activation (acceptance ON):
 
 | Request | Result |
 | --- | --- |
-| `GET /invite/accept` | `200` — **Invitation unavailable** / “Invitations are currently unavailable. Please try again later.” |
-| `GET /invite/accept/exchange?token=<64-hex>` | `303` `https://www.zyntixai.com/invite/accept` — `Cache-Control: no-store, private`, `Referrer-Policy: no-referrer`, **no Set-Cookie** |
+| `GET /invite/accept` (no cookie) | `200` — UnavailableState: “This invitation link is unavailable. Request a new invitation from your organization administrator if you still need access.” (not FeatureDisabledState) |
+| `GET /invite/accept/exchange?token=not-a-token` | `303` `/invite/accept?cleared=1`; `Set-Cookie` **clears** `zyntix_invite_continuation` (empty, Max-Age=0) |
+| `GET /invite/accept/exchange?token=<64-hex unknown>` | `303` `/invite/accept`; HttpOnly continuation cookie **sealed** (Max-Age=1800). This is shape-only seal, **not** a valid invitation. Accept RPC fail-closes unknown tokens. Cookie value is not recorded here. |
 
 ---
 
@@ -254,7 +268,7 @@ Code path covers:
 | Foreign org manipulation | fail closed (no client org field) |
 | Feature OFF | `feature_disabled` / FeatureDisabledState; exchange does not seal |
 
-Live acceptance of a real invite is **PENDING** owner mailbox + browser confirmation.
+Live gate is ON (UnavailableState vs FeatureDisabledState). Live acceptance of the authorized tester invite is **PENDING** owner email + browser confirmation. Cursor did not create or accept the invitation.
 
 ---
 
@@ -308,60 +322,58 @@ The known pre-existing global failures were **not** re-labeled as new:
 1. `tests/features/invitations/load-member-administration-page.test.ts` (foreign-org spy) — excluded from this focused run
 2. `tests/ui/programs-enrollments-stale-copy-remediation.test.ts` (Progress copy string) — not in this focused run
 
+Post-activation focused rerun (code unchanged; 18 files: prior 16 auth/invite + org context + task org selection):
+
+**181 passed / 18 files.** No new failures.
+
 Full `2647` suite was not required; no new failure was introduced by this phase (no code change).
 
 ---
 
 ## N. Production Configuration Changes
 
-```text
-None.
-```
+| Gate | Before | After | Rollback |
+| --- | --- | --- | --- |
+| `PUBLIC_REGISTRATION_ENABLED` | Absent / OFF | Absent / OFF (not added) | Leave absent |
+| `INVITATION_EMAIL_RECIPIENT_ALLOWLIST` | Present Encrypted; historical CB-E1-E value **not dumped** | exact `testtest34567810@gmail.com` (overwrite; no other recipients) | empty (fail-closed) or owner-specified; then redeploy |
+| `INVITATION_EMAIL_DELIVERY_ENABLED` | not exact `true` | exact `true` | empty / not `true` + redeploy |
+| `INVITATIONS_ENABLED` | not exact `true` | exact `true` | empty / not `true` + redeploy |
+| `SOCIAL_SCHEDULING_ENABLED` | OFF | OFF (untouched; env created 15h ago unchanged) | n/a |
+| `SOCIAL_PUBLISHING_ENABLED` | OFF | OFF (untouched) | n/a |
 
-Invitation acceptance and delivery remain fail-closed. Public registration remains OFF. Social scheduling and publishing remain OFF.
+Deploy: `npx vercel deploy --prod --yes --project zyntixai --scope guus-projects-ai`
 
-Reason no invitation gate was flipped: the intended tester mailbox is not specified in this phase authorization. Enabling delivery against an unread/historical allowlist could send mail to a leftover CB-E1-E recipient. Enabling `INVITATIONS_ENABLED` alone does not complete PATH B (`receive invite`) and still requires a redeploy.
+Application rollback candidate: promote `dpl_Ad6mqFNp3YRhs6XrPQbr3RPhuyCa` **and** restore invitation gates to not-`true` (env is deployment-tied).
 
 ---
 
 ## O. Manual Owner Verification
 
-Stop here. Do **not** invent a tester address. Do **not** edit the database for routine admission.
+```text
+PENDING
+```
 
-### O1. Name the tester mailbox (required before any Production mutation)
-
-1. Why not automated: recipient binding + allowlist is an owner identity decision.
-2. Reply in this conversation with the **exact** closed-beta tester email and the organization the Owner will invite into (the org visible on `/settings/members` while signed in as Owner/Admin).
-3. Confirm that mailbox may receive a real Production invitation from ZyntixAI.
-4. After that reply, the next controlled mutation is only:
-
-   * keep `PUBLIC_REGISTRATION_ENABLED` unset/OFF
-   * set `INVITATION_EMAIL_RECIPIENT_ALLOWLIST` to that mailbox only
-   * set `INVITATION_EMAIL_DELIVERY_ENABLED=true`
-   * set `INVITATIONS_ENABLED=true`
-   * redeploy the same reviewed app to Production
-   * leave `SOCIAL_SCHEDULING_ENABLED` and `SOCIAL_PUBLISHING_ENABLED` OFF
-
-### O2. After gates are ON — owner visual path (do not perform until O1 + deploy)
+O1 (tester identity) is complete. Gates are ON. Cursor did **not** send the invitation. Stop for the owner/tester browser path.
 
 Use a private/incognito window for the **tester**. Keep the Owner session in a normal window.
 
-1. Sign in to Production as Owner/Admin of the intended org: `https://www.zyntixai.com/login`
-2. Open `https://www.zyntixai.com/settings/members`
-3. Confirm the restricted-rollout warning is **gone** (acceptance + delivery both ON)
-4. Invite the allowlisted tester as **Staff** or **Viewer** (do not invite as Owner; product cannot grant Owner)
-5. Tester inbox should receive subject `You're invited to join {organization name} on ZyntixAI` from `ZyntixAI <invites@invites.zyntixai.com>` (historical From; confirm against the received mail)
-6. In a clean private window, open the email CTA (must be `/invite/accept/exchange?token=…` on `https://www.zyntixai.com`)
-7. Authenticate: existing user → Sign in; new user → invite-mode register / verify email if asked
-8. On Invitation ready state, Accept once
-9. Confirm the workspace name/org is the invited organization
-10. Confirm the browser lands on `/home?org=<that organization id>` and Home loads
-
-Do not enroll the tester in Social during this test. Do not publish or schedule.
+1. Log in as Owner/Admin: `https://www.zyntixai.com/login`
+2. Open `https://www.zyntixai.com/settings/members?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb`
+3. Confirm org **ZyntixAI Production QA** and that the restricted-rollout warning is **gone**
+4. Invite exactly `testtest34567810@gmail.com`
+5. Role: **Staff** (`staff` — product cannot grant Owner)
+6. Do not resend repeatedly
+7. Open `testtest34567810@gmail.com`
+8. Confirm receipt. Expected subject: `You're invited to join ZyntixAI Production QA on ZyntixAI`. Expected historical sender: `ZyntixAI <invites@invites.zyntixai.com>` (confirm against the received mail)
+9. Open the invite CTA in a clean incognito/private session (`https://www.zyntixai.com/invite/accept/exchange?token=…`)
+10. Authenticate through invite-mode register if required (this mailbox is not an existing auth user)
+11. Accept exactly once
+12. Confirm organization `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` (ZyntixAI Production QA)
+13. Confirm route `/home?org=2fc07699-ece5-44b9-bbb3-abbc23e9fffb`
+14. Do not enroll Social
+15. Do not publish anything
 
 ### Required PASS wording
-
-After O2 succeeds, reply exactly:
 
 ```text
 BETA1-LR-1 INVITE DELIVERY + ACCEPTANCE VISUAL CONFIRMATION = PASS
@@ -386,8 +398,7 @@ No implementation commit.
 
 Launch blockers for *this* phase (operational):
 
-* Tester mailbox not named → delivery must stay OFF
-* Owner visual PASS not yet recorded
+* Owner visual PASS not yet recorded (invite + email + accept + `/home` in the authorized org)
 
 Not launch blockers (leave for later):
 
@@ -406,17 +417,88 @@ Not launch blockers (leave for later):
 | Invite-only strategy enforced | PASS | PATH B chosen; PATH A remains OFF; no other admission route found |
 | Public registration remains OFF | PASS | Env absent; live `/register` → `307 /login?registration=disabled`; server actions fail-closed |
 | Invitation creation | PASS | Tenant-scoped action + RPC + role matrix + rate limit; Members UI exists |
-| Email delivery | PENDING | Adapter/allowlist/fail-closed proven in tests; no LR-1 Production send |
-| Token security | PASS | 64-hex / SHA-256 / cookie seal / same-origin / no client accept args; live exchange does not seal while OFF |
-| Acceptance | PENDING | Code + tests PASS; live accept still FeatureDisabledState until owner mailbox + gate ON |
-| Correct org membership | PENDING | RPC + `/home?org=` contract verified in code; live membership not yet walked |
-| Tenant isolation | PASS | Org re-resolved on create; accept has no org arg; no foreign silent fallback on this path |
-| Abuse/idempotency | PASS | CB-R1/G1 tests + delivery unique indexes + pending=0 |
-| Auth regression | PASS | 165 focused auth/invite tests + register/login live 200 / register disabled |
-| Production config | PASS | No mutation this phase; Social gates unchanged dry-run |
-| Owner manual verification | PENDING | §O — tester email + visual PASS wording required |
+| Email delivery | PENDING | Gate ON + allowlist bound; no LR-1 send until owner creates the invite |
+| Token security | PASS | Live malformed token clears cookie; unknown 64-hex seals shape-only; accept RPC still fail-closed |
+| Acceptance | PENDING | Live FeatureDisabledState gone; real tester accept not yet walked |
+| Correct org membership | PENDING | Org `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` verified; live membership not yet created |
+| Tenant isolation | PASS | Org re-resolved on create; accept has no org arg; members `?org=` uses `resolveSelectedOrganization` (no silent fallback) |
+| Abuse/idempotency | PASS | CB-R1/G1 tests + pending still 0 |
+| Auth regression | PASS | 181 focused tests after deploy; `/register` still disabled; `/login` 200 |
+| Production config | PASS | Only PATH B invitation gates + allowlist; Social untouched dry-run |
+| Owner manual verification | PENDING | §O — two PASS lines required |
 
 Do not close LR-1 while any required row is PENDING.
+
+---
+
+## S. Authorized Production activation continuation
+
+Owner named tester + org. This subsection is the activation record requested for the live PATH B flip. Historical §A–§R above remain; values here supersede resting-OFF statements where they conflict.
+
+### A. Production Configuration Before
+
+| Gate | Before (classified; secrets not dumped) |
+| --- | --- |
+| `PUBLIC_REGISTRATION_ENABLED` | UNSET / absent. Live `/register` → `307 /login?registration=disabled` |
+| `INVITATIONS_ENABLED` | Present Encrypted; not exact `true`. Live FeatureDisabledState + exchange no Set-Cookie |
+| `INVITATION_EMAIL_DELIVERY_ENABLED` | Present Encrypted; not exact `true` |
+| `INVITATION_EMAIL_RECIPIENT_ALLOWLIST` | Present Encrypted (CB-E1-E era). Contents not dumped; not preserved |
+| `SOCIAL_SCHEDULING_ENABLED` | OFF. Scheduler `2026-08-22 11:00:00+00` dry-run |
+| `SOCIAL_PUBLISHING_ENABLED` | OFF. Same tick `providerWriteAttempted=false` |
+
+### B. Authorized Recipient
+
+`testtest34567810@gmail.com`
+
+### C. Authorized Organization
+
+`2fc07699-ece5-44b9-bbb3-abbc23e9fffb` — ZyntixAI Production QA (`active`; 2 Owner/Admin; tester not a member)
+
+### D. Production Configuration After
+
+| Gate | After |
+| --- | --- |
+| Public registration | OFF / absent. Live `/register` still `307 /login?registration=disabled` |
+| Invitation delivery | `INVITATION_EMAIL_DELIVERY_ENABLED=true` |
+| Invitation acceptance | `INVITATIONS_ENABLED=true`. Live `/invite/accept` = UnavailableState (gate ON, no token) |
+| Allowlist | exactly `testtest34567810@gmail.com` |
+| Social scheduling | OFF. Latest tick `2026-08-22 11:20:00+00` dry-run |
+| Social publishing | OFF. `providerWriteAttempted=false` |
+
+### E. Deployment
+
+| Item | Value |
+| --- | --- |
+| Deployment ID | `dpl_2bdTfkX851mJiJZzJngtzqY3hdGH` |
+| Ready state | READY |
+| Production alias | `https://www.zyntixai.com` (also `zyntixai.com`, `zyntixai.vercel.app`) |
+| Deployment URL | `https://zyntixai-obbrjwddp-guus-projects-ai.vercel.app` |
+| Deployed commit | `15a6331419021c5965a72e3bcef7ce984b3d575b` (docs-only vs last app SHA; env change is the material delta) |
+| Created | `2026-08-22 11:22:54 UTC` (`2026-08-22 13:22:54 GMT+0200`) |
+| Rollback deploy | `dpl_Ad6mqFNp3YRhs6XrPQbr3RPhuyCa` plus invitation gates not-`true` |
+
+### F. Automated Verification
+
+| Check | Result |
+| --- | --- |
+| Focused vitest after deploy | **181 passed / 18 files** |
+| `/register` | still disabled |
+| `/login` | 200 |
+| `/invite/accept` | gate ON (UnavailableState copy) |
+| Exchange malformed | cookie cleared |
+| Exchange unknown 64-hex | shape-only seal; not a valid invitation |
+| Pending invites | still 0 |
+| Social last tick | dry-run, no provider write |
+
+### G. Owner Verification
+
+```text
+PENDING
+```
+
+### H. Final Gate Matrix
+
+Manual rows remain PENDING until the two owner PASS lines exist. See §R.
 
 ---
 
@@ -426,5 +508,6 @@ Do not close LR-1 while any required row is PENDING.
 | --- | --- |
 | Evidence path | `docs/phases/BETA1-LR-1-closed-beta-admission-activation-evidence.md` |
 | Implementation commit | none |
-| Evidence commit | this commit |
+| Prior evidence commit | `15a6331419021c5965a72e3bcef7ce984b3d575b` |
+| This evidence commit | this commit |
 | Branch | `core/platform-readiness-20260707` |
