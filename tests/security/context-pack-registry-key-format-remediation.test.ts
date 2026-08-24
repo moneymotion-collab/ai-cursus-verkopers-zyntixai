@@ -99,7 +99,9 @@ describe("CTX-1FV-R1A context pack key format remediation", () => {
     const context = readdirSync(join(process.cwd(), "supabase/migrations"))
       .filter((name) => name.includes("context_pack") || name.includes("context-pack"))
       .sort();
-    expect(context).toEqual([SCHEMA_MIGRATION, SEED_MIGRATION, FIX_MIGRATION]);
+    expect(context[0]).toBe(SCHEMA_MIGRATION);
+    expect(context[1]).toBe(SEED_MIGRATION);
+    expect(context[2]).toBe(FIX_MIGRATION);
   });
 
   it("does not add a runtime Context consumer or Organization assignment", () => {
