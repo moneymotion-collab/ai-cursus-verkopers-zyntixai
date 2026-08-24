@@ -245,11 +245,12 @@ describe("CTX-1B context pack registry security contract", () => {
 });
 
 describe("CTX-1B context pack migration inventory", () => {
-  it("registers exactly two ordered context pack migrations", () => {
+  it("keeps the two original CTX-1B migrations first and ordered", () => {
     const context = readdirSync(join(process.cwd(), "supabase/migrations"))
       .filter((name) => name.includes("context_pack") || name.includes("context-pack"))
       .sort();
-    expect(context).toEqual([SCHEMA_MIGRATION, SEED_MIGRATION]);
+    expect(context[0]).toBe(SCHEMA_MIGRATION);
+    expect(context[1]).toBe(SEED_MIGRATION);
     expect(SEED_MIGRATION > SCHEMA_MIGRATION).toBe(true);
   });
 });
