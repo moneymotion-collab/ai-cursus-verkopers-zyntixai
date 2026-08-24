@@ -54,13 +54,13 @@ async function applyOrganizationOnboarding(
   const { data, error } = await supabase.rpc("apply_organization_onboarding", {
     p_organization_id: args.organizationId,
     p_mode: args.mode,
-    p_organization_name: args.organizationName ?? null,
-    p_display_name: args.displayName ?? null,
-    p_business_type: args.businessType ?? null,
-    p_primary_audience: args.primaryAudience ?? null,
-    p_primary_offering: args.primaryOffering ?? null,
-    p_primary_goal: args.primaryGoal ?? null,
-    p_team_size_band: args.teamSizeBand ?? null,
+    p_organization_name: args.organizationName ?? undefined,
+    p_display_name: args.displayName ?? undefined,
+    p_business_type: args.businessType ?? undefined,
+    p_primary_audience: args.primaryAudience ?? undefined,
+    p_primary_offering: args.primaryOffering ?? undefined,
+    p_primary_goal: args.primaryGoal ?? undefined,
+    p_team_size_band: args.teamSizeBand ?? undefined,
     p_clear_team_size_band: Boolean(args.clearTeamSizeBand),
   });
 

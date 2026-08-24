@@ -33,4 +33,26 @@ describe("generated database contract", () => {
     expect(generated).toContain("complete_owner_self_registration:");
     expect(generated).toContain("upsert_registration_intent:");
   });
+
+  it("includes all 15 TAX/CAP/CTX control-plane tables", () => {
+    for (const table of [
+      "taxonomy_releases",
+      "taxonomy_foundations",
+      "taxonomy_industries",
+      "taxonomy_niches",
+      "taxonomy_specializations",
+      "taxonomy_deep_specializations",
+      "taxonomy_aliases",
+      "capabilities",
+      "capability_dependencies",
+      "capability_readiness",
+      "context_packs",
+      "context_pack_versions",
+      "context_capability_mappings",
+      "context_terminology",
+      "context_pack_readiness",
+    ]) {
+      expect(generated).toContain(`${table}:`);
+    }
+  });
 });

@@ -21,7 +21,6 @@ const PROTECTED_PATHS = [
   "src/features/onboarding",
   "src/features/social-media",
   "src/features/support",
-  "src/types/database.generated.ts",
 ] as const;
 
 function walkFiles(root: string): string[] {
@@ -49,6 +48,14 @@ function walkFiles(root: string): string[] {
   return out;
 }
 
+function isAuthorizedConsumer(relativePath: string): boolean {
+  const normalized = relativePath.replaceAll("\\", "/");
+  return (
+    normalized === "src/types/database.generated.ts" ||
+    normalized.startsWith("src/features/control-plane/")
+  );
+}
+
 function collectHits(paths: string[]): string[] {
   const hits: string[] = [];
   for (const filePath of paths) {
@@ -61,9 +68,11 @@ function collectHits(paths: string[]): string[] {
 }
 
 describe("CTX-1B context pack runtime isolation", () => {
-  it("does not introduce context table consumers under src/", () => {
+  it("does not introduce context table consumers under src/ outside the control-plane reader", () => {
     const srcRoot = join(process.cwd(), "src");
-    const hits = collectHits(walkFiles(srcRoot));
+    const hits = collectHits(walkFiles(srcRoot)).filter(
+      (path) => !isAuthorizedConsumer(path),
+    );
     expect(hits).toEqual([]);
   });
 

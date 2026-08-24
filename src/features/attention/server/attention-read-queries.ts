@@ -379,8 +379,10 @@ export async function listAttentionItems(
   const items = [];
   for (const row of rows) {
     const mapped = mapAttentionItemListItem(row, {
-      customerDisplayName: customerLabels[row.customer_id] ?? null,
-      programName: programLabels[row.program_id] ?? null,
+      customerDisplayName: row.customer_id
+        ? customerLabels[row.customer_id] ?? null
+        : null,
+      programName: row.program_id ? programLabels[row.program_id] ?? null : null,
       evaluatedAt: params.evaluatedAt,
     });
     if (!mapped.ok) {

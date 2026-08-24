@@ -58,6 +58,13 @@ describe("security boundaries", () => {
         "server",
         "scheduler-service-client.ts",
       ).replace(/\\/g, "/"),
+      join(
+        ROOT,
+        "features",
+        "control-plane",
+        "server",
+        "control-plane-client.ts",
+      ).replace(/\\/g, "/"),
     ]);
 
     const offenders = collectSourceFiles(ROOT).filter((file) => {
