@@ -1518,6 +1518,259 @@ export type Database = {
           },
         ]
       }
+      organization_business_activities: {
+        Row: {
+          activity_key: string
+          classification_kind: string | null
+          created_at: string
+          deep_specialization_id: string | null
+          display_name: string
+          foundation_id: string | null
+          id: string
+          industry_id: string | null
+          is_primary: boolean
+          niche_id: string | null
+          organization_id: string
+          specialization_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          activity_key: string
+          classification_kind?: string | null
+          created_at?: string
+          deep_specialization_id?: string | null
+          display_name: string
+          foundation_id?: string | null
+          id?: string
+          industry_id?: string | null
+          is_primary?: boolean
+          niche_id?: string | null
+          organization_id: string
+          specialization_id?: string | null
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          activity_key?: string
+          classification_kind?: string | null
+          created_at?: string
+          deep_specialization_id?: string | null
+          display_name?: string
+          foundation_id?: string | null
+          id?: string
+          industry_id?: string | null
+          is_primary?: boolean
+          niche_id?: string | null
+          organization_id?: string
+          specialization_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_business_activities_deep_specialization_fk"
+            columns: ["deep_specialization_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_deep_specializations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_business_activities_foundation_fk"
+            columns: ["foundation_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_foundations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_business_activities_industry_fk"
+            columns: ["industry_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_industries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_business_activities_niche_fk"
+            columns: ["niche_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_niches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_business_activities_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_business_activities_specialization_fk"
+            columns: ["specialization_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_specializations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_context_assignment_events: {
+        Row: {
+          actor_member_id: string | null
+          actor_user_id: string | null
+          assignment_id: string | null
+          business_activity_id: string
+          created_at: string
+          event_type: string
+          id: string
+          organization_id: string
+          payload: Json
+          reason: string | null
+          source: string
+        }
+        Insert: {
+          actor_member_id?: string | null
+          actor_user_id?: string | null
+          assignment_id?: string | null
+          business_activity_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          organization_id: string
+          payload?: Json
+          reason?: string | null
+          source: string
+        }
+        Update: {
+          actor_member_id?: string | null
+          actor_user_id?: string | null
+          assignment_id?: string | null
+          business_activity_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          organization_id?: string
+          payload?: Json
+          reason?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_context_assignment_events_activity_fk"
+            columns: ["organization_id", "business_activity_id"]
+            isOneToOne: false
+            referencedRelation: "organization_business_activities"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "organization_context_assignment_events_actor_member_fk"
+            columns: ["organization_id", "actor_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "organization_context_assignment_events_actor_user_fk"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_context_assignment_events_assignment_fk"
+            columns: ["organization_id", "assignment_id"]
+            isOneToOne: false
+            referencedRelation: "organization_context_assignments"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "organization_context_assignment_events_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_context_assignments: {
+        Row: {
+          actor_member_id: string | null
+          actor_user_id: string | null
+          business_activity_id: string
+          context_pack_version_id: string
+          created_at: string
+          id: string
+          organization_id: string
+          reason: string | null
+          source: string
+          status: string
+          superseded_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          actor_member_id?: string | null
+          actor_user_id?: string | null
+          business_activity_id: string
+          context_pack_version_id: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          reason?: string | null
+          source: string
+          status: string
+          superseded_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actor_member_id?: string | null
+          actor_user_id?: string | null
+          business_activity_id?: string
+          context_pack_version_id?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          reason?: string | null
+          source?: string
+          status?: string
+          superseded_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_context_assignments_activity_fk"
+            columns: ["organization_id", "business_activity_id"]
+            isOneToOne: false
+            referencedRelation: "organization_business_activities"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "organization_context_assignments_actor_member_fk"
+            columns: ["organization_id", "actor_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "organization_context_assignments_actor_user_fk"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_context_assignments_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_context_assignments_version_fk"
+            columns: ["context_pack_version_id"]
+            isOneToOne: false
+            referencedRelation: "context_pack_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_invitation_events: {
         Row: {
           actor_member_id: string | null

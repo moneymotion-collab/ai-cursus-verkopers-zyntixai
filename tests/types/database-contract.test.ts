@@ -34,6 +34,16 @@ describe("generated database contract", () => {
     expect(generated).toContain("upsert_registration_intent:");
   });
 
+  it("includes the three ORG-CONTEXT tenant tables", () => {
+    for (const table of [
+      "organization_business_activities",
+      "organization_context_assignments",
+      "organization_context_assignment_events",
+    ]) {
+      expect(generated).toContain(`${table}:`);
+    }
+  });
+
   it("includes all 15 TAX/CAP/CTX control-plane tables", () => {
     for (const table of [
       "taxonomy_releases",

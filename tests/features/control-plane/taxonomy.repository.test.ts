@@ -84,6 +84,14 @@ function catalog() {
 describe("TaxonomyRepository", () => {
   const repo = new TaxonomyRepository(catalog());
 
+  it("finds a taxonomy node by kind and id", async () => {
+    const byId = await repo.getNodeById("niche", NICHE_ID);
+    expect(byId).toMatchObject({
+      ok: true,
+      value: { key: "online-course-business", kind: "niche" },
+    });
+  });
+
   it("finds Foundation, Industry, and Niche by canonical key", async () => {
     const foundation = await repo.findFoundationByKey("knowledge");
     const industry = await repo.findIndustryByKey("education-and-learning");

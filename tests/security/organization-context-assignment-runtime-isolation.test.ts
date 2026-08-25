@@ -49,6 +49,14 @@ function walkFiles(root: string): string[] {
   return out;
 }
 
+function isAuthorizedConsumer(relativePath: string): boolean {
+  const normalized = relativePath.replaceAll("\\", "/");
+  return (
+    normalized === "src/types/database.generated.ts" ||
+    normalized.startsWith("src/features/org-context/")
+  );
+}
+
 function collectHits(paths: string[]): string[] {
   const hits: string[] = [];
   for (const filePath of paths) {
@@ -60,21 +68,20 @@ function collectHits(paths: string[]): string[] {
   return hits.sort();
 }
 
-describe("ORG-CONTEXT-1B runtime isolation", () => {
-  it("does not create src/features/org-context or generated type edits", () => {
+describe("ORG-CONTEXT runtime isolation", () => {
+  it("authorizes only generated types and the org-context feature as table consumers", () => {
     expect(existsSync(join(process.cwd(), "src/features/org-context"))).toBe(
-      false,
+      true,
     );
     const generated = readFileSync(
       join(process.cwd(), "src/types/database.generated.ts"),
       "utf8",
     );
-    expect(generated).not.toMatch(ORG_CONTEXT_TOKEN);
-  });
-
-  it("does not introduce ORG-CONTEXT table consumers under src/", () => {
+    expect(generated).toMatch(ORG_CONTEXT_TOKEN);
     const srcRoot = join(process.cwd(), "src");
-    expect(collectHits(walkFiles(srcRoot))).toEqual([]);
+    expect(
+      collectHits(walkFiles(srcRoot)).filter((path) => !isAuthorizedConsumer(path)),
+    ).toEqual([]);
   });
 
   it("leaves Closed Beta product surfaces free of ORG-CONTEXT identifiers", () => {

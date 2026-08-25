@@ -116,6 +116,10 @@ export class TaxonomyRepository {
     return this.findNodeByKey("deep_specialization", key);
   }
 
+  getNodeById(kind: TaxonomyNodeKind, id: string) {
+    return this.findNodeById(kind, id);
+  }
+
   async findActiveRelease(): Promise<ControlPlaneResult<TaxonomyRelease>> {
     const rows = await executeControlPlaneQuery(
       this.client
