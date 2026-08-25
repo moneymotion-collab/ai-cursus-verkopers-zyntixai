@@ -104,4 +104,25 @@ describe("ORG-CONTEXT-1C server-only isolation", () => {
       expect(source).not.toMatch(/SUPABASE_SERVICE_ROLE_KEY|createSupabaseServiceRoleClient|process\.env/);
     }
   });
+
+  it("keeps operator authority server-only and off the public env contract", () => {
+    const auth = readFileSync(
+      join(ROOT, "src/features/org-context/server/platform-operator-authorization.ts"),
+      "utf8",
+    );
+    expect(auth).toContain('import "server-only"');
+    const identity = readFileSync(
+      join(ROOT, "src/features/org-context/domain/operator-identity.ts"),
+      "utf8",
+    );
+    expect(identity).toContain("ORG_CONTEXT_PLATFORM_OPERATOR_ALLOWLIST");
+    expect(identity).not.toMatch(/SOCIAL_CLOSED_BETA_OPERATOR_EMAIL_ALLOWLIST/);
+    expect(identity).not.toMatch(/INVITATION_EMAIL_RECIPIENT_ALLOWLIST/);
+    expect(identity).not.toContain("NEXT_PUBLIC_");
+    const example = readFileSync(join(ROOT, ".env.example"), "utf8");
+    expect(example).toContain("# ORG_CONTEXT_PLATFORM_OPERATOR_ENABLED=false");
+    expect(example).toContain("# ORG_CONTEXT_PLATFORM_OPERATOR_ALLOWLIST=");
+    expect(example).not.toMatch(/^ORG_CONTEXT_PLATFORM_OPERATOR_ALLOWLIST=/m);
+    expect(example).not.toMatch(/NEXT_PUBLIC_ORG_CONTEXT_PLATFORM_OPERATOR/);
+  });
 });

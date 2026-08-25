@@ -1,6 +1,7 @@
 /**
- * Platform-operator identity for ORG-CONTEXT v1 mutations.
- * Org Owner/Admin/Staff/Viewer is never sufficient.
+ * Dedicated platform-operator identity for ORG-CONTEXT v1 mutations.
+ * Closed Beta admission, invitation eligibility, Social operator UI,
+ * and Organization Owner/Admin/Staff/Viewer are never sufficient.
  * Privileged database access is not authorization.
  */
 
@@ -10,11 +11,12 @@ export const ORG_CONTEXT_PLATFORM_OPERATOR_ENABLED_ENV =
   "ORG_CONTEXT_PLATFORM_OPERATOR_ENABLED";
 
 /**
- * Shared Closed Beta platform-operator allowlist.
- * Social UI enablement is a different gate and is not required here.
+ * Dedicated ORG-CONTEXT platform-operator allowlist.
+ * Closed Beta invitation recipients and Social operator UI identity
+ * are different security domains and are not consulted here.
  */
 export const ORG_CONTEXT_PLATFORM_OPERATOR_EMAIL_ALLOWLIST_ENV =
-  "SOCIAL_CLOSED_BETA_OPERATOR_EMAIL_ALLOWLIST";
+  "ORG_CONTEXT_PLATFORM_OPERATOR_ALLOWLIST";
 
 export function parseOrgContextPlatformOperatorEnabled(
   value: string | undefined | null,
