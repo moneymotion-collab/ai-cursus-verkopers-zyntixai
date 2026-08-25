@@ -11,28 +11,23 @@ import type {
   OrgContextMutationSuccess,
   OrganizationContextEventType,
 } from "@/features/org-context/domain/types";
+import type { Database } from "@/types/database";
 
-/**
- * Pre-FV typed wrapper around the unapplied 1C mutation RPC.
- * Linked Production types do not include this function until a later apply phase.
- * Do not hand-edit database.generated.ts to pretend it already exists.
- */
 export const ORG_CONTEXT_PLATFORM_MUTATION_RPC =
-  "apply_organization_context_platform_mutation" as const;
+  "apply_organization_context_platform_mutation" as const satisfies keyof Database["public"]["Functions"];
 
-export type OrgContextPlatformMutationArgs = {
-  p_operation: OrgContextMutationOperation;
-  p_organization_id: string;
-  p_actor_user_id: string;
-  p_payload: Record<string, unknown>;
-};
+type OrgContextMutationFn =
+  Database["public"]["Functions"][typeof ORG_CONTEXT_PLATFORM_MUTATION_RPC];
+
+export type OrgContextPlatformMutationArgs = OrgContextMutationFn["Args"];
+export type OrgContextPlatformMutationReturns = OrgContextMutationFn["Returns"];
 
 export type OrgContextMutationRpcClient = {
   rpc(
     fn: typeof ORG_CONTEXT_PLATFORM_MUTATION_RPC,
     args: OrgContextPlatformMutationArgs,
   ): PromiseLike<{
-    data: unknown;
+    data: OrgContextPlatformMutationReturns;
     error: { message: string; code?: string } | null;
   }>;
 };
@@ -115,9 +110,20 @@ export function mapOrgContextMutationRpcPayload(
 
 export async function invokeOrgContextPlatformMutation(
   client: OrgContextMutationRpcClient,
-  args: OrgContextPlatformMutationArgs,
+  args: {
+    p_operation: OrgContextMutationOperation;
+    p_organization_id: OrgContextPlatformMutationArgs["p_organization_id"];
+    p_actor_user_id: OrgContextPlatformMutationArgs["p_actor_user_id"];
+    p_payload: Record<string, unknown>;
+  },
 ): Promise<OrgContextResult<OrgContextMutationSuccess>> {
-  const { data, error } = await client.rpc(ORG_CONTEXT_PLATFORM_MUTATION_RPC, args);
+  const rpcArgs: OrgContextPlatformMutationArgs = {
+    p_operation: args.p_operation,
+    p_organization_id: args.p_organization_id,
+    p_actor_user_id: args.p_actor_user_id,
+    p_payload: args.p_payload as OrgContextPlatformMutationArgs["p_payload"],
+  };
+  const { data, error } = await client.rpc(ORG_CONTEXT_PLATFORM_MUTATION_RPC, rpcArgs);
   if (error) {
     return orgContextFail("MUTATION_FAILED", error.message, {
       code: error.code ?? null,

@@ -80,7 +80,12 @@ export function createMemoryOrgContextMutationRpc(
     async rpc(_fn, args) {
       const organizationId = args.p_organization_id;
       const actorUserId = args.p_actor_user_id;
-      const payload = args.p_payload;
+      const payload =
+        args.p_payload &&
+        typeof args.p_payload === "object" &&
+        !Array.isArray(args.p_payload)
+          ? (args.p_payload as Record<string, unknown>)
+          : {};
       const org = tables.organizations.find((row) => row.id === organizationId);
       if (!org) {
         return fail("ORG_NOT_FOUND", "Organization not found");
