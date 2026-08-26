@@ -211,6 +211,32 @@ export class OrganizationContextService {
     });
   }
 
+  async activateBusinessActivity(input: {
+    organizationId: string;
+    activityId: string;
+    reason?: string;
+  }): Promise<OrgContextResult<OrgContextMutationSuccess>> {
+    const operator = requireOperator(this.deps.operator);
+    if (!operator.ok) {
+      return operator;
+    }
+    const org = await this.requireActiveOrganization(input.organizationId);
+    if (!org.ok) {
+      return org;
+    }
+    const activity = await this.deps.repository.getBusinessActivity(
+      input.organizationId,
+      input.activityId,
+    );
+    if (!activity.ok) {
+      return activity;
+    }
+    return this.mutate("activate_activity", input.organizationId, operator.value, {
+      activity_id: input.activityId,
+      reason: input.reason ?? null,
+    });
+  }
+
   async setPrimaryBusinessActivity(input: {
     organizationId: string;
     activityId: string;

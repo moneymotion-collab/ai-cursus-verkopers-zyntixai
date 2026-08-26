@@ -244,6 +244,79 @@ describe("OrganizationContextService classification, primary, archive", () => {
     ).toMatchObject({ ok: false, error: { code: "MUTATION_FAILED" } });
   });
 
+  it("activates a classified draft, no-ops active, and rejects unclassified or archived", async () => {
+    const { service, tables } = createService(emptyTables());
+    const unclassified = await service.createBusinessActivity({
+      organizationId: ORG_A,
+      displayName: "Unclassified draft",
+    });
+    expect(unclassified.ok).toBe(true);
+    if (!unclassified.ok) return;
+    expect(
+      await service.activateBusinessActivity({
+        organizationId: ORG_A,
+        activityId: unclassified.value.activityId,
+      }),
+    ).toMatchObject({ ok: false, error: { code: "ACTIVITY_NOT_CLASSIFIED" } });
+
+    const classified = await service.createBusinessActivity({
+      organizationId: ORG_A,
+      displayName: "Classified draft",
+      classification: nicheClassification,
+    });
+    expect(classified.ok).toBe(true);
+    if (!classified.ok) return;
+    expect(
+      await service.activateBusinessActivity({
+        organizationId: ORG_A,
+        activityId: classified.value.activityId,
+      }),
+    ).toMatchObject({
+      ok: true,
+      value: { eventType: "business_activity_activated", idempotent: false },
+    });
+    expect(
+      await service.activateBusinessActivity({
+        organizationId: ORG_A,
+        activityId: classified.value.activityId,
+      }),
+    ).toMatchObject({ ok: true, value: { idempotent: true, eventType: null } });
+    const activity = await service.getBusinessActivity(ORG_A, classified.value.activityId);
+    expect(activity).toMatchObject({
+      ok: true,
+      value: { status: "active", isPrimary: false },
+    });
+    expect(
+      tables.organization_context_assignments.filter((row) => row.status === "active"),
+    ).toHaveLength(0);
+    expect(
+      tables.organization_context_assignment_events.filter(
+        (row) => row.event_type === "business_activity_activated",
+      ),
+    ).toHaveLength(1);
+
+    await service.archiveBusinessActivity({
+      organizationId: ORG_A,
+      activityId: classified.value.activityId,
+    });
+    expect(
+      await service.activateBusinessActivity({
+        organizationId: ORG_A,
+        activityId: classified.value.activityId,
+      }),
+    ).toMatchObject({ ok: false, error: { code: "ACTIVITY_ARCHIVED" } });
+  });
+
+  it("keeps platform operator identity required for activate_activity", async () => {
+    const { service } = createService(emptyTables(), "");
+    expect(
+      await service.activateBusinessActivity({
+        organizationId: ORG_A,
+        activityId: "00000000-0000-0000-0000-000000000001",
+      }),
+    ).toMatchObject({ ok: false, error: { code: "UNAUTHORIZED" } });
+  });
+
   it("allows zero primary, sets, switches, and no-ops the same primary", async () => {
     const { service, tables } = createService(emptyTables());
     const first = await service.createBusinessActivity({

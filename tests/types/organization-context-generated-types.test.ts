@@ -45,5 +45,7 @@ describe("ORG-CONTEXT generated Production types", () => {
     expect(generated).toContain("p_actor_user_id: string");
     expect(generated).toContain("p_payload: Json");
     expect(generated).toContain("Returns: Json");
+    expect(generated).not.toContain("apply_organization_context_bqa_mutation");
+    expect(generated).not.toContain("apply_organization_context_mutation");
   });
 });

@@ -70,7 +70,8 @@ describe("ORG-CONTEXT-1C server-only isolation", () => {
     for (const file of walk(join(ROOT, "src/features/org-context"))) {
       const source = readFileSync(file, "utf8");
       expect(source).not.toContain("apply_organization_onboarding");
-      expect(source).not.toMatch(/\bbqa\b/);
+      expect(source).not.toContain("features/business-qualification");
+      expect(source).not.toContain("apply_business_qualification_mutation");
       expect(source).not.toContain("features/social-media");
       expect(source).not.toContain("app-shell");
       expect(source).not.toContain("enabled_capabilities");
@@ -96,6 +97,18 @@ describe("ORG-CONTEXT-1C server-only isolation", () => {
         "utf8",
       ),
     ).toContain("apply_organization_context_platform_mutation");
+    expect(
+      readFileSync(
+        join(ROOT, "src/features/org-context/server/organization-context-rpc.ts"),
+        "utf8",
+      ),
+    ).toContain("ORG_CONTEXT_BQA_MUTATION_RPC");
+    expect(
+      readFileSync(
+        join(ROOT, "src/features/org-context/server/organization-context-rpc.ts"),
+        "utf8",
+      ),
+    ).toContain("apply_organization_context_bqa_mutation");
   });
 
   it("keeps domain modules free of privileged factory and env reads", () => {

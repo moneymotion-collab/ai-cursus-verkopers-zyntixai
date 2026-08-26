@@ -61,6 +61,7 @@ export type OrganizationContextAssignment = {
 export type OrganizationContextEventType =
   | "business_activity_created"
   | "business_activity_classified"
+  | "business_activity_activated"
   | "context_version_assigned"
   | "context_version_changed"
   | "primary_activity_changed"
@@ -104,10 +105,20 @@ export type OrgContextPlatformOperator = {
 export type OrgContextMutationOperation =
   | "create_activity"
   | "classify_activity"
+  | "activate_activity"
   | "set_primary"
   | "assign_context_version"
   | "change_context_version"
   | "archive_activity";
+
+export const ORG_CONTEXT_CONFIRMED_MUTATION_OPERATIONS = [
+  "classify_activity",
+  "activate_activity",
+  "assign_context_version",
+] as const;
+
+export type OrgContextBqaMutationOperation =
+  (typeof ORG_CONTEXT_CONFIRMED_MUTATION_OPERATIONS)[number];
 
 export type OrgContextMutationSuccess = {
   idempotent: boolean;

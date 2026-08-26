@@ -7,6 +7,7 @@ import {
   type OrgContextResult,
 } from "@/features/org-context/domain/errors";
 import type {
+  OrgContextBqaMutationOperation,
   OrgContextMutationOperation,
   OrgContextMutationSuccess,
   OrganizationContextEventType,
@@ -15,6 +16,9 @@ import type { Database } from "@/types/database";
 
 export const ORG_CONTEXT_PLATFORM_MUTATION_RPC =
   "apply_organization_context_platform_mutation" as const satisfies keyof Database["public"]["Functions"];
+
+export const ORG_CONTEXT_BQA_MUTATION_RPC =
+  "apply_organization_context_bqa_mutation" as const;
 
 type OrgContextMutationFn =
   Database["public"]["Functions"][typeof ORG_CONTEXT_PLATFORM_MUTATION_RPC];
@@ -35,6 +39,7 @@ export type OrgContextMutationRpcClient = {
 const EVENT_TYPES = new Set<OrganizationContextEventType>([
   "business_activity_created",
   "business_activity_classified",
+  "business_activity_activated",
   "context_version_assigned",
   "context_version_changed",
   "primary_activity_changed",
@@ -51,6 +56,12 @@ const ERROR_CODES = new Set<OrgContextErrorCode>([
   "CONTEXT_VERSION_NOT_ASSIGNABLE",
   "PRIMARY_ACTIVITY_CONFLICT",
   "UNAUTHORIZED",
+  "ACTOR_NOT_AUTHORIZED",
+  "FORBIDDEN_OPERATION",
+  "ACTIVITY_CLASSIFICATION_MISMATCH",
+  "ACTIVITY_NOT_CLASSIFIED",
+  "ACTIVITY_ARCHIVED",
+  "CONTEXT_REPIN_REQUIRED",
   "CATALOG_INTEGRITY_ERROR",
   "DATABASE_READ_ERROR",
   "MUTATION_FAILED",
@@ -124,6 +135,36 @@ export async function invokeOrgContextPlatformMutation(
     p_payload: args.p_payload as OrgContextPlatformMutationArgs["p_payload"],
   };
   const { data, error } = await client.rpc(ORG_CONTEXT_PLATFORM_MUTATION_RPC, rpcArgs);
+  if (error) {
+    return orgContextFail("MUTATION_FAILED", error.message, {
+      code: error.code ?? null,
+    });
+  }
+  return mapOrgContextMutationRpcPayload(data);
+}
+
+export type OrgContextBqaMutationRpcArgs = {
+  p_operation: OrgContextBqaMutationOperation;
+  p_organization_id: string;
+  p_actor_user_id: string;
+  p_payload: Record<string, unknown>;
+};
+
+export type OrgContextBqaMutationRpcClient = {
+  rpc(
+    fn: typeof ORG_CONTEXT_BQA_MUTATION_RPC,
+    args: OrgContextBqaMutationRpcArgs,
+  ): PromiseLike<{
+    data: unknown;
+    error: { message: string; code?: string } | null;
+  }>;
+};
+
+export async function invokeOrgContextBqaMutation(
+  client: OrgContextBqaMutationRpcClient,
+  args: OrgContextBqaMutationRpcArgs,
+): Promise<OrgContextResult<OrgContextMutationSuccess>> {
+  const { data, error } = await client.rpc(ORG_CONTEXT_BQA_MUTATION_RPC, args);
   if (error) {
     return orgContextFail("MUTATION_FAILED", error.message, {
       code: error.code ?? null,

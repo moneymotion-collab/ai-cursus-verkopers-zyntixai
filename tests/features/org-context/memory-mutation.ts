@@ -284,6 +284,37 @@ export function createMemoryOrgContextMutationRpc(
         });
       }
 
+      if (args.p_operation === "activate_activity") {
+        if (owned.status === "archived") {
+          return fail("ACTIVITY_ARCHIVED", "Archived Business Activity cannot be activated");
+        }
+        if (owned.status === "active") {
+          return ok({ idempotent: true, activityId });
+        }
+        if (owned.classification_kind == null) {
+          return fail(
+            "ACTIVITY_NOT_CLASSIFIED",
+            "Unclassified Business Activity cannot be activated",
+          );
+        }
+        owned.status = "active";
+        owned.updated_at = nowIso();
+        const eventId = appendEvent(tables, {
+          organizationId,
+          activityId,
+          eventType: "business_activity_activated",
+          actorUserId,
+          reason,
+          payload: { old_status: "draft", new_status: "active" },
+        });
+        return ok({
+          idempotent: false,
+          activityId,
+          eventId,
+          eventType: "business_activity_activated",
+        });
+      }
+
       const versionId = String(payload.context_pack_version_id ?? "");
       const activePin = tables.organization_context_assignments.find(
         (row) =>

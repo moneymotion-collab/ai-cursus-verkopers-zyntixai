@@ -38,6 +38,7 @@ const ASSIGNMENT_SOURCES = new Set<ContextAssignmentSource>([
 const EVENT_TYPES = new Set<OrganizationContextEventType>([
   "business_activity_created",
   "business_activity_classified",
+  "business_activity_activated",
   "context_version_assigned",
   "context_version_changed",
   "primary_activity_changed",
