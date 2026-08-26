@@ -18,13 +18,18 @@ export const ORG_CONTEXT_PLATFORM_MUTATION_RPC =
   "apply_organization_context_platform_mutation" as const satisfies keyof Database["public"]["Functions"];
 
 export const ORG_CONTEXT_BQA_MUTATION_RPC =
-  "apply_organization_context_bqa_mutation" as const;
+  "apply_organization_context_bqa_mutation" as const satisfies keyof Database["public"]["Functions"];
 
 type OrgContextMutationFn =
   Database["public"]["Functions"][typeof ORG_CONTEXT_PLATFORM_MUTATION_RPC];
 
+type OrgContextBqaMutationFn =
+  Database["public"]["Functions"][typeof ORG_CONTEXT_BQA_MUTATION_RPC];
+
 export type OrgContextPlatformMutationArgs = OrgContextMutationFn["Args"];
 export type OrgContextPlatformMutationReturns = OrgContextMutationFn["Returns"];
+export type OrgContextBqaGeneratedArgs = OrgContextBqaMutationFn["Args"];
+export type OrgContextBqaMutationReturns = OrgContextBqaMutationFn["Returns"];
 
 export type OrgContextMutationRpcClient = {
   rpc(
@@ -145,17 +150,17 @@ export async function invokeOrgContextPlatformMutation(
 
 export type OrgContextBqaMutationRpcArgs = {
   p_operation: OrgContextBqaMutationOperation;
-  p_organization_id: string;
-  p_actor_user_id: string;
+  p_organization_id: OrgContextBqaGeneratedArgs["p_organization_id"];
+  p_actor_user_id: OrgContextBqaGeneratedArgs["p_actor_user_id"];
   p_payload: Record<string, unknown>;
 };
 
 export type OrgContextBqaMutationRpcClient = {
   rpc(
     fn: typeof ORG_CONTEXT_BQA_MUTATION_RPC,
-    args: OrgContextBqaMutationRpcArgs,
+    args: OrgContextBqaGeneratedArgs,
   ): PromiseLike<{
-    data: unknown;
+    data: OrgContextBqaMutationReturns;
     error: { message: string; code?: string } | null;
   }>;
 };
@@ -164,7 +169,13 @@ export async function invokeOrgContextBqaMutation(
   client: OrgContextBqaMutationRpcClient,
   args: OrgContextBqaMutationRpcArgs,
 ): Promise<OrgContextResult<OrgContextMutationSuccess>> {
-  const { data, error } = await client.rpc(ORG_CONTEXT_BQA_MUTATION_RPC, args);
+  const rpcArgs: OrgContextBqaGeneratedArgs = {
+    p_operation: args.p_operation,
+    p_organization_id: args.p_organization_id,
+    p_actor_user_id: args.p_actor_user_id,
+    p_payload: args.p_payload as OrgContextBqaGeneratedArgs["p_payload"],
+  };
+  const { data, error } = await client.rpc(ORG_CONTEXT_BQA_MUTATION_RPC, rpcArgs);
   if (error) {
     return orgContextFail("MUTATION_FAILED", error.message, {
       code: error.code ?? null,

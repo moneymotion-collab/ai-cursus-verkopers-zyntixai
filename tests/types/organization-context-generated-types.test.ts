@@ -30,22 +30,33 @@ describe("ORG-CONTEXT generated Production types", () => {
   it("includes the Production mutation RPC in Database public Functions", () => {
     type MutationFn =
       Database["public"]["Functions"]["apply_organization_context_platform_mutation"];
+    type BqaFn =
+      Database["public"]["Functions"]["apply_organization_context_bqa_mutation"];
     const _args: MutationFn["Args"] = {
       p_actor_user_id: "00000000-0000-0000-0000-000000000000",
       p_operation: "create_activity",
       p_organization_id: "00000000-0000-0000-0000-000000000000",
       p_payload: {},
     };
+    const _bqaArgs: BqaFn["Args"] = {
+      p_actor_user_id: "00000000-0000-0000-0000-000000000000",
+      p_operation: "classify_activity",
+      p_organization_id: "00000000-0000-0000-0000-000000000000",
+      p_payload: {},
+    };
     const _returns: MutationFn["Returns"] = { ok: true };
+    const _bqaReturns: BqaFn["Returns"] = { ok: true };
     void _args;
+    void _bqaArgs;
     void _returns;
+    void _bqaReturns;
     expect(generated).toContain("apply_organization_context_platform_mutation:");
+    expect(generated).toContain("apply_organization_context_bqa_mutation:");
     expect(generated).toContain("p_operation: string");
     expect(generated).toContain("p_organization_id: string");
     expect(generated).toContain("p_actor_user_id: string");
     expect(generated).toContain("p_payload: Json");
     expect(generated).toContain("Returns: Json");
-    expect(generated).not.toContain("apply_organization_context_bqa_mutation");
-    expect(generated).not.toContain("apply_organization_context_mutation");
+    expect(generated).not.toContain("apply_organization_context_mutation:");
   });
 });
