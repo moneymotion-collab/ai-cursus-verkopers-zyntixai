@@ -63,8 +63,16 @@ function collectHits(paths: string[]): string[] {
   return hits.sort();
 }
 
+function isAuthorizedBqaConsumer(relativePath: string): boolean {
+  const normalized = relativePath.replaceAll("\\", "/");
+  return (
+    normalized === "src/types/database.generated.ts" ||
+    normalized.startsWith("src/features/business-qualification/")
+  );
+}
+
 describe("BQA-1C runtime isolation", () => {
-  it("authorizes only generated types as BQA table consumers", () => {
+  it("authorizes generated types and the business-qualification server as BQA table consumers", () => {
     expect(existsSync(join(process.cwd(), "src/features/bqa"))).toBe(false);
     const generated = readFileSync(
       join(process.cwd(), "src/types/database.generated.ts"),
@@ -73,9 +81,7 @@ describe("BQA-1C runtime isolation", () => {
     expect(generated).toMatch(BQA_TOKEN);
     const srcRoot = join(process.cwd(), "src");
     expect(
-      collectHits(walkFiles(srcRoot)).filter(
-        (path) => path !== "src/types/database.generated.ts",
-      ),
+      collectHits(walkFiles(srcRoot)).filter((path) => !isAuthorizedBqaConsumer(path)),
     ).toEqual([]);
   });
 
@@ -99,7 +105,10 @@ describe("BQA-1C runtime isolation", () => {
   it("does not alter Social, onboarding RPCs, invitations, or organizations in BQA migrations", () => {
     const migrationsDir = join(process.cwd(), "supabase/migrations");
     for (const name of readdirSync(migrationsDir)) {
-      if (!name.includes("business_qualification_admission")) {
+      if (
+        !name.includes("business_qualification_admission") &&
+        !name.includes("business_qualification_classification")
+      ) {
         continue;
       }
       const sql = readFileSync(join(migrationsDir, name), "utf8");

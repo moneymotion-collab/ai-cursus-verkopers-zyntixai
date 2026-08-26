@@ -72,6 +72,13 @@ describe("security boundaries", () => {
         "server",
         "org-context-client.ts",
       ).replace(/\\/g, "/"),
+      join(
+        ROOT,
+        "features",
+        "business-qualification",
+        "server",
+        "bqa-client.ts",
+      ).replace(/\\/g, "/"),
     ]);
 
     const offenders = collectSourceFiles(ROOT).filter((file) => {
