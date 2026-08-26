@@ -2,6 +2,7 @@
  * Pure Effective Context domain types.
  * Persistence rows and generated Database types are not this contract.
  * relevantCapabilities are Context relevance, not entitlement or authorization.
+ * Capability readiness is optional metadata on that relevance; null is not disabled.
  */
 
 import type {
@@ -84,6 +85,10 @@ export type ResolverCapabilityDefinition = {
   lifecycleStatus: CapabilityLifecycleStatus;
 };
 
+/**
+ * Optional canonical CAP readiness metadata.
+ * Absence of a row is valid and is not catalog corruption.
+ */
 export type ResolverCapabilityReadiness = {
   capabilityKey: string;
   readinessStatus: CapabilityReadinessStatus;
@@ -118,7 +123,18 @@ export type EffectiveCapability = {
   effectiveRelevance: ContextRelevance;
   provenance: EffectiveCapabilityProvenance;
   lifecycleStatus: CapabilityLifecycleStatus;
-  readinessStatus: CapabilityReadinessStatus;
+  /**
+   * Canonical CAP readiness row, if one exists.
+   * null means no readiness row was supplied — not disabled, unsupported,
+   * unentitled, or an execution gate. Distinct from explicit status "planned".
+   */
+  readinessStatus: CapabilityReadinessStatus | null;
+  /**
+   * Canonical supported-scope payload from the readiness row, if present.
+   * null when no readiness row exists or the row carries no scope.
+   * Not an enablement or entitlement flag.
+   */
+  supportedScope: CatalogSupportedScope | null;
 };
 
 export type EffectiveTerminologyProvenance = {

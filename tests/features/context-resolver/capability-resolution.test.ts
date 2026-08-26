@@ -299,6 +299,7 @@ describe("capability dependency coherence", () => {
       },
       lifecycleStatus: "active",
       readinessStatus: "context_ready",
+      supportedScope: null,
     }));
   }
 

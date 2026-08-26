@@ -1,10 +1,15 @@
 /**
  * Deterministic Context capability SET/REMOVE merge and CAP coherence.
  * Relevance is not entitlement. Missing hard dependencies are never inserted.
+ * Capability existence is required; capability readiness is optional metadata.
  */
 
 import { computeCapabilityClosure } from "@/features/control-plane/domain/capability-closure";
-import type { ContextRelevance } from "@/features/control-plane/domain/types";
+import type {
+  CapabilityReadinessStatus,
+  CatalogSupportedScope,
+  ContextRelevance,
+} from "@/features/control-plane/domain/types";
 import {
   contextResolverFail,
   contextResolverOk,
@@ -32,6 +37,18 @@ export function relevanceRank(relevance: ContextRelevance): number {
 
 function isSystemBaselineKey(capabilityKey: string): boolean {
   return (SYSTEM_BASELINE_CAPABILITY_KEYS as readonly string[]).includes(capabilityKey);
+}
+
+function capabilityReadinessMetadata(
+  row: ResolverCapabilityReadiness | undefined,
+): {
+  readinessStatus: CapabilityReadinessStatus | null;
+  supportedScope: CatalogSupportedScope | null;
+} {
+  return {
+    readinessStatus: row?.readinessStatus ?? null,
+    supportedScope: row?.supportedScope ?? null,
+  };
 }
 
 function indexUniqueByKey<T>(
@@ -75,14 +92,6 @@ export function seedSystemBaselineCapabilities(input: {
         { capabilityKey },
       );
     }
-    const readiness = input.readiness.get(capabilityKey);
-    if (!readiness) {
-      return contextResolverFail(
-        "CATALOG_INTEGRITY_ERROR",
-        "System Core baseline capability readiness is missing",
-        { capabilityKey },
-      );
-    }
     seeded.set(capabilityKey, {
       capabilityKey,
       effectiveRelevance: "required",
@@ -93,7 +102,7 @@ export function seedSystemBaselineCapabilities(input: {
         establishedBy: "set",
       },
       lifecycleStatus: definition.lifecycleStatus,
-      readinessStatus: readiness.readinessStatus,
+      ...capabilityReadinessMetadata(input.readiness.get(capabilityKey)),
     });
   }
   return contextResolverOk(seeded);
@@ -213,11 +222,10 @@ export function mergeContextCapabilityMappings(input: {
         );
       }
       const definition = capabilities.value.get(mapping.capabilityKey);
-      const capReadiness = readiness.value.get(mapping.capabilityKey);
-      if (!definition || !capReadiness) {
+      if (!definition) {
         return contextResolverFail(
-          "CATALOG_INTEGRITY_ERROR",
-          "Mapped capability is missing definition or readiness",
+          "CAPABILITY_NOT_FOUND",
+          "Context mapping capability definition is missing",
           { capabilityKey: mapping.capabilityKey },
         );
       }
@@ -245,7 +253,7 @@ export function mergeContextCapabilityMappings(input: {
           ...(overriddenFromPackKey ? { overriddenFromPackKey } : {}),
         },
         lifecycleStatus: definition.lifecycleStatus,
-        readinessStatus: capReadiness.readinessStatus,
+        ...capabilityReadinessMetadata(readiness.value.get(mapping.capabilityKey)),
       });
     }
   }
