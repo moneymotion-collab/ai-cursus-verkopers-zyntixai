@@ -44,6 +44,20 @@ describe("generated database contract", () => {
     }
   });
 
+  it("includes the seven BQA tenant tables", () => {
+    for (const table of [
+      "business_activity_qualifications",
+      "business_activity_qualification_answers",
+      "business_activity_classification_decisions",
+      "business_activity_support_assessments",
+      "business_activity_admission_decisions",
+      "business_activity_qualification_events",
+      "business_activity_demand_signals",
+    ]) {
+      expect(generated).toContain(`${table}:`);
+    }
+  });
+
   it("includes all 15 TAX/CAP/CTX control-plane tables", () => {
     for (const table of [
       "taxonomy_releases",

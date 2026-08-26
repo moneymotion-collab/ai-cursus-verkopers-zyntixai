@@ -64,15 +64,19 @@ function collectHits(paths: string[]): string[] {
 }
 
 describe("BQA-1C runtime isolation", () => {
-  it("does not introduce a product or generated-type BQA consumer", () => {
+  it("authorizes only generated types as BQA table consumers", () => {
     expect(existsSync(join(process.cwd(), "src/features/bqa"))).toBe(false);
     const generated = readFileSync(
       join(process.cwd(), "src/types/database.generated.ts"),
       "utf8",
     );
-    expect(generated).not.toMatch(BQA_TOKEN);
+    expect(generated).toMatch(BQA_TOKEN);
     const srcRoot = join(process.cwd(), "src");
-    expect(collectHits(walkFiles(srcRoot))).toEqual([]);
+    expect(
+      collectHits(walkFiles(srcRoot)).filter(
+        (path) => path !== "src/types/database.generated.ts",
+      ),
+    ).toEqual([]);
   });
 
   it("leaves Home, AppShell, onboarding, CRM, Knowledge, Social, Tasks, and Attention free of BQA identifiers", () => {

@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   graphql_public: {
     Tables: {
@@ -352,6 +352,580 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_activity_admission_decisions: {
+        Row: {
+          actor_user_id: string | null
+          admission_status: string
+          business_activity_id: string
+          decided_at: string
+          decision_source: string
+          id: string
+          organization_id: string
+          qualification_id: string
+          reason_code: string
+          rollout_mode: string
+          superseded_at: string | null
+          support_assessment_id: string | null
+        }
+        Insert: {
+          actor_user_id?: string | null
+          admission_status: string
+          business_activity_id: string
+          decided_at?: string
+          decision_source: string
+          id?: string
+          organization_id: string
+          qualification_id: string
+          reason_code: string
+          rollout_mode: string
+          superseded_at?: string | null
+          support_assessment_id?: string | null
+        }
+        Update: {
+          actor_user_id?: string | null
+          admission_status?: string
+          business_activity_id?: string
+          decided_at?: string
+          decision_source?: string
+          id?: string
+          organization_id?: string
+          qualification_id?: string
+          reason_code?: string
+          rollout_mode?: string
+          superseded_at?: string | null
+          support_assessment_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_activity_admission_decisions_activity_fk"
+            columns: ["organization_id", "business_activity_id"]
+            isOneToOne: false
+            referencedRelation: "organization_business_activities"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "business_activity_admission_decisions_actor_user_fk"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_activity_admission_decisions_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_activity_admission_decisions_qualification_fk"
+            columns: ["organization_id", "qualification_id"]
+            isOneToOne: false
+            referencedRelation: "business_activity_qualifications"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "business_activity_admission_decisions_support_fk"
+            columns: ["organization_id", "support_assessment_id"]
+            isOneToOne: false
+            referencedRelation: "business_activity_support_assessments"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      business_activity_classification_decisions: {
+        Row: {
+          alternative_target_ids: string[]
+          business_activity_id: string
+          classification_outcome: string
+          confidence_band: string
+          confirmed_at: string | null
+          confirmed_by_user_id: string | null
+          created_at: string
+          decision_source: string | null
+          decision_status: string
+          evidence_snapshot: Json
+          id: string
+          organization_id: string
+          proposal_source: string
+          qualification_id: string
+          superseded_at: string | null
+          supersedes_decision_id: string | null
+          taxonomy_release_id: string
+          taxonomy_target_id: string | null
+          taxonomy_target_key: string | null
+          taxonomy_target_kind: string | null
+          unresolved_dimension_codes: string[]
+        }
+        Insert: {
+          alternative_target_ids?: string[]
+          business_activity_id: string
+          classification_outcome: string
+          confidence_band: string
+          confirmed_at?: string | null
+          confirmed_by_user_id?: string | null
+          created_at?: string
+          decision_source?: string | null
+          decision_status: string
+          evidence_snapshot?: Json
+          id?: string
+          organization_id: string
+          proposal_source: string
+          qualification_id: string
+          superseded_at?: string | null
+          supersedes_decision_id?: string | null
+          taxonomy_release_id: string
+          taxonomy_target_id?: string | null
+          taxonomy_target_key?: string | null
+          taxonomy_target_kind?: string | null
+          unresolved_dimension_codes?: string[]
+        }
+        Update: {
+          alternative_target_ids?: string[]
+          business_activity_id?: string
+          classification_outcome?: string
+          confidence_band?: string
+          confirmed_at?: string | null
+          confirmed_by_user_id?: string | null
+          created_at?: string
+          decision_source?: string | null
+          decision_status?: string
+          evidence_snapshot?: Json
+          id?: string
+          organization_id?: string
+          proposal_source?: string
+          qualification_id?: string
+          superseded_at?: string | null
+          supersedes_decision_id?: string | null
+          taxonomy_release_id?: string
+          taxonomy_target_id?: string | null
+          taxonomy_target_key?: string | null
+          taxonomy_target_kind?: string | null
+          unresolved_dimension_codes?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_activity_classification_decisions_activity_fk"
+            columns: ["organization_id", "business_activity_id"]
+            isOneToOne: false
+            referencedRelation: "organization_business_activities"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "business_activity_classification_decisions_confirmed_by_fk"
+            columns: ["confirmed_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_activity_classification_decisions_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_activity_classification_decisions_qualification_fk"
+            columns: ["organization_id", "qualification_id"]
+            isOneToOne: false
+            referencedRelation: "business_activity_qualifications"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "business_activity_classification_decisions_release_fk"
+            columns: ["taxonomy_release_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_releases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_activity_classification_decisions_supersedes_fk"
+            columns: ["organization_id", "supersedes_decision_id"]
+            isOneToOne: false
+            referencedRelation: "business_activity_classification_decisions"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      business_activity_demand_signals: {
+        Row: {
+          business_activity_id: string
+          created_at: string
+          id: string
+          last_confirmed_at: string
+          organization_id: string
+          requested_rollout: string
+          status: string
+          taxonomy_target_id: string
+          taxonomy_target_key: string
+          taxonomy_target_kind: string
+          withdrawn_at: string | null
+        }
+        Insert: {
+          business_activity_id: string
+          created_at?: string
+          id?: string
+          last_confirmed_at?: string
+          organization_id: string
+          requested_rollout: string
+          status: string
+          taxonomy_target_id: string
+          taxonomy_target_key: string
+          taxonomy_target_kind: string
+          withdrawn_at?: string | null
+        }
+        Update: {
+          business_activity_id?: string
+          created_at?: string
+          id?: string
+          last_confirmed_at?: string
+          organization_id?: string
+          requested_rollout?: string
+          status?: string
+          taxonomy_target_id?: string
+          taxonomy_target_key?: string
+          taxonomy_target_kind?: string
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_activity_demand_signals_activity_fk"
+            columns: ["organization_id", "business_activity_id"]
+            isOneToOne: false
+            referencedRelation: "organization_business_activities"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "business_activity_demand_signals_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_activity_qualification_answers: {
+        Row: {
+          actor_user_id: string | null
+          business_activity_id: string
+          created_at: string
+          id: string
+          organization_id: string
+          qualification_id: string
+          question_key: string
+          source: string
+          updated_at: string
+          value_code: string | null
+          value_kind: string
+          value_text: string | null
+        }
+        Insert: {
+          actor_user_id?: string | null
+          business_activity_id: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          qualification_id: string
+          question_key: string
+          source: string
+          updated_at?: string
+          value_code?: string | null
+          value_kind: string
+          value_text?: string | null
+        }
+        Update: {
+          actor_user_id?: string | null
+          business_activity_id?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          qualification_id?: string
+          question_key?: string
+          source?: string
+          updated_at?: string
+          value_code?: string | null
+          value_kind?: string
+          value_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_activity_qualification_answers_activity_fk"
+            columns: ["organization_id", "business_activity_id"]
+            isOneToOne: false
+            referencedRelation: "organization_business_activities"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "business_activity_qualification_answers_actor_user_fk"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_activity_qualification_answers_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_activity_qualification_answers_qualification_fk"
+            columns: ["organization_id", "qualification_id"]
+            isOneToOne: false
+            referencedRelation: "business_activity_qualifications"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      business_activity_qualification_events: {
+        Row: {
+          actor_member_id: string | null
+          actor_user_id: string | null
+          business_activity_id: string
+          created_at: string
+          event_type: string
+          id: string
+          idempotency_key: string | null
+          organization_id: string
+          payload: Json
+          qualification_id: string
+        }
+        Insert: {
+          actor_member_id?: string | null
+          actor_user_id?: string | null
+          business_activity_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          idempotency_key?: string | null
+          organization_id: string
+          payload?: Json
+          qualification_id: string
+        }
+        Update: {
+          actor_member_id?: string | null
+          actor_user_id?: string | null
+          business_activity_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          idempotency_key?: string | null
+          organization_id?: string
+          payload?: Json
+          qualification_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_activity_qualification_events_activity_fk"
+            columns: ["organization_id", "business_activity_id"]
+            isOneToOne: false
+            referencedRelation: "organization_business_activities"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "business_activity_qualification_events_actor_member_fk"
+            columns: ["organization_id", "actor_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "business_activity_qualification_events_actor_user_fk"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_activity_qualification_events_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_activity_qualification_events_qualification_fk"
+            columns: ["organization_id", "qualification_id"]
+            isOneToOne: false
+            referencedRelation: "business_activity_qualifications"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      business_activity_qualifications: {
+        Row: {
+          business_activity_id: string
+          created_at: string
+          current_admission_decision_id: string | null
+          current_classification_decision_id: string | null
+          current_support_assessment_id: string | null
+          id: string
+          organization_id: string
+          progress_status: string
+          review_status: string
+          split_recommended: boolean
+          updated_at: string
+        }
+        Insert: {
+          business_activity_id: string
+          created_at?: string
+          current_admission_decision_id?: string | null
+          current_classification_decision_id?: string | null
+          current_support_assessment_id?: string | null
+          id?: string
+          organization_id: string
+          progress_status?: string
+          review_status?: string
+          split_recommended?: boolean
+          updated_at?: string
+        }
+        Update: {
+          business_activity_id?: string
+          created_at?: string
+          current_admission_decision_id?: string | null
+          current_classification_decision_id?: string | null
+          current_support_assessment_id?: string | null
+          id?: string
+          organization_id?: string
+          progress_status?: string
+          review_status?: string
+          split_recommended?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_activity_qualifications_activity_fk"
+            columns: ["organization_id", "business_activity_id"]
+            isOneToOne: true
+            referencedRelation: "organization_business_activities"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "business_activity_qualifications_current_admission_fk"
+            columns: ["organization_id", "current_admission_decision_id"]
+            isOneToOne: false
+            referencedRelation: "business_activity_admission_decisions"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "business_activity_qualifications_current_classification_fk"
+            columns: ["organization_id", "current_classification_decision_id"]
+            isOneToOne: false
+            referencedRelation: "business_activity_classification_decisions"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "business_activity_qualifications_current_support_fk"
+            columns: ["organization_id", "current_support_assessment_id"]
+            isOneToOne: false
+            referencedRelation: "business_activity_support_assessments"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "business_activity_qualifications_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_activity_support_assessments: {
+        Row: {
+          architecture_gap: boolean
+          assessed_at: string
+          business_activity_id: string
+          classification_decision_id: string | null
+          context_pack_id: string | null
+          context_pack_version_id: string | null
+          context_readiness: string | null
+          id: string
+          organization_id: string
+          qualification_id: string
+          reason_code: string
+          rollout_mode: string
+          superseded_at: string | null
+          support_status: string
+        }
+        Insert: {
+          architecture_gap?: boolean
+          assessed_at?: string
+          business_activity_id: string
+          classification_decision_id?: string | null
+          context_pack_id?: string | null
+          context_pack_version_id?: string | null
+          context_readiness?: string | null
+          id?: string
+          organization_id: string
+          qualification_id: string
+          reason_code: string
+          rollout_mode: string
+          superseded_at?: string | null
+          support_status: string
+        }
+        Update: {
+          architecture_gap?: boolean
+          assessed_at?: string
+          business_activity_id?: string
+          classification_decision_id?: string | null
+          context_pack_id?: string | null
+          context_pack_version_id?: string | null
+          context_readiness?: string | null
+          id?: string
+          organization_id?: string
+          qualification_id?: string
+          reason_code?: string
+          rollout_mode?: string
+          superseded_at?: string | null
+          support_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_activity_support_assessments_activity_fk"
+            columns: ["organization_id", "business_activity_id"]
+            isOneToOne: false
+            referencedRelation: "organization_business_activities"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "business_activity_support_assessments_classification_fk"
+            columns: ["organization_id", "classification_decision_id"]
+            isOneToOne: false
+            referencedRelation: "business_activity_classification_decisions"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "business_activity_support_assessments_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_activity_support_assessments_pack_fk"
+            columns: ["context_pack_id"]
+            isOneToOne: false
+            referencedRelation: "context_packs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_activity_support_assessments_qualification_fk"
+            columns: ["organization_id", "qualification_id"]
+            isOneToOne: false
+            referencedRelation: "business_activity_qualifications"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "business_activity_support_assessments_version_fk"
+            columns: ["context_pack_version_id"]
+            isOneToOne: false
+            referencedRelation: "context_pack_versions"
             referencedColumns: ["id"]
           },
         ]
