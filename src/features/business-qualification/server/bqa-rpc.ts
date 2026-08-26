@@ -11,15 +11,15 @@ import type {
   BqaMutationSuccess,
   QualificationEventType,
 } from "@/features/business-qualification/domain/types";
+import type { Database } from "@/types/database";
 
-export const BQA_MUTATION_RPC = "apply_business_qualification_mutation" as const;
+export const BQA_MUTATION_RPC =
+  "apply_business_qualification_mutation" as const satisfies keyof Database["public"]["Functions"];
 
-export type BqaMutationRpcArgs = {
+type BqaMutationFn = Database["public"]["Functions"][typeof BQA_MUTATION_RPC];
+
+export type BqaMutationRpcArgs = Omit<BqaMutationFn["Args"], "p_operation" | "p_payload"> & {
   p_operation: BqaMutationOperation;
-  p_organization_id: string;
-  p_business_activity_id: string;
-  p_actor_user_id: string;
-  p_actor_member_id: string;
   p_payload: Record<string, unknown>;
 };
 
@@ -28,7 +28,7 @@ export type BqaMutationRpcClient = {
     fn: typeof BQA_MUTATION_RPC,
     args: BqaMutationRpcArgs,
   ): PromiseLike<{
-    data: unknown;
+    data: BqaMutationFn["Returns"];
     error: { message: string; code?: string } | null;
   }>;
 };

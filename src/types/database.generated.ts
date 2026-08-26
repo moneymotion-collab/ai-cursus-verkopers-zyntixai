@@ -6110,6 +6110,17 @@ export type Database = {
           result_code: string
         }[]
       }
+      apply_business_qualification_mutation: {
+        Args: {
+          p_actor_member_id: string
+          p_actor_user_id: string
+          p_business_activity_id: string
+          p_operation: string
+          p_organization_id: string
+          p_payload: Json
+        }
+        Returns: Json
+      }
       apply_organization_context_platform_mutation: {
         Args: {
           p_actor_user_id: string
