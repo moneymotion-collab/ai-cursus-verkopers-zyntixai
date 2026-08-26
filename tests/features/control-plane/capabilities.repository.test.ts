@@ -129,6 +129,38 @@ describe("CapabilitiesRepository", () => {
     expect(JSON.stringify(readiness)).not.toMatch(/isCapabilityEnabled|entitlement/);
   });
 
+  it("lists the full definition catalog including internal rows", async () => {
+    const all = await repo().listAllDefinitions();
+    expect(all.ok).toBe(true);
+    if (!all.ok) return;
+    expect(all.value.some((item) => item.capabilityKey === "internal.hidden")).toBe(true);
+  });
+
+  it("lists optional readiness rows and omits capabilities that have none", async () => {
+    const partial = new CapabilitiesRepository(
+      createControlPlaneMemoryClient({
+        capabilities: CAPS,
+        capability_readiness: CAPS.filter((cap) => cap.capability_key !== "core.tasks").map(
+          (cap) => ({
+            id: `ready-${cap.id}`,
+            capability_id: cap.id,
+            readiness_status: "planned",
+            supported_scope: { journey: "closed-beta-course-sellers" },
+            evidence_phase: "CAP-1B",
+            verified_at: null,
+          }),
+        ),
+      }),
+    );
+    const listed = await partial.listReadiness();
+    expect(listed.ok).toBe(true);
+    if (!listed.ok) return;
+    expect(listed.value.some((item) => item.capabilityKey === "core.tasks")).toBe(false);
+    expect(listed.value.find((item) => item.capabilityKey === "knowledge.progress")).toMatchObject({
+      readinessStatus: "planned",
+    });
+  });
+
   it("returns canonical direct dependency rows", async () => {
     const edges = await repo().getDirectDependencies(["knowledge.progress"]);
     expect(edges.ok).toBe(true);

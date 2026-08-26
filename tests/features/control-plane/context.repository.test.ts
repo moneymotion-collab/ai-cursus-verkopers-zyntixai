@@ -380,4 +380,27 @@ describe("ContextRepository", () => {
       false,
     );
   });
+
+  it("batches mappings and terminology for exact version ids", async () => {
+    const mappings = await repo.getMappingsForVersions([
+      NICHE_VERSION_ID,
+      KNOWLEDGE_VERSION_ID,
+    ]);
+    const terms = await repo.getTerminologyForVersions([KNOWLEDGE_VERSION_ID]);
+    const packs = await repo.getPacksByIds([KNOWLEDGE_PACK_ID, NICHE_PACK_ID]);
+    const readiness = await repo.getPackReadinessForVersions([
+      NICHE_VERSION_ID,
+      "missing-version",
+    ]);
+    expect(mappings.ok && terms.ok && packs.ok && readiness.ok).toBe(true);
+    if (!mappings.ok || !terms.ok || !packs.ok || !readiness.ok) return;
+    expect(mappings.value.some((row) => row.versionId === KNOWLEDGE_VERSION_ID)).toBe(true);
+    expect(mappings.value.some((row) => row.versionId === NICHE_VERSION_ID)).toBe(true);
+    expect(terms.value).toHaveLength(4);
+    expect(packs.value.map((pack) => pack.packKey).sort()).toEqual([
+      "foundation.knowledge",
+      "niche.online-course-business",
+    ]);
+    expect(readiness.value.map((row) => row.versionId)).toEqual([NICHE_VERSION_ID]);
+  });
 });

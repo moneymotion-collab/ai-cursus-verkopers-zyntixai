@@ -445,6 +445,179 @@ export class ContextRepository {
     return controlPlaneOk(terms);
   }
 
+  async getMappingsForVersions(
+    versionIds: readonly string[],
+  ): Promise<ControlPlaneResult<ContextCapabilityMapping[]>> {
+    if (versionIds.length === 0) {
+      return controlPlaneOk([]);
+    }
+    const unique = [...new Set(versionIds)];
+    const mappingRows = await executeControlPlaneQuery(
+      this.client
+        .from("context_capability_mappings")
+        .select("*")
+        .in("version_id", unique),
+    );
+    if (!mappingRows.ok) {
+      return mappingRows;
+    }
+    const capabilityIds = mappingRows.value
+      .map((row) => asString(row.capability_id))
+      .filter((id): id is string => Boolean(id));
+    const capabilities = await this.loadCapabilitiesByIds(capabilityIds);
+    if (!capabilities.ok) {
+      return capabilities;
+    }
+    const byId = new Map(capabilities.value.map((item) => [item.id, item]));
+    const mappings: ContextCapabilityMapping[] = [];
+    for (const row of mappingRows.value) {
+      const mapped = this.mapMapping(row, byId);
+      if (!mapped.ok) {
+        return mapped;
+      }
+      mappings.push(mapped.value);
+    }
+    return controlPlaneOk(
+      mappings.sort((a, b) =>
+        `${a.versionId}:${a.capabilityKey}`.localeCompare(`${b.versionId}:${b.capabilityKey}`),
+      ),
+    );
+  }
+
+  async getTerminologyForVersions(
+    versionIds: readonly string[],
+  ): Promise<ControlPlaneResult<ContextTerminology[]>> {
+    if (versionIds.length === 0) {
+      return controlPlaneOk([]);
+    }
+    const unique = [...new Set(versionIds)];
+    const rows = await executeControlPlaneQuery(
+      this.client
+        .from("context_terminology")
+        .select("*")
+        .in("version_id", unique)
+        .order("term_key"),
+    );
+    if (!rows.ok) {
+      return rows;
+    }
+    const terms: ContextTerminology[] = [];
+    for (const row of rows.value) {
+      const version = asString(row.version_id);
+      const locale = asString(row.locale);
+      const termKey = asString(row.term_key);
+      const singularLabel = asString(row.singular_label);
+      const pluralLabel = asString(row.plural_label);
+      if (!version || !locale || !termKey || !singularLabel || !pluralLabel) {
+        return controlPlaneFail(
+          "CATALOG_INTEGRITY_ERROR",
+          "Context terminology row is missing required fields",
+        );
+      }
+      terms.push({
+        versionId: version,
+        locale,
+        termKey,
+        singularLabel,
+        pluralLabel,
+        shortLabel: asNullableString(row.short_label),
+        helpText: asNullableString(row.help_text),
+      });
+    }
+    return controlPlaneOk(
+      terms.sort((left, right) =>
+        `${left.versionId}:${left.locale}:${left.termKey}`.localeCompare(
+          `${right.versionId}:${right.locale}:${right.termKey}`,
+        ),
+      ),
+    );
+  }
+
+  async getPacksByIds(
+    packIds: readonly string[],
+  ): Promise<ControlPlaneResult<ContextPackDefinition[]>> {
+    if (packIds.length === 0) {
+      return controlPlaneOk([]);
+    }
+    const unique = [...new Set(packIds)];
+    const rows = await executeControlPlaneQuery(
+      this.client.from("context_packs").select("*").in("id", unique),
+    );
+    if (!rows.ok) {
+      return rows;
+    }
+    const packs: ContextPackDefinition[] = [];
+    for (const row of rows.value) {
+      const mapped = mapPack(row);
+      if (!mapped.ok) {
+        return mapped;
+      }
+      packs.push(mapped.value);
+    }
+    if (packs.length !== unique.length) {
+      return controlPlaneFail(
+        "CATALOG_INTEGRITY_ERROR",
+        "Context version pack was not supplied",
+        { expected: unique.length, found: packs.length },
+      );
+    }
+    return controlPlaneOk(packs);
+  }
+
+  async getPackReadinessForVersions(
+    versionIds: readonly string[],
+  ): Promise<ControlPlaneResult<ContextPackReadiness[]>> {
+    if (versionIds.length === 0) {
+      return controlPlaneOk([]);
+    }
+    const unique = [...new Set(versionIds)];
+    const rows = await executeControlPlaneQuery(
+      this.client
+        .from("context_pack_readiness")
+        .select("*")
+        .in("version_id", unique),
+    );
+    if (!rows.ok) {
+      return rows;
+    }
+    const seen = new Set<string>();
+    const items: ContextPackReadiness[] = [];
+    for (const row of rows.value) {
+      const versionId = asString(row.version_id);
+      if (!versionId) {
+        return controlPlaneFail(
+          "CATALOG_INTEGRITY_ERROR",
+          "Context pack readiness row is missing version identity",
+        );
+      }
+      if (seen.has(versionId)) {
+        return controlPlaneFail(
+          "CATALOG_INTEGRITY_ERROR",
+          "Duplicate context pack readiness rows",
+          { versionId },
+        );
+      }
+      seen.add(versionId);
+      const readinessStatus = parseContextReadiness(row.readiness_status);
+      const supportedScope = asScope(row.supported_scope);
+      if (!readinessStatus || !supportedScope) {
+        return controlPlaneFail(
+          "CATALOG_INTEGRITY_ERROR",
+          "Context pack readiness row is missing required fields",
+          { versionId },
+        );
+      }
+      items.push({
+        versionId,
+        readinessStatus,
+        supportedScope,
+        evidencePhase: asNullableString(row.evidence_phase),
+        verifiedAt: asNullableString(row.verified_at),
+      });
+    }
+    return controlPlaneOk(items);
+  }
+
   async getPackReadiness(
     versionId: string,
   ): Promise<ControlPlaneResult<ContextPackReadiness>> {

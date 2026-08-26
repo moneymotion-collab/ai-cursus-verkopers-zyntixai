@@ -9,8 +9,8 @@ import {
 function tables(): OrgContextMemoryTables {
   return {
     organizations: [
-      { id: ORG_A, status: "active" },
-      { id: ORG_B, status: "active" },
+      { id: ORG_A, status: "active", locale: "nl-NL" },
+      { id: ORG_B, status: "active", locale: null },
     ],
     organization_business_activities: [
       {
@@ -130,6 +130,13 @@ describe("OrganizationContextRepository tenant honesty", () => {
       ok: true,
       value: { assignmentId: "assign-active", contextPackVersionId: "ver-ocb-2" },
     });
+  });
+
+  it("loads Organization locale as optional metadata", async () => {
+    const localeA = await repo.getOrganizationLocale(ORG_A);
+    const localeB = await repo.getOrganizationLocale(ORG_B);
+    expect(localeA).toMatchObject({ ok: true, value: "nl-NL" });
+    expect(localeB).toMatchObject({ ok: true, value: null });
   });
 
   it("does not leak Organization B history through Organization A", async () => {

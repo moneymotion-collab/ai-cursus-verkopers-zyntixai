@@ -162,6 +162,17 @@ export class TaxonomyRepository {
     return this.buildPathFromNode(start.value);
   }
 
+  async getTaxonomyPathById(input: {
+    kind: TaxonomyNodeKind;
+    id: string;
+  }): Promise<ControlPlaneResult<TaxonomyPath>> {
+    const start = await this.findNodeById(input.kind, input.id);
+    if (!start.ok) {
+      return start;
+    }
+    return this.buildPathFromNode(start.value);
+  }
+
   async listActiveListedChildren(
     parent: Pick<TaxonomyNodeRef, "kind" | "id">,
     options: CatalogListOptions = {},

@@ -160,6 +160,11 @@ describe("TaxonomyRepository", () => {
     expect(path.value.niche?.key).toBe("online-course-business");
     expect(path.value.specialization).toBeNull();
     expect(path.value.deepSpecialization).toBeNull();
+    const byId = await repo.getTaxonomyPathById({
+      kind: "niche",
+      id: NICHE_ID,
+    });
+    expect(byId).toEqual(path);
   });
 
   it("fails closed on a broken parent chain", async () => {

@@ -224,6 +224,30 @@ export class OrganizationContextRepository {
     return orgContextOk({ organizationId: id, status });
   }
 
+  async getOrganizationLocale(
+    organizationId: string,
+  ): Promise<OrgContextResult<string | null>> {
+    const rows = await executeOrgContextQuery(
+      this.client.from("organizations").select("*").eq("id", organizationId),
+    );
+    if (!rows.ok) {
+      return rows;
+    }
+    if (rows.value.length === 0) {
+      return orgContextFail("ORG_NOT_FOUND", "Organization not found", {
+        organizationId,
+      });
+    }
+    if (rows.value.length > 1) {
+      return orgContextFail(
+        "CATALOG_INTEGRITY_ERROR",
+        "Duplicate Organization identity results",
+        { organizationId, count: rows.value.length },
+      );
+    }
+    return orgContextOk(asNullableString(rows.value[0].locale));
+  }
+
   async listBusinessActivities(
     organizationId: string,
   ): Promise<OrgContextResult<BusinessActivity[]>> {

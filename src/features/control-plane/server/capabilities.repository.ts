@@ -193,6 +193,28 @@ export class CapabilitiesRepository {
     return controlPlaneOk(items);
   }
 
+  /**
+   * Full canonical capability catalog, including non-active and internal rows.
+   * Used by Context Resolver so missing mapped/Core keys can fail at the engine.
+   */
+  async listAllDefinitions(): Promise<ControlPlaneResult<CapabilityDefinition[]>> {
+    const rows = await executeControlPlaneQuery(
+      this.client.from("capabilities").select("*").order("capability_key"),
+    );
+    if (!rows.ok) {
+      return rows;
+    }
+    const items: CapabilityDefinition[] = [];
+    for (const row of rows.value) {
+      const mapped = mapCapability(row);
+      if (!mapped.ok) {
+        return mapped;
+      }
+      items.push(mapped.value);
+    }
+    return controlPlaneOk(items);
+  }
+
   async getDirectDependencies(
     capabilityKeys?: readonly string[],
   ): Promise<ControlPlaneResult<CapabilityDependencyEdge[]>> {
@@ -322,5 +344,78 @@ export class CapabilitiesRepository {
       evidencePhase: asNullableString(row.evidence_phase),
       verifiedAt: asNullableString(row.verified_at),
     });
+  }
+
+  /**
+   * Optional CAP readiness catalog. Missing rows are omitted, not invented.
+   * Duplicate capability_id is integrity corruption.
+   */
+  async listReadiness(): Promise<ControlPlaneResult<CapabilityReadiness[]>> {
+    const capabilityRows = await executeControlPlaneQuery(
+      this.client.from("capabilities").select("*"),
+    );
+    if (!capabilityRows.ok) {
+      return capabilityRows;
+    }
+    const byId = new Map<string, CapabilityDefinition>();
+    for (const row of capabilityRows.value) {
+      const mapped = mapCapability(row);
+      if (!mapped.ok) {
+        return mapped;
+      }
+      byId.set(mapped.value.id, mapped.value);
+    }
+    const rows = await executeControlPlaneQuery(
+      this.client.from("capability_readiness").select("*"),
+    );
+    if (!rows.ok) {
+      return rows;
+    }
+    const seen = new Set<string>();
+    const items: CapabilityReadiness[] = [];
+    for (const row of rows.value) {
+      const capabilityId = asString(row.capability_id);
+      if (!capabilityId) {
+        return controlPlaneFail(
+          "CATALOG_INTEGRITY_ERROR",
+          "Capability readiness row is missing identity",
+        );
+      }
+      if (seen.has(capabilityId)) {
+        return controlPlaneFail(
+          "CATALOG_INTEGRITY_ERROR",
+          "Duplicate capability readiness rows",
+          { capabilityId },
+        );
+      }
+      seen.add(capabilityId);
+      const capability = byId.get(capabilityId);
+      if (!capability) {
+        return controlPlaneFail(
+          "CATALOG_INTEGRITY_ERROR",
+          "Capability readiness references a missing capability",
+          { capabilityId },
+        );
+      }
+      const readinessStatus = parseReadiness(row.readiness_status);
+      if (!readinessStatus) {
+        return controlPlaneFail(
+          "CATALOG_INTEGRITY_ERROR",
+          "Capability readiness row is missing required fields",
+          { capabilityKey: capability.capabilityKey },
+        );
+      }
+      items.push({
+        capabilityId,
+        capabilityKey: capability.capabilityKey,
+        readinessStatus,
+        supportedScope: asScope(row.supported_scope) ?? {},
+        evidencePhase: asNullableString(row.evidence_phase),
+        verifiedAt: asNullableString(row.verified_at),
+      });
+    }
+    return controlPlaneOk(
+      items.sort((left, right) => left.capabilityKey.localeCompare(right.capabilityKey)),
+    );
   }
 }
