@@ -8,6 +8,10 @@ import {
   answerSourceForRole,
 } from "@/features/business-qualification/domain/authorization";
 import {
+  evaluateAdmission,
+  supportAssessmentMatchesAdmissionGate,
+} from "@/features/business-qualification/domain/admission";
+import {
   confirmationBlock,
   isBqaUuid,
   isClassificationOutcome,
@@ -25,12 +29,20 @@ import {
 } from "@/features/business-qualification/domain/errors";
 import { evaluateRequiredAnswers, validateQualificationAnswer } from "@/features/business-qualification/domain/questions";
 import { requiresReview } from "@/features/business-qualification/domain/progress";
+import { isRolloutMode } from "@/features/business-qualification/domain/rollout-policy";
+import {
+  demandWaitlistEligible,
+  evaluateSupport,
+  type CatalogVersionRef,
+} from "@/features/business-qualification/domain/support";
 import type {
   BqaMutationOperation,
   BqaMutationSuccess,
   BqaOrganizationRole,
   BusinessActivityQualificationReadModel,
   ClassificationDecision,
+  ContextReadinessStatus,
+  RolloutMode,
 } from "@/features/business-qualification/domain/types";
 import {
   createOrgContextActivityLookup,
@@ -52,6 +64,14 @@ import {
   type BqaCaller,
 } from "@/features/business-qualification/server/tenant-authorization";
 import {
+  createOrgContextAssignmentObserver,
+  type BqaAssignmentObserver,
+} from "@/features/business-qualification/server/assignment-observer";
+import {
+  createBqaContextCatalog,
+  type BqaContextCatalog,
+} from "@/features/business-qualification/server/context-catalog";
+import {
   createBqaTaxonomyResolver,
   type BqaTaxonomyResolver,
 } from "@/features/business-qualification/server/taxonomy-target";
@@ -65,6 +85,8 @@ export type BusinessQualificationServiceDeps = {
   activities: BqaActivityLookup;
   repository: BusinessQualificationRepository;
   taxonomy: BqaTaxonomyResolver;
+  catalog: BqaContextCatalog;
+  pins: BqaAssignmentObserver;
   mutate: BqaMutationRpcClient;
 };
 
@@ -321,6 +343,199 @@ export class BusinessQualificationService {
     return this.mutate("request_review", authorized.value.caller, input, {});
   }
 
+  async evaluateBusinessActivitySupport(input: {
+    organizationId: string;
+    businessActivityId: string;
+    requestedRollout: string;
+  }): Promise<BqaResult<BqaMutationSuccess>> {
+    const authorized = await this.authorizeMutation(input, "record_support_assessment");
+    if (!authorized.ok) {
+      return authorized;
+    }
+    if (!isRolloutMode(input.requestedRollout)) {
+      return bqaFail("INVALID_ANSWER", "requestedRollout is not a frozen rollout mode");
+    }
+    const prepared = await this.prepareSupportEvaluation(
+      input.organizationId,
+      input.businessActivityId,
+      input.requestedRollout,
+    );
+    if (!prepared.ok) {
+      return prepared;
+    }
+    const role = authorized.value.caller.role;
+    if (role !== "owner" && role !== "admin") {
+      return bqaFail("FORBIDDEN_ROLE", "Support assessment requires Owner or Admin");
+    }
+    return this.mutate("record_support_assessment", authorized.value.caller, input, {
+      rollout_mode: prepared.value.snapshot.requestedRollout,
+      support_status: prepared.value.evaluation.supportStatus,
+      reason_code: prepared.value.evaluation.reasonCode,
+      architecture_gap: prepared.value.evaluation.architectureGap,
+      classification_decision_id: prepared.value.evaluation.classificationDecisionId,
+      context_pack_id: prepared.value.evaluation.contextPackId,
+      context_pack_version_id: prepared.value.evaluation.contextPackVersionId,
+      context_readiness: prepared.value.evaluation.contextReadiness,
+      existing_pin_assignment_id: prepared.value.pin?.assignmentId ?? null,
+      existing_pin_version_id: prepared.value.pin?.contextPackVersionId ?? null,
+      upgrade_may_exist: prepared.value.evaluation.upgradeMayExist,
+    });
+  }
+
+  async evaluateBusinessActivityAdmission(input: {
+    organizationId: string;
+    businessActivityId: string;
+    requestedRollout: string;
+  }): Promise<BqaResult<BqaMutationSuccess>> {
+    const authorized = await this.authorizeMutation(input, "record_admission_decision");
+    if (!authorized.ok) {
+      return authorized;
+    }
+    if (!isRolloutMode(input.requestedRollout)) {
+      return bqaFail("INVALID_ANSWER", "requestedRollout is not a frozen rollout mode");
+    }
+    const loaded = await this.loadAggregate(input.organizationId, input.businessActivityId);
+    if (!loaded.ok) {
+      return loaded;
+    }
+    const currentClassification = this.currentClassification(
+      loaded.value.qualification.currentClassificationDecisionId,
+      loaded.value.decisions,
+    );
+    const assessments = await this.deps.repository.listSupportAssessments(
+      input.organizationId,
+      input.businessActivityId,
+    );
+    if (!assessments.ok) {
+      return assessments;
+    }
+    const currentSupport =
+      assessments.value.find(
+        (row) => row.assessmentId === loaded.value.qualification.currentSupportAssessmentId,
+      ) ?? null;
+    if (
+      !currentSupport ||
+      !supportAssessmentMatchesAdmissionGate({
+        support: currentSupport,
+        requestedRollout: input.requestedRollout,
+        currentClassificationDecisionId: currentClassification?.decisionId ?? null,
+      })
+    ) {
+      return bqaFail(
+        "SUPPORT_ASSESSMENT_NOT_READY",
+        "Admission requires a current support assessment for the requested rollout",
+      );
+    }
+    const signals = await this.deps.repository.listDemandSignals(
+      input.organizationId,
+      input.businessActivityId,
+    );
+    if (!signals.ok) {
+      return signals;
+    }
+    const activeDemand = signals.value.some(
+      (signal) =>
+        signal.status === "active" &&
+        signal.taxonomyTargetId === currentClassification?.taxonomyTargetId,
+    );
+    const completeness = evaluateRequiredAnswers(loaded.value.answers);
+    const evaluation = evaluateAdmission({
+      requestedRollout: input.requestedRollout,
+      answersComplete: completeness.requiredComplete,
+      progressStatus: loaded.value.qualification.progressStatus,
+      reviewStatus: loaded.value.qualification.reviewStatus,
+      splitRecommended: loaded.value.qualification.splitRecommended,
+      currentClassification,
+      support: currentSupport,
+      activeDemand,
+    });
+    const role = authorized.value.caller.role;
+    if (role !== "owner" && role !== "admin") {
+      return bqaFail("FORBIDDEN_ROLE", "Admission evaluation requires Owner or Admin");
+    }
+    return this.mutate("record_admission_decision", authorized.value.caller, input, {
+      support_assessment_id: evaluation.supportAssessmentId,
+      rollout_mode: evaluation.rolloutMode,
+      admission_status: evaluation.admissionStatus,
+      reason_code: evaluation.reasonCode,
+      decision_source: confirmationDecisionSourceForRole(role),
+    });
+  }
+
+  async joinBusinessActivityDemandWaitlist(input: {
+    organizationId: string;
+    businessActivityId: string;
+    requestedRollout: string;
+  }): Promise<BqaResult<BqaMutationSuccess>> {
+    const authorized = await this.authorizeMutation(input, "join_demand_waitlist");
+    if (!authorized.ok) {
+      return authorized;
+    }
+    if (!isRolloutMode(input.requestedRollout)) {
+      return bqaFail("INVALID_ANSWER", "requestedRollout is not a frozen rollout mode");
+    }
+    const loaded = await this.loadAggregate(input.organizationId, input.businessActivityId);
+    if (!loaded.ok) {
+      return loaded;
+    }
+    const currentClassification = this.currentClassification(
+      loaded.value.qualification.currentClassificationDecisionId,
+      loaded.value.decisions,
+    );
+    if (
+      !currentClassification ||
+      currentClassification.decisionStatus !== "confirmed" ||
+      !currentClassification.taxonomyTargetId ||
+      !currentClassification.taxonomyTargetKind ||
+      !currentClassification.taxonomyTargetKey
+    ) {
+      return bqaFail(
+        "CLASSIFICATION_NOT_CONFIRMED",
+        "Demand waitlist requires a confirmed TAX target",
+      );
+    }
+    const assessments = await this.deps.repository.listSupportAssessments(
+      input.organizationId,
+      input.businessActivityId,
+    );
+    if (!assessments.ok) {
+      return assessments;
+    }
+    const currentSupport =
+      assessments.value.find(
+        (row) => row.assessmentId === loaded.value.qualification.currentSupportAssessmentId,
+      ) ?? null;
+    if (!currentSupport || currentSupport.supersededAt) {
+      return bqaFail(
+        "SUPPORT_ASSESSMENT_NOT_READY",
+        "Demand waitlist requires a current support assessment",
+      );
+    }
+    if (!demandWaitlistEligible(currentSupport)) {
+      return bqaFail(
+        "ADMISSION_NOT_ELIGIBLE",
+        "Demand waitlist is only available when support is not yet supported",
+      );
+    }
+    return this.mutate("join_demand_waitlist", authorized.value.caller, input, {
+      taxonomy_target_kind: currentClassification.taxonomyTargetKind,
+      taxonomy_target_id: currentClassification.taxonomyTargetId,
+      taxonomy_target_key: currentClassification.taxonomyTargetKey,
+      requested_rollout: input.requestedRollout,
+    });
+  }
+
+  async withdrawBusinessActivityDemandWaitlist(input: {
+    organizationId: string;
+    businessActivityId: string;
+  }): Promise<BqaResult<BqaMutationSuccess>> {
+    const authorized = await this.authorizeMutation(input, "withdraw_demand_waitlist");
+    if (!authorized.ok) {
+      return authorized;
+    }
+    return this.mutate("withdraw_demand_waitlist", authorized.value.caller, input, {});
+  }
+
   private async authorizeRead(input: {
     organizationId: string;
     businessActivityId: string;
@@ -410,6 +625,65 @@ export class BusinessQualificationService {
       ) ??
       decisions.value.find((decision) => decision.decisionStatus === "confirmed") ??
       null;
+    const assessments = await this.deps.repository.listSupportAssessments(
+      qualification.organizationId,
+      qualification.businessActivityId,
+    );
+    if (!assessments.ok) {
+      return assessments;
+    }
+    const admissions = await this.deps.repository.listAdmissionDecisions(
+      qualification.organizationId,
+      qualification.businessActivityId,
+    );
+    if (!admissions.ok) {
+      return admissions;
+    }
+    const signals = await this.deps.repository.listDemandSignals(
+      qualification.organizationId,
+      qualification.businessActivityId,
+    );
+    if (!signals.ok) {
+      return signals;
+    }
+    const currentSupport =
+      assessments.value.find(
+        (row) => row.assessmentId === qualification.currentSupportAssessmentId,
+      ) ?? null;
+    const currentAdmission =
+      admissions.value.find(
+        (row) => row.admissionId === qualification.currentAdmissionDecisionId,
+      ) ?? null;
+    const activeDemand =
+      signals.value.find((row) => row.status === "active") ?? null;
+    const pin = await this.deps.pins.getActivePin(
+      qualification.organizationId,
+      qualification.businessActivityId,
+    );
+    if (!pin.ok) {
+      return pin;
+    }
+    const catalog = await this.loadExactCatalog(current, pin.value);
+    if (!catalog.ok) {
+      return catalog;
+    }
+    const highestEligible = catalog.value.versions
+      .filter((version) => version.publicationStatus === "published")
+      .filter((version) => {
+        const readiness = catalog.value.readinessByVersionId[version.id];
+        return currentSupport
+          ? readiness !== undefined
+          : Boolean(readiness);
+      })
+      .sort((left, right) => right.versionNumber - left.versionNumber)[0];
+    const pinVersion = pin.value
+      ? catalog.value.versions.find((version) => version.id === pin.value?.contextPackVersionId)
+      : null;
+    const upgradeMayExist = Boolean(
+      pinVersion &&
+        highestEligible &&
+        highestEligible.versionNumber > pinVersion.versionNumber,
+    );
     let events: BusinessActivityQualificationReadModel["events"] = null;
     if (canReadQualificationEvents(role)) {
       const listed = await this.deps.repository.listEvents(
@@ -429,7 +703,139 @@ export class BusinessQualificationService {
       completeness: evaluateRequiredAnswers(answers.value),
       currentClassification: current,
       classificationHistory: this.deps.repository.toHistorySummary(decisions.value),
+      currentSupportAssessment: currentSupport,
+      currentAdmissionDecision: currentAdmission,
+      demandSignal: activeDemand,
+      existingContextPin: pin.value,
+      upgradeMayExist,
       events,
+    });
+  }
+
+  private async prepareSupportEvaluation(
+    organizationId: string,
+    businessActivityId: string,
+    requestedRollout: RolloutMode,
+  ) {
+    const loaded = await this.loadAggregate(organizationId, businessActivityId);
+    if (!loaded.ok) {
+      return loaded;
+    }
+    const currentClassification = this.currentClassification(
+      loaded.value.qualification.currentClassificationDecisionId,
+      loaded.value.decisions,
+    );
+    const pin = await this.deps.pins.getActivePin(organizationId, businessActivityId);
+    if (!pin.ok) {
+      return pin;
+    }
+    const catalog = await this.loadExactCatalog(currentClassification, pin.value);
+    if (!catalog.ok) {
+      return catalog;
+    }
+    const completeness = evaluateRequiredAnswers(loaded.value.answers);
+    const evaluation = evaluateSupport({
+      requestedRollout,
+      answersComplete: completeness.requiredComplete,
+      progressStatus: loaded.value.qualification.progressStatus,
+      reviewStatus: loaded.value.qualification.reviewStatus,
+      splitRecommended: loaded.value.qualification.splitRecommended,
+      currentClassification,
+      pack: catalog.value.pack,
+      versions: catalog.value.versions,
+      readinessByVersionId: catalog.value.readinessByVersionId,
+      activePin: pin.value,
+    });
+    return bqaOk({
+      snapshot: { requestedRollout },
+      evaluation,
+      pin: pin.value,
+    });
+  }
+
+  private currentClassification(
+    currentId: string | null,
+    decisions: readonly ClassificationDecision[],
+  ): ClassificationDecision | null {
+    return (
+      decisions.find((decision) => decision.decisionId === currentId) ??
+      decisions.find((decision) => decision.decisionStatus === "confirmed") ??
+      null
+    );
+  }
+
+  private async loadExactCatalog(
+    classification: ClassificationDecision | null,
+    pin: { assignmentId: string; contextPackVersionId: string } | null,
+  ) {
+    const empty = {
+      pack: null,
+      versions: [] as CatalogVersionRef[],
+      readinessByVersionId: {} as Record<string, ContextReadinessStatus>,
+    };
+    if (
+      !classification ||
+      classification.decisionStatus !== "confirmed" ||
+      !classification.taxonomyTargetId ||
+      !classification.taxonomyTargetKind
+    ) {
+      return bqaOk(empty);
+    }
+    const pack = await this.deps.catalog.findExactPack(
+      classification.taxonomyTargetKind,
+      classification.taxonomyTargetId,
+    );
+    if (!pack.ok) {
+      return pack;
+    }
+    let versions: CatalogVersionRef[] = [];
+    const readinessByVersionId: Record<string, ContextReadinessStatus> = {};
+    if (pack.value) {
+      const listed = await this.deps.catalog.listVersions(pack.value.id);
+      if (!listed.ok) {
+        return listed;
+      }
+      versions = listed.value;
+      for (const version of versions) {
+        const readiness = await this.deps.catalog.getReadiness(version.id);
+        if (!readiness.ok) {
+          if (version.publicationStatus === "published") {
+            return readiness;
+          }
+          continue;
+        }
+        readinessByVersionId[version.id] = readiness.value;
+      }
+    }
+    if (pin) {
+      const pinned = versions.find((version) => version.id === pin.contextPackVersionId);
+      if (!pinned) {
+        const loadedPin = await this.deps.catalog.getVersion(pin.contextPackVersionId);
+        if (!loadedPin.ok) {
+          return loadedPin;
+        }
+        if (pack.value && loadedPin.value.packId !== pack.value.id) {
+          return bqaFail(
+            "CATALOG_INTEGRITY_ERROR",
+            "Active Context pin does not belong to the exact confirmed TAX Context pack",
+          );
+        }
+        versions = [...versions, loadedPin.value];
+        const pinReadiness = await this.deps.catalog.getReadiness(loadedPin.value.id);
+        if (pinReadiness.ok) {
+          readinessByVersionId[loadedPin.value.id] = pinReadiness.value;
+        }
+      } else if (pack.value && pinned.packId !== pack.value.id) {
+        return bqaFail(
+          "CATALOG_INTEGRITY_ERROR",
+          "Active Context pin does not belong to the exact confirmed TAX Context pack",
+        );
+      }
+    }
+    return bqaOk({
+      pack: pack.value,
+      versions,
+      readinessByVersionId,
     });
   }
 
@@ -472,15 +878,20 @@ export function createBusinessQualificationService(input: {
   queryClient?: BqaQueryClient;
   activities?: BqaActivityLookup;
   taxonomy?: BqaTaxonomyResolver;
+  catalog?: BqaContextCatalog;
+  pins?: BqaAssignmentObserver;
   mutate?: BqaMutationRpcClient;
 } = {}): BusinessQualificationService {
   const env = input.env ?? process.env;
   const queryClient = input.queryClient ?? createBqaQueryClient(env);
   const mutate = input.mutate ?? createBqaMutationRpcClient(env);
+  const orgContextQuery = createOrgContextQueryClient(env);
   const activities =
-    input.activities ?? createOrgContextActivityLookup(createOrgContextQueryClient(env));
-  const taxonomy =
-    input.taxonomy ?? createBqaTaxonomyResolver(createControlPlaneReaders().taxonomy);
+    input.activities ?? createOrgContextActivityLookup(orgContextQuery);
+  const readers = createControlPlaneReaders();
+  const taxonomy = input.taxonomy ?? createBqaTaxonomyResolver(readers.taxonomy);
+  const catalog = input.catalog ?? createBqaContextCatalog(readers.context);
+  const pins = input.pins ?? createOrgContextAssignmentObserver(orgContextQuery);
   const auth =
     input.auth ??
     ({
@@ -496,6 +907,8 @@ export function createBusinessQualificationService(input: {
     activities,
     repository: new BusinessQualificationRepository(queryClient),
     taxonomy,
+    catalog,
+    pins,
     mutate,
   });
 }

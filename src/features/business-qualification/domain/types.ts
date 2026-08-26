@@ -132,7 +132,11 @@ export type QualificationEventType =
   | "classification_superseded"
   | "review_requested"
   | "split_recommended"
-  | "requalify_started";
+  | "requalify_started"
+  | "support_assessed"
+  | "admission_decided"
+  | "waitlist_joined"
+  | "waitlist_withdrawn";
 
 export type QualificationEvent = {
   eventId: string;
@@ -155,6 +159,8 @@ export type BusinessActivityQualification = {
   reviewStatus: QualificationReviewStatus;
   splitRecommended: boolean;
   currentClassificationDecisionId: string | null;
+  currentSupportAssessmentId: string | null;
+  currentAdmissionDecisionId: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -182,7 +188,145 @@ export type BusinessActivityQualificationReadModel = {
   completeness: QualificationCompleteness;
   currentClassification: ClassificationDecision | null;
   classificationHistory: readonly ClassificationHistorySummary[];
+  currentSupportAssessment: SupportAssessment | null;
+  currentAdmissionDecision: AdmissionDecision | null;
+  demandSignal: DemandSignal | null;
+  existingContextPin: ExistingContextPinObservation | null;
+  upgradeMayExist: boolean;
   events: readonly QualificationEvent[] | null;
+};
+
+export type RolloutMode = "internal_qa" | "closed_beta" | "production" | "open_beta";
+
+export type ContextReadinessStatus =
+  | "planned"
+  | "context_ready"
+  | "beta_supported"
+  | "production_verified";
+
+export type SupportStatus =
+  | "supported_for_requested_rollout"
+  | "not_yet_supported"
+  | "unsupported"
+  | "unknown"
+  | "needs_review";
+
+export type SupportReasonCode =
+  | "eligible"
+  | "missing_context_pack"
+  | "no_published_context_version"
+  | "context_readiness_insufficient"
+  | "architecture_gap"
+  | "classification_unknown"
+  | "classification_ambiguous"
+  | "review_required"
+  | "open_beta_policy_undefined";
+
+export type AdmissionStatus =
+  | "incomplete"
+  | "needs_review"
+  | "waitlisted"
+  | "not_yet_supported"
+  | "unsupported"
+  | "admitted"
+  | "rejected"
+  | "blocked";
+
+export type AdmissionReasonCode =
+  | "eligible"
+  | "incomplete_answers"
+  | "confirmation_required"
+  | "review_required"
+  | "waitlisted_not_eligible"
+  | "not_yet_supported"
+  | "unsupported"
+  | "blocked_integrity"
+  | "blocked_policy"
+  | "rejected_by_review"
+  | "path_b_independent";
+
+export type DemandSignalStatus = "active" | "withdrawn";
+
+export type ContextDiscoveryState =
+  | "no_pack"
+  | "no_published_version"
+  | "published_readiness_insufficient"
+  | "eligible_published_version"
+  | "catalog_integrity";
+
+export type SupportAssessment = {
+  assessmentId: string;
+  organizationId: string;
+  businessActivityId: string;
+  qualificationId: string;
+  classificationDecisionId: string | null;
+  rolloutMode: RolloutMode;
+  supportStatus: SupportStatus;
+  reasonCode: SupportReasonCode;
+  contextPackId: string | null;
+  contextPackVersionId: string | null;
+  contextReadiness: ContextReadinessStatus | null;
+  architectureGap: boolean;
+  assessedAt: string;
+  supersededAt: string | null;
+};
+
+export type AdmissionDecision = {
+  admissionId: string;
+  organizationId: string;
+  businessActivityId: string;
+  qualificationId: string;
+  supportAssessmentId: string | null;
+  rolloutMode: RolloutMode;
+  admissionStatus: AdmissionStatus;
+  reasonCode: AdmissionReasonCode;
+  decisionSource: ClassificationDecisionSource;
+  actorUserId: string | null;
+  decidedAt: string;
+  supersededAt: string | null;
+};
+
+export type DemandSignal = {
+  demandSignalId: string;
+  organizationId: string;
+  businessActivityId: string;
+  taxonomyTargetKind: TaxonomyTargetKind;
+  taxonomyTargetId: string;
+  taxonomyTargetKey: string;
+  requestedRollout: RolloutMode;
+  status: DemandSignalStatus;
+  createdAt: string;
+  lastConfirmedAt: string;
+  withdrawnAt: string | null;
+};
+
+export type ExistingContextPinObservation = {
+  assignmentId: string;
+  contextPackVersionId: string;
+};
+
+export type SupportEvaluationSnapshot = {
+  supportStatus: SupportStatus;
+  reasonCode: SupportReasonCode;
+  architectureGap: boolean;
+  classificationDecisionId: string | null;
+  taxonomyTargetKind: TaxonomyTargetKind | null;
+  taxonomyTargetId: string | null;
+  taxonomyTargetKey: string | null;
+  contextPackId: string | null;
+  contextPackVersionId: string | null;
+  contextReadiness: ContextReadinessStatus | null;
+  existingPinRemains: boolean;
+  upgradeMayExist: boolean;
+  observedVersionIsPin: boolean;
+  discoveryState: ContextDiscoveryState | null;
+};
+
+export type AdmissionEvaluationSnapshot = {
+  admissionStatus: AdmissionStatus;
+  reasonCode: AdmissionReasonCode;
+  supportAssessmentId: string | null;
+  rolloutMode: RolloutMode;
 };
 
 export type BqaMutationSuccess = {
@@ -190,6 +334,9 @@ export type BqaMutationSuccess = {
   qualificationId: string;
   decisionId: string | null;
   answerId: string | null;
+  assessmentId: string | null;
+  admissionId: string | null;
+  demandSignalId: string | null;
   eventId: string | null;
   eventType: QualificationEventType | null;
 };
@@ -200,4 +347,8 @@ export type BqaMutationOperation =
   | "record_proposal"
   | "confirm_classification"
   | "begin_requalification"
-  | "request_review";
+  | "request_review"
+  | "record_support_assessment"
+  | "record_admission_decision"
+  | "join_demand_waitlist"
+  | "withdraw_demand_waitlist";

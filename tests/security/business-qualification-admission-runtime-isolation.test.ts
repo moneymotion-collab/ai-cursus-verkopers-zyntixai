@@ -107,7 +107,8 @@ describe("BQA-1C runtime isolation", () => {
     for (const name of readdirSync(migrationsDir)) {
       if (
         !name.includes("business_qualification_admission") &&
-        !name.includes("business_qualification_classification")
+        !name.includes("business_qualification_classification") &&
+        !name.includes("business_qualification_support")
       ) {
         continue;
       }

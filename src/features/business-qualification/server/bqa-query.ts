@@ -10,7 +10,10 @@ export const BQA_QUERY_TABLES = [
   "business_activity_qualifications",
   "business_activity_qualification_answers",
   "business_activity_classification_decisions",
+  "business_activity_support_assessments",
+  "business_activity_admission_decisions",
   "business_activity_qualification_events",
+  "business_activity_demand_signals",
   "organization_members",
   "organizations",
 ] as const;

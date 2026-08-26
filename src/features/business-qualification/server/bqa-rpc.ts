@@ -42,6 +42,10 @@ const EVENT_TYPES = new Set<QualificationEventType>([
   "review_requested",
   "split_recommended",
   "requalify_started",
+  "support_assessed",
+  "admission_decided",
+  "waitlist_joined",
+  "waitlist_withdrawn",
 ]);
 
 const ERROR_CODES = new Set<BqaErrorCode>([
@@ -58,7 +62,13 @@ const ERROR_CODES = new Set<BqaErrorCode>([
   "CLASSIFICATION_TARGET_NOT_FOUND",
   "CLASSIFICATION_TARGET_INVALID",
   "CLASSIFICATION_ALREADY_CONFIRMED",
+  "CLASSIFICATION_NOT_CONFIRMED",
   "REQUALIFICATION_REQUIRED",
+  "SUPPORT_ASSESSMENT_NOT_READY",
+  "CONTEXT_PACK_NOT_FOUND",
+  "NO_ELIGIBLE_CONTEXT_VERSION",
+  "ROLLOUT_POLICY_UNDEFINED",
+  "ADMISSION_NOT_ELIGIBLE",
   "FORBIDDEN_ROLE",
   "DATABASE_READ_ERROR",
   "DATABASE_WRITE_ERROR",
@@ -105,6 +115,9 @@ export function mapBqaMutationRpcPayload(
     qualificationId: row.qualification_id,
     decisionId: typeof row.decision_id === "string" ? row.decision_id : null,
     answerId: typeof row.answer_id === "string" ? row.answer_id : null,
+    assessmentId: typeof row.assessment_id === "string" ? row.assessment_id : null,
+    admissionId: typeof row.admission_id === "string" ? row.admission_id : null,
+    demandSignalId: typeof row.demand_signal_id === "string" ? row.demand_signal_id : null,
     eventId: typeof row.event_id === "string" ? row.event_id : null,
     eventType: parseEventType(row.event_type),
   });

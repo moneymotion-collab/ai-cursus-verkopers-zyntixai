@@ -286,6 +286,57 @@ export class ContextRepository {
     return mapPack(packRows.value[0]);
   }
 
+  async findPackForExactTaxonomyTarget(input: {
+    kind: TaxonomyNodeKind;
+    id: string;
+  }): Promise<ControlPlaneResult<ContextPackDefinition>> {
+    const packRows = await executeControlPlaneQuery(
+      this.client
+        .from("context_packs")
+        .select("*")
+        .eq("pack_kind", input.kind)
+        .eq(TARGET_FK[input.kind], input.id),
+    );
+    if (!packRows.ok) {
+      return packRows;
+    }
+    if (packRows.value.length === 0) {
+      return controlPlaneFail("NOT_FOUND", "No context pack for taxonomy target", input);
+    }
+    if (packRows.value.length > 1) {
+      return controlPlaneFail(
+        "CATALOG_INTEGRITY_ERROR",
+        "Multiple context packs for a taxonomy target",
+        { ...input, count: packRows.value.length },
+      );
+    }
+    return mapPack(packRows.value[0]);
+  }
+
+  async listVersionsForPackId(
+    packId: string,
+  ): Promise<ControlPlaneResult<ContextPackVersion[]>> {
+    const rows = await executeControlPlaneQuery(
+      this.client
+        .from("context_pack_versions")
+        .select("*")
+        .eq("pack_id", packId)
+        .order("version_number"),
+    );
+    if (!rows.ok) {
+      return rows;
+    }
+    const versions: ContextPackVersion[] = [];
+    for (const row of rows.value) {
+      const mapped = mapVersion(row);
+      if (!mapped.ok) {
+        return mapped;
+      }
+      versions.push(mapped.value);
+    }
+    return controlPlaneOk(versions);
+  }
+
   async getVersionById(versionId: string): Promise<ControlPlaneResult<ContextPackVersion>> {
     return this.loadVersion("id", versionId);
   }

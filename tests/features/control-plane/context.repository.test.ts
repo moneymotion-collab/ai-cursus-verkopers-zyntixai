@@ -403,4 +403,30 @@ describe("ContextRepository", () => {
     ]);
     expect(readiness.value.map((row) => row.versionId)).toEqual([NICHE_VERSION_ID]);
   });
+
+  it("resolves an exact TAX target pack by id without ancestor fallback", async () => {
+    const found = await repo.findPackForExactTaxonomyTarget({
+      kind: "niche",
+      id: NICHE_TAX_ID,
+    });
+    expect(found.ok).toBe(true);
+    if (!found.ok) {
+      return;
+    }
+    expect(found.value.packKey).toBe("niche.online-course-business");
+    expect(found.value.target).toEqual({ kind: "niche", id: NICHE_TAX_ID });
+    const missing = await repo.findPackForExactTaxonomyTarget({
+      kind: "industry",
+      id: NICHE_TAX_ID,
+    });
+    expect(missing.ok).toBe(false);
+    if (!missing.ok) {
+      expect(missing.error.code).toBe("NOT_FOUND");
+    }
+    const versions = await repo.listVersionsForPackId(NICHE_PACK_ID);
+    expect(versions.ok).toBe(true);
+    if (versions.ok) {
+      expect(versions.value.some((version) => version.id === NICHE_VERSION_ID)).toBe(true);
+    }
+  });
 });

@@ -22,6 +22,11 @@ export const BQA_CLASSIFICATION_COMMAND_ROLES: readonly BqaOrganizationRole[] = 
   "admin",
 ];
 
+export const BQA_SUPPORT_ADMISSION_COMMAND_ROLES: readonly BqaOrganizationRole[] = [
+  "owner",
+  "admin",
+];
+
 const OPERATION_ROLES: Record<BqaMutationOperation, readonly BqaOrganizationRole[]> = {
   ensure_qualification: BQA_ANSWER_WRITE_ROLES,
   save_answer: BQA_ANSWER_WRITE_ROLES,
@@ -29,6 +34,10 @@ const OPERATION_ROLES: Record<BqaMutationOperation, readonly BqaOrganizationRole
   confirm_classification: BQA_CLASSIFICATION_COMMAND_ROLES,
   begin_requalification: BQA_CLASSIFICATION_COMMAND_ROLES,
   request_review: BQA_CLASSIFICATION_COMMAND_ROLES,
+  record_support_assessment: BQA_SUPPORT_ADMISSION_COMMAND_ROLES,
+  record_admission_decision: BQA_SUPPORT_ADMISSION_COMMAND_ROLES,
+  join_demand_waitlist: BQA_SUPPORT_ADMISSION_COMMAND_ROLES,
+  withdraw_demand_waitlist: BQA_SUPPORT_ADMISSION_COMMAND_ROLES,
 };
 
 export function canReadQualificationEvents(role: BqaOrganizationRole): boolean {

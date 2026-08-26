@@ -6,6 +6,7 @@ import {
   createService,
   saveRequiredAnswers,
   TAX_NICHE_ID,
+  contextCatalog,
 } from "./harness";
 
 describe("BQA-1D transaction failure", () => {
@@ -108,5 +109,110 @@ describe("BQA-1D transaction failure", () => {
     expect(tables.business_activity_qualifications[0].current_classification_decision_id).toBe(
       confirmedBefore[0].id,
     );
+  });
+
+  it("rolls back a support assessment when the event write fails", async () => {
+    const { service, tables } = createService({ userId: OWNER_USER });
+    await saveRequiredAnswers(service);
+    await service.recordClassificationProposal({
+      organizationId: ORG_A,
+      businessActivityId: ACTIVITY_A,
+      classificationOutcome: "classified",
+      confidenceBand: "high",
+      taxonomyTargetId: TAX_NICHE_ID,
+    });
+    await service.confirmClassification({
+      organizationId: ORG_A,
+      businessActivityId: ACTIVITY_A,
+      taxonomyTargetId: TAX_NICHE_ID,
+    });
+    const failing = createService({
+      userId: OWNER_USER,
+      tables,
+      mutationOptions: { failAfter: "event" },
+    });
+    const result = await failing.service.evaluateBusinessActivitySupport({
+      organizationId: ORG_A,
+      businessActivityId: ACTIVITY_A,
+      requestedRollout: "internal_qa",
+    });
+    expect(result.ok).toBe(false);
+    expect(tables.business_activity_support_assessments).toHaveLength(0);
+    expect(
+      tables.business_activity_qualification_events.filter((row) => row.event_type === "support_assessed"),
+    ).toHaveLength(0);
+  });
+
+  it("does not leave an admission decision without its event", async () => {
+    const { service, tables } = createService({ userId: OWNER_USER });
+    await saveRequiredAnswers(service);
+    await service.recordClassificationProposal({
+      organizationId: ORG_A,
+      businessActivityId: ACTIVITY_A,
+      classificationOutcome: "classified",
+      confidenceBand: "high",
+      taxonomyTargetId: TAX_NICHE_ID,
+    });
+    await service.confirmClassification({
+      organizationId: ORG_A,
+      businessActivityId: ACTIVITY_A,
+      taxonomyTargetId: TAX_NICHE_ID,
+    });
+    await service.evaluateBusinessActivitySupport({
+      organizationId: ORG_A,
+      businessActivityId: ACTIVITY_A,
+      requestedRollout: "internal_qa",
+    });
+    const failing = createService({
+      userId: OWNER_USER,
+      tables,
+      mutationOptions: { failAfter: "event" },
+    });
+    const result = await failing.service.evaluateBusinessActivityAdmission({
+      organizationId: ORG_A,
+      businessActivityId: ACTIVITY_A,
+      requestedRollout: "internal_qa",
+    });
+    expect(result.ok).toBe(false);
+    expect(tables.business_activity_admission_decisions).toHaveLength(0);
+    expect(tables.business_activity_qualifications[0].current_admission_decision_id).toBeNull();
+  });
+
+  it("does not leave a half-written demand signal", async () => {
+    const { service, tables } = createService({
+      userId: OWNER_USER,
+      catalog: contextCatalog({ packs: [], versions: [], readiness: {} }),
+    });
+    await saveRequiredAnswers(service);
+    await service.recordClassificationProposal({
+      organizationId: ORG_A,
+      businessActivityId: ACTIVITY_A,
+      classificationOutcome: "classified",
+      confidenceBand: "high",
+      taxonomyTargetId: TAX_NICHE_ID,
+    });
+    await service.confirmClassification({
+      organizationId: ORG_A,
+      businessActivityId: ACTIVITY_A,
+      taxonomyTargetId: TAX_NICHE_ID,
+    });
+    await service.evaluateBusinessActivitySupport({
+      organizationId: ORG_A,
+      businessActivityId: ACTIVITY_A,
+      requestedRollout: "closed_beta",
+    });
+    const failing = createService({
+      userId: OWNER_USER,
+      tables,
+      catalog: contextCatalog({ packs: [], versions: [], readiness: {} }),
+      mutationOptions: { failAfter: "event" },
+    });
+    const result = await failing.service.joinBusinessActivityDemandWaitlist({
+      organizationId: ORG_A,
+      businessActivityId: ACTIVITY_A,
+      requestedRollout: "closed_beta",
+    });
+    expect(result.ok).toBe(false);
+    expect(tables.business_activity_demand_signals).toHaveLength(0);
   });
 });

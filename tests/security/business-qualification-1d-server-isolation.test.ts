@@ -83,22 +83,24 @@ describe("BQA-1D server-only isolation", () => {
       expect(source).not.toContain("openai");
       expect(source).not.toContain("anthropic");
       expect(source).not.toContain("gemini");
+      expect(source).not.toContain("features/context-resolver");
       expect(source).not.toContain("enabled_capabilities");
     }
   });
 
-  it("does not mutate support, admission, or demand tables", () => {
+  it("does not insert support, admission, or demand except through the named mutation RPC", () => {
     for (const file of walk(join(ROOT, "src/features/business-qualification"))) {
       const source = readFileSync(file, "utf8");
       expect(source).not.toMatch(
-        /from\(["']business_activity_support_assessments["']\)/,
+        /\.from\(["']business_activity_support_assessments["']\)[\s\S]{0,80}\.insert\(/,
       );
       expect(source).not.toMatch(
-        /from\(["']business_activity_admission_decisions["']\)/,
+        /\.from\(["']business_activity_admission_decisions["']\)[\s\S]{0,80}\.insert\(/,
       );
       expect(source).not.toMatch(
-        /from\(["']business_activity_demand_signals["']\)/,
+        /\.from\(["']business_activity_demand_signals["']\)[\s\S]{0,80}\.insert\(/,
       );
+      expect(source).not.toContain("apply_organization_context_platform_mutation");
     }
   });
 
@@ -122,6 +124,26 @@ describe("BQA-1D server-only isolation", () => {
       expect(source).not.toMatch(
         /SUPABASE_SERVICE_ROLE_KEY|createSupabaseServiceRoleClient|process\.env/,
       );
+    }
+  });
+
+  it("does not write Activity, Context assignment, TAX, CAP, or Context readiness", () => {
+    for (const file of walk(join(ROOT, "src/features/business-qualification"))) {
+      const source = readFileSync(file, "utf8");
+      expect(source).not.toMatch(
+        /\.from\(["']organization_business_activities["']\)[\s\S]{0,120}\.(insert|update|upsert|delete)\(/,
+      );
+      expect(source).not.toMatch(
+        /\.from\(["']organization_context_assignments["']\)[\s\S]{0,120}\.(insert|update|upsert|delete)\(/,
+      );
+      expect(source).not.toMatch(
+        /\.from\(["']taxonomy_(releases|foundations|industries|niches)["']\)[\s\S]{0,120}\.(insert|update|upsert|delete)\(/,
+      );
+      expect(source).not.toMatch(
+        /\.from\(["']context_pack_readiness["']\)[\s\S]{0,120}\.(insert|update|upsert|delete)\(/,
+      );
+      expect(source).not.toContain("assign_context_version");
+      expect(source).not.toContain("change_context_version");
     }
   });
 });

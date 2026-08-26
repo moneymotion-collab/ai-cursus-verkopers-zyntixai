@@ -54,11 +54,15 @@ describe("BQA-1D domain contract", () => {
     ).toBe(true);
   });
 
-  it("does not let Staff confirm or requalify", () => {
+  it("does not let Staff confirm, requalify, admit, or join demand", () => {
     expect(canPerformBqaOperation("staff", "save_answer")).toBe(true);
     expect(canPerformBqaOperation("staff", "confirm_classification")).toBe(false);
+    expect(canPerformBqaOperation("staff", "record_support_assessment")).toBe(false);
+    expect(canPerformBqaOperation("staff", "record_admission_decision")).toBe(false);
+    expect(canPerformBqaOperation("staff", "join_demand_waitlist")).toBe(false);
     expect(canPerformBqaOperation("viewer", "save_answer")).toBe(false);
     expect(canPerformBqaOperation("owner", "confirm_classification")).toBe(true);
+    expect(canPerformBqaOperation("admin", "record_admission_decision")).toBe(true);
   });
 
   it("blocks confirmation for unknown, ambiguous, medium, low, none, and split", () => {

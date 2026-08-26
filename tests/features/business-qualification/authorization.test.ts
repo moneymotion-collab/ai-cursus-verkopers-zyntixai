@@ -13,7 +13,9 @@ import {
   STAFF_USER,
   VIEWER_USER,
   activityLookup,
+  assignmentObserver,
   authLookup,
+  contextCatalog,
   createService,
   seedMember,
   seedOrg,
@@ -40,6 +42,8 @@ describe("BQA-1D authorization", () => {
       activities: activityLookup(),
       repository: new BusinessQualificationRepository(createBqaMemoryQueryClient(tables)),
       taxonomy: taxonomyResolver(),
+      catalog: contextCatalog(),
+      pins: assignmentObserver(),
       mutate,
     });
     const result = await service.ensureBusinessActivityQualification({
@@ -77,6 +81,8 @@ describe("BQA-1D authorization", () => {
       activities: activityLookup(),
       repository: new BusinessQualificationRepository(createBqaMemoryQueryClient(tables)),
       taxonomy: taxonomyResolver(),
+      catalog: contextCatalog(),
+      pins: assignmentObserver(),
       mutate,
     });
     const result = await service.saveQualificationAnswer({
@@ -153,6 +159,32 @@ describe("BQA-1D authorization", () => {
     if (!result.ok) {
       expect(result.error.code).toBe("ORG_NOT_FOUND");
     }
+  });
+
+  it("denies unauthenticated support evaluation before privileged mutation", async () => {
+    const tables = emptyBqaTables();
+    seedOrg(tables);
+    const mutate = deniedMutate();
+    const service = new BusinessQualificationService({
+      auth: authLookup(null),
+      queryClient: createBqaMemoryQueryClient(tables),
+      activities: activityLookup(),
+      repository: new BusinessQualificationRepository(createBqaMemoryQueryClient(tables)),
+      taxonomy: taxonomyResolver(),
+      catalog: contextCatalog(),
+      pins: assignmentObserver(),
+      mutate,
+    });
+    const result = await service.evaluateBusinessActivitySupport({
+      organizationId: ORG_A,
+      businessActivityId: ACTIVITY_A,
+      requestedRollout: "internal_qa",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("UNAUTHORIZED");
+    }
+    expect(mutate.rpc).not.toHaveBeenCalled();
   });
 
   it("uses the named mutation RPC constant", () => {

@@ -2,7 +2,7 @@ import type { BqaMutationRpcClient } from "@/features/business-qualification/ser
 import type { BqaMemoryTables } from "./memory-query-client";
 
 export type MemoryBqaMutationOptions = {
-  failAfter?: "qualification" | "answer" | "decision" | "event";
+  failAfter?: "qualification" | "answer" | "decision" | "event" | "assessment" | "admission" | "demand";
 };
 
 function nowIso() {
@@ -28,6 +28,9 @@ function ok(input: {
   qualificationId: string;
   decisionId?: string | null;
   answerId?: string | null;
+  assessmentId?: string | null;
+  admissionId?: string | null;
+  demandSignalId?: string | null;
   eventId?: string | null;
   eventType?: string | null;
 }) {
@@ -38,6 +41,9 @@ function ok(input: {
       qualification_id: input.qualificationId,
       decision_id: input.decisionId ?? null,
       answer_id: input.answerId ?? null,
+      assessment_id: input.assessmentId ?? null,
+      admission_id: input.admissionId ?? null,
+      demand_signal_id: input.demandSignalId ?? null,
       event_id: input.eventId ?? null,
       event_type: input.eventType ?? null,
     },
@@ -490,8 +496,27 @@ function run(
     if (current.progress_status !== "confirmed") {
       return fail("CLASSIFICATION_NOT_READY", "Requalification requires a confirmed classification");
     }
+    const now = nowIso();
+    if (current.current_support_assessment_id) {
+      const assessment = tables.business_activity_support_assessments.find(
+        (row) => row.id === current.current_support_assessment_id,
+      );
+      if (assessment && !assessment.superseded_at) {
+        assessment.superseded_at = now;
+      }
+    }
+    if (current.current_admission_decision_id) {
+      const admission = tables.business_activity_admission_decisions.find(
+        (row) => row.id === current.current_admission_decision_id,
+      );
+      if (admission && !admission.superseded_at) {
+        admission.superseded_at = now;
+      }
+    }
     current.progress_status = "requalifying";
-    current.updated_at = nowIso();
+    current.current_support_assessment_id = null;
+    current.current_admission_decision_id = null;
+    current.updated_at = now;
     const eventId = appendEvent(tables, {
       organizationId: args.p_organization_id,
       activityId: args.p_business_activity_id,
@@ -534,6 +559,259 @@ function run(
       qualificationId: String(current.id),
       eventId,
       eventType: "review_requested",
+    });
+  }
+
+  if (args.p_operation === "record_support_assessment") {
+    const payload = args.p_payload;
+    const currentAssessment = current.current_support_assessment_id
+      ? tables.business_activity_support_assessments.find(
+          (row) => row.id === current.current_support_assessment_id,
+        )
+      : undefined;
+    if (
+      currentAssessment &&
+      !currentAssessment.superseded_at &&
+      currentAssessment.rollout_mode === payload.rollout_mode &&
+      currentAssessment.support_status === payload.support_status &&
+      currentAssessment.reason_code === payload.reason_code &&
+      currentAssessment.architecture_gap === payload.architecture_gap &&
+      currentAssessment.classification_decision_id === payload.classification_decision_id &&
+      currentAssessment.context_pack_id === payload.context_pack_id &&
+      currentAssessment.context_pack_version_id === payload.context_pack_version_id &&
+      currentAssessment.context_readiness === payload.context_readiness
+    ) {
+      return ok({
+        idempotent: true,
+        qualificationId: String(current.id),
+        assessmentId: String(currentAssessment.id),
+      });
+    }
+    if (currentAssessment && !currentAssessment.superseded_at) {
+      currentAssessment.superseded_at = nowIso();
+    }
+    const assessmentId = crypto.randomUUID();
+    tables.business_activity_support_assessments.push({
+      id: assessmentId,
+      organization_id: args.p_organization_id,
+      business_activity_id: args.p_business_activity_id,
+      qualification_id: current.id,
+      classification_decision_id: payload.classification_decision_id ?? null,
+      rollout_mode: payload.rollout_mode,
+      support_status: payload.support_status,
+      reason_code: payload.reason_code,
+      context_pack_id: payload.context_pack_id ?? null,
+      context_pack_version_id: payload.context_pack_version_id ?? null,
+      context_readiness: payload.context_readiness ?? null,
+      architecture_gap: payload.architecture_gap === true,
+      assessed_at: nowIso(),
+      superseded_at: null,
+    });
+    if (options.failAfter === "assessment") {
+      throw new Error("forced assessment failure");
+    }
+    current.current_support_assessment_id = assessmentId;
+    current.updated_at = nowIso();
+    const eventId = appendEvent(
+      tables,
+      {
+        organizationId: args.p_organization_id,
+        activityId: args.p_business_activity_id,
+        qualificationId: String(current.id),
+        eventType: "support_assessed",
+        actorUserId: args.p_actor_user_id,
+        actorMemberId: args.p_actor_member_id,
+        payload: {
+          assessment_id: assessmentId,
+          rollout_mode: payload.rollout_mode,
+          support_status: payload.support_status,
+          reason_code: payload.reason_code,
+          classification_decision_id: payload.classification_decision_id ?? null,
+          context_pack_id: payload.context_pack_id ?? null,
+          context_pack_version_id: payload.context_pack_version_id ?? null,
+          context_readiness: payload.context_readiness ?? null,
+        },
+      },
+      options.failAfter,
+    );
+    return ok({
+      idempotent: false,
+      qualificationId: String(current.id),
+      assessmentId,
+      eventId,
+      eventType: "support_assessed",
+    });
+  }
+
+  if (args.p_operation === "record_admission_decision") {
+    const payload = args.p_payload;
+    const currentAdmission = current.current_admission_decision_id
+      ? tables.business_activity_admission_decisions.find(
+          (row) => row.id === current.current_admission_decision_id,
+        )
+      : undefined;
+    if (
+      currentAdmission &&
+      !currentAdmission.superseded_at &&
+      currentAdmission.rollout_mode === payload.rollout_mode &&
+      currentAdmission.admission_status === payload.admission_status &&
+      currentAdmission.reason_code === payload.reason_code &&
+      currentAdmission.support_assessment_id === payload.support_assessment_id
+    ) {
+      return ok({
+        idempotent: true,
+        qualificationId: String(current.id),
+        admissionId: String(currentAdmission.id),
+        assessmentId: currentAdmission.support_assessment_id
+          ? String(currentAdmission.support_assessment_id)
+          : null,
+      });
+    }
+    if (currentAdmission && !currentAdmission.superseded_at) {
+      currentAdmission.superseded_at = nowIso();
+    }
+    const admissionId = crypto.randomUUID();
+    tables.business_activity_admission_decisions.push({
+      id: admissionId,
+      organization_id: args.p_organization_id,
+      business_activity_id: args.p_business_activity_id,
+      qualification_id: current.id,
+      support_assessment_id: payload.support_assessment_id ?? null,
+      rollout_mode: payload.rollout_mode,
+      admission_status: payload.admission_status,
+      reason_code: payload.reason_code,
+      decision_source: payload.decision_source,
+      actor_user_id: args.p_actor_user_id,
+      decided_at: nowIso(),
+      superseded_at: null,
+    });
+    if (options.failAfter === "admission") {
+      throw new Error("forced admission failure");
+    }
+    current.current_admission_decision_id = admissionId;
+    current.updated_at = nowIso();
+    const eventId = appendEvent(
+      tables,
+      {
+        organizationId: args.p_organization_id,
+        activityId: args.p_business_activity_id,
+        qualificationId: String(current.id),
+        eventType: "admission_decided",
+        actorUserId: args.p_actor_user_id,
+        actorMemberId: args.p_actor_member_id,
+        payload: {
+          admission_id: admissionId,
+          support_assessment_id: payload.support_assessment_id ?? null,
+          rollout_mode: payload.rollout_mode,
+          admission_status: payload.admission_status,
+          reason_code: payload.reason_code,
+        },
+      },
+      options.failAfter,
+    );
+    return ok({
+      idempotent: false,
+      qualificationId: String(current.id),
+      admissionId,
+      assessmentId: payload.support_assessment_id ? String(payload.support_assessment_id) : null,
+      eventId,
+      eventType: "admission_decided",
+    });
+  }
+
+  if (args.p_operation === "join_demand_waitlist") {
+    const payload = args.p_payload;
+    const existing = tables.business_activity_demand_signals.find(
+      (row) =>
+        row.business_activity_id === args.p_business_activity_id &&
+        row.taxonomy_target_id === payload.taxonomy_target_id &&
+        row.status === "active",
+    );
+    if (existing) {
+      return ok({
+        idempotent: true,
+        qualificationId: String(current.id),
+        demandSignalId: String(existing.id),
+      });
+    }
+    const demandSignalId = crypto.randomUUID();
+    tables.business_activity_demand_signals.push({
+      id: demandSignalId,
+      organization_id: args.p_organization_id,
+      business_activity_id: args.p_business_activity_id,
+      taxonomy_target_kind: payload.taxonomy_target_kind,
+      taxonomy_target_id: payload.taxonomy_target_id,
+      taxonomy_target_key: payload.taxonomy_target_key,
+      requested_rollout: payload.requested_rollout,
+      status: "active",
+      created_at: nowIso(),
+      last_confirmed_at: nowIso(),
+      withdrawn_at: null,
+    });
+    if (options.failAfter === "demand") {
+      throw new Error("forced demand failure");
+    }
+    const eventId = appendEvent(
+      tables,
+      {
+        organizationId: args.p_organization_id,
+        activityId: args.p_business_activity_id,
+        qualificationId: String(current.id),
+        eventType: "waitlist_joined",
+        actorUserId: args.p_actor_user_id,
+        actorMemberId: args.p_actor_member_id,
+        payload: {
+          demand_signal_id: demandSignalId,
+          taxonomy_target_id: payload.taxonomy_target_id,
+          taxonomy_target_key: payload.taxonomy_target_key,
+          requested_rollout: payload.requested_rollout,
+        },
+      },
+      options.failAfter,
+    );
+    return ok({
+      idempotent: false,
+      qualificationId: String(current.id),
+      demandSignalId,
+      eventId,
+      eventType: "waitlist_joined",
+    });
+  }
+
+  if (args.p_operation === "withdraw_demand_waitlist") {
+    const existing = tables.business_activity_demand_signals.find(
+      (row) =>
+        row.business_activity_id === args.p_business_activity_id && row.status === "active",
+    );
+    if (!existing) {
+      return ok({
+        idempotent: true,
+        qualificationId: String(current.id),
+      });
+    }
+    existing.status = "withdrawn";
+    existing.withdrawn_at = nowIso();
+    if (options.failAfter === "demand") {
+      throw new Error("forced demand failure");
+    }
+    const eventId = appendEvent(tables, {
+      organizationId: args.p_organization_id,
+      activityId: args.p_business_activity_id,
+      qualificationId: String(current.id),
+      eventType: "waitlist_withdrawn",
+      actorUserId: args.p_actor_user_id,
+      actorMemberId: args.p_actor_member_id,
+      payload: {
+        demand_signal_id: existing.id,
+        taxonomy_target_id: existing.taxonomy_target_id,
+      },
+    });
+    return ok({
+      idempotent: false,
+      qualificationId: String(current.id),
+      demandSignalId: String(existing.id),
+      eventId,
+      eventType: "waitlist_withdrawn",
     });
   }
 

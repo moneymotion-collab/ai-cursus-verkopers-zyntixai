@@ -6,13 +6,23 @@ import {
   type BqaResult,
 } from "@/features/business-qualification/domain/errors";
 import type {
+  AdmissionDecision,
+  AdmissionReasonCode,
+  AdmissionStatus,
   BusinessActivityQualification,
   ClassificationDecision,
   ClassificationDecisionStatus,
   ClassificationHistorySummary,
+  ContextReadinessStatus,
+  DemandSignal,
+  DemandSignalStatus,
   QualificationAnswer,
   QualificationEvent,
   QualificationEventType,
+  RolloutMode,
+  SupportAssessment,
+  SupportReasonCode,
+  SupportStatus,
 } from "@/features/business-qualification/domain/types";
 import {
   asBoolean,
@@ -55,6 +65,8 @@ function mapQualification(
     reviewStatus: reviewStatus as BusinessActivityQualification["reviewStatus"],
     splitRecommended,
     currentClassificationDecisionId: asNullableString(row.current_classification_decision_id),
+    currentSupportAssessmentId: asNullableString(row.current_support_assessment_id),
+    currentAdmissionDecisionId: asNullableString(row.current_admission_decision_id),
     createdAt,
     updatedAt,
   };
@@ -147,6 +159,126 @@ function mapDecision(row: Record<string, unknown>): ClassificationDecision | nul
     supersedesDecisionId: asNullableString(row.supersedes_decision_id),
     createdAt,
     supersededAt: asNullableString(row.superseded_at),
+  };
+}
+
+function mapSupportAssessment(row: Record<string, unknown>): SupportAssessment | null {
+  const assessmentId = asString(row.id);
+  const organizationId = asString(row.organization_id);
+  const businessActivityId = asString(row.business_activity_id);
+  const qualificationId = asString(row.qualification_id);
+  const rolloutMode = asString(row.rollout_mode);
+  const supportStatus = asString(row.support_status);
+  const reasonCode = asString(row.reason_code);
+  const architectureGap = asBoolean(row.architecture_gap);
+  const assessedAt = asString(row.assessed_at);
+  if (
+    !assessmentId ||
+    !organizationId ||
+    !businessActivityId ||
+    !qualificationId ||
+    !rolloutMode ||
+    !supportStatus ||
+    !reasonCode ||
+    architectureGap === null ||
+    !assessedAt
+  ) {
+    return null;
+  }
+  return {
+    assessmentId,
+    organizationId,
+    businessActivityId,
+    qualificationId,
+    classificationDecisionId: asNullableString(row.classification_decision_id),
+    rolloutMode: rolloutMode as RolloutMode,
+    supportStatus: supportStatus as SupportStatus,
+    reasonCode: reasonCode as SupportReasonCode,
+    contextPackId: asNullableString(row.context_pack_id),
+    contextPackVersionId: asNullableString(row.context_pack_version_id),
+    contextReadiness: asNullableString(row.context_readiness) as ContextReadinessStatus | null,
+    architectureGap,
+    assessedAt,
+    supersededAt: asNullableString(row.superseded_at),
+  };
+}
+
+function mapAdmissionDecision(row: Record<string, unknown>): AdmissionDecision | null {
+  const admissionId = asString(row.id);
+  const organizationId = asString(row.organization_id);
+  const businessActivityId = asString(row.business_activity_id);
+  const qualificationId = asString(row.qualification_id);
+  const rolloutMode = asString(row.rollout_mode);
+  const admissionStatus = asString(row.admission_status);
+  const reasonCode = asString(row.reason_code);
+  const decisionSource = asString(row.decision_source);
+  const decidedAt = asString(row.decided_at);
+  if (
+    !admissionId ||
+    !organizationId ||
+    !businessActivityId ||
+    !qualificationId ||
+    !rolloutMode ||
+    !admissionStatus ||
+    !reasonCode ||
+    !decisionSource ||
+    !decidedAt
+  ) {
+    return null;
+  }
+  return {
+    admissionId,
+    organizationId,
+    businessActivityId,
+    qualificationId,
+    supportAssessmentId: asNullableString(row.support_assessment_id),
+    rolloutMode: rolloutMode as RolloutMode,
+    admissionStatus: admissionStatus as AdmissionStatus,
+    reasonCode: reasonCode as AdmissionReasonCode,
+    decisionSource: decisionSource as AdmissionDecision["decisionSource"],
+    actorUserId: asNullableString(row.actor_user_id),
+    decidedAt,
+    supersededAt: asNullableString(row.superseded_at),
+  };
+}
+
+function mapDemandSignal(row: Record<string, unknown>): DemandSignal | null {
+  const demandSignalId = asString(row.id);
+  const organizationId = asString(row.organization_id);
+  const businessActivityId = asString(row.business_activity_id);
+  const taxonomyTargetKind = asString(row.taxonomy_target_kind);
+  const taxonomyTargetId = asString(row.taxonomy_target_id);
+  const taxonomyTargetKey = asString(row.taxonomy_target_key);
+  const requestedRollout = asString(row.requested_rollout);
+  const status = asString(row.status);
+  const createdAt = asString(row.created_at);
+  const lastConfirmedAt = asString(row.last_confirmed_at);
+  if (
+    !demandSignalId ||
+    !organizationId ||
+    !businessActivityId ||
+    !taxonomyTargetKind ||
+    !taxonomyTargetId ||
+    !taxonomyTargetKey ||
+    !requestedRollout ||
+    !status ||
+    !createdAt ||
+    !lastConfirmedAt
+  ) {
+    return null;
+  }
+  return {
+    demandSignalId,
+    organizationId,
+    businessActivityId,
+    taxonomyTargetKind: taxonomyTargetKind as DemandSignal["taxonomyTargetKind"],
+    taxonomyTargetId,
+    taxonomyTargetKey,
+    requestedRollout: requestedRollout as RolloutMode,
+    status: status as DemandSignalStatus,
+    createdAt,
+    lastConfirmedAt,
+    withdrawnAt: asNullableString(row.withdrawn_at),
   };
 }
 
@@ -284,6 +416,84 @@ export class BusinessQualificationRepository {
       events.push(mapped);
     }
     return bqaOk(events);
+  }
+
+  async listSupportAssessments(
+    organizationId: string,
+    businessActivityId: string,
+  ): Promise<BqaResult<SupportAssessment[]>> {
+    const rows = await executeBqaQuery(
+      this.client
+        .from("business_activity_support_assessments")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .eq("business_activity_id", businessActivityId)
+        .order("assessed_at", { ascending: false }),
+    );
+    if (!rows.ok) {
+      return rows;
+    }
+    const assessments: SupportAssessment[] = [];
+    for (const row of rows.value) {
+      const mapped = mapSupportAssessment(row);
+      if (!mapped) {
+        return bqaFail("CATALOG_INTEGRITY_ERROR", "Support assessment row is incomplete");
+      }
+      assessments.push(mapped);
+    }
+    return bqaOk(assessments);
+  }
+
+  async listAdmissionDecisions(
+    organizationId: string,
+    businessActivityId: string,
+  ): Promise<BqaResult<AdmissionDecision[]>> {
+    const rows = await executeBqaQuery(
+      this.client
+        .from("business_activity_admission_decisions")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .eq("business_activity_id", businessActivityId)
+        .order("decided_at", { ascending: false }),
+    );
+    if (!rows.ok) {
+      return rows;
+    }
+    const decisions: AdmissionDecision[] = [];
+    for (const row of rows.value) {
+      const mapped = mapAdmissionDecision(row);
+      if (!mapped) {
+        return bqaFail("CATALOG_INTEGRITY_ERROR", "Admission decision row is incomplete");
+      }
+      decisions.push(mapped);
+    }
+    return bqaOk(decisions);
+  }
+
+  async listDemandSignals(
+    organizationId: string,
+    businessActivityId: string,
+  ): Promise<BqaResult<DemandSignal[]>> {
+    const rows = await executeBqaQuery(
+      this.client
+        .from("business_activity_demand_signals")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .eq("business_activity_id", businessActivityId)
+        .order("created_at", { ascending: false }),
+    );
+    if (!rows.ok) {
+      return rows;
+    }
+    const signals: DemandSignal[] = [];
+    for (const row of rows.value) {
+      const mapped = mapDemandSignal(row);
+      if (!mapped) {
+        return bqaFail("CATALOG_INTEGRITY_ERROR", "Demand signal row is incomplete");
+      }
+      signals.push(mapped);
+    }
+    return bqaOk(signals);
   }
 
   toHistorySummary(
