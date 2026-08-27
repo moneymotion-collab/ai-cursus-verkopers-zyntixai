@@ -22,6 +22,12 @@ import {
   normalizeDataIntakeMime,
 } from "@/features/data-intake/domain/file-signature";
 import { sha256Hex } from "@/features/data-intake/domain/integrity";
+import { parseSourceStructure } from "@/features/data-intake/domain/parse-source-structure";
+import {
+  discoveryFromPersisted,
+  parseMetadataFromDiscovery,
+} from "@/features/data-intake/domain/parse-metadata";
+import { canonicalStructureFingerprint } from "@/features/data-intake/domain/discovery";
 import { storagePathMatchesTenant } from "@/features/data-intake/domain/storage-path";
 import type {
   CancelDataIntakeSessionInput,
@@ -29,6 +35,7 @@ import type {
   CreateDataIntakeSourceReadUrlInput,
   DataIntakeFoundationSuccess,
   DataIntakeSignedReadUrl,
+  DiscoverDataIntakeSourceStructureInput,
   RegisterDataIntakeSourceInput,
   UploadDataIntakeSourceInput,
 } from "@/features/data-intake/domain/types";
@@ -38,6 +45,7 @@ import {
   createDataIntakeQueryClient,
   createDataIntakeRecordLookup,
   createDataIntakeSourceObjectRpcClient,
+  createDataIntakeSourceStructureRpcClient,
 } from "@/features/data-intake/server/data-intake-client";
 import {
   invokeDataIntakeFoundationMutation,
@@ -47,6 +55,10 @@ import {
   invokeDataIntakeSourceObjectMutation,
   type DataIntakeSourceObjectRpcClient,
 } from "@/features/data-intake/server/data-intake-object-rpc";
+import {
+  invokeDataIntakeSourceStructureMutation,
+  type DataIntakeSourceStructureRpcClient,
+} from "@/features/data-intake/server/data-intake-structure-rpc";
 import type { DataIntakeQueryClient } from "@/features/data-intake/server/data-intake-query";
 import type { DataIntakeRecordLookup } from "@/features/data-intake/server/data-intake-lookup";
 import type { DataIntakeObjectStore } from "@/features/data-intake/server/source-object-store";
@@ -63,6 +75,7 @@ export type DataIntakeServiceDeps = {
   lookup?: DataIntakeRecordLookup;
   objectStore?: DataIntakeObjectStore;
   objectMutate?: DataIntakeSourceObjectRpcClient;
+  structureMutate?: DataIntakeSourceStructureRpcClient;
 };
 
 function sanitizeOriginalFilename(value: string): string {
@@ -466,6 +479,142 @@ export class DataIntakeService {
     });
   }
 
+  async discoverDataIntakeSourceStructure(
+    input: DiscoverDataIntakeSourceStructureInput,
+  ): Promise<DataIntakeResult<DataIntakeFoundationSuccess>> {
+    if (clientAttemptedStorageAuthority(asUnknownRecord(input))) {
+      return dataFail("SOURCE_INVALID", "Client storage path is not accepted");
+    }
+    const authorized = await this.authorizeCommand(input.organizationId);
+    if (!authorized.ok) {
+      return authorized;
+    }
+    if (!this.deps.lookup || !this.deps.objectStore || !this.deps.structureMutate) {
+      return dataFail("DATABASE_WRITE_ERROR", "Source structure discovery is not configured");
+    }
+    if (!isDataUuid(input.sessionId)) {
+      return dataFail("SESSION_NOT_FOUND", "sessionId is required");
+    }
+    if (input.sourceId && !isDataUuid(input.sourceId)) {
+      return dataFail("SOURCE_INVALID", "sourceId is required");
+    }
+
+    const session = await this.deps.lookup.findSession({
+      organizationId: authorized.value.organizationId,
+      sessionId: input.sessionId,
+    });
+    if (!session.ok) {
+      return session;
+    }
+    if (!session.value) {
+      return dataFail("SESSION_NOT_FOUND", "Intake session not found");
+    }
+    if (session.value.status === "cancelled") {
+      return dataFail("INVALID_STATE", "Cancelled sessions cannot accept structure discovery");
+    }
+    if (session.value.status !== "source_ready" && session.value.status !== "parsed") {
+      return dataFail("INVALID_STATE", "Discovery requires a source_ready or parsed session");
+    }
+
+    const sourceResult = input.sourceId
+      ? await this.deps.lookup.findSource({
+          organizationId: authorized.value.organizationId,
+          sourceId: input.sourceId,
+        })
+      : await this.deps.lookup.findActiveSource({
+          organizationId: authorized.value.organizationId,
+          sessionId: input.sessionId,
+        });
+    if (!sourceResult.ok) {
+      return sourceResult;
+    }
+    const source = sourceResult.value;
+    if (!source || source.sessionId !== input.sessionId) {
+      return dataFail("SOURCE_NOT_FOUND", "Intake source not found for this session");
+    }
+    if (!source.objectVerifiedAt) {
+      return dataFail("SOURCE_NOT_VERIFIED", "Source object must be verified before structure discovery");
+    }
+    if (source.supersededAt || source.deletedAt) {
+      return dataFail("INVALID_STATE", "Superseded or deleted sources cannot be parsed");
+    }
+    if (source.storageBucket !== DATA_INTAKE_STORAGE_BUCKET) {
+      return dataFail("DATABASE_WRITE_ERROR", "Unexpected storage bucket");
+    }
+    if (
+      !storagePathMatchesTenant({
+        path: source.storagePath,
+        organizationId: authorized.value.organizationId,
+        sessionId: input.sessionId,
+      })
+    ) {
+      return dataFail("DATABASE_WRITE_ERROR", "Generated storage path failed tenant check");
+    }
+
+    const stored = await this.deps.objectStore.getObject({
+      bucket: source.storageBucket,
+      path: source.storagePath,
+    });
+    if (!stored.ok) {
+      return stored;
+    }
+    if (stored.value.bytes.byteLength !== source.byteSize) {
+      return dataFail("SOURCE_HASH_INVALID", "Stored object no longer matches the verified source");
+    }
+    const digest = sha256Hex(stored.value.bytes);
+    if (digest !== source.sha256) {
+      return dataFail("SOURCE_HASH_INVALID", "Stored object no longer matches the verified source");
+    }
+
+    const parsed = await parseSourceStructure({
+      kind: source.sourceKind,
+      bytes: stored.value.bytes,
+    });
+    if (!parsed.ok) {
+      return parsed;
+    }
+
+    const persisted = discoveryFromPersisted({
+      sourceKind: source.sourceKind,
+      encoding: source.encoding,
+      delimiter: source.delimiter,
+      sheetName: source.sheetName,
+      headerRowIndex: source.headerRowIndex,
+      rowCount: source.rowCount,
+      columnCount: source.columnCount,
+      parseMetadata: source.parseMetadata,
+    });
+    if (persisted && canonicalStructureFingerprint(persisted) !== canonicalStructureFingerprint(parsed.value)) {
+      return dataFail("SOURCE_INVALID", "Replay discovery does not match persisted structure");
+    }
+
+    const confirmed = await invokeDataIntakeSourceStructureMutation(this.deps.structureMutate, {
+      p_operation: "confirm_source_structure",
+      p_organization_id: authorized.value.organizationId,
+      p_actor_user_id: authorized.value.userId,
+      p_actor_member_id: authorized.value.membershipId,
+      p_payload: {
+        session_id: input.sessionId,
+        source_id: source.id,
+        sha256: digest,
+        encoding: parsed.value.encoding,
+        delimiter: parsed.value.format === "csv" ? parsed.value.delimiter : null,
+        sheet_name: parsed.value.format === "xlsx" ? parsed.value.selectedSheet : null,
+        header_row_index: parsed.value.headerRowIndex,
+        row_count: parsed.value.rowCount,
+        column_count: parsed.value.columnCount,
+        parse_metadata: parseMetadataFromDiscovery(parsed.value),
+      },
+    });
+    if (!confirmed.ok) {
+      return confirmed;
+    }
+    return dataOk({
+      ...confirmed.value,
+      discovery: parsed.value,
+    });
+  }
+
   private async authorizeCommand(organizationId: string) {
     const authorized = await authorizeDataIntakeCaller({
       auth: this.deps.auth,
@@ -490,6 +639,7 @@ export function createDataIntakeService(input: {
   lookup?: DataIntakeRecordLookup;
   objectStore?: DataIntakeObjectStore;
   objectMutate?: DataIntakeSourceObjectRpcClient;
+  structureMutate?: DataIntakeSourceStructureRpcClient;
 } = {}): DataIntakeService {
   const env = input.env ?? process.env;
   const queryClient = input.queryClient ?? createDataIntakeQueryClient(env);
@@ -497,6 +647,7 @@ export function createDataIntakeService(input: {
   const lookup = input.lookup ?? createDataIntakeRecordLookup(env);
   const objectStore = input.objectStore ?? createDataIntakeObjectStore(env);
   const objectMutate = input.objectMutate ?? createDataIntakeSourceObjectRpcClient(env);
+  const structureMutate = input.structureMutate ?? createDataIntakeSourceStructureRpcClient(env);
   const auth =
     input.auth ??
     ({
@@ -513,5 +664,6 @@ export function createDataIntakeService(input: {
     lookup,
     objectStore,
     objectMutate,
+    structureMutate,
   });
 }

@@ -14,6 +14,8 @@ export type DataIntakeFoundationOperation =
 
 export type DataIntakeSourceObjectOperation = "confirm_source_object";
 
+export type DataIntakeSourceStructureOperation = "confirm_source_structure";
+
 export function isKnownDataIntakeRole(
   value: string,
 ): value is DataIntakeOrganizationRole {

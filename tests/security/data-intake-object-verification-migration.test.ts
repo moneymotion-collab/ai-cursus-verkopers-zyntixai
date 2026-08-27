@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 
 const OBJECT_MIGRATION =
   "20260827150000_add_data_intake_source_object_verification.sql";
+const STRUCTURE_MIGRATION =
+  "20260827160000_add_data_intake_source_structure_discovery.sql";
 const STORAGE_MIGRATION = "20260827140020_add_data_intake_storage_bucket.sql";
 const SCHEMA_MIGRATION = "20260827140000_create_data_intake_foundation.sql";
 const RLS_MIGRATION = "20260827140010_enable_data_intake_rls.sql";
@@ -22,6 +24,7 @@ describe("DATA-1D object verification migration", () => {
       RLS_MIGRATION,
       STORAGE_MIGRATION,
       OBJECT_MIGRATION,
+      STRUCTURE_MIGRATION,
     ]);
     expect(sql).toContain("object_verified_at");
     expect(sql).toContain("apply_data_intake_source_object_mutation");

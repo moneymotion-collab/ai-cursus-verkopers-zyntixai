@@ -10,6 +10,11 @@ import {
   type DataIntakeSourceObjectRpcClient,
 } from "@/features/data-intake/server/data-intake-object-rpc";
 import {
+  DATA_INTAKE_SOURCE_STRUCTURE_RPC,
+  type DataIntakeSourceStructureRpcArgs,
+  type DataIntakeSourceStructureRpcClient,
+} from "@/features/data-intake/server/data-intake-structure-rpc";
+import {
   dataOk,
   type DataIntakeResult,
 } from "@/features/data-intake/domain/errors";
@@ -47,6 +52,13 @@ type SourceRow = {
   deleted_at: string | null;
   object_verified_at: string | null;
   object_verified_by_user_id: string | null;
+  encoding: string | null;
+  delimiter: string | null;
+  sheet_name: string | null;
+  header_row_index: number | null;
+  row_count: number | null;
+  column_count: number | null;
+  parse_metadata: Record<string, unknown>;
 };
 
 export type DataIntakeMemoryStore = {
@@ -111,6 +123,13 @@ function mapSource(row: SourceRow): DataIntakeSourceRecord {
     supersededAt: row.superseded_at,
     deletedAt: row.deleted_at,
     objectVerifiedAt: row.object_verified_at,
+    encoding: row.encoding,
+    delimiter: row.delimiter,
+    sheetName: row.sheet_name,
+    headerRowIndex: row.header_row_index,
+    rowCount: row.row_count,
+    columnCount: row.column_count,
+    parseMetadata: row.parse_metadata,
   };
 }
 
@@ -343,6 +362,13 @@ export function createMemoryDataIntakeFoundationRpc(input: {
         deleted_at: null,
         object_verified_at: null,
         object_verified_by_user_id: null,
+        encoding: null,
+        delimiter: null,
+        sheet_name: null,
+        header_row_index: null,
+        row_count: null,
+        column_count: null,
+        parse_metadata: {},
       });
       return {
         data: {
@@ -518,6 +544,184 @@ export function createMemoryDataIntakeSourceObjectRpc(input: {
           object_verified_at: source.object_verified_at,
           event_id: randomUuid(),
           event_type: "source_object_verified",
+          replayed: false,
+        },
+        error: null,
+      };
+    },
+  };
+}
+
+export function createMemoryDataIntakeSourceStructureRpc(input: {
+  tables: DataIntakeMemoryTables;
+  store: DataIntakeMemoryStore;
+  requireServiceRole?: boolean;
+  isServiceRole?: boolean;
+}): DataIntakeSourceStructureRpcClient {
+  const requireServiceRole = input.requireServiceRole ?? true;
+  return {
+    async rpc(fn, args: DataIntakeSourceStructureRpcArgs) {
+      if (fn !== DATA_INTAKE_SOURCE_STRUCTURE_RPC) {
+        return { data: null, error: { message: "unknown rpc" } };
+      }
+      if (requireServiceRole && input.isServiceRole === false) {
+        return {
+          data: fail("UNAUTHORIZED", "DATA mutation requires the privileged database role"),
+          error: null,
+        };
+      }
+      if (
+        "storage_path" in args.p_payload ||
+        "storagePath" in args.p_payload ||
+        "path" in args.p_payload ||
+        "bucket" in args.p_payload ||
+        "rows" in args.p_payload ||
+        "records" in args.p_payload ||
+        "bytes" in args.p_payload
+      ) {
+        return {
+          data: fail("SOURCE_INVALID", "Client storage path and source rows are not accepted"),
+          error: null,
+        };
+      }
+      if (args.p_operation !== "confirm_source_structure") {
+        return {
+          data: fail("DATABASE_WRITE_ERROR", "Unknown DATA source-structure operation"),
+          error: null,
+        };
+      }
+      const org = input.tables.organizations.find((row) => row.id === args.p_organization_id);
+      if (!org || org.status !== "active") {
+        return { data: fail("ORG_NOT_FOUND", "Organization not found or not active"), error: null };
+      }
+      const member = input.tables.organization_members.find(
+        (row) =>
+          row.organization_id === args.p_organization_id &&
+          row.id === args.p_actor_member_id &&
+          row.user_id === args.p_actor_user_id,
+      );
+      if (!member || member.status !== "active") {
+        return {
+          data: fail("UNAUTHORIZED", "Active organization membership is required"),
+          error: null,
+        };
+      }
+      if (member.role !== "owner" && member.role !== "admin") {
+        return { data: fail("FORBIDDEN_ROLE", "Owner or Admin role is required"), error: null };
+      }
+      const sessionId = typeof args.p_payload.session_id === "string" ? args.p_payload.session_id : "";
+      const sourceId = typeof args.p_payload.source_id === "string" ? args.p_payload.source_id : "";
+      const session = input.store.sessions.find(
+        (row) => row.id === sessionId && row.organization_id === args.p_organization_id,
+      );
+      if (!session) {
+        return { data: fail("SESSION_NOT_FOUND", "Intake session not found"), error: null };
+      }
+      if (session.status === "cancelled") {
+        return {
+          data: fail("INVALID_STATE", "Cancelled sessions cannot accept structure discovery"),
+          error: null,
+        };
+      }
+      if (session.status !== "source_ready" && session.status !== "parsed") {
+        return {
+          data: fail(
+            "INVALID_STATE",
+            "Structure discovery requires a source_ready or parsed session",
+          ),
+          error: null,
+        };
+      }
+      const source = input.store.sources.find(
+        (row) =>
+          row.id === sourceId &&
+          row.organization_id === args.p_organization_id &&
+          row.session_id === session.id,
+      );
+      if (!source) {
+        return {
+          data: fail("SOURCE_NOT_FOUND", "Intake source not found for this session"),
+          error: null,
+        };
+      }
+      if (!source.object_verified_at) {
+        return {
+          data: fail(
+            "SOURCE_NOT_VERIFIED",
+            "Source object must be verified before structure discovery",
+          ),
+          error: null,
+        };
+      }
+      const sha256 = typeof args.p_payload.sha256 === "string" ? args.p_payload.sha256 : "";
+      if (sha256 !== source.sha256) {
+        return {
+          data: fail("SOURCE_HASH_INVALID", "Discovery digest must match registered source sha256"),
+          error: null,
+        };
+      }
+      const encoding = typeof args.p_payload.encoding === "string" ? args.p_payload.encoding : null;
+      const delimiter = typeof args.p_payload.delimiter === "string" ? args.p_payload.delimiter : null;
+      const sheetName = typeof args.p_payload.sheet_name === "string" ? args.p_payload.sheet_name : null;
+      const headerRowIndex =
+        typeof args.p_payload.header_row_index === "number" ? args.p_payload.header_row_index : null;
+      const rowCount = typeof args.p_payload.row_count === "number" ? args.p_payload.row_count : null;
+      const columnCount =
+        typeof args.p_payload.column_count === "number" ? args.p_payload.column_count : null;
+      const parseMetadata =
+        args.p_payload.parse_metadata &&
+        typeof args.p_payload.parse_metadata === "object" &&
+        !Array.isArray(args.p_payload.parse_metadata)
+          ? (args.p_payload.parse_metadata as Record<string, unknown>)
+          : {};
+      if (source.header_row_index !== null) {
+        return {
+          data: {
+            ok: true,
+            session_id: session.id,
+            status: session.status,
+            target_domain: session.target_domain,
+            source_kind: session.source_kind,
+            source_id: source.id,
+            storage_path: source.storage_path,
+            storage_bucket: source.storage_bucket,
+            event_id: randomUuid(),
+            event_type: "source_parsed",
+            replayed: true,
+          },
+          error: null,
+        };
+      }
+      source.encoding = encoding;
+      source.delimiter = delimiter;
+      source.sheet_name = sheetName;
+      source.header_row_index = headerRowIndex;
+      source.row_count = rowCount;
+      source.column_count = columnCount;
+      source.parse_metadata = parseMetadata;
+      session.status = "parsed";
+      input.store.events.push({
+        event_type: "source_parsed",
+        metadata: {
+          source_id: source.id,
+          format: source.source_kind,
+          parser_version: "data-parser-v1",
+          column_count: columnCount,
+          row_count: rowCount,
+        },
+      });
+      return {
+        data: {
+          ok: true,
+          session_id: session.id,
+          status: session.status,
+          target_domain: session.target_domain,
+          source_kind: session.source_kind,
+          source_id: source.id,
+          storage_path: source.storage_path,
+          storage_bucket: source.storage_bucket,
+          event_id: randomUuid(),
+          event_type: "source_parsed",
           replayed: false,
         },
         error: null,

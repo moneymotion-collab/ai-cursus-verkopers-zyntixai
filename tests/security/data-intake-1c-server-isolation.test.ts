@@ -41,10 +41,11 @@ describe("DATA-1C server-only isolation", () => {
     }
   });
 
-  it("does not create a public API, client hook, parser, or import executor", () => {
+  it("does not create a public API, client hook, or import executor", () => {
     expect(existsSync(join(ROOT, "src/features/data-intake/index.ts"))).toBe(false);
     for (const file of walk(join(ROOT, "src/features/data-intake"))) {
       const source = readFileSync(file, "utf8");
+      const relativePath = relative(ROOT, file).replaceAll("\\", "/");
       expect(source).not.toContain("use client");
       expect(source).not.toContain("createSupabaseBrowserClient");
       expect(source).not.toContain('"use server"');
@@ -55,6 +56,9 @@ describe("DATA-1C server-only isolation", () => {
       expect(source).not.toContain("private.create_customer_record");
       expect(source).not.toContain("apply_business_qualification_mutation");
       expect(source).not.toContain("apply_organization_context");
+      if (source.includes('from "exceljs"') || source.includes("from 'exceljs'")) {
+        expect(relativePath).toBe("src/features/data-intake/domain/xlsx-structure.ts");
+      }
     }
     const appDir = join(ROOT, "src/app");
     const hits: string[] = [];
@@ -79,5 +83,12 @@ describe("DATA-1C server-only isolation", () => {
     expect(rpc).toContain('keyof Database["public"]["Functions"]');
     expect(rpc).toContain('@/types/database');
     expect(rpc).not.toContain("database.generated");
+    const structure = readFileSync(
+      join(ROOT, "src/features/data-intake/server/data-intake-structure-rpc.ts"),
+      "utf8",
+    );
+    expect(structure).toContain(
+      'apply_data_intake_source_structure_mutation" as const satisfies keyof Database["public"]["Functions"]',
+    );
   });
 });

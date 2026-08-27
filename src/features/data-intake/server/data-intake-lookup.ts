@@ -35,6 +35,13 @@ export type DataIntakeSourceRecord = {
   supersededAt: string | null;
   deletedAt: string | null;
   objectVerifiedAt: string | null;
+  encoding: string | null;
+  delimiter: string | null;
+  sheetName: string | null;
+  headerRowIndex: number | null;
+  rowCount: number | null;
+  columnCount: number | null;
+  parseMetadata: Record<string, unknown>;
 };
 
 export type DataIntakeRecordLookup = {
@@ -135,6 +142,16 @@ function mapSource(row: Record<string, unknown>): DataIntakeSourceRecord | null 
     supersededAt: asString(row.superseded_at),
     deletedAt: asString(row.deleted_at),
     objectVerifiedAt: asString(row.object_verified_at),
+    encoding: asString(row.encoding),
+    delimiter: typeof row.delimiter === "string" ? row.delimiter : null,
+    sheetName: asString(row.sheet_name),
+    headerRowIndex: typeof row.header_row_index === "number" ? row.header_row_index : null,
+    rowCount: typeof row.row_count === "number" ? row.row_count : null,
+    columnCount: typeof row.column_count === "number" ? row.column_count : null,
+    parseMetadata:
+      row.parse_metadata && typeof row.parse_metadata === "object" && !Array.isArray(row.parse_metadata)
+        ? (row.parse_metadata as Record<string, unknown>)
+        : {},
   };
 }
 
@@ -162,7 +179,7 @@ export function createQueryDataIntakeRecordLookup(
         queryClient
           .from("data_intake_sources")
           .select(
-            "id, organization_id, session_id, source_kind, storage_bucket, storage_path, original_filename, mime_type, byte_size, sha256, superseded_at, deleted_at, object_verified_at",
+            "id, organization_id, session_id, source_kind, storage_bucket, storage_path, original_filename, mime_type, byte_size, sha256, superseded_at, deleted_at, object_verified_at, encoding, delimiter, sheet_name, header_row_index, row_count, column_count, parse_metadata",
           )
           .eq("organization_id", input.organizationId)
           .eq("id", input.sourceId),
@@ -179,7 +196,7 @@ export function createQueryDataIntakeRecordLookup(
         queryClient
           .from("data_intake_sources")
           .select(
-            "id, organization_id, session_id, source_kind, storage_bucket, storage_path, original_filename, mime_type, byte_size, sha256, superseded_at, deleted_at, object_verified_at",
+            "id, organization_id, session_id, source_kind, storage_bucket, storage_path, original_filename, mime_type, byte_size, sha256, superseded_at, deleted_at, object_verified_at, encoding, delimiter, sheet_name, header_row_index, row_count, column_count, parse_metadata",
           )
           .eq("organization_id", input.organizationId)
           .eq("session_id", input.sessionId),

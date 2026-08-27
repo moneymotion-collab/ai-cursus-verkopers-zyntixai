@@ -3,6 +3,7 @@ import type {
   DataIntakeOrganizationRole,
 } from "@/features/data-intake/domain/authorization";
 import type { DataSourceKind } from "@/features/data-intake/domain/constants";
+import type { DataSourceStructureDiscovery } from "@/features/data-intake/domain/discovery";
 
 export type DataIntakeMembership = {
   organizationId: string;
@@ -64,6 +65,12 @@ export type CreateDataIntakeSourceReadUrlInput = {
   sourceId: string;
 };
 
+export type DiscoverDataIntakeSourceStructureInput = {
+  organizationId: string;
+  sessionId: string;
+  sourceId?: string;
+};
+
 export type DataIntakeFoundationSuccess = {
   sessionId: string;
   status: DataIntakeSessionStatus;
@@ -76,6 +83,7 @@ export type DataIntakeFoundationSuccess = {
   eventType: string | null;
   objectVerifiedAt?: string | null;
   replayed?: boolean;
+  discovery?: DataSourceStructureDiscovery;
 };
 
 export type DataIntakeSignedReadUrl = {

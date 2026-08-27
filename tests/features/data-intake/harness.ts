@@ -23,6 +23,7 @@ import {
 import {
   createMemoryDataIntakeFoundationRpc,
   createMemoryDataIntakeSourceObjectRpc,
+  createMemoryDataIntakeSourceStructureRpc,
   createStoreDataIntakeRecordLookup,
   emptyDataIntakeStore,
   type DataIntakeMemoryStore,
@@ -120,6 +121,11 @@ export function createService(input: {
     lookup: createStoreDataIntakeRecordLookup(store),
     objectStore,
     objectMutate: createMemoryDataIntakeSourceObjectRpc({
+      tables,
+      store,
+      isServiceRole: input.isServiceRole,
+    }),
+    structureMutate: createMemoryDataIntakeSourceStructureRpc({
       tables,
       store,
       isServiceRole: input.isServiceRole,
