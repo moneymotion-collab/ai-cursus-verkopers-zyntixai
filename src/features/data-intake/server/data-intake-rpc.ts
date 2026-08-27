@@ -13,14 +13,19 @@ import type {
   DataIntakeSessionStatus,
 } from "@/features/data-intake/domain/types";
 import type { DataIntakeFoundationOperation } from "@/features/data-intake/domain/authorization";
+import type { Database } from "@/types/database";
 
-export const DATA_INTAKE_FOUNDATION_RPC = "apply_data_intake_foundation_mutation" as const;
+export const DATA_INTAKE_FOUNDATION_RPC =
+  "apply_data_intake_foundation_mutation" as const satisfies keyof Database["public"]["Functions"];
 
-export type DataIntakeFoundationRpcArgs = {
+type DataIntakeFoundationFn =
+  Database["public"]["Functions"][typeof DATA_INTAKE_FOUNDATION_RPC];
+
+export type DataIntakeFoundationRpcArgs = Omit<
+  DataIntakeFoundationFn["Args"],
+  "p_operation" | "p_payload"
+> & {
   p_operation: DataIntakeFoundationOperation;
-  p_organization_id: string;
-  p_actor_user_id: string;
-  p_actor_member_id: string;
   p_payload: Record<string, unknown>;
 };
 
@@ -29,7 +34,7 @@ export type DataIntakeFoundationRpcClient = {
     fn: typeof DATA_INTAKE_FOUNDATION_RPC,
     args: DataIntakeFoundationRpcArgs,
   ): PromiseLike<{
-    data: unknown;
+    data: DataIntakeFoundationFn["Returns"];
     error: { message: string; code?: string } | null;
   }>;
 };

@@ -1552,6 +1552,631 @@ export type Database = {
           },
         ]
       }
+      data_external_record_links: {
+        Row: {
+          created_at: string
+          external_object_type: string
+          external_record_id: string
+          first_seen_plan_id: string | null
+          first_seen_session_id: string
+          id: string
+          last_seen_session_id: string
+          organization_id: string
+          source_system: string
+          target_domain: string
+          target_record_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          external_object_type: string
+          external_record_id: string
+          first_seen_plan_id?: string | null
+          first_seen_session_id: string
+          id?: string
+          last_seen_session_id: string
+          organization_id: string
+          source_system: string
+          target_domain: string
+          target_record_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          external_object_type?: string
+          external_record_id?: string
+          first_seen_plan_id?: string | null
+          first_seen_session_id?: string
+          id?: string
+          last_seen_session_id?: string
+          organization_id?: string
+          source_system?: string
+          target_domain?: string
+          target_record_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_external_record_links_first_plan_fk"
+            columns: ["organization_id", "first_seen_plan_id"]
+            isOneToOne: false
+            referencedRelation: "data_import_plans"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "data_external_record_links_first_session_fk"
+            columns: ["organization_id", "first_seen_session_id"]
+            isOneToOne: false
+            referencedRelation: "data_intake_sessions"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "data_external_record_links_last_session_fk"
+            columns: ["organization_id", "last_seen_session_id"]
+            isOneToOne: false
+            referencedRelation: "data_intake_sessions"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "data_external_record_links_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      data_import_plans: {
+        Row: {
+          adapter_version: string
+          approved_at: string | null
+          approved_by_user_id: string | null
+          business_activity_id: string | null
+          created_at: string
+          created_by_user_id: string
+          id: string
+          included_fingerprints: Json
+          mapping_snapshot: Json
+          organization_id: string
+          plan_hash: string
+          session_id: string
+          source_id: string
+          source_sha256: string
+          status: string
+          summary: Json
+          superseded_at: string | null
+          target_domain: string
+          version: number
+        }
+        Insert: {
+          adapter_version: string
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          business_activity_id?: string | null
+          created_at?: string
+          created_by_user_id: string
+          id?: string
+          included_fingerprints: Json
+          mapping_snapshot: Json
+          organization_id: string
+          plan_hash: string
+          session_id: string
+          source_id: string
+          source_sha256: string
+          status: string
+          summary?: Json
+          superseded_at?: string | null
+          target_domain: string
+          version: number
+        }
+        Update: {
+          adapter_version?: string
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          business_activity_id?: string | null
+          created_at?: string
+          created_by_user_id?: string
+          id?: string
+          included_fingerprints?: Json
+          mapping_snapshot?: Json
+          organization_id?: string
+          plan_hash?: string
+          session_id?: string
+          source_id?: string
+          source_sha256?: string
+          status?: string
+          summary?: Json
+          superseded_at?: string | null
+          target_domain?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_import_plans_activity_fk"
+            columns: ["organization_id", "business_activity_id"]
+            isOneToOne: false
+            referencedRelation: "organization_business_activities"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "data_import_plans_session_fk"
+            columns: ["organization_id", "session_id"]
+            isOneToOne: false
+            referencedRelation: "data_intake_sessions"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "data_import_plans_source_fk"
+            columns: ["organization_id", "source_id"]
+            isOneToOne: false
+            referencedRelation: "data_intake_sources"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      data_import_row_results: {
+        Row: {
+          created_at: string
+          error_code: string | null
+          external_record_link_id: string | null
+          id: string
+          operation: string
+          organization_id: string
+          outcome: string
+          plan_id: string
+          row_fingerprint: string
+          session_id: string
+          source_row_number: number
+          target_domain: string
+          target_record_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_code?: string | null
+          external_record_link_id?: string | null
+          id?: string
+          operation: string
+          organization_id: string
+          outcome: string
+          plan_id: string
+          row_fingerprint: string
+          session_id: string
+          source_row_number: number
+          target_domain: string
+          target_record_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_code?: string | null
+          external_record_link_id?: string | null
+          id?: string
+          operation?: string
+          organization_id?: string
+          outcome?: string
+          plan_id?: string
+          row_fingerprint?: string
+          session_id?: string
+          source_row_number?: number
+          target_domain?: string
+          target_record_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_import_row_results_external_link_fk"
+            columns: ["organization_id", "external_record_link_id"]
+            isOneToOne: false
+            referencedRelation: "data_external_record_links"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "data_import_row_results_plan_fk"
+            columns: ["organization_id", "plan_id"]
+            isOneToOne: false
+            referencedRelation: "data_import_plans"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "data_import_row_results_session_fk"
+            columns: ["organization_id", "session_id"]
+            isOneToOne: false
+            referencedRelation: "data_intake_sessions"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      data_intake_events: {
+        Row: {
+          actor_user_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json
+          organization_id: string
+          plan_id: string | null
+          session_id: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json
+          organization_id: string
+          plan_id?: string | null
+          session_id: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json
+          organization_id?: string
+          plan_id?: string | null
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_intake_events_plan_fk"
+            columns: ["organization_id", "plan_id"]
+            isOneToOne: false
+            referencedRelation: "data_import_plans"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "data_intake_events_session_fk"
+            columns: ["organization_id", "session_id"]
+            isOneToOne: false
+            referencedRelation: "data_intake_sessions"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      data_intake_mappings: {
+        Row: {
+          confidence: string | null
+          confirmed_at: string | null
+          confirmed_by_user_id: string | null
+          created_at: string
+          default_value: Json | null
+          id: string
+          organization_id: string
+          proposal_source: string
+          session_id: string
+          source_field_key: string
+          source_header: string
+          source_id: string
+          status: string
+          target_domain: string
+          target_field: string | null
+          transform_config: Json
+          transform_kind: string
+          updated_at: string
+        }
+        Insert: {
+          confidence?: string | null
+          confirmed_at?: string | null
+          confirmed_by_user_id?: string | null
+          created_at?: string
+          default_value?: Json | null
+          id?: string
+          organization_id: string
+          proposal_source: string
+          session_id: string
+          source_field_key: string
+          source_header: string
+          source_id: string
+          status: string
+          target_domain: string
+          target_field?: string | null
+          transform_config?: Json
+          transform_kind?: string
+          updated_at?: string
+        }
+        Update: {
+          confidence?: string | null
+          confirmed_at?: string | null
+          confirmed_by_user_id?: string | null
+          created_at?: string
+          default_value?: Json | null
+          id?: string
+          organization_id?: string
+          proposal_source?: string
+          session_id?: string
+          source_field_key?: string
+          source_header?: string
+          source_id?: string
+          status?: string
+          target_domain?: string
+          target_field?: string | null
+          transform_config?: Json
+          transform_kind?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_intake_mappings_session_fk"
+            columns: ["organization_id", "session_id"]
+            isOneToOne: false
+            referencedRelation: "data_intake_sessions"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "data_intake_mappings_source_fk"
+            columns: ["organization_id", "source_id"]
+            isOneToOne: false
+            referencedRelation: "data_intake_sources"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      data_intake_sessions: {
+        Row: {
+          approved_at: string | null
+          approved_by_user_id: string | null
+          business_activity_id: string | null
+          cancel_requested: boolean
+          cancelled_at: string | null
+          completed_at: string | null
+          created_at: string
+          created_by_user_id: string
+          currency: string | null
+          current_batch_index: number
+          current_plan_id: string | null
+          date_order: string | null
+          execution_attempt: number
+          execution_lease_expires_at: string | null
+          execution_lease_token: string | null
+          execution_started_at: string | null
+          failure_code: string | null
+          heartbeat_at: string | null
+          id: string
+          last_completed_batch_index: number | null
+          locale: string | null
+          organization_id: string
+          source_kind: string
+          status: string
+          target_domain: string
+          timezone: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          business_activity_id?: string | null
+          cancel_requested?: boolean
+          cancelled_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by_user_id: string
+          currency?: string | null
+          current_batch_index?: number
+          current_plan_id?: string | null
+          date_order?: string | null
+          execution_attempt?: number
+          execution_lease_expires_at?: string | null
+          execution_lease_token?: string | null
+          execution_started_at?: string | null
+          failure_code?: string | null
+          heartbeat_at?: string | null
+          id?: string
+          last_completed_batch_index?: number | null
+          locale?: string | null
+          organization_id: string
+          source_kind: string
+          status?: string
+          target_domain: string
+          timezone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          business_activity_id?: string | null
+          cancel_requested?: boolean
+          cancelled_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by_user_id?: string
+          currency?: string | null
+          current_batch_index?: number
+          current_plan_id?: string | null
+          date_order?: string | null
+          execution_attempt?: number
+          execution_lease_expires_at?: string | null
+          execution_lease_token?: string | null
+          execution_started_at?: string | null
+          failure_code?: string | null
+          heartbeat_at?: string | null
+          id?: string
+          last_completed_batch_index?: number | null
+          locale?: string | null
+          organization_id?: string
+          source_kind?: string
+          status?: string
+          target_domain?: string
+          timezone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_intake_sessions_activity_fk"
+            columns: ["organization_id", "business_activity_id"]
+            isOneToOne: false
+            referencedRelation: "organization_business_activities"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "data_intake_sessions_current_plan_fk"
+            columns: ["organization_id", "current_plan_id"]
+            isOneToOne: false
+            referencedRelation: "data_import_plans"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "data_intake_sessions_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      data_intake_sources: {
+        Row: {
+          byte_size: number
+          column_count: number | null
+          created_at: string
+          deleted_at: string | null
+          delimiter: string | null
+          encoding: string | null
+          expires_at: string | null
+          header_row_index: number | null
+          id: string
+          mime_type: string
+          organization_id: string
+          original_filename: string
+          parse_metadata: Json
+          row_count: number | null
+          session_id: string
+          sha256: string
+          sheet_name: string | null
+          source_kind: string
+          storage_bucket: string
+          storage_path: string
+          superseded_at: string | null
+        }
+        Insert: {
+          byte_size: number
+          column_count?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          delimiter?: string | null
+          encoding?: string | null
+          expires_at?: string | null
+          header_row_index?: number | null
+          id?: string
+          mime_type: string
+          organization_id: string
+          original_filename: string
+          parse_metadata?: Json
+          row_count?: number | null
+          session_id: string
+          sha256: string
+          sheet_name?: string | null
+          source_kind: string
+          storage_bucket: string
+          storage_path: string
+          superseded_at?: string | null
+        }
+        Update: {
+          byte_size?: number
+          column_count?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          delimiter?: string | null
+          encoding?: string | null
+          expires_at?: string | null
+          header_row_index?: number | null
+          id?: string
+          mime_type?: string
+          organization_id?: string
+          original_filename?: string
+          parse_metadata?: Json
+          row_count?: number | null
+          session_id?: string
+          sha256?: string
+          sheet_name?: string | null
+          source_kind?: string
+          storage_bucket?: string
+          storage_path?: string
+          superseded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_intake_sources_session_fk"
+            columns: ["organization_id", "session_id"]
+            isOneToOne: false
+            referencedRelation: "data_intake_sessions"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      data_intake_staging_rows: {
+        Row: {
+          created_at: string
+          error_codes: Json
+          error_details: Json
+          id: string
+          lifecycle: string
+          normalized_values: Json | null
+          organization_id: string
+          raw_values: Json
+          resolution: string
+          row_fingerprint: string
+          session_id: string
+          source_id: string
+          source_row_number: number
+          target_operation: string | null
+          target_record_id: string | null
+          updated_at: string
+          warning_codes: Json
+        }
+        Insert: {
+          created_at?: string
+          error_codes?: Json
+          error_details?: Json
+          id?: string
+          lifecycle?: string
+          normalized_values?: Json | null
+          organization_id: string
+          raw_values: Json
+          resolution?: string
+          row_fingerprint: string
+          session_id: string
+          source_id: string
+          source_row_number: number
+          target_operation?: string | null
+          target_record_id?: string | null
+          updated_at?: string
+          warning_codes?: Json
+        }
+        Update: {
+          created_at?: string
+          error_codes?: Json
+          error_details?: Json
+          id?: string
+          lifecycle?: string
+          normalized_values?: Json | null
+          organization_id?: string
+          raw_values?: Json
+          resolution?: string
+          row_fingerprint?: string
+          session_id?: string
+          source_id?: string
+          source_row_number?: number
+          target_operation?: string | null
+          target_record_id?: string | null
+          updated_at?: string
+          warning_codes?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_intake_staging_rows_session_fk"
+            columns: ["organization_id", "session_id"]
+            isOneToOne: false
+            referencedRelation: "data_intake_sessions"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "data_intake_staging_rows_source_fk"
+            columns: ["organization_id", "source_id"]
+            isOneToOne: false
+            referencedRelation: "data_intake_sources"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
       enrollment_progress_facts: {
         Row: {
           corrected_from_fact_id: string | null
@@ -6125,6 +6750,16 @@ export type Database = {
           p_actor_member_id: string
           p_actor_user_id: string
           p_business_activity_id: string
+          p_operation: string
+          p_organization_id: string
+          p_payload: Json
+        }
+        Returns: Json
+      }
+      apply_data_intake_foundation_mutation: {
+        Args: {
+          p_actor_member_id: string
+          p_actor_user_id: string
           p_operation: string
           p_organization_id: string
           p_payload: Json

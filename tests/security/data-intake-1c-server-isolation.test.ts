@@ -68,13 +68,16 @@ describe("DATA-1C server-only isolation", () => {
     expect(hits).toEqual([]);
   });
 
-  it("does not treat the RPC name as a generated Database function key", () => {
+  it("binds the RPC name to the generated Database function key", () => {
     const rpc = readFileSync(
       join(ROOT, "src/features/data-intake/server/data-intake-rpc.ts"),
       "utf8",
     );
-    expect(rpc).toContain('apply_data_intake_foundation_mutation" as const');
-    expect(rpc).not.toContain("keyof Database");
+    expect(rpc).toContain(
+      'apply_data_intake_foundation_mutation" as const satisfies keyof Database["public"]["Functions"]',
+    );
+    expect(rpc).toContain('keyof Database["public"]["Functions"]');
+    expect(rpc).toContain('@/types/database');
     expect(rpc).not.toContain("database.generated");
   });
 });

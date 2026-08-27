@@ -63,6 +63,7 @@ function collectHits(paths: string[]): string[] {
 function isAuthorizedConsumer(relativePath: string): boolean {
   const normalized = relativePath.replaceAll("\\", "/");
   return (
+    normalized === "src/types/database.generated.ts" ||
     normalized.startsWith("src/features/data-intake/") ||
     normalized.startsWith("supabase/migrations/202608271400") ||
     normalized.startsWith("tests/security/data-intake-") ||
@@ -72,14 +73,17 @@ function isAuthorizedConsumer(relativePath: string): boolean {
 }
 
 describe("DATA-1C runtime isolation", () => {
-  it("keeps generated Production types free of DATA intake tables", () => {
+  it("authorizes generated Production types and the data-intake server as DATA table consumers", () => {
     const generated = readFileSync(
       join(process.cwd(), "src/types/database.generated.ts"),
       "utf8",
     );
-    expect(generated).not.toMatch(DATA_TOKEN);
-    expect(generated).not.toContain("apply_data_intake_foundation_mutation");
-    expect(generated).not.toContain("data-intake");
+    expect(generated).toMatch(DATA_TOKEN);
+    expect(generated).toContain("apply_data_intake_foundation_mutation");
+    const srcHits = collectHits(walkFiles(join(process.cwd(), "src"))).filter(
+      (path) => !isAuthorizedConsumer(path),
+    );
+    expect(srcHits).toEqual([]);
   });
 
   it("does not leak DATA tables into product, BQA, or Context surfaces", () => {
@@ -90,7 +94,10 @@ describe("DATA-1C runtime isolation", () => {
     expect(hits).toEqual([]);
   });
 
-  it("does not hand-edit database.generated.ts", () => {
-    expect(isAuthorizedConsumer("src/types/database.generated.ts")).toBe(false);
+  it("treats generated Production types as typegen output, not a product DATA surface", () => {
+    expect(isAuthorizedConsumer("src/types/database.generated.ts")).toBe(true);
+    expect(isAuthorizedConsumer("src/features/customers/server/customer-writer.ts")).toBe(
+      false,
+    );
   });
 });
