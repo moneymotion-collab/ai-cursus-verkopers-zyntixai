@@ -12,6 +12,8 @@ export type BqaActivityRef = {
   activityId: string;
   organizationId: string;
   status: BqaActivityStatus;
+  classificationKind: TaxonomyTargetKind | null;
+  classificationTargetId: string | null;
 };
 
 export type BqaMembership = {
@@ -136,7 +138,10 @@ export type QualificationEventType =
   | "support_assessed"
   | "admission_decided"
   | "waitlist_joined"
-  | "waitlist_withdrawn";
+  | "waitlist_withdrawn"
+  | "review_resolved"
+  | "assignment_handoff_requested"
+  | "assignment_handoff_completed";
 
 export type QualificationEvent = {
   eventId: string;
@@ -339,6 +344,19 @@ export type BqaMutationSuccess = {
   demandSignalId: string | null;
   eventId: string | null;
   eventType: QualificationEventType | null;
+};
+
+export type BqaAssignmentHandoffSuccess = {
+  ok: true;
+  idempotent: boolean;
+  organizationId: string;
+  businessActivityId: string;
+  admissionDecisionId: string;
+  classificationApplied: boolean;
+  activationApplied: boolean;
+  assignmentApplied: boolean;
+  assignmentId: string | null;
+  contextPackVersionId: string;
 };
 
 export type BqaMutationOperation =

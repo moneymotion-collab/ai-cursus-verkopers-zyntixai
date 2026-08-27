@@ -51,6 +51,10 @@ export function canPerformBqaOperation(
   return OPERATION_ROLES[operation].includes(role);
 }
 
+export function canPerformAssignmentHandoff(role: BqaOrganizationRole): boolean {
+  return role === "owner" || role === "admin";
+}
+
 export function answerSourceForRole(
   role: BqaOrganizationRole,
 ): "user_self" | "organization_admin" {

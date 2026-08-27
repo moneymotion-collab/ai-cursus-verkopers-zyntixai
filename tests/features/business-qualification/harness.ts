@@ -1,7 +1,14 @@
+import {
+  createOrgContextActivityLookup,
+  type BqaActivityLookup,
+} from "@/features/business-qualification/server/activity-lookup";
+import {
+  createOrgContextAssignmentObserver,
+  type BqaAssignmentObserver,
+} from "@/features/business-qualification/server/assignment-observer";
 import { BusinessQualificationRepository } from "@/features/business-qualification/server/business-qualification.repository";
 import { BusinessQualificationService } from "@/features/business-qualification/server/business-qualification.service";
-import type { BqaActivityLookup } from "@/features/business-qualification/server/activity-lookup";
-import type { BqaAssignmentObserver } from "@/features/business-qualification/server/assignment-observer";
+import { BusinessActivityAdmissionHandoffService } from "@/features/business-qualification/server/admission-handoff.service";
 import type { BqaContextCatalog } from "@/features/business-qualification/server/context-catalog";
 import type { BqaTaxonomyResolver } from "@/features/business-qualification/server/taxonomy-target";
 import type { BqaAuthLookup } from "@/features/business-qualification/server/tenant-authorization";
@@ -11,6 +18,8 @@ import type {
   ExistingContextPinObservation,
 } from "@/features/business-qualification/domain/types";
 import type { CatalogPackRef, CatalogVersionRef } from "@/features/business-qualification/domain/support";
+import { createOrgContextMemoryClient, type OrgContextMemoryTables } from "../org-context/memory-query-client";
+import { createMemoryBqaHandoffRpc, type MemoryBqaHandoffOptions } from "./memory-handoff";
 import { createMemoryBqaMutationRpc, type MemoryBqaMutationOptions } from "./memory-mutation";
 import {
   createBqaMemoryQueryClient,
@@ -78,7 +87,13 @@ export function seedMember(
   });
 }
 
-export function activityLookup(status: "draft" | "active" | "archived" = "active"): BqaActivityLookup {
+export function activityLookup(
+  status: "draft" | "active" | "archived" = "active",
+  classification: {
+    classificationKind: "niche" | null;
+    classificationTargetId: string | null;
+  } = { classificationKind: null, classificationTargetId: null },
+): BqaActivityLookup {
   return {
     async getActivity(organizationId, businessActivityId) {
       if (organizationId !== ORG_A || businessActivityId !== ACTIVITY_A) {
@@ -96,6 +111,8 @@ export function activityLookup(status: "draft" | "active" | "archived" = "active
           activityId: ACTIVITY_A,
           organizationId: ORG_A,
           status,
+          classificationKind: classification.classificationKind,
+          classificationTargetId: classification.classificationTargetId,
         },
       };
     },
@@ -294,4 +311,145 @@ export async function saveRequiredAnswers(
     questionKey: "line_structure",
     valueCode: lineStructure,
   });
+}
+
+export function emptyOrgContextTables(): OrgContextMemoryTables {
+  return {
+    organizations: [],
+    organization_business_activities: [],
+    organization_context_assignments: [],
+    organization_context_assignment_events: [],
+  };
+}
+
+export function seedOrgActivity(
+  orgTables: OrgContextMemoryTables,
+  input: {
+    status?: "draft" | "active" | "archived";
+    classified?: boolean;
+    assigned?: boolean;
+    assignmentVersionId?: string;
+    classificationTargetId?: string;
+    organizationId?: string;
+    activityId?: string;
+  } = {},
+) {
+  const organizationId = input.organizationId ?? ORG_A;
+  const activityId = input.activityId ?? ACTIVITY_A;
+  const status = input.status ?? "draft";
+  const classified = input.classified === true;
+  const targetId = input.classificationTargetId ?? TAX_NICHE_ID;
+  if (!orgTables.organizations.some((row) => row.id === organizationId)) {
+    orgTables.organizations.push({ id: organizationId, status: "active" });
+  }
+  orgTables.organization_business_activities.push({
+    id: activityId,
+    organization_id: organizationId,
+    activity_key: "qa_online_course_business",
+    display_name: "QA Online Course Business",
+    status,
+    is_primary: false,
+    classification_kind: classified ? "niche" : null,
+    foundation_id: null,
+    industry_id: null,
+    niche_id: classified ? targetId : null,
+    specialization_id: null,
+    deep_specialization_id: null,
+    created_at: "2026-08-27T00:00:00.000Z",
+    updated_at: "2026-08-27T00:00:00.000Z",
+  });
+  if (input.assigned) {
+    orgTables.organization_context_assignments.push({
+      id: ASSIGNMENT_OCB_ID,
+      organization_id: organizationId,
+      business_activity_id: activityId,
+      context_pack_version_id: input.assignmentVersionId ?? VERSION_OCB_V1,
+      status: "active",
+      source: "bqa_confirmed",
+      actor_user_id: OWNER_USER,
+      actor_member_id: "member-owner",
+      reason: null,
+      created_at: "2026-08-27T00:00:00.000Z",
+      updated_at: "2026-08-27T00:00:00.000Z",
+      superseded_at: null,
+    });
+  }
+}
+
+export async function createAdmittedHandoffHarness(input: {
+  userId?: string | null;
+  activity?: {
+    status?: "draft" | "active" | "archived";
+    classified?: boolean;
+    assigned?: boolean;
+    assignmentVersionId?: string;
+    classificationTargetId?: string;
+  };
+  catalog?: BqaContextCatalog;
+  rollout?: "internal_qa" | "closed_beta" | "production";
+  admit?: boolean;
+  handoffOptions?: MemoryBqaHandoffOptions;
+}) {
+  const tables = emptyBqaTables();
+  const orgTables = emptyOrgContextTables();
+  seedOrg(tables);
+  seedMember(tables, { userId: OWNER_USER, role: "owner" });
+  seedMember(tables, { userId: ADMIN_USER, role: "admin" });
+  seedMember(tables, { userId: STAFF_USER, role: "staff" });
+  seedMember(tables, { userId: VIEWER_USER, role: "viewer" });
+  seedOrgActivity(orgTables, input.activity);
+  const catalog = input.catalog ?? contextCatalog();
+  const bqa = createService({
+    userId: OWNER_USER,
+    tables,
+    catalog,
+  });
+  await confirmClassifiedTarget(bqa.service);
+  const rollout = input.rollout ?? "internal_qa";
+  if (input.admit !== false) {
+    await bqa.service.evaluateBusinessActivitySupport({
+      organizationId: ORG_A,
+      businessActivityId: ACTIVITY_A,
+      requestedRollout: rollout,
+    });
+    await bqa.service.evaluateBusinessActivityAdmission({
+      organizationId: ORG_A,
+      businessActivityId: ACTIVITY_A,
+      requestedRollout: rollout,
+    });
+  }
+  const admissionId =
+    tables.business_activity_admission_decisions
+      .filter((row) => row.rollout_mode === rollout)
+      .at(-1)?.id ?? null;
+  const lockTrace: string[] = input.handoffOptions?.lockTrace ?? [];
+  const memoryRpc = createMemoryBqaHandoffRpc(tables, orgTables, {
+    ...input.handoffOptions,
+    lockTrace,
+  });
+  let writerCalls = 0;
+  const queryClient = createBqaMemoryQueryClient(tables);
+  const orgQuery = createOrgContextMemoryClient(orgTables);
+  const handoff = new BusinessActivityAdmissionHandoffService({
+    auth: authLookup(input.userId === undefined ? OWNER_USER : input.userId),
+    queryClient,
+    activities: createOrgContextActivityLookup(orgQuery),
+    repository: new BusinessQualificationRepository(queryClient),
+    taxonomy: taxonomyResolver(),
+    catalog,
+    pins: createOrgContextAssignmentObserver(orgQuery),
+    createHandoffRpc: () => {
+      writerCalls += 1;
+      return memoryRpc;
+    },
+  });
+  return {
+    handoff,
+    tables,
+    orgTables,
+    admissionId: typeof admissionId === "string" ? admissionId : null,
+    lockTrace,
+    writerCalls: () => writerCalls,
+    bqa: bqa.service,
+  };
 }

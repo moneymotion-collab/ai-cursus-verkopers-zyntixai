@@ -116,6 +116,21 @@ describe("BQA-1D server-only isolation", () => {
     );
     expect(rpc).toContain("BQA_MUTATION_RPC");
     expect(rpc).toContain("apply_business_qualification_mutation");
+    const handoffRpc = readFileSync(
+      join(ROOT, "src/features/business-qualification/server/bqa-handoff-rpc.ts"),
+      "utf8",
+    );
+    expect(handoffRpc).toContain("BQA_HANDOFF_RPC");
+    expect(handoffRpc).toContain("apply_business_qualification_assignment_handoff");
+    expect(handoffRpc).not.toContain("apply_organization_context_platform_mutation");
+    const handoffService = readFileSync(
+      join(ROOT, "src/features/business-qualification/server/admission-handoff.service.ts"),
+      "utf8",
+    );
+    expect(handoffService).toContain("createHandoffRpc");
+    expect(handoffService).not.toContain("apply_organization_context_platform_mutation");
+    expect(handoffService).not.toContain("change_context_version");
+    expect(handoffService).not.toContain("platform_operator");
   });
 
   it("keeps domain modules free of privileged factory and env reads", () => {

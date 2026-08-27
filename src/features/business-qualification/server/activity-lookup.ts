@@ -40,6 +40,8 @@ export function createOrgContextActivityLookup(
         activityId: activity.value.activityId,
         organizationId: activity.value.organizationId,
         status: activity.value.status,
+        classificationKind: activity.value.classification?.kind ?? null,
+        classificationTargetId: activity.value.classification?.targetId ?? null,
       });
     },
   };
