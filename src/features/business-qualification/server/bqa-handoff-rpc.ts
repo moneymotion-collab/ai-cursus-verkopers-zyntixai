@@ -7,16 +7,14 @@ import {
   type BqaResult,
 } from "@/features/business-qualification/domain/errors";
 import type { BqaAssignmentHandoffSuccess } from "@/features/business-qualification/domain/types";
+import type { Database } from "@/types/database";
 
-export const BQA_HANDOFF_RPC = "apply_business_qualification_assignment_handoff" as const;
+export const BQA_HANDOFF_RPC =
+  "apply_business_qualification_assignment_handoff" as const satisfies keyof Database["public"]["Functions"];
 
-export type BqaHandoffRpcArgs = {
-  p_organization_id: string;
-  p_business_activity_id: string;
-  p_actor_user_id: string;
-  p_admission_decision_id: string;
-  p_rollout_mode: string;
-};
+type BqaHandoffFn = Database["public"]["Functions"][typeof BQA_HANDOFF_RPC];
+
+export type BqaHandoffRpcArgs = BqaHandoffFn["Args"];
 
 export type BqaHandoffRpcClient = {
   rpc(

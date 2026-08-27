@@ -6110,6 +6110,16 @@ export type Database = {
           result_code: string
         }[]
       }
+      apply_business_qualification_assignment_handoff: {
+        Args: {
+          p_actor_user_id: string
+          p_admission_decision_id: string
+          p_business_activity_id: string
+          p_organization_id: string
+          p_rollout_mode: string
+        }
+        Returns: Json
+      }
       apply_business_qualification_mutation: {
         Args: {
           p_actor_member_id: string
