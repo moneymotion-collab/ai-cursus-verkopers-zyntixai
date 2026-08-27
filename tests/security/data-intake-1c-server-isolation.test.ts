@@ -1,0 +1,80 @@
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
+import { describe, expect, it } from "vitest";
+
+const ROOT = process.cwd();
+const SERVER_DIR = join(ROOT, "src/features/data-intake/server");
+const CLIENT = "src/features/data-intake/server/data-intake-client.ts";
+
+function walk(dir: string): string[] {
+  if (!existsSync(dir)) {
+    return [];
+  }
+  return readdirSync(dir).flatMap((entry) => {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) {
+      return walk(full);
+    }
+    return [full];
+  });
+}
+
+describe("DATA-1C server-only isolation", () => {
+  it("marks every privileged server module as server-only", () => {
+    const files = walk(SERVER_DIR).filter((file) => file.endsWith(".ts"));
+    expect(files.length).toBeGreaterThan(0);
+    for (const file of files) {
+      expect(readFileSync(file, "utf8")).toContain('import "server-only"');
+    }
+  });
+
+  it("reuses the privileged factory from the client boundary only", () => {
+    const client = readFileSync(join(ROOT, CLIENT), "utf8");
+    expect(client).toContain("createSupabaseServiceRoleClient");
+    expect(client).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
+    const otherServer = walk(SERVER_DIR)
+      .filter((file) => file.endsWith(".ts") && !file.endsWith("data-intake-client.ts"))
+      .map((file) => readFileSync(file, "utf8"));
+    for (const source of otherServer) {
+      expect(source).not.toMatch(/SUPABASE_SERVICE_ROLE_KEY/);
+      expect(source).not.toContain("createSupabaseServiceRoleClient");
+    }
+  });
+
+  it("does not create a public API, client hook, parser, or import executor", () => {
+    expect(existsSync(join(ROOT, "src/features/data-intake/index.ts"))).toBe(false);
+    for (const file of walk(join(ROOT, "src/features/data-intake"))) {
+      const source = readFileSync(file, "utf8");
+      expect(source).not.toContain("use client");
+      expect(source).not.toContain("createSupabaseBrowserClient");
+      expect(source).not.toContain('"use server"');
+      expect(source).not.toContain("csv-parse");
+      expect(source).not.toContain("papaparse");
+      expect(source).not.toMatch(/from ["']xlsx["']/);
+      expect(source).not.toContain("SheetJS");
+      expect(source).not.toContain("private.create_customer_record");
+      expect(source).not.toContain("apply_business_qualification_mutation");
+      expect(source).not.toContain("apply_organization_context");
+    }
+    const appDir = join(ROOT, "src/app");
+    const hits: string[] = [];
+    for (const file of walk(appDir)) {
+      if (!/\.(ts|tsx)$/.test(file)) continue;
+      const source = readFileSync(file, "utf8");
+      if (source.includes("features/data-intake") || file.replaceAll("\\", "/").includes("api/data-intake")) {
+        hits.push(relative(ROOT, file).replaceAll("\\", "/"));
+      }
+    }
+    expect(hits).toEqual([]);
+  });
+
+  it("does not treat the RPC name as a generated Database function key", () => {
+    const rpc = readFileSync(
+      join(ROOT, "src/features/data-intake/server/data-intake-rpc.ts"),
+      "utf8",
+    );
+    expect(rpc).toContain('apply_data_intake_foundation_mutation" as const');
+    expect(rpc).not.toContain("keyof Database");
+    expect(rpc).not.toContain("database.generated");
+  });
+});

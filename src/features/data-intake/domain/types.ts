@@ -1,0 +1,67 @@
+import type {
+  DataIntakeFoundationOperation,
+  DataIntakeOrganizationRole,
+} from "@/features/data-intake/domain/authorization";
+import type { DataSourceKind } from "@/features/data-intake/domain/constants";
+
+export type DataIntakeMembership = {
+  organizationId: string;
+  membershipId: string;
+  userId: string;
+  role: DataIntakeOrganizationRole;
+};
+
+export type DataIntakeSessionStatus =
+  | "created"
+  | "source_ready"
+  | "parsed"
+  | "mapping_required"
+  | "mapped"
+  | "validating"
+  | "review_required"
+  | "ready_for_approval"
+  | "approved"
+  | "importing"
+  | "completed"
+  | "completed_with_errors"
+  | "failed"
+  | "cancelled";
+
+export type CreateDataIntakeSessionInput = {
+  organizationId: string;
+  targetDomain: "customer";
+  sourceKind: DataSourceKind;
+  businessActivityId?: string | null;
+};
+
+export type RegisterDataIntakeSourceInput = {
+  organizationId: string;
+  sessionId: string;
+  originalFilename: string;
+  mimeType: string;
+  byteSize: number;
+  sha256: string;
+  sourceKind?: DataSourceKind;
+};
+
+export type CancelDataIntakeSessionInput = {
+  organizationId: string;
+  sessionId: string;
+};
+
+export type DataIntakeFoundationSuccess = {
+  sessionId: string;
+  status: DataIntakeSessionStatus;
+  targetDomain: string;
+  sourceKind: DataSourceKind;
+  sourceId: string | null;
+  storagePath: string | null;
+  storageBucket: string | null;
+  eventId: string | null;
+  eventType: string | null;
+};
+
+export type DataIntakeFoundationCommand =
+  | { operation: Extract<DataIntakeFoundationOperation, "create_session">; input: CreateDataIntakeSessionInput }
+  | { operation: Extract<DataIntakeFoundationOperation, "register_source">; input: RegisterDataIntakeSourceInput }
+  | { operation: Extract<DataIntakeFoundationOperation, "cancel_session">; input: CancelDataIntakeSessionInput };
