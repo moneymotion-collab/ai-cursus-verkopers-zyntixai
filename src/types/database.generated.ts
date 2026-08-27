@@ -2034,9 +2034,9 @@ export type Database = {
           header_row_index: number | null
           id: string
           mime_type: string
-          organization_id: string
           object_verified_at: string | null
           object_verified_by_user_id: string | null
+          organization_id: string
           original_filename: string
           parse_metadata: Json
           row_count: number | null
