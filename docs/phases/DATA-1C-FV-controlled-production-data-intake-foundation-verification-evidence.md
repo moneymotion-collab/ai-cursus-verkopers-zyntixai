@@ -2,20 +2,20 @@
 
 | Field | Value |
 | --- | --- |
-| Phase | **DATA-1C-FV — UNIVERSAL BUSINESS DATA INTAKE DATABASE + SECURITY FOUNDATION FINAL VERIFICATION** |
+| Phase | **DATA-1C-FV — CONTROLLED PRODUCTION QA DATA INTAKE METADATA FIXTURE** |
 | Parent | DATA-1C |
 | Document type | Production verification evidence |
 | Date | 2026-08-27 |
-| Formal status | `DATA-1C-FV CLOSED WITH EVIDENCE — UNIVERSAL BUSINESS DATA INTAKE DATABASE + SECURITY FOUNDATION PRODUCTION VERIFIED` |
+| Formal status | `DATA-1C-FV CLOSED WITH EVIDENCE — CONTROLLED PRODUCTION DATA INTAKE METADATA + SECURITY FOUNDATION VERIFIED` |
 | Governing implementation | `docs/phases/DATA-1C-universal-business-data-intake-database-security-foundation-evidence.md` |
 | Governing contract | `docs/phases/DATA-1B-universal-business-data-intake-domain-schema-contract.md` |
 | Architecture | `docs/phases/DATA-1A-universal-business-data-intake-discovery.md` |
 | Branch | `core/platform-readiness-20260707` |
-| Start HEAD | `59f30d308b2dcb32b1bec69fd82404972cf50da1` |
-| Production schema | **APPLIED** (targeted MCP apply of the three frozen DATA-1C SQL files only; no `db push`, no repair) |
-| Production DATA tenant rows | **0** |
+| Fixture start HEAD | `a554eedbeb76c39313f4822f936d70c0fa4a9df3` |
+| Production schema | **APPLIED** (targeted MCP apply of the three frozen DATA-1C SQL files only; no `db push`, no repair; not reapplied this fixture run) |
+| Production DATA tenant rows | **1 session / 1 source / 3 events** retained as durable QA evidence; session **cancelled** |
 
-This phase verifies **only** the universal business data intake database + security foundation. It does **not** implement a parser, mapping engine, validation engine, import-plan approval, import execution, Customer writer changes, Customer creation through DATA, onboarding, or connectors.
+This phase verifies **only** the universal business data intake database + security foundation plus one controlled Production QA metadata fixture. It does **not** implement a parser, mapping engine, validation engine, import-plan approval, import execution, Customer writer changes, Customer creation through DATA, onboarding, or connectors.
 
 **DATA INTAKE DATABASE FOUNDATION: PRODUCTION VERIFIED**
 
@@ -31,11 +31,15 @@ This phase verifies **only** the universal business data intake database + secur
 
 **SERVICE_ROLE AS HUMAN AUTHORITY: DENIED**
 
+**CONTROLLED QA METADATA FIXTURE: PRODUCTION VERIFIED**
+
 **CUSTOMER IMPORT: NOT IMPLEMENTED**
 
 **PARSER: NOT IMPLEMENTED**
 
-**ACTUAL FILE OBJECT VERIFICATION: NOT IMPLEMENTED**
+**OBJECT VERIFICATION / REAL FILE UPLOAD = NOT IMPLEMENTED — DATA-1D**
+
+**PARSER / CUSTOMER IMPORT = NOT IMPLEMENTED**
 
 **CANONICAL CUSTOMER MUTATION: 0**
 
@@ -49,26 +53,42 @@ This phase verifies **only** the universal business data intake database + secur
 
 ---
 
-## 1. Executive verdict
+## 1. Owner authorization
 
-DATA-1C is implemented, frozen, pushed, and Production-applied. Remote catalog matches the frozen eight-table + RLS + private Storage contract. Direct authenticated/anon/public DATA DML and SELECT are denied. Foundation RPC EXECUTE is `service_role` only. Human authority remains Owner/Admin membership, proven LIVE by Staff/Viewer `FORBIDDEN_ROLE`, suspended/foreign `UNAUTHORIZED`, and Owner-reaching `ACTIVITY_NOT_ALLOWED_FOR_TARGET` without committing a session. No parser, no import, no Customer writer change. Production DATA tables contain **0** tenant rows. Full suite matches the accepted historical pair only.
+Printed before any fixture mutation in this run:
 
-**DATA-1C-FV CLOSED WITH EVIDENCE — UNIVERSAL BUSINESS DATA INTAKE DATABASE + SECURITY FOUNDATION PRODUCTION VERIFIED**
+`DATA-1C-FV CONTROLLED QA DATA INTAKE METADATA FIXTURE = AUTHORIZED`
+
+This exact owner authorization applies **only** to the controlled DATA-1C-FV Production QA metadata fixture specified below:
+
+- one session + one source metadata row;
+- synthetic non-PII filename/size/SHA-256;
+- no Storage upload;
+- no CSV/XLSX parse;
+- no Customer import;
+- no canonical Customer writer change;
+- governed `create_session` → `register_source` → `cancel_session` only.
+
+Authorization was **not** inferred from DATA-1C implementation, typegen, or the earlier catalog/security close-out that retained zero DATA rows (`a554eedbeb76c39313f4822f936d70c0fa4a9df3`). That earlier close-out did not carry this fixture authorization string.
+
+If this string had been absent, required blocker:
+
+`DATA-1C-FV CONTROLLED QA DATA INTAKE METADATA FIXTURE = BLOCKED — OWNER AUTHORIZATION NOT PROVEN`
 
 ---
 
-## 2. Starting Git state
+## 2. Repository start state
 
-Proven at the start of this close-out (typegen already committed from the earlier targeted-apply preflight):
+Proven immediately before fixture creation.
 
 | Check | Value |
 | --- | --- |
 | Worktree | `D:\project ai cursus verkopers.worktrees\parallel__laptop-product-track-20260707-1` |
 | Branch | `core/platform-readiness-20260707` |
-| HEAD | `59f30d308b2dcb32b1bec69fd82404972cf50da1` |
-| Subject | `chore(data): sync Production intake foundation types` |
+| HEAD | `a554eedbeb76c39313f4822f936d70c0fa4a9df3` |
+| Subject | `docs(data): record Production intake foundation verification` |
 | Upstream | `origin/core/platform-readiness-20260707` |
-| Upstream SHA | `59f30d308b2dcb32b1bec69fd82404972cf50da1` |
+| Upstream SHA | `a554eedbeb76c39313f4822f936d70c0fa4a9df3` |
 | Divergence | `0 0` |
 | `git status` | clean |
 | Staged | none |
@@ -76,42 +96,15 @@ Proven at the start of this close-out (typegen already committed from the earlie
 | Untracked | none |
 | `git diff --check` | clean |
 
----
+Expected preflight HEAD `59f30d308b2dcb32b1bec69fd82404972cf50da1` (`chore(data): sync Production intake foundation types`) remains the last non-docs commit. The one subsequent commit `a554eedbeb76c39313f4822f936d70c0fa4a9df3` is the catalog/security evidence document written before this authorized fixture run. No unexpected repository mutation.
 
-## 3. DATA-1A / DATA-1B / DATA-1C identity
+DATA-1C implementation files were not edited this run.
 
-| Phase | Evidence | Commit | Status |
-| --- | --- | --- | --- |
-| DATA-1A | `docs/phases/DATA-1A-universal-business-data-intake-discovery.md` | `1a6aa6d8382bb5a315eb801246a50838f1fe3d04` | CLOSED |
-| DATA-1B | `docs/phases/DATA-1B-universal-business-data-intake-domain-schema-contract.md` | `9078c9a9a6c93890227e4c6d3bbb071789ff0a7d` | CLOSED — contract frozen |
-| DATA-1C | `docs/phases/DATA-1C-universal-business-data-intake-database-security-foundation-evidence.md` | `f3aa7b187b04d7da6cce95cb945aaaa148a6a260` | IMPLEMENTED AND FROZEN |
-| DATA-1C typegen | linked Production types + `keyof Database["public"]["Functions"]` | `59f30d308b2dcb32b1bec69fd82404972cf50da1` | pushed before this close-out |
-
-DATA-1C implementation is complete. It was committed and pushed before this FV close-out. DATA-1C-FV is the correct next sequence after DATA-1C.
-
-DATA-1C implementation files (unchanged by this close-out):
-
-- `supabase/migrations/20260827140000_create_data_intake_foundation.sql`
-- `supabase/migrations/20260827140010_enable_data_intake_rls.sql`
-- `supabase/migrations/20260827140020_add_data_intake_storage_bucket.sql`
-- `src/features/data-intake/domain/*`
-- `src/features/data-intake/server/*`
-- `tests/features/data-intake/*`
-- `tests/security/data-intake-*.test.ts`
+Remote migration latest unchanged: `20260827120815` `add_data_intake_storage_bucket`. No migration apply this phase.
 
 ---
 
-## 4. Frozen DATA-1B scope preserved
-
-DATA-1C owns the eight tables, CHECKs, PK/FK/UNIQUE, indexes, tenant composite FKs, RLS, append-only events, private `data-intake` bucket, and server-only `create_session` / `register_source` / `cancel_session`.
-
-DATA-1C does **not** own: CSV/XLSX parsing, schema discovery, mapping execution, validation, duplicate resolution, import execution, Customer import, `private.create_customer_record` import extension, onboarding, connectors, Party, Programs import, mass update, or autonomous AI import.
-
-No FV change crossed those boundaries.
-
----
-
-## 5. Linked Production project
+## 3. Production project identity
 
 | Check | Value |
 | --- | --- |
@@ -120,74 +113,450 @@ No FV change crossed those boundaries.
 | Status | `ACTIVE_HEALTHY` |
 | Postgres | `17.6.1.141` |
 | Canonical app | `https://www.zyntixai.com` |
+| QA organization | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| Organization label | `ZyntixAI Production QA` |
 
 No service-role JWT, database password, cookie, or access token is recorded here.
 
 ---
 
-## 6. Frozen migration hashes
+## 4. Pre-fixture DATA counts
 
-Recalculated on disk during FV. Frozen files were not edited.
+Expected and observed before `create_session`:
 
-| Local file | SHA-256 (lowercase hex) |
+| Table | Count |
 | --- | --- |
-| `supabase/migrations/20260827140000_create_data_intake_foundation.sql` | `ad37fdbfb24fb4c1bd8038c9aede550ed7f4b07abac0f5a1ba8cf0042d3a0276` |
-| `supabase/migrations/20260827140010_enable_data_intake_rls.sql` | `85b306b85cc9c66b9d6af4eb70d0b6042e040f23215f771d5c9f07a099d91a4a` |
-| `supabase/migrations/20260827140020_add_data_intake_storage_bucket.sql` | `7f8fa5e7e442647bfeff0f6d56c4bb21432b821c1a8ea636dd442ad25e5cff54` |
+| `data_intake_sessions` | 0 |
+| `data_intake_sources` | 0 |
+| `data_intake_mappings` | 0 |
+| `data_intake_staging_rows` | 0 |
+| `data_import_plans` | 0 |
+| `data_import_row_results` | 0 |
+| `data_intake_events` | 0 |
+| `data_external_record_links` | 0 |
 
-Exact match to DATA-1C evidence. No SQL rewrite. No additive remediation migration.
+Shape: `0 / 0 / 0 / 0 / 0 / 0 / 0 / 0`. No unexpected pre-existing DATA rows. Exactly one fixture was created.
 
----
-
-## 7. Pre-apply / apply decision
-
-Pre-apply Production snapshot (before the targeted DATA-1C apply):
-
-- all eight DATA tables **absent**
-- bucket `data-intake` **absent**
-- last remote migration then: `20260827102408` `add_business_qualification_assignment_handoff`
-- Customers **116** total / **6** QA org
-- TAX `1 / 4 / 22 / 1 / 0 / 0 / 2`, CAP `13 / 7 / 13`, CTX `2 / 2 / 10 / 4 / 2`
-
-**Decision:** DATA-1C was not yet remote. DATA-1C-FV is the authorized controlled Production apply gate. Apply **only** the three frozen files via targeted MCP `apply_migration`. Do **not** use `supabase db push`, reset, repair, or blind pull.
-
-DB-MIGRATION-DRIFT-01 remains binding. Remote timestamps may differ from local filenames if exact SQL/hash is proven.
+Eight DATA tables exist. No ninth DATA table (`data_import_jobs`, `data_import_plan_rows`, `data_mapping_templates`, `customer_import_staging` absent).
 
 ---
 
-## 8. Exact apply method
+## 5. Pre-fixture Customer counts
 
-Targeted MCP `apply_migration` of exact frozen SQL, split only as a ledger-mapping detail because MCP payload size cannot take the 839-line foundation file in one shot. Local frozen files were **not** rewritten. `CREATE OR REPLACE` used for helpers already created in an earlier chunk.
-
-| Local filename | Local SHA-256 | Remote version | Remote name | Result |
-| --- | --- | --- | --- | --- |
-| `20260827140000_create_data_intake_foundation.sql` | `ad37fdbf…0276` | `20260827115833` | `create_data_intake_foundation_helpers` | success |
-| same | same | `20260827120013` | `create_data_intake_foundation_integrity_functions` | success |
-| same | same | `20260827120055` | `create_data_intake_plan_immutability_and_sessions` | success |
-| same | same | `20260827120125` | `create_data_intake_sources_mappings_staging` | success |
-| same | same | `20260827120331` | `create_data_intake_staging_and_plans` | success |
-| same | same | `20260827120403` | `create_data_intake_events_links_results_triggers` | success |
-| `20260827140010_enable_data_intake_rls.sql` | `85b306b8…1a4a` | `20260827120430` | `enable_data_intake_rls_and_grants` | success |
-| same | same | `20260827120758` | `create_apply_data_intake_foundation_mutation` | success |
-| `20260827140020_add_data_intake_storage_bucket.sql` | `7f8fa5e7…ff54` | `20260827120815` | `add_data_intake_storage_bucket` | success |
-
-Unrelated migrations: **none**.
-
-This close-out **did not reapply**. Remote latest remains `20260827120815` `add_data_intake_storage_bucket`.
+| Scope | Count |
+| --- | --- |
+| Global `customers` | **116** |
+| QA organization Customers | **6** |
 
 ---
 
-## 9. Post-apply remote migration state
+## 6. Pre-fixture Storage counts
 
-Latest remote DATA entries exist. Historical drift (duplicate Social/BQA helper names with distinct versions) is unchanged from prior Production-verified phases and is **not** new DATA drift.
+| Check | Value |
+| --- | --- |
+| Bucket | `data-intake` |
+| `public` | **false** |
+| File size limit | 10485760 (10 MB) |
+| Objects | **0** |
 
-Local-only DATA files remain the three frozen `202608271400*` filenames. Remote-only DATA names are the split ledger mapping above. That mapping is expected under DB-MIGRATION-DRIFT-01 when exact SQL is proven.
+No file was uploaded before, during, or after the fixture.
 
 ---
 
-## 10. Eight-table remote catalog
+## 7. Actor identity / role evidence
 
-REMOTE CATALOG. Exact DATA-1B names. No ninth DATA table (`data_import_jobs`, `data_import_plan_rows`, `data_mapping_templates`, `customer_import_staging` absent).
+Legitimate active Owner of the QA organization used as human authority. The executor JWT role was set to `service_role` so `auth.role()` matches the frozen RPC executor. The actor identity remained the real membership user, not `service_role`.
+
+| Field | Value |
+| --- | --- |
+| Organization | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| Membership | `6d8c8c91-39ff-4f26-86c8-5ec712b8c4f0` |
+| User | `928bbcaf-6117-4fef-84a3-d1d8611373e9` |
+| Role | `owner` |
+| Membership status | `active` |
+
+An Admin membership `dcfd1e22-c1fc-4179-9e9d-ca3e44a4ec77` exists in the same org. It was **not** used to create a second session.
+
+No email, name, or other PII is recorded here.
+
+---
+
+## 8. Session creation
+
+Governed operation `create_session` via `public.apply_data_intake_foundation_mutation`. Payload: `target_domain=customer`, `source_kind=csv`, **no** Business Activity.
+
+| Field | Value |
+| --- | --- |
+| Result | `ok=true` |
+| Session ID | `b9ee53d7-b2a1-46c6-92e7-9f44a41a3dc9` |
+| Status after create | `created` |
+| Target domain | `customer` |
+| `business_activity_id` | **NULL** |
+| Source kind | `csv` |
+| Created by | `928bbcaf-6117-4fef-84a3-d1d8611373e9` |
+| Created at | `2026-08-27 12:42:22.136321+00` |
+| Event | `intake_created` `f6a59f49-ffc6-4c2a-94c0-104602ff200a` |
+| Event metadata | `{source_kind, target_domain}` only |
+
+Actor is the Owner user, not the service-role executor.
+
+---
+
+## 9. Source registration
+
+Governed operation `register_source`. Metadata only. **No Storage upload.** Filename is metadata, not a security boundary. Product API / RPC does not accept a client-supplied Storage path; the RPC generated `v_path`.
+
+Synthetic file metadata (not a real customer file):
+
+- original filename: `qa_data_intake_foundation_v1.csv`
+- MIME: `text/csv`
+- byte size: `29`
+- SHA-256 of synthetic payload `qa_data_intake_foundation_v1\n`: `9044f8ae07c68ecaaadeebe01c45134c6cf80581a7baf36b0fcbeadd87f281d6`
+
+| Field | Value |
+| --- | --- |
+| Result | `ok=true` |
+| Source ID | `0b1fca8d-7bb7-4be3-815b-cca3008aa231` |
+| Session status after register | `source_ready` |
+| Storage bucket metadata | `data-intake` |
+| Generated object ID | `62ae3794-6286-4ba5-9577-b2db6364c851` |
+| Generated storage path | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb/b9ee53d7-b2a1-46c6-92e7-9f44a41a3dc9/0b1fca8d-7bb7-4be3-815b-cca3008aa231/62ae3794-6286-4ba5-9577-b2db6364c851.csv` |
+| `superseded_at` / `expires_at` | NULL |
+| Event | `source_uploaded` `a484b9a0-c203-44d5-aa8c-6086f596efd9` |
+| Storage objects after register | **0** |
+
+Path matches frozen `{organization_id}/{session_id}/{source_id}/{generated_object_id}.csv`.
+
+---
+
+## 10. Generated IDs
+
+| Kind | ID |
+| --- | --- |
+| Session | `b9ee53d7-b2a1-46c6-92e7-9f44a41a3dc9` |
+| Source | `0b1fca8d-7bb7-4be3-815b-cca3008aa231` |
+| Generated object ID (metadata only) | `62ae3794-6286-4ba5-9577-b2db6364c851` |
+| Event `intake_created` | `f6a59f49-ffc6-4c2a-94c0-104602ff200a` |
+| Event `source_uploaded` | `a484b9a0-c203-44d5-aa8c-6086f596efd9` |
+| Event `import_cancelled` | `e0774276-5971-46f6-9e73-91c3f7032cb4` |
+
+---
+
+## 11. Customer Activity NULL verification
+
+Hard Production contract: `target_domain = customer` requires `business_activity_id IS NULL`. Activity is not silently erased.
+
+| Layer | Proof |
+| --- | --- |
+| Live fixture session | `business_activity_id IS NULL` |
+| CHECK | `data_intake_sessions_customer_activity_null_check` |
+| RPC LIVE (Owner + QA Activity `3612fd93-d1a1-491f-ba29-56fba767c55b`) | `ACTIVITY_NOT_ALLOWED_FOR_TARGET` — `Customer intake must not bind a Business Activity` |
+| Session delta from the failed probe | **0** (sessions remained **1**, the authorized fixture only) |
+
+No failed Customer+Activity session row was left behind.
+
+---
+
+## 12. Negative actor checks
+
+All executed through the governed RPC with `service_role` as executor and the named human actor. No extra DATA rows.
+
+| Actor | Result |
+| --- | --- |
+| Staff `158f8c4c-096b-4a30-9221-f661e22d8f27` | `FORBIDDEN_ROLE` |
+| Viewer `000a32a0-7b77-40f2-9341-0d1590e9cf19` | `FORBIDDEN_ROLE` |
+| Suspended Viewer `432b7c51-7c0b-4347-9fe5-305a41731498` | `UNAUTHORIZED` |
+| Foreign Owner (org `02016e91-7237-4a20-aec3-6275d2e8a67f`) targeting QA org | `UNAUTHORIZED` |
+| Owner + Customer + non-NULL Activity | `ACTIVITY_NOT_ALLOWED_FOR_TARGET` |
+
+`service_role` is executor infrastructure. Staff + executor JWT still returned `FORBIDDEN_ROLE`. Executor ≠ authority.
+
+---
+
+## 13. Event verification
+
+Exactly three foundation events were created by the governed operations. No synthetic extra events.
+
+| When (UTC) | Type | Event ID | Actor |
+| --- | --- | --- | --- |
+| 2026-08-27 12:42:22.136321 | `intake_created` | `f6a59f49-ffc6-4c2a-94c0-104602ff200a` | Owner `928bbcaf-6117-4fef-84a3-d1d8611373e9` |
+| 2026-08-27 12:42:52.937118 | `source_uploaded` | `a484b9a0-c203-44d5-aa8c-6086f596efd9` | same Owner |
+| 2026-08-27 12:44:02.921232 | `import_cancelled` | `e0774276-5971-46f6-9e73-91c3f7032cb4` | same Owner |
+
+Chronology matches create → register → cancel. All events belong to QA org + session `b9ee53d7-b2a1-46c6-92e7-9f44a41a3dc9`.
+
+Payloads contain only foundation metadata (`source_kind`, `target_domain`, sha256/size/mime/source_id, cancelled status). No names, emails, phones, addresses, or financial data.
+
+Immutability:
+
+- triggers `data_intake_events_immutable_update` / `data_intake_events_immutable_delete` enabled;
+- `service_role` has INSERT/SELECT on events, not UPDATE/DELETE;
+- `authenticated`/`anon` have no event DML;
+- LIVE probe UPDATE/DELETE on `intake_created` was caught by the immutability guard; event count remained **3**; payloads unchanged after the probe.
+
+No UPDATE/DELETE capability was introduced.
+
+---
+
+## 14. Source metadata verification
+
+Exactly one source row for the fixture session.
+
+| Field | Live value |
+| --- | --- |
+| Organization | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| Session | `b9ee53d7-b2a1-46c6-92e7-9f44a41a3dc9` |
+| Kind | `csv` |
+| Original filename | `qa_data_intake_foundation_v1.csv` |
+| MIME | `text/csv` |
+| Byte size | 29 |
+| SHA-256 | `9044f8ae07c68ecaaadeebe01c45134c6cf80581a7baf36b0fcbeadd87f281d6` |
+| Storage path | generated four-segment path above |
+| PII in metadata | none |
+
+Tenant relationships LIVE: session org FK ok; source org matches session org; source session FK ok; events org match; foreign-org events **0**; foreign-org sources **0**. Composite tenant FKs make a child row pointing at another org’s session structurally impossible.
+
+No file was uploaded. No source content exists in Storage.
+
+---
+
+## 15. Storage non-effect
+
+| Moment | `data-intake` objects |
+| --- | --- |
+| Before fixture | 0 |
+| After session + source metadata | 0 |
+| After cancellation / final state | 0 |
+
+Bucket remains `public=false`. Path is metadata only. **No object appeared.**
+
+`OBJECT VERIFICATION / REAL FILE UPLOAD = NOT IMPLEMENTED — DATA-1D`
+
+---
+
+## 16. Customer non-effect
+
+| Scope | Before | After | Delta |
+| --- | --- | --- | --- |
+| Global Customers | 116 | 116 | **0** |
+| QA organization Customers | 6 | 6 | **0** |
+
+No Customer writer invocation. No Customer import operation exists in DATA-1C. No DATA FK to `customers`. No `data_external_record_links` row. Canonical Customer writer was not modified.
+
+---
+
+## 17. Cancellation
+
+Governed `cancel_session` (not raw SQL status update) with the same Owner actor.
+
+| Field | Value |
+| --- | --- |
+| Result | `ok=true` |
+| Status | `cancelled` |
+| Event | `import_cancelled` `e0774276-5971-46f6-9e73-91c3f7032cb4` |
+| `cancelled_at` | `2026-08-27 12:44:02.921232+00` |
+| `cancel_requested` | `false` (immediate governed cancel, not a pending request) |
+
+Session and source rows were **retained** as durable Production evidence. They were not deleted to restore zero counts.
+
+Post-cancel `register_source` on the same session: `INVALID_STATE` — `Source metadata can be registered only before parse`. Sources remained **1**. The cancelled session cannot incorrectly continue into parser/import states (parser/import RPCs do not exist in DATA-1C).
+
+---
+
+## 18. Final session state
+
+| Field | Value |
+| --- | --- |
+| Session ID | `b9ee53d7-b2a1-46c6-92e7-9f44a41a3dc9` |
+| Organization | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| Target domain | `customer` |
+| Business Activity | **NULL** |
+| Source kind | `csv` |
+| Status | **`cancelled`** |
+| Created by | Owner `928bbcaf-6117-4fef-84a3-d1d8611373e9` |
+| Created at | `2026-08-27 12:42:22.136321+00` |
+| Updated / cancelled at | `2026-08-27 12:44:02.921232+00` |
+| Parser state/results | none |
+| Mapping | none |
+| Staging rows | none |
+| Import plan | none |
+| Row results | none |
+| External links | none |
+
+---
+
+## 19. Final DATA counts
+
+| Table | Before | After |
+| --- | --- | --- |
+| `data_intake_sessions` | 0 | **1** |
+| `data_intake_sources` | 0 | **1** |
+| `data_intake_mappings` | 0 | **0** |
+| `data_intake_staging_rows` | 0 | **0** |
+| `data_import_plans` | 0 | **0** |
+| `data_import_row_results` | 0 | **0** |
+| `data_intake_events` | 0 | **3** |
+| `data_external_record_links` | 0 | **0** |
+
+Events = 3 (`intake_created`, `source_uploaded`, `import_cancelled`) generated only by governed operations.
+
+---
+
+## 20. Final Customer counts
+
+| Scope | Before | After | Delta |
+| --- | --- | --- | --- |
+| Global | 116 | 116 | 0 |
+| QA org | 6 | 6 | 0 |
+
+No unrelated concurrent Customer activity observed.
+
+---
+
+## 21. Final Storage counts
+
+`data-intake` objects: **0**.
+
+---
+
+## 22. Unrelated domain non-effects
+
+Inspected after fixture cancellation. No DATA-attributable mutation.
+
+| Domain | Value | Delta vs previous snapshot |
+| --- | --- | --- |
+| TAX | `1 / 4 / 22 / 1 / 0 / 0 / 2` | 0 |
+| CAP | `13 / 7 / 13` | 0 |
+| CTX | `2 / 2 / 10 / 4 / 2` | 0 |
+| Memberships | 22 | 0 |
+| Invitations | 16 | 0 |
+| Path B `/register` | fail-closed: “Public registration is currently unavailable” | unchanged |
+| Social publishing | `private.social_publishing_execution_enabled()` = **false** | 0 |
+| Social scheduling GUC | unset / OFF | 0 |
+| Cron | `zyntixai_social_publication_scheduler_5m` `*/5 * * * *` active | unchanged |
+
+None of these were mutated by this phase.
+
+---
+
+## 23. Targeted tests
+
+`npx vitest run` on DATA domain/security files:
+
+**33 passed / 33 total.**
+
+Files:
+
+- `tests/security/data-intake-foundation-migration-security.test.ts` (schema, constraints, RLS SQL)
+- `tests/security/data-intake-storage-migration-security.test.ts` (Storage privacy)
+- `tests/security/data-intake-service-role-separation.test.ts` (bounded executor)
+- `tests/security/data-intake-1c-server-isolation.test.ts` (no public API / parser / import executor)
+- `tests/security/data-intake-runtime-isolation.test.ts`
+- `tests/features/data-intake/foundation-commands.test.ts` (RPC auth, actor defense, Customer Activity NULL, tenant isolation, source metadata, cancel)
+- `tests/features/data-intake/domain.test.ts`
+
+Coverage includes DATA schema, constraints, RLS, RPC authorization, actor defense, Customer Activity NULL invariant, tenant isolation, event immutability (SQL/triggers), source metadata, Storage privacy, service-role bounded execution, and absence of Customer import functionality.
+
+---
+
+## 24. Full-suite results
+
+`npx vitest run`:
+
+**3199 passed, 2 failed, 3201 total.**
+
+The only failures are the accepted historical pair:
+
+1. `tests/features/invitations/load-member-administration-page.test.ts`
+2. `tests/ui/programs-enrollments-stale-copy-remediation.test.ts`
+
+No third failure.
+
+---
+
+## 25. Typecheck / lint / build
+
+| Gate | Result |
+| --- | --- |
+| `npx tsc --noEmit` | PASS |
+| `npx next lint` | PASS (0 warnings) |
+| `git diff --check` | clean |
+| `next build` | not part of DATA-1C / DATA-1C-FV closure convention |
+
+---
+
+## 26. Risks / residual limitations
+
+No Production defect requiring DATA-1C-FV-R1 was found during the fixture. No silent implementation fix was made inside FV.
+
+Accepted residual risks (not defects):
+
+- FORCE RLS is **false**; deny-by-default relies on zero policies + revoked grants.
+- `data_external_record_links.target_record_id` is polymorphic; same-tenant target proof is DATA-1F/1G.
+- Source SHA-256 is internal metadata; object-bytes verification is DATA-1D.
+- `sources.expires_at` may remain NULL until a later worker.
+- Generated Storage path exists as metadata without a corresponding object (intentional for this metadata-only fixture).
+- `cancel_requested` remains `false` after immediate `cancel_session` (governed command completes cancel rather than parking a request flag).
+
+---
+
+## 27. Explicit DATA-1D boundary
+
+The following remain **NOT IMPLEMENTED** and were not started:
+
+- real file upload
+- Storage object verification using a real upload
+- CSV parser
+- XLSX parser
+- workbook/sheet discovery
+- header detection
+- schema inference
+- field mapping
+- validation engine
+- duplicate resolution
+- Customer import
+- Customer writer integration
+- import execution
+- external record linking
+- mass update
+- autonomous AI import
+
+`OBJECT VERIFICATION / REAL FILE UPLOAD = NOT IMPLEMENTED — DATA-1D`
+
+`PARSER / CUSTOMER IMPORT = NOT IMPLEMENTED`
+
+Do **not** start DATA-1D from this close-out.
+
+---
+
+## 28. Final Git state
+
+Evidence-only commit after fixture verification. Implementation files unchanged.
+
+| Check | Value |
+| --- | --- |
+| Branch | `core/platform-readiness-20260707` |
+| Start HEAD (this fixture run) | `a554eedbeb76c39313f4822f936d70c0fa4a9df3` |
+| Evidence commit | recorded after commit/push in the closing response |
+| Required | divergence `0 0`, clean worktree, normal push only |
+
+No amend of published commits. No force-push. No reset. No rebase of authoritative history.
+
+---
+
+## 29. Final verdict
+
+Catalog, RLS, RPC, Storage privacy, actor matrix, Customer Activity NULL, Customer non-effect, Storage non-effect, and one cancelled QA metadata fixture are Production-verified.
+
+**DATA-1C-FV CLOSED WITH EVIDENCE — CONTROLLED PRODUCTION DATA INTAKE METADATA + SECURITY FOUNDATION VERIFIED**
+
+**DATA-1C RELEASE READY WITH EVIDENCE**
+
+---
+
+## Appendix A — Security foundation reconfirm (unchanged this run)
+
+REMOTE CATALOG. Exact DATA-1B names.
 
 | Table | Exists | RLS enabled | FORCE RLS | Policies |
 | --- | --- | --- | --- | --- |
@@ -200,87 +569,7 @@ REMOTE CATALOG. Exact DATA-1B names. No ninth DATA table (`data_import_jobs`, `d
 | `data_external_record_links` | yes | true | **false** | 0 |
 | `data_import_row_results` | yes | true | **false** | 0 |
 
-FORCE RLS is reported exactly as live: **false** on all eight. Deny-by-default still holds because there are **zero** policies and **zero** `authenticated`/`anon` grants.
-
-Close-out row counts:
-
-| Table | Count |
-| --- | --- |
-| sessions | 0 |
-| sources | 0 |
-| mappings | 0 |
-| staging | 0 |
-| plans | 0 |
-| events | 0 |
-| external links | 0 |
-| row results | 0 |
-
----
-
-## 11. Constraint verification (REMOTE CATALOG)
-
-Live constraints match the frozen migration. Highlights:
-
-| Concern | Live proof |
-| --- | --- |
-| PK | all eight have `*_pkey` |
-| Tenant UNIQUE | all eight `UNIQUE (organization_id, id)` |
-| Composite session FK | children reference `data_intake_sessions (organization_id, id)` **ON DELETE RESTRICT** |
-| `target_domain` CHECK | `customer \| lead \| task \| program \| enrollment` |
-| Customer Activity NULL | `data_intake_sessions_customer_activity_null_check` and `data_import_plans_customer_activity_null_check` |
-| Session status CHECK | frozen DATA-1B vocabulary including `created` … `cancelled` |
-| Source SHA-256 | `sha256 ~ '^[0-9a-f]{64}$'` |
-| Source size | `byte_size > 0 AND <= 10485760` |
-| Active-source uniqueness | `data_intake_sources_one_active_per_session_idx` WHERE `superseded_at IS NULL` |
-| Mapping vocab CHECKs | status / proposal_source / confidence / transform_kind |
-| Staging lifecycle/resolution | frozen CHECKs; unique `(source_id, source_row_number)` and `(source_id, row_fingerprint)` |
-| Plan version | `version >= 1`; unique `(session_id, version)` |
-| Plan active uniqueness | one `approved`/`executing` per session |
-| Plan JSON types | mapping_snapshot object, included_fingerprints array, summary object |
-| Event type CHECK | frozen vocabulary including `intake_created`, `source_uploaded`, `import_cancelled` |
-| External identity uniqueness | `(organization_id, source_system, external_object_type, external_record_id)` |
-| Row-result uniqueness | `UNIQUE (plan_id, row_fingerprint)` |
-
-No DATA FK references `customers`. All inspected DATA FKs are `ON DELETE RESTRICT`. Polymorphic `target_record_id` has no Customer FK.
-
-Rolled-back synthetic SQL (single `DO` aborted with sentinel; final DATA counts remained 0):
-
-| Probe | Result |
-| --- | --- |
-| Customer session + Activity | `ACTIVITY_NOT_ALLOWED_FOR_TARGET` |
-| Event UPDATE | `data intake events are immutable` |
-| Event DELETE | `data intake events are immutable` |
-| Approved plan snapshot mutate | `DATA: approved plan snapshot is immutable` |
-| Duplicate `(plan_id, row_fingerprint)` | unique violation `data_import_row_results_plan_fingerprint_unique` |
-
----
-
-## 12. RLS / policy / grant verification
-
-REMOTE CATALOG.
-
-`anon` / `authenticated`: **no** table grants on any DATA table.
-
-`service_role` executor matrix:
-
-| Table | SELECT | INSERT | UPDATE | DELETE |
-| --- | --- | --- | --- | --- |
-| sessions | yes | yes | yes | no |
-| sources | yes | yes | yes | no |
-| mappings | yes | yes | yes | no |
-| staging | yes | yes | yes | **yes** (future TTL) |
-| plans | yes | yes | yes | no |
-| events | yes | yes | **no** | **no** |
-| external links | yes | yes | yes | no |
-| row results | yes | yes | yes | no |
-
-`has_table_privilege('authenticated', …)` SELECT/INSERT/UPDATE/DELETE = **false** on sampled DATA tables including staging, sources, plans, events.
-
-Zero RLS policies is the frozen 1C design: Owner JWT cannot read raw staging/sources/plans/events directly. Access is governed server methods, not table grants.
-
----
-
-## 13. RPC security
+`anon` / `authenticated` / `public`: no broad DATA SELECT/DML. `service_role` remains bounded executor. Events: INSERT/SELECT only for `service_role`; no UPDATE/DELETE grant.
 
 Live `public.apply_data_intake_foundation_mutation(text, uuid, uuid, uuid, jsonb)`:
 
@@ -292,243 +581,36 @@ Live `public.apply_data_intake_foundation_mutation(text, uuid, uuid, uuid, jsonb
 | service_role EXECUTE | **true** |
 | Operations | `create_session`, `register_source`, `cancel_session` only |
 
-No parse / map / validate / approve / execute / Customer import RPC.
+No schema mutation this phase. Latest remote migration remains `20260827120815` `add_data_intake_storage_bucket`.
 
----
+Frozen local hashes (unchanged):
 
-## 14. Storage bucket
+| Local file | SHA-256 |
+| --- | --- |
+| `supabase/migrations/20260827140000_create_data_intake_foundation.sql` | `ad37fdbfb24fb4c1bd8038c9aede550ed7f4b07abac0f5a1ba8cf0042d3a0276` |
+| `supabase/migrations/20260827140010_enable_data_intake_rls.sql` | `85b306b85cc9c66b9d6af4eb70d0b6042e040f23215f771d5c9f07a099d91a4a` |
+| `supabase/migrations/20260827140020_add_data_intake_storage_bucket.sql` | `7f8fa5e7e442647bfeff0f6d56c4bb21432b821c1a8ea636dd442ad25e5cff54` |
 
-REMOTE CATALOG.
+Targeted apply mapping (completed before this fixture; not reapplied):
 
-| Check | `data-intake` | `zyntix-social-media` |
+| Local filename | Remote version | Remote name |
 | --- | --- | --- |
-| exists | yes | yes |
-| public | **false** | false |
-| file_size_limit | **10485760** (10 MB) | 104857600 |
-| MIME | `text/csv`, XLSX OOXML | image/video Social set |
+| `20260827140000_create_data_intake_foundation.sql` | `20260827115833` … `20260827120403` | split foundation ledger |
+| `20260827140010_enable_data_intake_rls.sql` | `20260827120430` / `20260827120758` | RLS + RPC |
+| `20260827140020_add_data_intake_storage_bucket.sql` | `20260827120815` | bucket |
 
-Bucket is distinct from Social. Object count in `data-intake`: **0**.
-
-Restrictive policies:
-
-- `data_intake_no_anon_all` to `anon`, `USING/CHECK (bucket_id IS DISTINCT FROM 'data-intake')`
-- `data_intake_no_authenticated_all` to `authenticated`, same
-
-No public URL. No product upload surface in DATA-1C. Bucket remains locked. **OBJECT VERIFICATION / REAL FILE UPLOAD = NOT YET IMPLEMENTED** (DATA-1D).
-
-Generated path format (RPC body + `src/features/data-intake/domain/storage-path.ts`):
-
-`{organization_id}/{session_id}/{source_id}/{generated_object_id}.csv|.xlsx`
-
-`registerDataIntakeSource` does **not** accept a client Storage path. Original filename is metadata only.
+DB-MIGRATION-DRIFT-01 remains binding. No `db push`, reset, repair, or blind pull.
 
 ---
 
-## 15. Server entrypoints
-
-`src/features/data-intake/` is `server-only`. No public API route. No `"use client"`. No browser service-role client.
-
-Authorization order in `authorizeDataIntakeCaller` then command:
-
-1. real `auth.getUser()`
-2. active organization
-3. active same-org membership
-4. Owner/Admin role (`canPerformDataIntakeFoundationCommand`)
-5. target-domain / Activity / file metadata validation
-6. privileged RPC with actor user/member ids (never service_role as human identity)
-
-Commands:
-
-| Method | RPC operation |
-| --- | --- |
-| `createDataIntakeSession` | `create_session` |
-| `registerDataIntakeSource` | `register_source` |
-| `cancelDataIntakeSession` | `cancel_session` |
-
-Customer + `businessActivityId` fails in the **server** before RPC (`ACTIVITY_NOT_ALLOWED_FOR_TARGET`) and again in the **database** (CHECK + trigger + RPC body). It does not silently clear Activity.
-
----
-
-## 16. Authorization matrix
-
-Evidence levels are labeled honestly.
-
-| Case | Result | Level |
-| --- | --- | --- |
-| Unauthenticated | `UNAUTHORIZED` before RPC | LOCAL AUTOMATED + STRUCTURAL |
-| Foreign org actor on QA org | `UNAUTHORIZED` / “Active organization membership is required” | **REMOTE BEHAVIORAL** |
-| Suspended Viewer | `UNAUTHORIZED` | **REMOTE BEHAVIORAL** |
-| Staff + service_role executor | `FORBIDDEN_ROLE` | **REMOTE BEHAVIORAL** |
-| Viewer + service_role executor | `FORBIDDEN_ROLE` | **REMOTE BEHAVIORAL** |
-| Owner + Customer + Activity | `ACTIVITY_NOT_ALLOWED_FOR_TARGET`; session delta 0 | **REMOTE BEHAVIORAL** |
-| Owner/Admin happy-path create | Owner/Admin pass the same live role gate Staff failed; command tests cover success | LOCAL AUTOMATED + STRUCTURAL + Owner LIVE reach (Activity probe is after role check) |
-| Direct authenticated table DML/SELECT | grants false; 0 policies | **REMOTE CATALOG** |
-| Direct authenticated RPC EXECUTE | false | **REMOTE CATALOG** |
-
-`service_role` is executor infrastructure. Staff actor + `request.jwt.claim.role = service_role` still returned `FORBIDDEN_ROLE`. Executor ≠ authority.
-
-No Production DATA session/source fixture was retained. Close-out kept DATA row counts at **0**, matching the BQA-1C-FV foundation pattern.
-
----
-
-## 17. Cross-tenant verification
-
-- Composite `(organization_id, session_id)` FKs make a child row pointing at another org’s session structurally impossible.
-- Foreign Owner membership ids against QA `organization_id` returned `UNAUTHORIZED` with **0** session insert.
-- Storage path is server-generated from the authorized org/session/source UUIDs; `..` is CHECKed out of `storage_path`.
-- Product caller cannot supply a Storage path.
-
----
-
-## 18. Customer Activity NULL
-
-Hard Production contract: `target_domain = customer` requires `business_activity_id IS NULL`.
-
-| Layer | Proof |
-| --- | --- |
-| CHECK | live `data_intake_sessions_customer_activity_null_check` |
-| Trigger | `private.enforce_data_intake_session_integrity` raises `ACTIVITY_NOT_ALLOWED_FOR_TARGET` |
-| RPC | returns `ACTIVITY_NOT_ALLOWED_FOR_TARGET` before insert when payload supplies Activity for customer |
-| Server | `createDataIntakeSession` rejects `businessActivityId` |
-| LIVE | Owner actor + QA Activity `3612fd93-d1a1-491f-ba29-56fba767c55b` → `ACTIVITY_NOT_ALLOWED_FOR_TARGET`; sessions remained 0 |
-
-Activity is **not** silently erased.
-
----
-
-## 19. Append-only events
-
-Triggers `data_intake_events_immutable_update` / `_delete` call `private.guard_data_intake_event_immutable`. Rolled-back synthetic UPDATE/DELETE both raised `data intake events are immutable`. `service_role` has INSERT/SELECT only. Authenticated has no event DML.
-
----
-
-## 20. Session / source contract
-
-Session: one organization; `target_domain` is a CHECK vocabulary, not SQL; Customer v1 is org-scoped; status CHECK + `private.data_intake_session_status_transition_allowed`; 1C RPC only performs `created`, `created → source_ready`, `created|source_ready → cancelled`. No generic `set_status("anything")`.
-
-Live graph samples: `created→source_ready` true, `created→cancelled` true, `source_ready→cancelled` true, `created→approved` false, same-status false.
-
-Source: identity metadata immutable after insert; one active source per session; replacement = new row + `superseded_at`. `expires_at` nullable until a later worker (accepted 1C behavior). No parser in FV.
-
----
-
-## 21. Non-effect verification
-
-Close-out vs pre-apply / post-apply canonical baselines:
-
-| Domain | Value | Delta |
-| --- | --- | --- |
-| Organizations | 6 | 0 |
-| Customers total | **116** | 0 |
-| Customers QA org | **6** | 0 |
-| Customer history | unchanged by DATA | 0 attributable to DATA |
-| QA Activities | 2 | 0 |
-| Context assignments | 2 / 2 | 0 |
-| BQA qualifications / answers / classifications / support / admissions / events / demand | 2 / 6 / 4 / 3 / 3 / 20 / 0 | 0 |
-| TAX | 1 / 4 / 22 / 1 / 0 / 0 / 2 | 0 |
-| CAP | 13 / 7 / 13 | 0 |
-| CTX | 2 / 2 / 10 / 4 / 2 | 0 |
-| Memberships | 22 | 0 |
-| Invitations | 16 | 0 |
-| Path B `/register` | fail-closed: “Public registration is currently unavailable” | unchanged |
-| Social publishing | `private.social_publishing_execution_enabled()` = **false** | 0 |
-| Social scheduling GUC | unset / OFF | 0 |
-| Cron | jobid 1 `zyntixai_social_publication_scheduler_5m` `*/5 * * * *` | unchanged |
-| `data-intake` objects | 0 | 0 |
-| Customer writer / `private.create_customer_record` | not modified by DATA-1C-FV | 0 |
-
-No Programs/Enrollments/Tasks/Attention/billing/onboarding DML from DATA.
-
----
-
-## 22. Typegen
-
-After apply: `npm run supabase:types` (linked Production). Diff: **+635 / −0** in `src/types/database.generated.ts` — eight DATA tables plus `apply_data_intake_foundation_mutation`. No destructive type drift.
-
-Narrow reconciliation: `DATA_INTAKE_FOUNDATION_RPC` is now `as const satisfies keyof Database["public"]["Functions"]` with generated Args/Returns, matching BQA/ORG-CONTEXT convention. Isolation tests updated to **authorize** generated types as DATA consumers (pre-Production tests had required types to stay free of DATA tables).
-
-Commit: `59f30d308b2dcb32b1bec69fd82404972cf50da1` `chore(data): sync Production intake foundation types`.
-
----
-
-## 23. Targeted tests
-
-`npx vitest run` on DATA domain/security files:
-
-**33 passed** (same DATA-1C count).
-
-Coverage includes schema/RLS/storage SQL static tests, service_role separation, session/source commands, tenant isolation, role denial, and runtime isolation.
-
----
-
-## 24. Full suite / typecheck / lint / build
-
-| Gate | Result |
-| --- | --- |
-| `npx tsc --noEmit` | PASS |
-| `npx next lint` | PASS (0 warnings) |
-| `npx vitest run` | **3199 passed, 2 failed, 3201 total** |
-| `next build` | not part of DATA-1C / DATA-1C-FV closure convention |
-
-Historical failures only (unchanged; neither now passes):
-
-1. `tests/features/invitations/load-member-administration-page.test.ts`
-2. `tests/ui/programs-enrollments-stale-copy-remediation.test.ts`
-
-No third failure.
-
----
-
-## 25. Defects / risk register
-
-No Production defect requiring DATA-1C-FV-R1.
-
-Accepted residual risks (not defects):
-
-- FORCE RLS is **false**; deny-by-default relies on zero policies + revoked grants.
-- `data_external_record_links.target_record_id` is polymorphic; same-tenant target proof is DATA-1F/1G.
-- Source SHA-256 is internal metadata; object-bytes verification is DATA-1D.
-- `sources.expires_at` may remain NULL until a later worker.
-- No retained Production DATA QA session/source row; foundation is verified with **0** tenant DATA rows.
-
----
-
-## 26. Residual limitations
-
-- PARSER: NOT IMPLEMENTED
-- MAPPING ENGINE: NOT IMPLEMENTED
-- VALIDATION ENGINE: NOT IMPLEMENTED
-- IMPORT PLAN APPROVAL: NOT IMPLEMENTED
-- IMPORT EXECUTION: NOT IMPLEMENTED
-- CUSTOMER IMPORT: NOT IMPLEMENTED
-- SIGNED UPLOAD / OBJECT VERIFICATION: NOT IMPLEMENTED (DATA-1D)
-- No product UI / public API for DATA
-
----
-
-## 27. Evidence artifact inventory
-
-| Artifact | Role |
-| --- | --- |
-| This document | DATA-1C-FV Production verification |
-| DATA-1C evidence | implementation freeze |
-| DATA-1B contract | schema/security contract |
-| DATA-1A discovery | architecture |
-| `f3aa7b187b04d7da6cce95cb945aaaa148a6a260` | implementation commit |
-| `59f30d308b2dcb32b1bec69fd82404972cf50da1` | Production typegen commit |
-
-No credentials, JWTs, raw source rows, or customer PII are stored here.
-
----
-
-## 28. Final Git state
-
-Recorded after the evidence commit/push in the closing response. Required: branch `core/platform-readiness-20260707`, divergence `0 0`, clean worktree.
-
----
-
-## 29. Recommended next phase
-
-**DATA-1D — UNIVERSAL BUSINESS DATA INTAKE PARSING + MAPPING FOUNDATION**
-
-Do **not** start DATA-1D automatically from this close-out.
+## Appendix B — Linked phase identity
+
+| Phase | Evidence | Commit | Status |
+| --- | --- | --- | --- |
+| DATA-1A | `docs/phases/DATA-1A-universal-business-data-intake-discovery.md` | `1a6aa6d8382bb5a315eb801246a50838f1fe3d04` | CLOSED |
+| DATA-1B | `docs/phases/DATA-1B-universal-business-data-intake-domain-schema-contract.md` | `9078c9a9a6c93890227e4c6d3bbb071789ff0a7d` | CLOSED — contract frozen |
+| DATA-1C | `docs/phases/DATA-1C-universal-business-data-intake-database-security-foundation-evidence.md` | `f3aa7b187b04d7da6cce95cb945aaaa148a6a260` | IMPLEMENTED AND FROZEN |
+| DATA-1C typegen | linked Production types + `keyof Database["public"]["Functions"]` | `59f30d308b2dcb32b1bec69fd82404972cf50da1` | pushed before catalog close-out |
+| DATA-1C-FV catalog | this document (zero-row close-out) | `a554eedbeb76c39313f4822f936d70c0fa4a9df3` | superseded on fixture retention by this update |
+
+No credentials, JWTs, raw uploaded customer data, or customer PII are stored here.
