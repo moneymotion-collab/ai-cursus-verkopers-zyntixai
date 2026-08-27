@@ -2035,6 +2035,8 @@ export type Database = {
           id: string
           mime_type: string
           organization_id: string
+          object_verified_at: string | null
+          object_verified_by_user_id: string | null
           original_filename: string
           parse_metadata: Json
           row_count: number | null
@@ -2057,6 +2059,8 @@ export type Database = {
           header_row_index?: number | null
           id?: string
           mime_type: string
+          object_verified_at?: string | null
+          object_verified_by_user_id?: string | null
           organization_id: string
           original_filename: string
           parse_metadata?: Json
@@ -2080,6 +2084,8 @@ export type Database = {
           header_row_index?: number | null
           id?: string
           mime_type?: string
+          object_verified_at?: string | null
+          object_verified_by_user_id?: string | null
           organization_id?: string
           original_filename?: string
           parse_metadata?: Json
@@ -6757,6 +6763,16 @@ export type Database = {
         Returns: Json
       }
       apply_data_intake_foundation_mutation: {
+        Args: {
+          p_actor_member_id: string
+          p_actor_user_id: string
+          p_operation: string
+          p_organization_id: string
+          p_payload: Json
+        }
+        Returns: Json
+      }
+      apply_data_intake_source_object_mutation: {
         Args: {
           p_actor_member_id: string
           p_actor_user_id: string

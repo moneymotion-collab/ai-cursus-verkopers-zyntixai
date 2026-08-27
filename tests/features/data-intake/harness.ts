@@ -22,9 +22,12 @@ import {
 } from "./memory-query-client";
 import {
   createMemoryDataIntakeFoundationRpc,
+  createMemoryDataIntakeSourceObjectRpc,
+  createStoreDataIntakeRecordLookup,
   emptyDataIntakeStore,
   type DataIntakeMemoryStore,
 } from "./memory-rpc";
+import { createMemoryDataIntakeObjectStore } from "./memory-object-store";
 
 export {
   ACTIVITY_A,
@@ -86,6 +89,7 @@ export function createService(input: {
 } = { userId: OWNER_USER }) {
   const tables = input.tables ?? emptyDataIntakeTables();
   const store = input.store ?? emptyDataIntakeStore();
+  const objectStore = createMemoryDataIntakeObjectStore();
   if (input.seedDefaultOrg !== false) {
     seedOrg(tables, ORG_A);
     seedOrg(tables, ORG_B);
@@ -113,6 +117,13 @@ export function createService(input: {
       store,
       isServiceRole: input.isServiceRole,
     }),
+    lookup: createStoreDataIntakeRecordLookup(store),
+    objectStore,
+    objectMutate: createMemoryDataIntakeSourceObjectRpc({
+      tables,
+      store,
+      isServiceRole: input.isServiceRole,
+    }),
   });
-  return { service, tables, store };
+  return { service, tables, store, objectStore };
 }

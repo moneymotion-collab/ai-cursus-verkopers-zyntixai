@@ -1,4 +1,5 @@
 export const DATA_INTAKE_STORAGE_BUCKET = "data-intake" as const;
+export const DATA_INTAKE_SIGNED_READ_TTL_SECONDS = 60;
 
 export const DATA_MAX_FILE_BYTES = 10 * 1024 * 1024;
 export const DATA_MAX_DATA_ROWS = 10_000;

@@ -49,6 +49,21 @@ export type CancelDataIntakeSessionInput = {
   sessionId: string;
 };
 
+export type UploadDataIntakeSourceInput = {
+  organizationId: string;
+  sessionId: string;
+  sourceId?: string;
+  originalFilename: string;
+  mimeType: string;
+  bytes: Uint8Array;
+};
+
+export type CreateDataIntakeSourceReadUrlInput = {
+  organizationId: string;
+  sessionId: string;
+  sourceId: string;
+};
+
 export type DataIntakeFoundationSuccess = {
   sessionId: string;
   status: DataIntakeSessionStatus;
@@ -59,6 +74,15 @@ export type DataIntakeFoundationSuccess = {
   storageBucket: string | null;
   eventId: string | null;
   eventType: string | null;
+  objectVerifiedAt?: string | null;
+  replayed?: boolean;
+};
+
+export type DataIntakeSignedReadUrl = {
+  bucket: string;
+  path: string;
+  expiresInSeconds: number;
+  signedUrl: string;
 };
 
 export type DataIntakeFoundationCommand =

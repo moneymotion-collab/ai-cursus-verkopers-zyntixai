@@ -12,6 +12,8 @@ export type DataIntakeFoundationOperation =
   | "register_source"
   | "cancel_session";
 
+export type DataIntakeSourceObjectOperation = "confirm_source_object";
+
 export function isKnownDataIntakeRole(
   value: string,
 ): value is DataIntakeOrganizationRole {

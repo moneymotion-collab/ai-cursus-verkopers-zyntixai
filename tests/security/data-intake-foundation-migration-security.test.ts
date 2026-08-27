@@ -74,11 +74,11 @@ function tableSql(table: string, nextTable?: string): string {
 }
 
 describe("DATA-1C migration inventory", () => {
-  it("registers exactly three ordered additive DATA migrations after BQA handoff", () => {
+  it("registers the three frozen DATA-1C migrations in order before later DATA phases", () => {
     const names = readdirSync(migrationsDir)
       .filter((name) => name.includes("data_intake"))
       .sort();
-    expect(names).toEqual([SCHEMA_MIGRATION, RLS_MIGRATION, STORAGE_MIGRATION]);
+    expect(names.slice(0, 3)).toEqual([SCHEMA_MIGRATION, RLS_MIGRATION, STORAGE_MIGRATION]);
     expect(SCHEMA_MIGRATION > BQA_HANDOFF).toBe(true);
     expect(RLS_MIGRATION > SCHEMA_MIGRATION).toBe(true);
     expect(STORAGE_MIGRATION > RLS_MIGRATION).toBe(true);

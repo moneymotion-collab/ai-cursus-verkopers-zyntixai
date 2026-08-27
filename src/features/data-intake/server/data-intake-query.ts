@@ -9,6 +9,8 @@ import {
 export const DATA_INTAKE_QUERY_TABLES = [
   "organizations",
   "organization_members",
+  "data_intake_sessions",
+  "data_intake_sources",
 ] as const;
 
 export type DataIntakeQueryTableName = (typeof DATA_INTAKE_QUERY_TABLES)[number];
