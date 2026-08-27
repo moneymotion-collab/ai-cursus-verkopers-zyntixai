@@ -67,7 +67,7 @@ function isAuthorizedConsumer(relativePath: string): boolean {
     normalized.startsWith("src/features/data-intake/") ||
     normalized.startsWith("supabase/migrations/202608271400") ||
     normalized.startsWith("supabase/migrations/202608271500") ||
-    normalized.startsWith("supabase/migrations/202608271600") ||
+    normalized.startsWith("supabase/migrations/2026082716") ||
     normalized.startsWith("tests/security/data-intake-") ||
     normalized.startsWith("tests/features/data-intake/") ||
     normalized.startsWith("docs/phases/DATA-1")

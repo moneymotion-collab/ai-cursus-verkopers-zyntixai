@@ -35,6 +35,7 @@ type SessionRow = {
   target_domain: string;
   source_kind: string;
   created_by_user_id: string;
+  cancelled_at: string | null;
 };
 
 type SourceRow = {
@@ -230,6 +231,7 @@ export function createMemoryDataIntakeFoundationRpc(input: {
           target_domain: "customer",
           source_kind: sourceKind,
           created_by_user_id: args.p_actor_user_id,
+          cancelled_at: null,
         };
         input.store.sessions.push(session);
         input.store.events.push({
@@ -262,16 +264,21 @@ export function createMemoryDataIntakeFoundationRpc(input: {
       }
 
       if (args.p_operation === "cancel_session") {
-        if (session.status !== "created" && session.status !== "source_ready") {
+        if (
+          session.status !== "created" &&
+          session.status !== "source_ready" &&
+          session.status !== "parsed"
+        ) {
           return {
             data: fail(
               "INVALID_STATE",
-              "DATA-1C can cancel only pre-import created or source_ready sessions",
+              "DATA can cancel only created, source_ready, or parsed sessions",
             ),
             error: null,
           };
         }
         session.status = "cancelled";
+        session.cancelled_at = new Date().toISOString();
         input.store.events.push({ event_type: "import_cancelled", metadata: { status: "cancelled" } });
         return {
           data: {
