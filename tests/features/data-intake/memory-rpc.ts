@@ -316,12 +316,14 @@ export function createMemoryDataIntakeFoundationRpc(input: {
         if (
           session.status !== "created" &&
           session.status !== "source_ready" &&
-          session.status !== "parsed"
+          session.status !== "parsed" &&
+          session.status !== "mapping_required" &&
+          session.status !== "mapped"
         ) {
           return {
             data: fail(
               "INVALID_STATE",
-              "DATA can cancel only created, source_ready, or parsed sessions",
+              "DATA can cancel only created, source_ready, parsed, mapping_required, or mapped sessions",
             ),
             error: null,
           };

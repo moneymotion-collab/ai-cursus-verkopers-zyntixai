@@ -9,6 +9,8 @@ const STRUCTURE_MIGRATION =
 const PARSED_CANCEL_MIGRATION =
   "20260827161658_allow_parsed_data_intake_session_cancellation.sql";
 const MAPPING_MIGRATION = "20260829180000_add_data_intake_semantic_mapping.sql";
+const MAPPING_CANCEL_MIGRATION =
+  "20260829190000_allow_mapping_states_data_intake_session_cancellation.sql";
 const STORAGE_MIGRATION = "20260827140020_add_data_intake_storage_bucket.sql";
 const SCHEMA_MIGRATION = "20260827140000_create_data_intake_foundation.sql";
 const RLS_MIGRATION = "20260827140010_enable_data_intake_rls.sql";
@@ -30,6 +32,7 @@ describe("DATA-1D object verification migration", () => {
       STRUCTURE_MIGRATION,
       PARSED_CANCEL_MIGRATION,
       MAPPING_MIGRATION,
+      MAPPING_CANCEL_MIGRATION,
     ]);
     expect(sql).toContain("object_verified_at");
     expect(sql).toContain("apply_data_intake_source_object_mutation");
