@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   graphql_public: {
     Tables: {
@@ -6772,6 +6772,16 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_data_intake_mapping_mutation: {
+        Args: {
+          p_actor_member_id: string
+          p_actor_user_id: string
+          p_operation: string
+          p_organization_id: string
+          p_payload: Json
+        }
+        Returns: Json
+      }
       apply_data_intake_source_object_mutation: {
         Args: {
           p_actor_member_id: string
@@ -6783,16 +6793,6 @@ export type Database = {
         Returns: Json
       }
       apply_data_intake_source_structure_mutation: {
-        Args: {
-          p_actor_member_id: string
-          p_actor_user_id: string
-          p_operation: string
-          p_organization_id: string
-          p_payload: Json
-        }
-        Returns: Json
-      }
-      apply_data_intake_mapping_mutation: {
         Args: {
           p_actor_member_id: string
           p_actor_user_id: string
