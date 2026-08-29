@@ -16,6 +16,7 @@ export type DataIntakeMemoryTables = {
   }>;
   data_intake_sessions: Array<Record<string, unknown>>;
   data_intake_sources: Array<Record<string, unknown>>;
+  data_intake_mappings: Array<Record<string, unknown>>;
 };
 
 type Filter = { column: string; value: string | number | boolean };
@@ -53,6 +54,7 @@ export function emptyDataIntakeTables(): DataIntakeMemoryTables {
     organization_members: [],
     data_intake_sessions: [],
     data_intake_sources: [],
+    data_intake_mappings: [],
   };
 }
 

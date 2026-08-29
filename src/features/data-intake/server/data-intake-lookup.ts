@@ -7,6 +7,7 @@ import {
 import { isDataSourceKind } from "@/features/data-intake/domain/constants";
 import type { DataSourceKind } from "@/features/data-intake/domain/constants";
 import type { DataIntakeSessionStatus } from "@/features/data-intake/domain/types";
+import type { DataIntakeMappingRow, DataMappingDecisionStatus } from "@/features/data-intake/domain/mapping";
 import {
   asString,
   executeDataIntakeQuery,
@@ -57,6 +58,10 @@ export type DataIntakeRecordLookup = {
     organizationId: string;
     sessionId: string;
   }): Promise<DataIntakeResult<DataIntakeSourceRecord | null>>;
+  findMappings(input: {
+    organizationId: string;
+    sourceId: string;
+  }): Promise<DataIntakeResult<DataIntakeMappingRow[]>>;
 };
 
 const SESSION_STATUSES = new Set<DataIntakeSessionStatus>([
@@ -209,5 +214,49 @@ export function createQueryDataIntakeRecordLookup(
         .find((row) => row && row.supersededAt === null);
       return dataOk(active ?? null);
     },
+
+    async findMappings(input) {
+      const rows = await executeDataIntakeQuery(
+        queryClient
+          .from("data_intake_mappings")
+          .select("source_field_key, source_header, target_field, status")
+          .eq("organization_id", input.organizationId)
+          .eq("source_id", input.sourceId),
+      );
+      if (!rows.ok) {
+        return rows;
+      }
+      return dataOk(rows.value.flatMap(mapMapping));
+    },
   };
+}
+
+const MAPPING_STATUSES = new Set<DataMappingDecisionStatus>([
+  "proposed",
+  "confirmed",
+  "rejected",
+  "unmapped",
+  "needs_review",
+]);
+
+function mapMapping(row: Record<string, unknown>): DataIntakeMappingRow[] {
+  const sourceFieldKey = asString(row.source_field_key);
+  const sourceHeader = asString(row.source_header);
+  const status = asString(row.status);
+  if (
+    !sourceFieldKey ||
+    sourceHeader === null ||
+    !status ||
+    !MAPPING_STATUSES.has(status as DataMappingDecisionStatus)
+  ) {
+    return [];
+  }
+  return [
+    {
+      sourceFieldKey,
+      sourceHeader,
+      targetField: asString(row.target_field),
+      status: status as DataMappingDecisionStatus,
+    },
+  ];
 }

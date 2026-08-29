@@ -4,6 +4,11 @@ import type {
 } from "@/features/data-intake/domain/authorization";
 import type { DataSourceKind } from "@/features/data-intake/domain/constants";
 import type { DataSourceStructureDiscovery } from "@/features/data-intake/domain/discovery";
+import type {
+  DataIntakeMappingRow,
+  DataMappingCompleteness,
+  DataMappingSnapshot,
+} from "@/features/data-intake/domain/mapping";
 
 export type DataIntakeMembership = {
   organizationId: string;
@@ -71,6 +76,20 @@ export type DiscoverDataIntakeSourceStructureInput = {
   sourceId?: string;
 };
 
+export type DataIntakeMappingCommandInput = {
+  organizationId: string;
+  sessionId: string;
+  sourceId?: string;
+  sourceFieldKey: string;
+  targetField?: string;
+};
+
+export type ConfirmDataIntakeMappingInput = {
+  organizationId: string;
+  sessionId: string;
+  sourceId?: string;
+};
+
 export type DataIntakeFoundationSuccess = {
   sessionId: string;
   status: DataIntakeSessionStatus;
@@ -91,6 +110,13 @@ export type DataIntakeSignedReadUrl = {
   path: string;
   expiresInSeconds: number;
   signedUrl: string;
+};
+
+export type DataIntakeMappingSuccess = DataIntakeFoundationSuccess & {
+  decisions: DataIntakeMappingRow[];
+  completeness: DataMappingCompleteness;
+  snapshot?: DataMappingSnapshot;
+  snapshotHash?: string;
 };
 
 export type DataIntakeFoundationCommand =

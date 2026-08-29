@@ -11,6 +11,7 @@ export const DATA_INTAKE_QUERY_TABLES = [
   "organization_members",
   "data_intake_sessions",
   "data_intake_sources",
+  "data_intake_mappings",
 ] as const;
 
 export type DataIntakeQueryTableName = (typeof DATA_INTAKE_QUERY_TABLES)[number];

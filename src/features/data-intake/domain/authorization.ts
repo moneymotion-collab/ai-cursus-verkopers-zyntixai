@@ -16,6 +16,11 @@ export type DataIntakeSourceObjectOperation = "confirm_source_object";
 
 export type DataIntakeSourceStructureOperation = "confirm_source_structure";
 
+export type DataIntakeMappingOperation =
+  | "upsert_mapping"
+  | "ignore_source_column"
+  | "confirm_mapping";
+
 export function isKnownDataIntakeRole(
   value: string,
 ): value is DataIntakeOrganizationRole {

@@ -22,6 +22,7 @@ import {
 } from "./memory-query-client";
 import {
   createMemoryDataIntakeFoundationRpc,
+  createMemoryDataIntakeMappingRpc,
   createMemoryDataIntakeSourceObjectRpc,
   createMemoryDataIntakeSourceStructureRpc,
   createStoreDataIntakeRecordLookup,
@@ -126,6 +127,11 @@ export function createService(input: {
       isServiceRole: input.isServiceRole,
     }),
     structureMutate: createMemoryDataIntakeSourceStructureRpc({
+      tables,
+      store,
+      isServiceRole: input.isServiceRole,
+    }),
+    mappingMutate: createMemoryDataIntakeMappingRpc({
       tables,
       store,
       isServiceRole: input.isServiceRole,

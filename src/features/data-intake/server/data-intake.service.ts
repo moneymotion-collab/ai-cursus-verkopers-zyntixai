@@ -35,12 +35,16 @@ import type {
   CreateDataIntakeSourceReadUrlInput,
   DataIntakeFoundationSuccess,
   DataIntakeSignedReadUrl,
+  ConfirmDataIntakeMappingInput,
+  DataIntakeMappingCommandInput,
+  DataIntakeMappingSuccess,
   DiscoverDataIntakeSourceStructureInput,
   RegisterDataIntakeSourceInput,
   UploadDataIntakeSourceInput,
 } from "@/features/data-intake/domain/types";
 import {
   createDataIntakeFoundationRpcClient,
+  createDataIntakeMappingRpcClient,
   createDataIntakeObjectStore,
   createDataIntakeQueryClient,
   createDataIntakeRecordLookup,
@@ -59,6 +63,15 @@ import {
   invokeDataIntakeSourceStructureMutation,
   type DataIntakeSourceStructureRpcClient,
 } from "@/features/data-intake/server/data-intake-structure-rpc";
+import type { DataIntakeMappingRpcClient } from "@/features/data-intake/server/data-intake-mapping-rpc";
+import {
+  confirmDataIntakeMapping,
+  ignoreDataIntakeSourceColumn,
+  listCustomerImportTargetCatalog,
+  listDataIntakeMappingState,
+  upsertDataIntakeMapping,
+} from "@/features/data-intake/server/data-intake-mapping-commands";
+import type { DataCustomerImportField } from "@/features/data-intake/domain/target-catalog";
 import type { DataIntakeQueryClient } from "@/features/data-intake/server/data-intake-query";
 import type { DataIntakeRecordLookup } from "@/features/data-intake/server/data-intake-lookup";
 import type { DataIntakeObjectStore } from "@/features/data-intake/server/source-object-store";
@@ -76,6 +89,7 @@ export type DataIntakeServiceDeps = {
   objectStore?: DataIntakeObjectStore;
   objectMutate?: DataIntakeSourceObjectRpcClient;
   structureMutate?: DataIntakeSourceStructureRpcClient;
+  mappingMutate?: DataIntakeMappingRpcClient;
 };
 
 function sanitizeOriginalFilename(value: string): string {
@@ -615,6 +629,78 @@ export class DataIntakeService {
     });
   }
 
+  listCustomerImportTargetCatalog(): readonly DataCustomerImportField[] {
+    return listCustomerImportTargetCatalog();
+  }
+
+  async listDataIntakeMappingState(
+    input: ConfirmDataIntakeMappingInput,
+  ): Promise<DataIntakeResult<DataIntakeMappingSuccess>> {
+    if (!this.deps.lookup || !this.deps.mappingMutate) {
+      return dataFail("DATABASE_WRITE_ERROR", "DATA mapping is not configured");
+    }
+    return listDataIntakeMappingState(
+      {
+        auth: this.deps.auth,
+        queryClient: this.deps.queryClient,
+        lookup: this.deps.lookup,
+        mappingMutate: this.deps.mappingMutate,
+      },
+      input,
+    );
+  }
+
+  async upsertDataIntakeMapping(
+    input: DataIntakeMappingCommandInput,
+  ): Promise<DataIntakeResult<DataIntakeMappingSuccess>> {
+    if (!this.deps.lookup || !this.deps.mappingMutate) {
+      return dataFail("DATABASE_WRITE_ERROR", "DATA mapping is not configured");
+    }
+    return upsertDataIntakeMapping(
+      {
+        auth: this.deps.auth,
+        queryClient: this.deps.queryClient,
+        lookup: this.deps.lookup,
+        mappingMutate: this.deps.mappingMutate,
+      },
+      input,
+    );
+  }
+
+  async ignoreDataIntakeSourceColumn(
+    input: DataIntakeMappingCommandInput,
+  ): Promise<DataIntakeResult<DataIntakeMappingSuccess>> {
+    if (!this.deps.lookup || !this.deps.mappingMutate) {
+      return dataFail("DATABASE_WRITE_ERROR", "DATA mapping is not configured");
+    }
+    return ignoreDataIntakeSourceColumn(
+      {
+        auth: this.deps.auth,
+        queryClient: this.deps.queryClient,
+        lookup: this.deps.lookup,
+        mappingMutate: this.deps.mappingMutate,
+      },
+      input,
+    );
+  }
+
+  async confirmDataIntakeMapping(
+    input: ConfirmDataIntakeMappingInput,
+  ): Promise<DataIntakeResult<DataIntakeMappingSuccess>> {
+    if (!this.deps.lookup || !this.deps.mappingMutate) {
+      return dataFail("DATABASE_WRITE_ERROR", "DATA mapping is not configured");
+    }
+    return confirmDataIntakeMapping(
+      {
+        auth: this.deps.auth,
+        queryClient: this.deps.queryClient,
+        lookup: this.deps.lookup,
+        mappingMutate: this.deps.mappingMutate,
+      },
+      input,
+    );
+  }
+
   private async authorizeCommand(organizationId: string) {
     const authorized = await authorizeDataIntakeCaller({
       auth: this.deps.auth,
@@ -640,6 +726,7 @@ export function createDataIntakeService(input: {
   objectStore?: DataIntakeObjectStore;
   objectMutate?: DataIntakeSourceObjectRpcClient;
   structureMutate?: DataIntakeSourceStructureRpcClient;
+  mappingMutate?: DataIntakeMappingRpcClient;
 } = {}): DataIntakeService {
   const env = input.env ?? process.env;
   const queryClient = input.queryClient ?? createDataIntakeQueryClient(env);
@@ -648,6 +735,7 @@ export function createDataIntakeService(input: {
   const objectStore = input.objectStore ?? createDataIntakeObjectStore(env);
   const objectMutate = input.objectMutate ?? createDataIntakeSourceObjectRpcClient(env);
   const structureMutate = input.structureMutate ?? createDataIntakeSourceStructureRpcClient(env);
+  const mappingMutate = input.mappingMutate ?? createDataIntakeMappingRpcClient(env);
   const auth =
     input.auth ??
     ({
@@ -665,5 +753,6 @@ export function createDataIntakeService(input: {
     objectStore,
     objectMutate,
     structureMutate,
+    mappingMutate,
   });
 }
