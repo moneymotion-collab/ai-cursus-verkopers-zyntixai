@@ -8,7 +8,13 @@ import { isDataSourceKind } from "@/features/data-intake/domain/constants";
 import type { DataSourceKind } from "@/features/data-intake/domain/constants";
 import type { DataIntakeSessionStatus } from "@/features/data-intake/domain/types";
 import type { DataIntakeMappingRow, DataMappingDecisionStatus } from "@/features/data-intake/domain/mapping";
-import type { DataIntakeStagingRow } from "@/features/data-intake/domain/staging";
+import {
+  DATA_STAGING_RESOLUTIONS,
+  DATA_STAGING_TARGET_OPERATIONS,
+  type DataIntakeStagingRow,
+  type DataStagingResolution,
+  type DataStagingTargetOperation,
+} from "@/features/data-intake/domain/staging";
 import type { DataValidationIssue } from "@/features/data-intake/domain/validation";
 import {
   asString,
@@ -240,7 +246,7 @@ export function createQueryDataIntakeRecordLookup(
         queryClient
           .from("data_intake_staging_rows")
           .select(
-            "source_row_number, raw_values, normalized_values, row_fingerprint, lifecycle, resolution, error_codes, warning_codes, error_details",
+            "source_row_number, raw_values, normalized_values, row_fingerprint, lifecycle, resolution, target_operation, target_record_id, error_codes, warning_codes, error_details",
           )
           .eq("organization_id", input.organizationId)
           .eq("source_id", input.sourceId),
@@ -288,13 +294,17 @@ function mapStaging(row: Record<string, unknown>): DataIntakeStagingRow[] {
   const fingerprint = asString(row.row_fingerprint);
   const lifecycle = asString(row.lifecycle);
   const resolution = asString(row.resolution);
+  const targetOperation = asString(row.target_operation);
   const rawValues = row.raw_values;
   const normalizedValues = row.normalized_values;
   if (
     typeof sourceRowNumber !== "number" ||
     !fingerprint ||
     (lifecycle !== "validated" && lifecycle !== "blocked") ||
-    resolution !== "none" ||
+    !resolution ||
+    !(DATA_STAGING_RESOLUTIONS as readonly string[]).includes(resolution) ||
+    (targetOperation !== null &&
+      !(DATA_STAGING_TARGET_OPERATIONS as readonly string[]).includes(targetOperation)) ||
     !rawValues ||
     typeof rawValues !== "object" ||
     Array.isArray(rawValues)
@@ -311,7 +321,9 @@ function mapStaging(row: Record<string, unknown>): DataIntakeStagingRow[] {
           : {},
       rowFingerprint: fingerprint,
       lifecycle,
-      resolution: "none",
+      resolution: resolution as DataStagingResolution,
+      targetOperation: targetOperation as DataStagingTargetOperation | null,
+      targetRecordId: asString(row.target_record_id),
       errorCodes: Array.isArray(row.error_codes)
         ? row.error_codes.filter((value): value is string => typeof value === "string")
         : [],

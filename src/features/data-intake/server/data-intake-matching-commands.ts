@@ -12,134 +12,72 @@ import { sha256Hex } from "@/features/data-intake/domain/integrity";
 import {
   canonicalizeMappingSnapshot,
   mappingSnapshotHash,
-  type DataIntakeMappingRow,
 } from "@/features/data-intake/domain/mapping";
-import { coverageForDecision } from "@/features/data-intake/domain/mapping";
 import { discoveryFromPersisted } from "@/features/data-intake/domain/parse-metadata";
-import { canonicalStructureFingerprint } from "@/features/data-intake/domain/discovery";
-import { parseSourceStructure } from "@/features/data-intake/domain/parse-source-structure";
-import { parseSourceDataRows } from "@/features/data-intake/domain/source-rows";
 import { sourceColumnsFromDiscovery } from "@/features/data-intake/domain/source-column";
 import { storagePathMatchesTenant } from "@/features/data-intake/domain/storage-path";
 import {
-  completedStagingStatus,
-  stagingRowFingerprint,
-  summarizeStagingRows,
-  type DataIntakeStagingRow,
-} from "@/features/data-intake/domain/staging";
-import { validateMappedTargetValue } from "@/features/data-intake/domain/validation";
-import {
-  isExcludedCustomerImportField,
-  resolveCustomerImportField,
-} from "@/features/data-intake/domain/target-catalog";
+  classifyIdentityResolutions,
+  completedMatchingStatus,
+  DATA_CUSTOMER_MATCHER_VERSION,
+  stagedMatchEmail,
+  summarizeIdentityResolutions,
+} from "@/features/data-intake/domain/matching";
 import {
   dataFail,
   dataOk,
   type DataIntakeResult,
 } from "@/features/data-intake/domain/errors";
 import type {
-  DataIntakeStagingSuccess,
-  ValidateDataIntakeSourceInput,
+  DataIntakeMatchingSuccess,
+  MatchDataIntakeSourceInput,
 } from "@/features/data-intake/domain/types";
-import { invokeDataIntakeStagingMutation } from "@/features/data-intake/server/data-intake-staging-rpc";
-import type { DataIntakeStagingRpcClient } from "@/features/data-intake/server/data-intake-staging-rpc";
+import { invokeDataIntakeMatchingMutation } from "@/features/data-intake/server/data-intake-matching-rpc";
+import type { DataIntakeMatchingRpcClient } from "@/features/data-intake/server/data-intake-matching-rpc";
 import type { DataIntakeRecordLookup } from "@/features/data-intake/server/data-intake-lookup";
 import type { DataIntakeQueryClient } from "@/features/data-intake/server/data-intake-query";
 import type { DataIntakeObjectStore } from "@/features/data-intake/server/source-object-store";
+import type { CustomerIdentityLookup } from "@/features/data-intake/server/customer-identity-lookup";
 import {
   authorizeDataIntakeCaller,
   type DataIntakeAuthLookup,
 } from "@/features/data-intake/server/tenant-authorization";
 
-export type DataIntakeStagingCommandDeps = {
+export type DataIntakeMatchingCommandDeps = {
   auth: DataIntakeAuthLookup;
   queryClient: DataIntakeQueryClient;
   lookup: DataIntakeRecordLookup;
   objectStore: DataIntakeObjectStore;
-  stagingMutate: DataIntakeStagingRpcClient;
+  customers: CustomerIdentityLookup;
+  matchingMutate: DataIntakeMatchingRpcClient;
 };
 
-const STAGEABLE_STATUSES = new Set([
-  "mapped",
-  "validating",
-  "review_required",
-  "ready_for_approval",
-]);
+const MATCHABLE_STATUSES = new Set(["review_required", "ready_for_approval"]);
 
 function asUnknownRecord(input: object): Record<string, unknown> {
   return input as Record<string, unknown>;
 }
 
-function buildStagedRows(input: {
-  columns: ReturnType<typeof sourceColumnsFromDiscovery>;
-  decisions: readonly DataIntakeMappingRow[];
-  rows: readonly { sourceRowNumber: number; sheetName: string | null; values: readonly string[] }[];
-  sourceSha256: string;
-}): DataIntakeResult<DataIntakeStagingRow[]> {
-  const mapped = input.decisions.filter(
-    (decision) => coverageForDecision(decision) === "mapped" && decision.targetField,
+function clientAttemptedMatchAuthority(input: Record<string, unknown>): boolean {
+  return (
+    "targetRecordId" in input ||
+    "target_record_id" in input ||
+    "targetOperation" in input ||
+    "target_operation" in input ||
+    "resolution" in input ||
+    "customers" in input
   );
-  for (const decision of mapped) {
-    const targetField = decision.targetField ?? "";
-    if (!resolveCustomerImportField(DATA_EXECUTABLE_TARGET_DOMAIN, targetField)) {
-      return dataFail(
-        isExcludedCustomerImportField(targetField) ? "TARGET_FIELD_FORBIDDEN" : "TARGET_FIELD_UNKNOWN",
-        "Confirmed mapping is inconsistent with the target catalog",
-      );
-    }
-  }
-
-  const staged: DataIntakeStagingRow[] = [];
-  for (const row of input.rows) {
-    const rawValues: Record<string, string> = {};
-    const normalizedValues: DataIntakeStagingRow["normalizedValues"] = {};
-    const issues: DataIntakeStagingRow["errorDetails"][number][] = [];
-    for (const decision of mapped) {
-      const column = input.columns.find((item) => item.key === decision.sourceFieldKey);
-      if (!column || !decision.targetField) {
-        return dataFail("SOURCE_COLUMN_UNKNOWN", "Confirmed mapping references an unknown source column");
-      }
-      const raw = row.values[column.index] ?? "";
-      rawValues[decision.sourceFieldKey] = raw;
-      const validated = validateMappedTargetValue({
-        targetField: decision.targetField,
-        raw,
-      });
-      if (!validated.ok) {
-        return dataFail(validated.code, "Confirmed mapping is inconsistent with the target catalog");
-      }
-      normalizedValues[validated.field] = validated.normalized;
-      issues.push(...validated.issues);
-    }
-    const blocked = issues.length > 0;
-    staged.push({
-      sourceRowNumber: row.sourceRowNumber,
-      rawValues,
-      normalizedValues,
-      rowFingerprint: stagingRowFingerprint({
-        sourceSha256: input.sourceSha256,
-        sheetName: row.sheetName,
-        sourceRowNumber: row.sourceRowNumber,
-        rawValues,
-      }),
-      lifecycle: blocked ? "blocked" : "validated",
-      resolution: "none",
-      targetOperation: null,
-      targetRecordId: null,
-      errorCodes: issues.map((item) => item.code),
-      warningCodes: [],
-      errorDetails: issues,
-    });
-  }
-  return dataOk(staged);
 }
 
-export async function validateAndStageDataIntakeSource(
-  deps: DataIntakeStagingCommandDeps,
-  input: ValidateDataIntakeSourceInput,
-): Promise<DataIntakeResult<DataIntakeStagingSuccess>> {
+export async function matchDataIntakeSourceCustomers(
+  deps: DataIntakeMatchingCommandDeps,
+  input: MatchDataIntakeSourceInput,
+): Promise<DataIntakeResult<DataIntakeMatchingSuccess>> {
   if (clientAttemptedStorageAuthority(asUnknownRecord(input))) {
     return dataFail("SOURCE_INVALID", "Client storage path is not accepted");
+  }
+  if (clientAttemptedMatchAuthority(asUnknownRecord(input))) {
+    return dataFail("SOURCE_INVALID", "Client matching targets are not accepted");
   }
   const authorized = await authorizeDataIntakeCaller({
     auth: deps.auth,
@@ -173,13 +111,13 @@ export async function validateAndStageDataIntakeSource(
     return dataFail("SESSION_NOT_FOUND", "Intake session not found");
   }
   if (session.value.targetDomain !== DATA_EXECUTABLE_TARGET_DOMAIN) {
-    return dataFail("TARGET_NOT_SUPPORTED", "DATA-1G staging supports customer only");
+    return dataFail("TARGET_NOT_SUPPORTED", "DATA-1H matching supports customer only");
   }
   if (session.value.status === "cancelled") {
-    return dataFail("INVALID_STATE", "Cancelled sessions cannot accept validation");
+    return dataFail("INVALID_STATE", "Cancelled sessions cannot accept matching");
   }
-  if (!STAGEABLE_STATUSES.has(session.value.status)) {
-    return dataFail("INVALID_STATE", "Validation requires a confirmed mapped session");
+  if (!MATCHABLE_STATUSES.has(session.value.status)) {
+    return dataFail("INVALID_STATE", "Matching requires a completed staging generation");
   }
 
   const sourceResult = input.sourceId
@@ -199,13 +137,10 @@ export async function validateAndStageDataIntakeSource(
     return dataFail("SOURCE_NOT_FOUND", "Intake source not found for this session");
   }
   if (!source.objectVerifiedAt) {
-    return dataFail("SOURCE_NOT_VERIFIED", "Source object must be verified before validation");
+    return dataFail("SOURCE_NOT_VERIFIED", "Source object must be verified before matching");
   }
   if (source.supersededAt || source.deletedAt) {
-    return dataFail("INVALID_STATE", "Superseded or deleted sources cannot be staged");
-  }
-  if (source.headerRowIndex === null) {
-    return dataFail("INVALID_STATE", "Validation requires completed structure discovery");
+    return dataFail("INVALID_STATE", "Superseded or deleted sources cannot be matched");
   }
   if (source.storageBucket !== DATA_INTAKE_STORAGE_BUCKET) {
     return dataFail("DATABASE_WRITE_ERROR", "Unexpected storage bucket");
@@ -235,12 +170,12 @@ export async function validateAndStageDataIntakeSource(
     return dataFail("SOURCE_HASH_INVALID", "Stored object no longer matches the verified source");
   }
 
-  const structure = await parseSourceStructure({
-    kind: source.sourceKind,
-    bytes: stored.value.bytes,
+  const decisions = await deps.lookup.findMappings({
+    organizationId: authorized.value.organizationId,
+    sourceId: source.id,
   });
-  if (!structure.ok) {
-    return structure;
+  if (!decisions.ok) {
+    return decisions;
   }
   const persisted = discoveryFromPersisted({
     sourceKind: source.sourceKind,
@@ -253,61 +188,61 @@ export async function validateAndStageDataIntakeSource(
     parseMetadata: source.parseMetadata,
   });
   if (!persisted) {
-    return dataFail("INVALID_STATE", "Persisted source structure is not usable for validation");
+    return dataFail("INVALID_STATE", "Persisted source structure is not usable for matching");
   }
-  if (canonicalStructureFingerprint(persisted) !== canonicalStructureFingerprint(structure.value)) {
-    return dataFail("SOURCE_INVALID", "Source structure no longer matches the verified discovery");
-  }
-
-  const decisions = await deps.lookup.findMappings({
-    organizationId: authorized.value.organizationId,
-    sourceId: source.id,
-  });
-  if (!decisions.ok) {
-    return decisions;
-  }
-  const columns = sourceColumnsFromDiscovery(structure.value);
   const confirmed = decisions.value.filter(
     (row) => row.status === "confirmed" || row.status === "rejected",
   );
   if (confirmed.filter((row) => row.status === "confirmed").length === 0) {
-    return dataFail("MAPPING_INCOMPLETE", "Validation requires a confirmed mapping");
+    return dataFail("MAPPING_INCOMPLETE", "Matching requires a confirmed mapping");
   }
-  const snapshot = canonicalizeMappingSnapshot({
-    columns,
-    decisions: confirmed,
-  });
-  const mappingHash = mappingSnapshotHash(snapshot);
+  const mappingHash = mappingSnapshotHash(
+    canonicalizeMappingSnapshot({
+      columns: sourceColumnsFromDiscovery(persisted),
+      decisions: confirmed,
+    }),
+  );
   if (input.mappingHash && input.mappingHash !== mappingHash) {
-    return dataFail("MAPPING_HASH_MISMATCH", "Staging is bound to the current confirmed mapping hash");
+    return dataFail("MAPPING_HASH_MISMATCH", "Matching is bound to the current confirmed mapping hash");
   }
 
-  const parsedRows = await parseSourceDataRows({
-    kind: source.sourceKind,
-    bytes: stored.value.bytes,
-  });
-  if (!parsedRows.ok) {
-    return parsedRows;
-  }
-  const staged = buildStagedRows({
-    columns,
-    decisions: confirmed,
-    rows: parsedRows.value.rows,
-    sourceSha256: digest,
+  const staged = await deps.lookup.findStaging({
+    organizationId: authorized.value.organizationId,
+    sourceId: source.id,
   });
   if (!staged.ok) {
     return staged;
   }
-  const summary = summarizeStagingRows({
-    sourceDataRows: parsedRows.value.rows.length,
-    rows: staged.value,
-    mappingHash,
-    sourceSha256: digest,
-  });
-  const nextStatus = completedStagingStatus(summary);
+  if (staged.value.length === 0) {
+    return dataFail("INVALID_STATE", "Matching requires completed staging rows");
+  }
 
-  const mutated = await invokeDataIntakeStagingMutation(deps.stagingMutate, {
-    p_operation: "confirm_source_validation",
+  const emails = staged.value
+    .filter((row) => row.lifecycle === "validated")
+    .map(stagedMatchEmail)
+    .filter((value): value is string => Boolean(value));
+  const candidates = await deps.customers.findByOrganizationEmails({
+    organizationId: authorized.value.organizationId,
+    emails,
+  });
+  if (!candidates.ok) {
+    return candidates;
+  }
+  const matches = classifyIdentityResolutions({
+    organizationId: authorized.value.organizationId,
+    rows: staged.value,
+    candidates: candidates.value,
+  });
+  const summary = summarizeIdentityResolutions(matches);
+  const computedStatus = completedMatchingStatus({
+    rows: staged.value,
+    matches,
+  });
+  const nextStatus =
+    session.value.status === "review_required" ? "review_required" : computedStatus;
+
+  const mutated = await invokeDataIntakeMatchingMutation(deps.matchingMutate, {
+    p_operation: "confirm_source_matching",
     p_organization_id: authorized.value.organizationId,
     p_actor_user_id: authorized.value.userId,
     p_actor_member_id: authorized.value.membershipId,
@@ -316,20 +251,21 @@ export async function validateAndStageDataIntakeSource(
       source_id: source.id,
       mapping_hash: mappingHash,
       source_sha256: digest,
+      matcher_version: DATA_CUSTOMER_MATCHER_VERSION,
       next_status: nextStatus,
-      source_data_rows: summary.sourceDataRows,
-      valid_rows: summary.validRows,
-      invalid_rows: summary.invalidRows,
-      staging_rows: staged.value.map((row) => ({
+      eligible_rows: summary.eligibleRows,
+      exact_matches: summary.exactMatches,
+      no_matches: summary.noMatches,
+      no_key_rows: summary.noKeyRows,
+      ambiguous_rows: summary.ambiguousRows,
+      collisions: summary.collisions,
+      blocked_skipped: summary.blockedSkipped,
+      match_rows: matches.map((row) => ({
         source_row_number: row.sourceRowNumber,
-        raw_values: row.rawValues,
-        normalized_values: row.normalizedValues,
-        row_fingerprint: row.rowFingerprint,
-        lifecycle: row.lifecycle,
         resolution: row.resolution,
-        error_codes: row.errorCodes,
-        warning_codes: row.warningCodes,
-        error_details: row.errorDetails,
+        target_operation: row.targetOperation,
+        target_record_id: row.targetRecordId,
+        match_kind: row.matchKind,
       })),
     },
   });
@@ -356,15 +292,22 @@ export async function validateAndStageDataIntakeSource(
     replayed: mutated.value.replayed,
     mappingHash,
     sourceSha256: digest,
+    matcherVersion: DATA_CUSTOMER_MATCHER_VERSION,
     summary: mutated.value.summary ?? summary,
     rows: persistedRows.value,
   });
 }
 
-export async function listDataIntakeStagingState(
-  deps: DataIntakeStagingCommandDeps,
-  input: ValidateDataIntakeSourceInput,
-): Promise<DataIntakeResult<DataIntakeStagingSuccess>> {
+export async function listDataIntakeMatchingState(
+  deps: DataIntakeMatchingCommandDeps,
+  input: MatchDataIntakeSourceInput,
+): Promise<DataIntakeResult<DataIntakeMatchingSuccess>> {
+  if (clientAttemptedStorageAuthority(asUnknownRecord(input))) {
+    return dataFail("SOURCE_INVALID", "Client storage path is not accepted");
+  }
+  if (clientAttemptedMatchAuthority(asUnknownRecord(input))) {
+    return dataFail("SOURCE_INVALID", "Client matching targets are not accepted");
+  }
   const authorized = await authorizeDataIntakeCaller({
     auth: deps.auth,
     queryClient: deps.queryClient,
@@ -405,45 +348,29 @@ export async function listDataIntakeStagingState(
   if (!source || source.sessionId !== input.sessionId) {
     return dataFail("SOURCE_NOT_FOUND", "Intake source not found for this session");
   }
-  const authoritative =
-    session.value.status === "review_required" || session.value.status === "ready_for_approval";
-  const rows = authoritative
-    ? await deps.lookup.findStaging({
-        organizationId: authorized.value.organizationId,
-        sourceId: source.id,
-      })
-    : dataOk([]);
-  if (!rows.ok) {
-    return rows;
-  }
-  const decisions = await deps.lookup.findMappings({
+  const rows = await deps.lookup.findStaging({
     organizationId: authorized.value.organizationId,
     sourceId: source.id,
   });
-  if (!decisions.ok) {
-    return decisions;
+  if (!rows.ok) {
+    return rows;
   }
-  const persisted = discoveryFromPersisted({
-    sourceKind: source.sourceKind,
-    encoding: source.encoding,
-    delimiter: source.delimiter,
-    sheetName: source.sheetName,
-    headerRowIndex: source.headerRowIndex,
-    rowCount: source.rowCount,
-    columnCount: source.columnCount,
-    parseMetadata: source.parseMetadata,
+  const emails = rows.value
+    .filter((row) => row.lifecycle === "validated")
+    .map(stagedMatchEmail)
+    .filter((value): value is string => Boolean(value));
+  const candidates = await deps.customers.findByOrganizationEmails({
+    organizationId: authorized.value.organizationId,
+    emails,
   });
-  const mappingHash =
-    persisted && decisions.value.some((row) => row.status === "confirmed")
-      ? mappingSnapshotHash(
-          canonicalizeMappingSnapshot({
-            columns: sourceColumnsFromDiscovery(persisted),
-            decisions: decisions.value.filter(
-              (row) => row.status === "confirmed" || row.status === "rejected",
-            ),
-          }),
-        )
-      : (input.mappingHash ?? null);
+  if (!candidates.ok) {
+    return candidates;
+  }
+  const matches = classifyIdentityResolutions({
+    organizationId: authorized.value.organizationId,
+    rows: rows.value,
+    candidates: candidates.value,
+  });
   return dataOk({
     sessionId: session.value.id,
     status: session.value.status,
@@ -454,14 +381,10 @@ export async function listDataIntakeStagingState(
     storageBucket: source.storageBucket,
     eventId: null,
     eventType: null,
-    mappingHash,
+    mappingHash: input.mappingHash ?? null,
     sourceSha256: source.sha256,
-    summary: summarizeStagingRows({
-      sourceDataRows: source.rowCount ?? rows.value.length,
-      rows: rows.value,
-      mappingHash: mappingHash ?? "",
-      sourceSha256: source.sha256,
-    }),
+    matcherVersion: DATA_CUSTOMER_MATCHER_VERSION,
+    summary: summarizeIdentityResolutions(matches),
     rows: rows.value,
   });
 }

@@ -54,6 +54,8 @@ describe("DATA-1C server-only isolation", () => {
       expect(source).not.toMatch(/from ["']xlsx["']/);
       expect(source).not.toContain("SheetJS");
       expect(source).not.toContain("private.create_customer_record");
+      expect(source).not.toContain("customer-mutations");
+      expect(source).not.toContain("customer-writer");
       expect(source).not.toContain("apply_business_qualification_mutation");
       expect(source).not.toContain("apply_organization_context");
       if (source.includes('from "exceljs"') || source.includes("from 'exceljs'")) {
@@ -103,6 +105,13 @@ describe("DATA-1C server-only isolation", () => {
     );
     expect(staging).toContain(
       'apply_data_intake_staging_mutation" as const satisfies keyof Database["public"]["Functions"]',
+    );
+    const matching = readFileSync(
+      join(ROOT, "src/features/data-intake/server/data-intake-matching-rpc.ts"),
+      "utf8",
+    );
+    expect(matching).toContain(
+      'apply_data_intake_matching_mutation" as const satisfies keyof Database["public"]["Functions"]',
     );
   });
 });

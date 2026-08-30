@@ -7,6 +7,11 @@ import type { DataIntakeSourceObjectRpcClient } from "@/features/data-intake/ser
 import type { DataIntakeSourceStructureRpcClient } from "@/features/data-intake/server/data-intake-structure-rpc";
 import type { DataIntakeMappingRpcClient } from "@/features/data-intake/server/data-intake-mapping-rpc";
 import type { DataIntakeStagingRpcClient } from "@/features/data-intake/server/data-intake-staging-rpc";
+import type { DataIntakeMatchingRpcClient } from "@/features/data-intake/server/data-intake-matching-rpc";
+import {
+  createQueryCustomerIdentityLookup,
+  type CustomerIdentityLookup,
+} from "@/features/data-intake/server/customer-identity-lookup";
 import {
   createQueryDataIntakeRecordLookup,
   type DataIntakeRecordLookup,
@@ -54,6 +59,22 @@ export function createDataIntakeStagingRpcClient(
   env: Record<string, string | undefined> = process.env,
 ): DataIntakeStagingRpcClient {
   return createSupabaseServiceRoleClient(env) as unknown as DataIntakeStagingRpcClient;
+}
+
+export function createDataIntakeMatchingRpcClient(
+  env: Record<string, string | undefined> = process.env,
+): DataIntakeMatchingRpcClient {
+  return createSupabaseServiceRoleClient(env) as unknown as DataIntakeMatchingRpcClient;
+}
+
+export function createCustomerIdentityLookup(
+  env: Record<string, string | undefined> = process.env,
+): CustomerIdentityLookup {
+  return createQueryCustomerIdentityLookup(
+    createSupabaseServiceRoleClient(env) as unknown as Parameters<
+      typeof createQueryCustomerIdentityLookup
+    >[0],
+  );
 }
 
 export function createDataIntakeRecordLookup(

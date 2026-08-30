@@ -9,6 +9,7 @@ import type {
   DataMappingCompleteness,
   DataMappingSnapshot,
 } from "@/features/data-intake/domain/mapping";
+import type { DataMatchSummary } from "@/features/data-intake/domain/matching";
 import type { DataIntakeStagingRow, DataStagingSummary } from "@/features/data-intake/domain/staging";
 
 export type DataIntakeMembership = {
@@ -98,6 +99,13 @@ export type ValidateDataIntakeSourceInput = {
   mappingHash?: string;
 };
 
+export type MatchDataIntakeSourceInput = {
+  organizationId: string;
+  sessionId: string;
+  sourceId?: string;
+  mappingHash?: string;
+};
+
 export type DataIntakeFoundationSuccess = {
   sessionId: string;
   status: DataIntakeSessionStatus;
@@ -131,6 +139,14 @@ export type DataIntakeStagingSuccess = DataIntakeFoundationSuccess & {
   mappingHash: string | null;
   sourceSha256: string;
   summary: DataStagingSummary;
+  rows: DataIntakeStagingRow[];
+};
+
+export type DataIntakeMatchingSuccess = DataIntakeFoundationSuccess & {
+  mappingHash: string | null;
+  sourceSha256: string;
+  matcherVersion: string;
+  summary: DataMatchSummary;
   rows: DataIntakeStagingRow[];
 };
 

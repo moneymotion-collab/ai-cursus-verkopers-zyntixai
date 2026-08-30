@@ -23,9 +23,11 @@ import {
 import {
   createMemoryDataIntakeFoundationRpc,
   createMemoryDataIntakeMappingRpc,
+  createMemoryDataIntakeMatchingRpc,
   createMemoryDataIntakeSourceObjectRpc,
   createMemoryDataIntakeSourceStructureRpc,
   createMemoryDataIntakeStagingRpc,
+  createStoreCustomerIdentityLookup,
   createStoreDataIntakeRecordLookup,
   emptyDataIntakeStore,
   type DataIntakeMemoryStore,
@@ -142,6 +144,12 @@ export function createService(input: {
       store,
       isServiceRole: input.isServiceRole,
     }),
+    matchingMutate: createMemoryDataIntakeMatchingRpc({
+      tables,
+      store,
+      isServiceRole: input.isServiceRole,
+    }),
+    customers: createStoreCustomerIdentityLookup(store),
   });
   return { service, tables, store, objectStore };
 }

@@ -38,8 +38,10 @@ import type {
   ConfirmDataIntakeMappingInput,
   DataIntakeMappingCommandInput,
   DataIntakeMappingSuccess,
+  DataIntakeMatchingSuccess,
   DataIntakeStagingSuccess,
   DiscoverDataIntakeSourceStructureInput,
+  MatchDataIntakeSourceInput,
   ValidateDataIntakeSourceInput,
   RegisterDataIntakeSourceInput,
   UploadDataIntakeSourceInput,
@@ -52,7 +54,9 @@ import {
   createDataIntakeRecordLookup,
   createDataIntakeSourceObjectRpcClient,
   createDataIntakeSourceStructureRpcClient,
+  createDataIntakeMatchingRpcClient,
   createDataIntakeStagingRpcClient,
+  createCustomerIdentityLookup,
 } from "@/features/data-intake/server/data-intake-client";
 import {
   invokeDataIntakeFoundationMutation,
@@ -68,6 +72,8 @@ import {
 } from "@/features/data-intake/server/data-intake-structure-rpc";
 import type { DataIntakeMappingRpcClient } from "@/features/data-intake/server/data-intake-mapping-rpc";
 import type { DataIntakeStagingRpcClient } from "@/features/data-intake/server/data-intake-staging-rpc";
+import type { DataIntakeMatchingRpcClient } from "@/features/data-intake/server/data-intake-matching-rpc";
+import type { CustomerIdentityLookup } from "@/features/data-intake/server/customer-identity-lookup";
 import {
   confirmDataIntakeMapping,
   ignoreDataIntakeSourceColumn,
@@ -79,6 +85,10 @@ import {
   listDataIntakeStagingState,
   validateAndStageDataIntakeSource,
 } from "@/features/data-intake/server/data-intake-staging-commands";
+import {
+  listDataIntakeMatchingState,
+  matchDataIntakeSourceCustomers,
+} from "@/features/data-intake/server/data-intake-matching-commands";
 import type { DataCustomerImportField } from "@/features/data-intake/domain/target-catalog";
 import type { DataIntakeQueryClient } from "@/features/data-intake/server/data-intake-query";
 import type { DataIntakeRecordLookup } from "@/features/data-intake/server/data-intake-lookup";
@@ -99,6 +109,8 @@ export type DataIntakeServiceDeps = {
   structureMutate?: DataIntakeSourceStructureRpcClient;
   mappingMutate?: DataIntakeMappingRpcClient;
   stagingMutate?: DataIntakeStagingRpcClient;
+  matchingMutate?: DataIntakeMatchingRpcClient;
+  customers?: CustomerIdentityLookup;
 };
 
 function sanitizeOriginalFilename(value: string): string {
@@ -746,6 +758,54 @@ export class DataIntakeService {
     );
   }
 
+  async matchDataIntakeSourceCustomers(
+    input: MatchDataIntakeSourceInput,
+  ): Promise<DataIntakeResult<DataIntakeMatchingSuccess>> {
+    if (
+      !this.deps.lookup ||
+      !this.deps.objectStore ||
+      !this.deps.matchingMutate ||
+      !this.deps.customers
+    ) {
+      return dataFail("DATABASE_WRITE_ERROR", "DATA matching is not configured");
+    }
+    return matchDataIntakeSourceCustomers(
+      {
+        auth: this.deps.auth,
+        queryClient: this.deps.queryClient,
+        lookup: this.deps.lookup,
+        objectStore: this.deps.objectStore,
+        customers: this.deps.customers,
+        matchingMutate: this.deps.matchingMutate,
+      },
+      input,
+    );
+  }
+
+  async listDataIntakeMatchingState(
+    input: MatchDataIntakeSourceInput,
+  ): Promise<DataIntakeResult<DataIntakeMatchingSuccess>> {
+    if (
+      !this.deps.lookup ||
+      !this.deps.objectStore ||
+      !this.deps.matchingMutate ||
+      !this.deps.customers
+    ) {
+      return dataFail("DATABASE_WRITE_ERROR", "DATA matching is not configured");
+    }
+    return listDataIntakeMatchingState(
+      {
+        auth: this.deps.auth,
+        queryClient: this.deps.queryClient,
+        lookup: this.deps.lookup,
+        objectStore: this.deps.objectStore,
+        customers: this.deps.customers,
+        matchingMutate: this.deps.matchingMutate,
+      },
+      input,
+    );
+  }
+
   private async authorizeCommand(organizationId: string) {
     const authorized = await authorizeDataIntakeCaller({
       auth: this.deps.auth,
@@ -773,6 +833,8 @@ export function createDataIntakeService(input: {
   structureMutate?: DataIntakeSourceStructureRpcClient;
   mappingMutate?: DataIntakeMappingRpcClient;
   stagingMutate?: DataIntakeStagingRpcClient;
+  matchingMutate?: DataIntakeMatchingRpcClient;
+  customers?: CustomerIdentityLookup;
 } = {}): DataIntakeService {
   const env = input.env ?? process.env;
   const queryClient = input.queryClient ?? createDataIntakeQueryClient(env);
@@ -783,6 +845,8 @@ export function createDataIntakeService(input: {
   const structureMutate = input.structureMutate ?? createDataIntakeSourceStructureRpcClient(env);
   const mappingMutate = input.mappingMutate ?? createDataIntakeMappingRpcClient(env);
   const stagingMutate = input.stagingMutate ?? createDataIntakeStagingRpcClient(env);
+  const matchingMutate = input.matchingMutate ?? createDataIntakeMatchingRpcClient(env);
+  const customers = input.customers ?? createCustomerIdentityLookup(env);
   const auth =
     input.auth ??
     ({
@@ -802,5 +866,7 @@ export function createDataIntakeService(input: {
     structureMutate,
     mappingMutate,
     stagingMutate,
+    matchingMutate,
+    customers,
   });
 }

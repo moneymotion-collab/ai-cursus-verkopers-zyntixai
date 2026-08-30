@@ -10,13 +10,28 @@ import type { DataValidationIssue } from "@/features/data-intake/domain/validati
 export const DATA_STAGING_LIFECYCLES = ["validated", "blocked"] as const;
 export type DataStagingLifecycle = (typeof DATA_STAGING_LIFECYCLES)[number];
 
+export const DATA_STAGING_RESOLUTIONS = [
+  "none",
+  "create",
+  "link",
+  "skip",
+  "duplicate",
+  "conflict",
+] as const;
+export type DataStagingResolution = (typeof DATA_STAGING_RESOLUTIONS)[number];
+
+export const DATA_STAGING_TARGET_OPERATIONS = ["create", "link", "skip"] as const;
+export type DataStagingTargetOperation = (typeof DATA_STAGING_TARGET_OPERATIONS)[number];
+
 export type DataIntakeStagingRow = {
   sourceRowNumber: number;
   rawValues: Record<string, string>;
   normalizedValues: Partial<Record<DataCustomerImportFieldKey, string | null>>;
   rowFingerprint: string;
   lifecycle: DataStagingLifecycle;
-  resolution: "none";
+  resolution: DataStagingResolution;
+  targetOperation: DataStagingTargetOperation | null;
+  targetRecordId: string | null;
   errorCodes: readonly string[];
   warningCodes: readonly string[];
   errorDetails: readonly DataValidationIssue[];

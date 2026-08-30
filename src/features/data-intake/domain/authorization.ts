@@ -23,6 +23,8 @@ export type DataIntakeMappingOperation =
 
 export type DataIntakeStagingOperation = "confirm_source_validation";
 
+export type DataIntakeMatchingOperation = "confirm_source_matching";
+
 export function isKnownDataIntakeRole(
   value: string,
 ): value is DataIntakeOrganizationRole {

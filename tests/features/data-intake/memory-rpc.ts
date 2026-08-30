@@ -24,6 +24,14 @@ import {
   type DataIntakeStagingRpcArgs,
   type DataIntakeStagingRpcClient,
 } from "@/features/data-intake/server/data-intake-staging-rpc";
+import {
+  DATA_INTAKE_MATCHING_RPC,
+  type DataIntakeMatchingRpcArgs,
+  type DataIntakeMatchingRpcClient,
+} from "@/features/data-intake/server/data-intake-matching-rpc";
+import type { CustomerIdentityLookup } from "@/features/data-intake/server/customer-identity-lookup";
+import type { DataStagingResolution, DataStagingTargetOperation } from "@/features/data-intake/domain/staging";
+import { DATA_CUSTOMER_MATCHER_VERSION } from "@/features/data-intake/domain/matching";
 import type { DataIntakeMappingRow, DataMappingDecisionStatus } from "@/features/data-intake/domain/mapping";
 import {
   dataOk,
@@ -88,15 +96,25 @@ type MappingRow = {
   confirmed_at: string | null;
 };
 
+export type MemoryCustomer = {
+  id: string;
+  organization_id: string;
+  email: string | null;
+  archived_at: string | null;
+  display_name?: string;
+};
+
 export type DataIntakeMemoryStore = {
   sessions: SessionRow[];
   sources: SourceRow[];
   events: Array<{ event_type: string; metadata: Record<string, unknown> }>;
   mappings: MappingRow[];
   staging: StagingRow[];
+  customers: MemoryCustomer[];
   plans: unknown[];
   rowResults: unknown[];
   links: unknown[];
+  matchingTail: Promise<unknown>;
 };
 
 export type StagingRow = {
@@ -108,7 +126,9 @@ export type StagingRow = {
   normalized_values: Record<string, string | null>;
   row_fingerprint: string;
   lifecycle: "validated" | "blocked";
-  resolution: "none";
+  resolution: DataStagingResolution;
+  target_operation: DataStagingTargetOperation | null;
+  target_record_id: string | null;
   error_codes: string[];
   warning_codes: string[];
   error_details: Array<{ code: string; field: string; message: string }>;
@@ -132,9 +152,11 @@ export function emptyDataIntakeStore(): DataIntakeMemoryStore {
     events: [],
     mappings: [],
     staging: [],
+    customers: [],
     plans: [],
     rowResults: [],
     links: [],
+    matchingTail: Promise.resolve(),
   };
 }
 
@@ -242,7 +264,9 @@ export function createStoreDataIntakeRecordLookup(
           normalizedValues: row.normalized_values,
           rowFingerprint: row.row_fingerprint,
           lifecycle: row.lifecycle,
-          resolution: "none" as const,
+          resolution: row.resolution,
+          targetOperation: row.target_operation,
+          targetRecordId: row.target_record_id,
           errorCodes: row.error_codes,
           warningCodes: row.warning_codes,
           errorDetails: row.error_details as never,
@@ -1355,6 +1379,8 @@ export function createMemoryDataIntakeStagingRpc(input: {
           row_fingerprint: row.row_fingerprint,
           lifecycle: row.lifecycle,
           resolution: "none",
+          target_operation: null,
+          target_record_id: null,
           error_codes: errorCodes,
           warning_codes: [],
           error_details: Array.isArray(row.error_details)
@@ -1469,5 +1495,407 @@ export function createMemoryDataIntakeStagingRpc(input: {
         error: null,
       };
     },
+  };
+}
+
+export function createStoreCustomerIdentityLookup(
+  store: DataIntakeMemoryStore,
+): CustomerIdentityLookup {
+  return {
+    async findByOrganizationEmails(input) {
+      const allowed = new Set(input.emails);
+      return dataOk(
+        store.customers.flatMap((row) => {
+          if (row.organization_id !== input.organizationId || !row.email || !allowed.has(row.email)) {
+            return [];
+          }
+          return [
+            {
+              id: row.id,
+              organizationId: row.organization_id,
+              email: row.email,
+              archivedAt: row.archived_at,
+            },
+          ];
+        }),
+      );
+    },
+  };
+}
+
+function sameResolution(
+  current: StagingRow,
+  incoming: {
+    resolution: string;
+    target_operation: string | null;
+    target_record_id: string | null;
+  },
+) {
+  return (
+    current.resolution === incoming.resolution &&
+    current.target_operation === incoming.target_operation &&
+    current.target_record_id === incoming.target_record_id
+  );
+}
+
+export function createMemoryDataIntakeMatchingRpc(input: {
+  tables: DataIntakeMemoryTables;
+  store: DataIntakeMemoryStore;
+  requireServiceRole?: boolean;
+  isServiceRole?: boolean;
+}): DataIntakeMatchingRpcClient {
+  const requireServiceRole = input.requireServiceRole ?? true;
+
+  return {
+    async rpc(fn, args: DataIntakeMatchingRpcArgs) {
+      const previous = input.store.matchingTail;
+      let release!: (value?: unknown) => void;
+      input.store.matchingTail = new Promise((resolve) => {
+        release = resolve;
+      });
+      await previous.catch(() => undefined);
+      try {
+        return await runMatchingRpc(input, requireServiceRole, fn, args);
+      } finally {
+        release();
+      }
+    },
+  };
+}
+
+async function runMatchingRpc(
+  input: {
+    tables: DataIntakeMemoryTables;
+    store: DataIntakeMemoryStore;
+    isServiceRole?: boolean;
+  },
+  requireServiceRole: boolean,
+  fn: string,
+  args: DataIntakeMatchingRpcArgs,
+) {
+  if (fn !== DATA_INTAKE_MATCHING_RPC) {
+    return { data: null, error: { message: "unknown rpc" } };
+  }
+  if (requireServiceRole && input.isServiceRole === false) {
+    return {
+      data: fail("UNAUTHORIZED", "DATA mutation requires the privileged database role"),
+      error: null,
+    };
+  }
+  const org = input.tables.organizations.find((row) => row.id === args.p_organization_id);
+  if (!org || org.status !== "active") {
+    return { data: fail("ORG_NOT_FOUND", "Organization not found or not active"), error: null };
+  }
+  const member = input.tables.organization_members.find(
+    (row) =>
+      row.organization_id === args.p_organization_id &&
+      row.id === args.p_actor_member_id &&
+      row.user_id === args.p_actor_user_id,
+  );
+  if (!member || member.status !== "active") {
+    return {
+      data: fail("UNAUTHORIZED", "Active organization membership is required"),
+      error: null,
+    };
+  }
+  if (member.role !== "owner" && member.role !== "admin") {
+    return { data: fail("FORBIDDEN_ROLE", "Owner or Admin role is required"), error: null };
+  }
+  if (
+    args.p_payload.storage_path ||
+    args.p_payload.records ||
+    args.p_payload.bytes ||
+    args.p_payload.rows ||
+    args.p_payload.cells ||
+    args.p_payload.target_record_id ||
+    args.p_payload.target_operation ||
+    args.p_payload.targetRecordId ||
+    args.p_payload.targetOperation
+  ) {
+    return {
+      data: fail("SOURCE_INVALID", "Client matching targets and source rows are not accepted"),
+      error: null,
+    };
+  }
+  if (args.p_operation !== "confirm_source_matching") {
+    return { data: fail("INVALID_STATE", "Unknown DATA matching operation"), error: null };
+  }
+
+  const sessionId = typeof args.p_payload.session_id === "string" ? args.p_payload.session_id : "";
+  const sourceId = typeof args.p_payload.source_id === "string" ? args.p_payload.source_id : "";
+  const mappingHash =
+    typeof args.p_payload.mapping_hash === "string" ? args.p_payload.mapping_hash : "";
+  const sourceSha256 =
+    typeof args.p_payload.source_sha256 === "string" ? args.p_payload.source_sha256 : "";
+  const matcherVersion =
+    typeof args.p_payload.matcher_version === "string" ? args.p_payload.matcher_version : "";
+  const nextStatus =
+    typeof args.p_payload.next_status === "string" ? args.p_payload.next_status : "";
+  const matchRows = Array.isArray(args.p_payload.match_rows) ? args.p_payload.match_rows : null;
+  const eligibleRows =
+    typeof args.p_payload.eligible_rows === "number" ? args.p_payload.eligible_rows : -1;
+  const exactMatches =
+    typeof args.p_payload.exact_matches === "number" ? args.p_payload.exact_matches : -1;
+  const noMatches = typeof args.p_payload.no_matches === "number" ? args.p_payload.no_matches : -1;
+  const noKeyRows = typeof args.p_payload.no_key_rows === "number" ? args.p_payload.no_key_rows : -1;
+  const ambiguousRows =
+    typeof args.p_payload.ambiguous_rows === "number" ? args.p_payload.ambiguous_rows : -1;
+  const collisions = typeof args.p_payload.collisions === "number" ? args.p_payload.collisions : -1;
+  const blockedSkipped =
+    typeof args.p_payload.blocked_skipped === "number" ? args.p_payload.blocked_skipped : -1;
+
+  if (!UUID.test(sessionId)) {
+    return { data: fail("SESSION_NOT_FOUND", "sessionId is required"), error: null };
+  }
+  if (!UUID.test(sourceId)) {
+    return { data: fail("SOURCE_NOT_FOUND", "sourceId is required"), error: null };
+  }
+  if (!/^[0-9a-f]{64}$/.test(mappingHash) || !/^[0-9a-f]{64}$/.test(sourceSha256)) {
+    return {
+      data: fail("MAPPING_HASH_MISMATCH", "Matching is bound to the current confirmed mapping hash"),
+      error: null,
+    };
+  }
+  if (matcherVersion !== DATA_CUSTOMER_MATCHER_VERSION) {
+    return { data: fail("SOURCE_INVALID", "Unknown matcher version"), error: null };
+  }
+  if (nextStatus !== "review_required" && nextStatus !== "ready_for_approval") {
+    return { data: fail("INVALID_STATE", "Unknown DATA matching completion status"), error: null };
+  }
+  if (!matchRows) {
+    return { data: fail("SOURCE_INVALID", "match_rows must be an array"), error: null };
+  }
+
+  const session = input.store.sessions.find(
+    (row) => row.id === sessionId && row.organization_id === args.p_organization_id,
+  );
+  if (!session) {
+    return { data: fail("SESSION_NOT_FOUND", "Intake session not found"), error: null };
+  }
+  if (session.target_domain !== "customer") {
+    return {
+      data: fail("TARGET_NOT_SUPPORTED", "DATA-1H matching supports customer only"),
+      error: null,
+    };
+  }
+  if (session.status === "cancelled") {
+    return {
+      data: fail("INVALID_STATE", "Cancelled sessions cannot accept matching"),
+      error: null,
+    };
+  }
+  if (session.status !== "review_required" && session.status !== "ready_for_approval") {
+    return {
+      data: fail("INVALID_STATE", "Matching requires a completed staging generation"),
+      error: null,
+    };
+  }
+  if (session.status === "review_required" && nextStatus === "ready_for_approval") {
+    return {
+      data: fail("INVALID_STATE", "Matching cannot leave review_required without revalidation"),
+      error: null,
+    };
+  }
+
+  const source = input.store.sources.find(
+    (row) =>
+      row.id === sourceId &&
+      row.organization_id === args.p_organization_id &&
+      row.session_id === session.id,
+  );
+  if (!source) {
+    return {
+      data: fail("SOURCE_NOT_FOUND", "Intake source not found for this session"),
+      error: null,
+    };
+  }
+  if (source.sha256 !== sourceSha256) {
+    return {
+      data: fail("SOURCE_HASH_INVALID", "Stored object no longer matches the verified source"),
+      error: null,
+    };
+  }
+
+  const existing = input.store.staging.filter((row) => row.source_id === source.id);
+  if (existing.length === 0) {
+    return { data: fail("INVALID_STATE", "Matching requires completed staging rows"), error: null };
+  }
+  if (existing.length !== matchRows.length) {
+    return { data: fail("SOURCE_INVALID", "Matching rows must cover the current staging set"), error: null };
+  }
+
+  const parsed: Array<{
+    source_row_number: number;
+    resolution: DataStagingResolution;
+    target_operation: DataStagingTargetOperation | null;
+    target_record_id: string | null;
+    match_kind: string;
+  }> = [];
+  for (const raw of matchRows) {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+      return { data: fail("SOURCE_INVALID", "Each match row must be an object"), error: null };
+    }
+    const row = raw as Record<string, unknown>;
+    const sourceRowNumber =
+      typeof row.source_row_number === "number" ? row.source_row_number : -1;
+    const resolution = row.resolution;
+    const targetOperation = row.target_operation ?? null;
+    const targetRecordId = row.target_record_id ?? null;
+    const matchKind = typeof row.match_kind === "string" ? row.match_kind : "";
+    const staged = existing.find((item) => item.source_row_number === sourceRowNumber);
+    if (!staged) {
+      return { data: fail("SOURCE_INVALID", "Matching row is not part of the staged set"), error: null };
+    }
+    if (
+      (resolution !== "none" &&
+        resolution !== "create" &&
+        resolution !== "duplicate" &&
+        resolution !== "conflict") ||
+      (targetOperation !== null &&
+        targetOperation !== "create" &&
+        targetOperation !== "link") ||
+      (targetRecordId !== null && typeof targetRecordId !== "string")
+    ) {
+      return { data: fail("SOURCE_INVALID", "Matching row failed the frozen resolution contract"), error: null };
+    }
+    if (staged.lifecycle === "blocked") {
+      if (resolution !== "none" || targetOperation !== null || targetRecordId !== null) {
+        return {
+          data: fail("SOURCE_INVALID", "Blocked rows cannot receive matching targets"),
+          error: null,
+        };
+      }
+    }
+    if (typeof targetRecordId === "string") {
+      if (!UUID.test(targetRecordId) || resolution !== "duplicate" || targetOperation !== "link") {
+        return {
+          data: fail("SOURCE_INVALID", "target_record_id is only valid for an exact link candidate"),
+          error: null,
+        };
+      }
+      const customer = input.store.customers.find(
+        (item) => item.id === targetRecordId && item.organization_id === args.p_organization_id,
+      );
+      if (!customer) {
+        return {
+          data: fail("SOURCE_INVALID", "target_record_id must resolve to a same-organization Customer"),
+          error: null,
+        };
+      }
+      const stagedEmail = staged.normalized_values.email;
+      if (!customer.email || customer.email !== stagedEmail) {
+        return {
+          data: fail("SOURCE_INVALID", "target_record_id failed the deterministic email rule"),
+          error: null,
+        };
+      }
+    }
+    parsed.push({
+      source_row_number: sourceRowNumber,
+      resolution,
+      target_operation: targetOperation,
+      target_record_id: typeof targetRecordId === "string" ? targetRecordId : null,
+      match_kind: matchKind,
+    });
+  }
+
+  const computedExact = parsed.filter((row) => row.match_kind === "exact").length;
+  const computedNoMatch = parsed.filter((row) => row.match_kind === "no_match").length;
+  const computedNoKey = parsed.filter((row) => row.match_kind === "no_key").length;
+  const computedAmbiguous = parsed.filter((row) => row.match_kind === "ambiguous").length;
+  const computedCollision = parsed.filter((row) => row.match_kind === "collision").length;
+  const computedBlocked = parsed.filter((row) => row.match_kind === "skipped").length;
+  const computedEligible = parsed.length - computedBlocked;
+  if (
+    eligibleRows !== computedEligible ||
+    exactMatches !== computedExact ||
+    noMatches !== computedNoMatch ||
+    noKeyRows !== computedNoKey ||
+    ambiguousRows !== computedAmbiguous ||
+    collisions !== computedCollision ||
+    blockedSkipped !== computedBlocked
+  ) {
+    return { data: fail("SOURCE_INVALID", "Matching summary does not match row outcomes"), error: null };
+  }
+
+  const replayed =
+    input.store.events.some((event) => event.event_type === "matching_completed") &&
+    existing.every((row) => {
+      const incoming = parsed.find((item) => item.source_row_number === row.source_row_number);
+      return incoming ? sameResolution(row, incoming) : false;
+    });
+  const summary = {
+    eligible_rows: computedEligible,
+    exact_matches: computedExact,
+    no_matches: computedNoMatch,
+    no_key_rows: computedNoKey,
+    ambiguous_rows: computedAmbiguous,
+    collisions: computedCollision,
+    blocked_skipped: computedBlocked,
+    matcher_version: DATA_CUSTOMER_MATCHER_VERSION,
+  };
+  if (replayed) {
+    return {
+      data: {
+        ok: true,
+        session_id: session.id,
+        status: session.status,
+        target_domain: session.target_domain,
+        source_kind: session.source_kind,
+        source_id: source.id,
+        storage_path: source.storage_path,
+        storage_bucket: source.storage_bucket,
+        event_id: input.store.events.find((event) => event.event_type === "matching_completed")
+          ? randomUuid()
+          : null,
+        event_type: "matching_completed",
+        replayed: true,
+        mapping_hash: mappingHash,
+        summary,
+      },
+      error: null,
+    };
+  }
+
+  for (const incoming of parsed) {
+    const staged = existing.find((row) => row.source_row_number === incoming.source_row_number);
+    if (!staged) continue;
+    staged.resolution = incoming.resolution;
+    staged.target_operation = incoming.target_operation;
+    staged.target_record_id = incoming.target_record_id;
+  }
+  session.status = nextStatus;
+  input.store.events.push({
+    event_type: "matching_completed",
+    metadata: {
+      source_id: source.id,
+      mapping_hash: mappingHash,
+      matcher_version: DATA_CUSTOMER_MATCHER_VERSION,
+      eligible_rows: computedEligible,
+      exact_matches: computedExact,
+      no_matches: computedNoMatch,
+      no_key_rows: computedNoKey,
+      ambiguous_rows: computedAmbiguous,
+      collisions: computedCollision,
+      blocked_skipped: computedBlocked,
+    },
+  });
+  return {
+    data: {
+      ok: true,
+      session_id: session.id,
+      status: session.status,
+      target_domain: session.target_domain,
+      source_kind: session.source_kind,
+      source_id: source.id,
+      storage_path: source.storage_path,
+      storage_bucket: source.storage_bucket,
+      event_id: randomUuid(),
+      event_type: "matching_completed",
+      replayed: false,
+      mapping_hash: mappingHash,
+      summary,
+    },
+    error: null,
   };
 }
