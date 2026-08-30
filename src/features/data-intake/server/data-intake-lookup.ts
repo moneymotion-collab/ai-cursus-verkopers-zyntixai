@@ -8,6 +8,8 @@ import { isDataSourceKind } from "@/features/data-intake/domain/constants";
 import type { DataSourceKind } from "@/features/data-intake/domain/constants";
 import type { DataIntakeSessionStatus } from "@/features/data-intake/domain/types";
 import type { DataIntakeMappingRow, DataMappingDecisionStatus } from "@/features/data-intake/domain/mapping";
+import type { DataIntakeStagingRow } from "@/features/data-intake/domain/staging";
+import type { DataValidationIssue } from "@/features/data-intake/domain/validation";
 import {
   asString,
   executeDataIntakeQuery,
@@ -62,6 +64,10 @@ export type DataIntakeRecordLookup = {
     organizationId: string;
     sourceId: string;
   }): Promise<DataIntakeResult<DataIntakeMappingRow[]>>;
+  findStaging(input: {
+    organizationId: string;
+    sourceId: string;
+  }): Promise<DataIntakeResult<DataIntakeStagingRow[]>>;
 };
 
 const SESSION_STATUSES = new Set<DataIntakeSessionStatus>([
@@ -228,6 +234,22 @@ export function createQueryDataIntakeRecordLookup(
       }
       return dataOk(rows.value.flatMap(mapMapping));
     },
+
+    async findStaging(input) {
+      const rows = await executeDataIntakeQuery(
+        queryClient
+          .from("data_intake_staging_rows")
+          .select(
+            "source_row_number, raw_values, normalized_values, row_fingerprint, lifecycle, resolution, error_codes, warning_codes, error_details",
+          )
+          .eq("organization_id", input.organizationId)
+          .eq("source_id", input.sourceId),
+      );
+      if (!rows.ok) {
+        return rows;
+      }
+      return dataOk(rows.value.flatMap(mapStaging));
+    },
   };
 }
 
@@ -257,6 +279,56 @@ function mapMapping(row: Record<string, unknown>): DataIntakeMappingRow[] {
       sourceHeader,
       targetField: asString(row.target_field),
       status: status as DataMappingDecisionStatus,
+    },
+  ];
+}
+
+function mapStaging(row: Record<string, unknown>): DataIntakeStagingRow[] {
+  const sourceRowNumber = row.source_row_number;
+  const fingerprint = asString(row.row_fingerprint);
+  const lifecycle = asString(row.lifecycle);
+  const resolution = asString(row.resolution);
+  const rawValues = row.raw_values;
+  const normalizedValues = row.normalized_values;
+  if (
+    typeof sourceRowNumber !== "number" ||
+    !fingerprint ||
+    (lifecycle !== "validated" && lifecycle !== "blocked") ||
+    resolution !== "none" ||
+    !rawValues ||
+    typeof rawValues !== "object" ||
+    Array.isArray(rawValues)
+  ) {
+    return [];
+  }
+  return [
+    {
+      sourceRowNumber,
+      rawValues: rawValues as Record<string, string>,
+      normalizedValues:
+        normalizedValues && typeof normalizedValues === "object" && !Array.isArray(normalizedValues)
+          ? (normalizedValues as DataIntakeStagingRow["normalizedValues"])
+          : {},
+      rowFingerprint: fingerprint,
+      lifecycle,
+      resolution: "none",
+      errorCodes: Array.isArray(row.error_codes)
+        ? row.error_codes.filter((value): value is string => typeof value === "string")
+        : [],
+      warningCodes: Array.isArray(row.warning_codes)
+        ? row.warning_codes.filter((value): value is string => typeof value === "string")
+        : [],
+      errorDetails: Array.isArray(row.error_details)
+        ? row.error_details.filter((value): value is DataValidationIssue => {
+            return Boolean(
+              value &&
+                typeof value === "object" &&
+                "code" in value &&
+                "field" in value &&
+                "message" in value,
+            );
+          })
+        : [],
     },
   ];
 }

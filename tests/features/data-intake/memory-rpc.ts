@@ -19,6 +19,11 @@ import {
   type DataIntakeMappingRpcArgs,
   type DataIntakeMappingRpcClient,
 } from "@/features/data-intake/server/data-intake-mapping-rpc";
+import {
+  DATA_INTAKE_STAGING_RPC,
+  type DataIntakeStagingRpcArgs,
+  type DataIntakeStagingRpcClient,
+} from "@/features/data-intake/server/data-intake-staging-rpc";
 import type { DataIntakeMappingRow, DataMappingDecisionStatus } from "@/features/data-intake/domain/mapping";
 import {
   dataOk,
@@ -88,10 +93,26 @@ export type DataIntakeMemoryStore = {
   sources: SourceRow[];
   events: Array<{ event_type: string; metadata: Record<string, unknown> }>;
   mappings: MappingRow[];
-  staging: unknown[];
+  staging: StagingRow[];
   plans: unknown[];
   rowResults: unknown[];
   links: unknown[];
+};
+
+export type StagingRow = {
+  organization_id: string;
+  session_id: string;
+  source_id: string;
+  source_row_number: number;
+  raw_values: Record<string, string>;
+  normalized_values: Record<string, string | null>;
+  row_fingerprint: string;
+  lifecycle: "validated" | "blocked";
+  resolution: "none";
+  error_codes: string[];
+  warning_codes: string[];
+  error_details: Array<{ code: string; field: string; message: string }>;
+  mapping_hash: string;
 };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -209,6 +230,25 @@ export function createStoreDataIntakeRecordLookup(
         });
       return dataOk(rows);
     },
+    async findStaging(input) {
+      const rows = store.staging
+        .filter(
+          (row) =>
+            row.organization_id === input.organizationId && row.source_id === input.sourceId,
+        )
+        .map((row) => ({
+          sourceRowNumber: row.source_row_number,
+          rawValues: row.raw_values,
+          normalizedValues: row.normalized_values,
+          rowFingerprint: row.row_fingerprint,
+          lifecycle: row.lifecycle,
+          resolution: "none" as const,
+          errorCodes: row.error_codes,
+          warningCodes: row.warning_codes,
+          errorDetails: row.error_details as never,
+        }));
+      return dataOk(rows);
+    },
   };
 }
 
@@ -318,12 +358,15 @@ export function createMemoryDataIntakeFoundationRpc(input: {
           session.status !== "source_ready" &&
           session.status !== "parsed" &&
           session.status !== "mapping_required" &&
-          session.status !== "mapped"
+          session.status !== "mapped" &&
+          session.status !== "validating" &&
+          session.status !== "review_required" &&
+          session.status !== "ready_for_approval"
         ) {
           return {
             data: fail(
               "INVALID_STATE",
-              "DATA can cancel only created, source_ready, parsed, mapping_required, or mapped sessions",
+              "DATA can cancel only created, source_ready, parsed, mapping_required, mapped, validating, review_required, or ready_for_approval sessions",
             ),
             error: null,
           };
@@ -1106,6 +1149,323 @@ export function createMemoryDataIntakeMappingRpc(input: {
           event_type: "mapping_proposed",
           replayed,
         }),
+        error: null,
+      };
+    },
+  };
+}
+
+export function createMemoryDataIntakeStagingRpc(input: {
+  tables: DataIntakeMemoryTables;
+  store: DataIntakeMemoryStore;
+  requireServiceRole?: boolean;
+  isServiceRole?: boolean;
+}): DataIntakeStagingRpcClient {
+  const requireServiceRole = input.requireServiceRole ?? true;
+
+  return {
+    async rpc(fn, args: DataIntakeStagingRpcArgs) {
+      if (fn !== DATA_INTAKE_STAGING_RPC) {
+        return { data: null, error: { message: "unknown rpc" } };
+      }
+      if (requireServiceRole && input.isServiceRole === false) {
+        return {
+          data: fail("UNAUTHORIZED", "DATA mutation requires the privileged database role"),
+          error: null,
+        };
+      }
+      const org = input.tables.organizations.find((row) => row.id === args.p_organization_id);
+      if (!org || org.status !== "active") {
+        return { data: fail("ORG_NOT_FOUND", "Organization not found or not active"), error: null };
+      }
+      const member = input.tables.organization_members.find(
+        (row) =>
+          row.organization_id === args.p_organization_id &&
+          row.id === args.p_actor_member_id &&
+          row.user_id === args.p_actor_user_id,
+      );
+      if (!member || member.status !== "active") {
+        return {
+          data: fail("UNAUTHORIZED", "Active organization membership is required"),
+          error: null,
+        };
+      }
+      if (member.role !== "owner" && member.role !== "admin") {
+        return { data: fail("FORBIDDEN_ROLE", "Owner or Admin role is required"), error: null };
+      }
+      if (
+        args.p_payload.storage_path ||
+        args.p_payload.records ||
+        args.p_payload.bytes ||
+        args.p_payload.rows ||
+        args.p_payload.cells
+      ) {
+        return {
+          data: fail("SOURCE_INVALID", "Client storage path and source rows are not accepted"),
+          error: null,
+        };
+      }
+      if (args.p_operation !== "confirm_source_validation") {
+        return { data: fail("INVALID_STATE", "Unknown DATA staging operation"), error: null };
+      }
+
+      const sessionId = typeof args.p_payload.session_id === "string" ? args.p_payload.session_id : "";
+      const sourceId = typeof args.p_payload.source_id === "string" ? args.p_payload.source_id : "";
+      const mappingHash =
+        typeof args.p_payload.mapping_hash === "string" ? args.p_payload.mapping_hash : "";
+      const sourceSha256 =
+        typeof args.p_payload.source_sha256 === "string" ? args.p_payload.source_sha256 : "";
+      const nextStatus =
+        typeof args.p_payload.next_status === "string" ? args.p_payload.next_status : "";
+      const stagingRows = Array.isArray(args.p_payload.staging_rows)
+        ? args.p_payload.staging_rows
+        : null;
+      const sourceDataRows =
+        typeof args.p_payload.source_data_rows === "number" ? args.p_payload.source_data_rows : -1;
+      const validRows = typeof args.p_payload.valid_rows === "number" ? args.p_payload.valid_rows : -1;
+      const invalidRows =
+        typeof args.p_payload.invalid_rows === "number" ? args.p_payload.invalid_rows : -1;
+
+      if (!UUID.test(sessionId)) {
+        return { data: fail("SESSION_NOT_FOUND", "sessionId is required"), error: null };
+      }
+      if (!UUID.test(sourceId)) {
+        return { data: fail("SOURCE_NOT_FOUND", "sourceId is required"), error: null };
+      }
+      if (!/^[0-9a-f]{64}$/.test(mappingHash) || !/^[0-9a-f]{64}$/.test(sourceSha256)) {
+        return {
+          data: fail("MAPPING_HASH_MISMATCH", "Staging is bound to the current confirmed mapping hash"),
+          error: null,
+        };
+      }
+      if (nextStatus !== "review_required" && nextStatus !== "ready_for_approval") {
+        return { data: fail("INVALID_STATE", "Unknown DATA staging completion status"), error: null };
+      }
+      if (!stagingRows) {
+        return { data: fail("SOURCE_INVALID", "staging_rows must be an array"), error: null };
+      }
+
+      const session = input.store.sessions.find(
+        (row) => row.id === sessionId && row.organization_id === args.p_organization_id,
+      );
+      if (!session) {
+        return { data: fail("SESSION_NOT_FOUND", "Intake session not found"), error: null };
+      }
+      if (session.target_domain !== "customer") {
+        return {
+          data: fail("TARGET_NOT_SUPPORTED", "DATA-1G staging supports customer only"),
+          error: null,
+        };
+      }
+      if (session.status === "cancelled") {
+        return {
+          data: fail("INVALID_STATE", "Cancelled sessions cannot accept validation"),
+          error: null,
+        };
+      }
+      if (
+        session.status !== "mapped" &&
+        session.status !== "validating" &&
+        session.status !== "review_required" &&
+        session.status !== "ready_for_approval"
+      ) {
+        return {
+          data: fail("INVALID_STATE", "Validation requires a confirmed mapped session"),
+          error: null,
+        };
+      }
+
+      const source = input.store.sources.find(
+        (row) =>
+          row.id === sourceId &&
+          row.organization_id === args.p_organization_id &&
+          row.session_id === session.id,
+      );
+      if (!source) {
+        return {
+          data: fail("SOURCE_NOT_FOUND", "Intake source not found for this session"),
+          error: null,
+        };
+      }
+      if (source.sha256 !== sourceSha256) {
+        return {
+          data: fail("SOURCE_HASH_INVALID", "Stored object no longer matches the verified source"),
+          error: null,
+        };
+      }
+
+      const parsedRows: StagingRow[] = [];
+      for (const raw of stagingRows) {
+        if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+          return { data: fail("SOURCE_INVALID", "Each staging row must be an object"), error: null };
+        }
+        const row = raw as Record<string, unknown>;
+        if (
+          row.target_record_id != null ||
+          row.target_operation != null ||
+          row.resolution !== "none" ||
+          (row.lifecycle !== "validated" && row.lifecycle !== "blocked") ||
+          typeof row.source_row_number !== "number" ||
+          row.source_row_number < 1 ||
+          typeof row.row_fingerprint !== "string" ||
+          !/^[0-9a-f]{64}$/.test(row.row_fingerprint) ||
+          !row.raw_values ||
+          typeof row.raw_values !== "object" ||
+          Array.isArray(row.raw_values) ||
+          !row.normalized_values ||
+          typeof row.normalized_values !== "object" ||
+          Array.isArray(row.normalized_values)
+        ) {
+          return {
+            data: fail("SOURCE_INVALID", "Staging rows failed the isolated validation contract"),
+            error: null,
+          };
+        }
+        const errorCodes = Array.isArray(row.error_codes)
+          ? row.error_codes.filter((value): value is string => typeof value === "string")
+          : [];
+        const warningCodes = Array.isArray(row.warning_codes)
+          ? row.warning_codes.filter((value): value is string => typeof value === "string")
+          : [];
+        if (warningCodes.length > 0) {
+          return {
+            data: fail("SOURCE_INVALID", "DATA-1G does not invent warning codes"),
+            error: null,
+          };
+        }
+        if (row.lifecycle === "validated" && errorCodes.length > 0) {
+          return {
+            data: fail("SOURCE_INVALID", "Validated rows cannot carry error codes"),
+            error: null,
+          };
+        }
+        if (row.lifecycle === "blocked" && errorCodes.length === 0) {
+          return {
+            data: fail("SOURCE_INVALID", "Blocked rows must carry at least one error code"),
+            error: null,
+          };
+        }
+        parsedRows.push({
+          organization_id: args.p_organization_id,
+          session_id: session.id,
+          source_id: source.id,
+          source_row_number: row.source_row_number,
+          raw_values: row.raw_values as Record<string, string>,
+          normalized_values: row.normalized_values as Record<string, string | null>,
+          row_fingerprint: row.row_fingerprint,
+          lifecycle: row.lifecycle,
+          resolution: "none",
+          error_codes: errorCodes,
+          warning_codes: [],
+          error_details: Array.isArray(row.error_details)
+            ? row.error_details.filter((value): value is StagingRow["error_details"][number] => {
+                return Boolean(
+                  value &&
+                    typeof value === "object" &&
+                    "code" in value &&
+                    "field" in value &&
+                    "message" in value,
+                );
+              })
+            : [],
+          mapping_hash: mappingHash,
+        });
+      }
+
+      const computedValid = parsedRows.filter((row) => row.lifecycle === "validated").length;
+      const computedInvalid = parsedRows.filter((row) => row.lifecycle === "blocked").length;
+      if (
+        sourceDataRows !== parsedRows.length ||
+        validRows !== computedValid ||
+        invalidRows !== computedInvalid ||
+        (computedInvalid > 0 ? nextStatus !== "review_required" : nextStatus !== "ready_for_approval")
+      ) {
+        return {
+          data: fail("SOURCE_INVALID", "Staging summary does not match isolated row outcomes"),
+          error: null,
+        };
+      }
+
+      const existing = input.store.staging.filter((row) => row.source_id === source.id);
+      const sameGeneration =
+        (session.status === "review_required" || session.status === "ready_for_approval") &&
+        existing.length === parsedRows.length &&
+        existing.every((row) => row.mapping_hash === mappingHash) &&
+        parsedRows.every((row) =>
+          existing.some(
+            (current) =>
+              current.source_row_number === row.source_row_number &&
+              current.row_fingerprint === row.row_fingerprint,
+          ),
+        );
+      if (sameGeneration) {
+        return {
+          data: {
+            ok: true,
+            session_id: session.id,
+            status: session.status,
+            target_domain: session.target_domain,
+            source_kind: session.source_kind,
+            source_id: source.id,
+            storage_path: source.storage_path,
+            storage_bucket: source.storage_bucket,
+            event_id: input.store.events.find((event) => event.event_type === "validation_completed")
+              ? randomUuid()
+              : null,
+            event_type: "validation_completed",
+            replayed: true,
+            mapping_hash: mappingHash,
+            summary: {
+              source_data_rows: sourceDataRows,
+              staged_rows: parsedRows.length,
+              valid_rows: computedValid,
+              invalid_rows: computedInvalid,
+              mapping_hash: mappingHash,
+              source_sha256: sourceSha256,
+            },
+          },
+          error: null,
+        };
+      }
+
+      input.store.staging = input.store.staging.filter((row) => row.source_id !== source.id);
+      input.store.staging.push(...parsedRows);
+      session.status = nextStatus;
+      input.store.events.push({
+        event_type: "validation_completed",
+        metadata: {
+          source_id: source.id,
+          mapping_hash: mappingHash,
+          source_sha256: sourceSha256,
+          source_data_rows: sourceDataRows,
+          staged_rows: parsedRows.length,
+          valid_rows: computedValid,
+          invalid_rows: computedInvalid,
+        },
+      });
+      return {
+        data: {
+          ok: true,
+          session_id: session.id,
+          status: session.status,
+          target_domain: session.target_domain,
+          source_kind: session.source_kind,
+          source_id: source.id,
+          storage_path: source.storage_path,
+          storage_bucket: source.storage_bucket,
+          event_id: randomUuid(),
+          event_type: "validation_completed",
+          replayed: false,
+          mapping_hash: mappingHash,
+          summary: {
+            source_data_rows: sourceDataRows,
+            staged_rows: parsedRows.length,
+            valid_rows: computedValid,
+            invalid_rows: computedInvalid,
+            mapping_hash: mappingHash,
+            source_sha256: sourceSha256,
+          },
+        },
         error: null,
       };
     },

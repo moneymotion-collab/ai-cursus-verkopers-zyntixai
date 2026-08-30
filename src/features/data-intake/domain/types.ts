@@ -9,6 +9,7 @@ import type {
   DataMappingCompleteness,
   DataMappingSnapshot,
 } from "@/features/data-intake/domain/mapping";
+import type { DataIntakeStagingRow, DataStagingSummary } from "@/features/data-intake/domain/staging";
 
 export type DataIntakeMembership = {
   organizationId: string;
@@ -90,6 +91,13 @@ export type ConfirmDataIntakeMappingInput = {
   sourceId?: string;
 };
 
+export type ValidateDataIntakeSourceInput = {
+  organizationId: string;
+  sessionId: string;
+  sourceId?: string;
+  mappingHash?: string;
+};
+
 export type DataIntakeFoundationSuccess = {
   sessionId: string;
   status: DataIntakeSessionStatus;
@@ -117,6 +125,13 @@ export type DataIntakeMappingSuccess = DataIntakeFoundationSuccess & {
   completeness: DataMappingCompleteness;
   snapshot?: DataMappingSnapshot;
   snapshotHash?: string;
+};
+
+export type DataIntakeStagingSuccess = DataIntakeFoundationSuccess & {
+  mappingHash: string | null;
+  sourceSha256: string;
+  summary: DataStagingSummary;
+  rows: DataIntakeStagingRow[];
 };
 
 export type DataIntakeFoundationCommand =

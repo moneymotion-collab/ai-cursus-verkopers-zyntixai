@@ -97,5 +97,12 @@ describe("DATA-1C server-only isolation", () => {
     expect(mapping).toContain(
       'apply_data_intake_mapping_mutation" as const satisfies keyof Database["public"]["Functions"]',
     );
+    const staging = readFileSync(
+      join(ROOT, "src/features/data-intake/server/data-intake-staging-rpc.ts"),
+      "utf8",
+    );
+    expect(staging).toContain(
+      'apply_data_intake_staging_mutation" as const satisfies keyof Database["public"]["Functions"]',
+    );
   });
 });

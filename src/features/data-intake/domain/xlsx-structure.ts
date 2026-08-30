@@ -58,6 +58,74 @@ function selectDefaultSheet(sheets: readonly DataXlsxSheetDiscovery[]): string |
   return visible?.name ?? sheets[0]?.name ?? null;
 }
 
+type DataXlsxDataRow = {
+  sourceRowNumber: number;
+  sheetName: string | null;
+  values: readonly string[];
+};
+
+export type DataXlsxSelectedSheetRecords = {
+  selectedSheet: string;
+  headerRowIndex: number;
+  headers: readonly string[];
+  rows: readonly DataXlsxDataRow[];
+  discovery: DataXlsxStructureDiscovery;
+};
+
+export async function extractXlsxSelectedSheetRecords(
+  bytes: Uint8Array,
+): Promise<DataIntakeResult<DataXlsxSelectedSheetRecords>> {
+  const parsed = await parseXlsxStructure(bytes);
+  if (!parsed.ok) {
+    return parsed;
+  }
+  const loaded = await loadXlsxSelectedRows(bytes, parsed.value);
+  if (!loaded.ok) {
+    return loaded;
+  }
+  return dataOk({
+    selectedSheet: parsed.value.selectedSheet,
+    headerRowIndex: parsed.value.headerRowIndex,
+    headers: parsed.value.headers,
+    rows: loaded.value,
+    discovery: parsed.value,
+  });
+}
+
+async function loadXlsxSelectedRows(
+  bytes: Uint8Array,
+  discovery: DataXlsxStructureDiscovery,
+): Promise<DataIntakeResult<DataXlsxDataRow[]>> {
+  const workbook = new ExcelJS.Workbook();
+  try {
+    const copy = new Uint8Array(bytes.byteLength);
+    copy.set(bytes);
+    await workbook.xlsx.load(copy.buffer);
+  } catch {
+    return dataFail("MALFORMED_XLSX", "Workbook XML could not be parsed");
+  }
+  const worksheet = workbook.worksheets.find((sheet) => sheet.name === discovery.selectedSheet);
+  if (!worksheet) {
+    return dataFail("MALFORMED_XLSX", "Selected sheet is no longer present");
+  }
+  const rows: DataXlsxDataRow[] = [];
+  worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+    if (rowNumber <= discovery.headerRowIndex) {
+      return;
+    }
+    const values: string[] = [];
+    for (let column = 1; column <= discovery.columnCount; column += 1) {
+      values.push(cellText(row.getCell(column).value).text);
+    }
+    rows.push({
+      sourceRowNumber: rowNumber,
+      sheetName: discovery.selectedSheet,
+      values,
+    });
+  });
+  return dataOk(rows);
+}
+
 export async function parseXlsxStructure(
   bytes: Uint8Array,
 ): Promise<DataIntakeResult<DataXlsxStructureDiscovery>> {

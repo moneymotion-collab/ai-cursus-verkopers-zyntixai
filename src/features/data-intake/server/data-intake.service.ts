@@ -38,7 +38,9 @@ import type {
   ConfirmDataIntakeMappingInput,
   DataIntakeMappingCommandInput,
   DataIntakeMappingSuccess,
+  DataIntakeStagingSuccess,
   DiscoverDataIntakeSourceStructureInput,
+  ValidateDataIntakeSourceInput,
   RegisterDataIntakeSourceInput,
   UploadDataIntakeSourceInput,
 } from "@/features/data-intake/domain/types";
@@ -50,6 +52,7 @@ import {
   createDataIntakeRecordLookup,
   createDataIntakeSourceObjectRpcClient,
   createDataIntakeSourceStructureRpcClient,
+  createDataIntakeStagingRpcClient,
 } from "@/features/data-intake/server/data-intake-client";
 import {
   invokeDataIntakeFoundationMutation,
@@ -64,6 +67,7 @@ import {
   type DataIntakeSourceStructureRpcClient,
 } from "@/features/data-intake/server/data-intake-structure-rpc";
 import type { DataIntakeMappingRpcClient } from "@/features/data-intake/server/data-intake-mapping-rpc";
+import type { DataIntakeStagingRpcClient } from "@/features/data-intake/server/data-intake-staging-rpc";
 import {
   confirmDataIntakeMapping,
   ignoreDataIntakeSourceColumn,
@@ -71,6 +75,10 @@ import {
   listDataIntakeMappingState,
   upsertDataIntakeMapping,
 } from "@/features/data-intake/server/data-intake-mapping-commands";
+import {
+  listDataIntakeStagingState,
+  validateAndStageDataIntakeSource,
+} from "@/features/data-intake/server/data-intake-staging-commands";
 import type { DataCustomerImportField } from "@/features/data-intake/domain/target-catalog";
 import type { DataIntakeQueryClient } from "@/features/data-intake/server/data-intake-query";
 import type { DataIntakeRecordLookup } from "@/features/data-intake/server/data-intake-lookup";
@@ -90,6 +98,7 @@ export type DataIntakeServiceDeps = {
   objectMutate?: DataIntakeSourceObjectRpcClient;
   structureMutate?: DataIntakeSourceStructureRpcClient;
   mappingMutate?: DataIntakeMappingRpcClient;
+  stagingMutate?: DataIntakeStagingRpcClient;
 };
 
 function sanitizeOriginalFilename(value: string): string {
@@ -701,6 +710,42 @@ export class DataIntakeService {
     );
   }
 
+  async validateAndStageDataIntakeSource(
+    input: ValidateDataIntakeSourceInput,
+  ): Promise<DataIntakeResult<DataIntakeStagingSuccess>> {
+    if (!this.deps.lookup || !this.deps.objectStore || !this.deps.stagingMutate) {
+      return dataFail("DATABASE_WRITE_ERROR", "DATA staging is not configured");
+    }
+    return validateAndStageDataIntakeSource(
+      {
+        auth: this.deps.auth,
+        queryClient: this.deps.queryClient,
+        lookup: this.deps.lookup,
+        objectStore: this.deps.objectStore,
+        stagingMutate: this.deps.stagingMutate,
+      },
+      input,
+    );
+  }
+
+  async listDataIntakeStagingState(
+    input: ValidateDataIntakeSourceInput,
+  ): Promise<DataIntakeResult<DataIntakeStagingSuccess>> {
+    if (!this.deps.lookup || !this.deps.objectStore || !this.deps.stagingMutate) {
+      return dataFail("DATABASE_WRITE_ERROR", "DATA staging is not configured");
+    }
+    return listDataIntakeStagingState(
+      {
+        auth: this.deps.auth,
+        queryClient: this.deps.queryClient,
+        lookup: this.deps.lookup,
+        objectStore: this.deps.objectStore,
+        stagingMutate: this.deps.stagingMutate,
+      },
+      input,
+    );
+  }
+
   private async authorizeCommand(organizationId: string) {
     const authorized = await authorizeDataIntakeCaller({
       auth: this.deps.auth,
@@ -727,6 +772,7 @@ export function createDataIntakeService(input: {
   objectMutate?: DataIntakeSourceObjectRpcClient;
   structureMutate?: DataIntakeSourceStructureRpcClient;
   mappingMutate?: DataIntakeMappingRpcClient;
+  stagingMutate?: DataIntakeStagingRpcClient;
 } = {}): DataIntakeService {
   const env = input.env ?? process.env;
   const queryClient = input.queryClient ?? createDataIntakeQueryClient(env);
@@ -736,6 +782,7 @@ export function createDataIntakeService(input: {
   const objectMutate = input.objectMutate ?? createDataIntakeSourceObjectRpcClient(env);
   const structureMutate = input.structureMutate ?? createDataIntakeSourceStructureRpcClient(env);
   const mappingMutate = input.mappingMutate ?? createDataIntakeMappingRpcClient(env);
+  const stagingMutate = input.stagingMutate ?? createDataIntakeStagingRpcClient(env);
   const auth =
     input.auth ??
     ({
@@ -754,5 +801,6 @@ export function createDataIntakeService(input: {
     objectMutate,
     structureMutate,
     mappingMutate,
+    stagingMutate,
   });
 }

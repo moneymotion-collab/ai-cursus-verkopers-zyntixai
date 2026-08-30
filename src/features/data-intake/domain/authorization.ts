@@ -21,6 +21,8 @@ export type DataIntakeMappingOperation =
   | "ignore_source_column"
   | "confirm_mapping";
 
+export type DataIntakeStagingOperation = "confirm_source_validation";
+
 export function isKnownDataIntakeRole(
   value: string,
 ): value is DataIntakeOrganizationRole {
