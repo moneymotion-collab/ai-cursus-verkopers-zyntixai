@@ -7,7 +7,12 @@ import {
 import { isDataSourceKind } from "@/features/data-intake/domain/constants";
 import type { DataSourceKind } from "@/features/data-intake/domain/constants";
 import type { DataIntakeSessionStatus } from "@/features/data-intake/domain/types";
-import type { DataIntakeMappingRow, DataMappingDecisionStatus } from "@/features/data-intake/domain/mapping";
+import type {
+  DataIntakeMappingRow,
+  DataMappingDecisionStatus,
+  DataMappingSnapshot,
+} from "@/features/data-intake/domain/mapping";
+import type { DataImportPlanStatus } from "@/features/data-intake/domain/planning";
 import {
   DATA_STAGING_RESOLUTIONS,
   DATA_STAGING_TARGET_OPERATIONS,
@@ -28,6 +33,36 @@ export type DataIntakeSessionRecord = {
   status: DataIntakeSessionStatus;
   sourceKind: DataSourceKind;
   targetDomain: string;
+  currentPlanId: string | null;
+  approvedAt: string | null;
+  approvedByUserId: string | null;
+};
+
+export type DataIntakeEventRecord = {
+  eventType: string;
+  sessionId: string | null;
+  metadata: Record<string, unknown>;
+};
+
+export type DataIntakePlanRecord = {
+  id: string;
+  organizationId: string;
+  sessionId: string;
+  version: number;
+  sourceId: string;
+  sourceSha256: string;
+  targetDomain: string;
+  adapterVersion: string;
+  mappingSnapshot: DataMappingSnapshot;
+  includedFingerprints: string[];
+  summary: Record<string, unknown>;
+  planHash: string;
+  status: DataImportPlanStatus;
+  createdByUserId: string;
+  approvedByUserId: string | null;
+  createdAt: string | null;
+  approvedAt: string | null;
+  supersededAt: string | null;
 };
 
 export type DataIntakeSourceRecord = {
@@ -74,6 +109,15 @@ export type DataIntakeRecordLookup = {
     organizationId: string;
     sourceId: string;
   }): Promise<DataIntakeResult<DataIntakeStagingRow[]>>;
+  findLatestEvent(input: {
+    organizationId: string;
+    sessionId: string;
+    eventType: string;
+  }): Promise<DataIntakeResult<DataIntakeEventRecord | null>>;
+  findPlans(input: {
+    organizationId: string;
+    sessionId: string;
+  }): Promise<DataIntakeResult<DataIntakePlanRecord[]>>;
 };
 
 const SESSION_STATUSES = new Set<DataIntakeSessionStatus>([
@@ -116,6 +160,9 @@ function mapSession(row: Record<string, unknown>): DataIntakeSessionRecord | nul
     status: status as DataIntakeSessionStatus,
     sourceKind,
     targetDomain,
+    currentPlanId: asString(row.current_plan_id),
+    approvedAt: asString(row.approved_at),
+    approvedByUserId: asString(row.approved_by_user_id),
   };
 }
 
@@ -180,7 +227,9 @@ export function createQueryDataIntakeRecordLookup(
       const rows = await executeDataIntakeQuery(
         queryClient
           .from("data_intake_sessions")
-          .select("id, organization_id, status, source_kind, target_domain")
+          .select(
+            "id, organization_id, status, source_kind, target_domain, current_plan_id, approved_at, approved_by_user_id",
+          )
           .eq("organization_id", input.organizationId)
           .eq("id", input.sessionId),
       );
@@ -256,6 +305,54 @@ export function createQueryDataIntakeRecordLookup(
       }
       return dataOk(rows.value.flatMap(mapStaging));
     },
+
+    async findLatestEvent(input) {
+      const rows = await executeDataIntakeQuery(
+        queryClient
+          .from("data_intake_events")
+          .select("event_type, session_id, metadata, created_at")
+          .eq("organization_id", input.organizationId)
+          .eq("session_id", input.sessionId)
+          .eq("event_type", input.eventType),
+      );
+      if (!rows.ok) {
+        return rows;
+      }
+      const latest = rows.value.at(-1);
+      if (!latest) {
+        return dataOk(null);
+      }
+      const eventType = asString(latest.event_type);
+      const metadata =
+        latest.metadata && typeof latest.metadata === "object" && !Array.isArray(latest.metadata)
+          ? (latest.metadata as Record<string, unknown>)
+          : {};
+      return dataOk(
+        eventType
+          ? {
+              eventType,
+              sessionId: asString(latest.session_id),
+              metadata,
+            }
+          : null,
+      );
+    },
+
+    async findPlans(input) {
+      const rows = await executeDataIntakeQuery(
+        queryClient
+          .from("data_import_plans")
+          .select(
+            "id, organization_id, session_id, version, source_id, source_sha256, target_domain, adapter_version, mapping_snapshot, included_fingerprints, summary, plan_hash, status, created_by_user_id, approved_by_user_id, created_at, approved_at, superseded_at",
+          )
+          .eq("organization_id", input.organizationId)
+          .eq("session_id", input.sessionId),
+      );
+      if (!rows.ok) {
+        return rows;
+      }
+      return dataOk(rows.value.flatMap(mapPlan));
+    },
   };
 }
 
@@ -285,6 +382,78 @@ function mapMapping(row: Record<string, unknown>): DataIntakeMappingRow[] {
       sourceHeader,
       targetField: asString(row.target_field),
       status: status as DataMappingDecisionStatus,
+    },
+  ];
+}
+
+const PLAN_STATUSES = new Set<DataImportPlanStatus>([
+  "draft",
+  "approved",
+  "superseded",
+  "executing",
+  "executed",
+]);
+
+function mapPlan(row: Record<string, unknown>): DataIntakePlanRecord[] {
+  const id = asString(row.id);
+  const organizationId = asString(row.organization_id);
+  const sessionId = asString(row.session_id);
+  const sourceId = asString(row.source_id);
+  const sourceSha256 = asString(row.source_sha256);
+  const targetDomain = asString(row.target_domain);
+  const adapterVersion = asString(row.adapter_version);
+  const planHash = asString(row.plan_hash);
+  const status = asString(row.status);
+  const createdByUserId = asString(row.created_by_user_id);
+  const version = row.version;
+  const mappingSnapshot = row.mapping_snapshot;
+  const includedFingerprints = row.included_fingerprints;
+  const summary = row.summary;
+  if (
+    !id ||
+    !organizationId ||
+    !sessionId ||
+    !sourceId ||
+    !sourceSha256 ||
+    !targetDomain ||
+    !adapterVersion ||
+    !planHash ||
+    !status ||
+    !PLAN_STATUSES.has(status as DataImportPlanStatus) ||
+    typeof version !== "number" ||
+    !createdByUserId ||
+    !mappingSnapshot ||
+    typeof mappingSnapshot !== "object" ||
+    Array.isArray(mappingSnapshot) ||
+    !Array.isArray(includedFingerprints) ||
+    !summary ||
+    typeof summary !== "object" ||
+    Array.isArray(summary)
+  ) {
+    return [];
+  }
+  return [
+    {
+      id,
+      organizationId,
+      sessionId,
+      version,
+      sourceId,
+      sourceSha256,
+      targetDomain,
+      adapterVersion,
+      mappingSnapshot: mappingSnapshot as DataMappingSnapshot,
+      includedFingerprints: includedFingerprints.filter(
+        (value): value is string => typeof value === "string",
+      ),
+      summary: summary as Record<string, unknown>,
+      planHash,
+      status: status as DataImportPlanStatus,
+      createdByUserId,
+      approvedByUserId: asString(row.approved_by_user_id),
+      createdAt: asString(row.created_at),
+      approvedAt: asString(row.approved_at),
+      supersededAt: asString(row.superseded_at),
     },
   ];
 }

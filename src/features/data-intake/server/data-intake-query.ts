@@ -13,6 +13,8 @@ export const DATA_INTAKE_QUERY_TABLES = [
   "data_intake_sources",
   "data_intake_mappings",
   "data_intake_staging_rows",
+  "data_intake_events",
+  "data_import_plans",
 ] as const;
 
 export type DataIntakeQueryTableName = (typeof DATA_INTAKE_QUERY_TABLES)[number];

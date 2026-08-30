@@ -29,6 +29,13 @@ import {
   type DataIntakeMatchingRpcArgs,
   type DataIntakeMatchingRpcClient,
 } from "@/features/data-intake/server/data-intake-matching-rpc";
+import {
+  DATA_INTAKE_PLANNING_RPC,
+  type DataIntakePlanningRpcArgs,
+  type DataIntakePlanningRpcClient,
+} from "@/features/data-intake/server/data-intake-planning-rpc";
+import type { DataMappingSnapshot } from "@/features/data-intake/domain/mapping";
+import type { DataImportPlanStatus } from "@/features/data-intake/domain/planning";
 import type { CustomerIdentityLookup } from "@/features/data-intake/server/customer-identity-lookup";
 import type { DataStagingResolution, DataStagingTargetOperation } from "@/features/data-intake/domain/staging";
 import { DATA_CUSTOMER_MATCHER_VERSION } from "@/features/data-intake/domain/matching";
@@ -39,6 +46,8 @@ import {
 } from "@/features/data-intake/domain/errors";
 import { buildDataIntakeStoragePath } from "@/features/data-intake/domain/storage-path";
 import type {
+  DataIntakeEventRecord,
+  DataIntakePlanRecord,
   DataIntakeRecordLookup,
   DataIntakeSessionRecord,
   DataIntakeSourceRecord,
@@ -55,6 +64,30 @@ type SessionRow = {
   source_kind: string;
   created_by_user_id: string;
   cancelled_at: string | null;
+  current_plan_id: string | null;
+  approved_by_user_id: string | null;
+  approved_at: string | null;
+};
+
+export type MemoryImportPlan = {
+  id: string;
+  organization_id: string;
+  session_id: string;
+  version: number;
+  source_id: string;
+  source_sha256: string;
+  target_domain: string;
+  adapter_version: string;
+  mapping_snapshot: DataMappingSnapshot;
+  included_fingerprints: string[];
+  summary: Record<string, unknown>;
+  plan_hash: string;
+  status: DataImportPlanStatus;
+  created_by_user_id: string;
+  approved_by_user_id: string | null;
+  created_at: string;
+  approved_at: string | null;
+  superseded_at: string | null;
 };
 
 type SourceRow = {
@@ -107,14 +140,20 @@ export type MemoryCustomer = {
 export type DataIntakeMemoryStore = {
   sessions: SessionRow[];
   sources: SourceRow[];
-  events: Array<{ event_type: string; metadata: Record<string, unknown> }>;
+  events: Array<{
+    event_type: string;
+    session_id?: string;
+    plan_id?: string | null;
+    metadata: Record<string, unknown>;
+  }>;
   mappings: MappingRow[];
   staging: StagingRow[];
   customers: MemoryCustomer[];
-  plans: unknown[];
+  plans: MemoryImportPlan[];
   rowResults: unknown[];
   links: unknown[];
   matchingTail: Promise<unknown>;
+  planningTail: Promise<unknown>;
 };
 
 export type StagingRow = {
@@ -157,6 +196,7 @@ export function emptyDataIntakeStore(): DataIntakeMemoryStore {
     rowResults: [],
     links: [],
     matchingTail: Promise.resolve(),
+    planningTail: Promise.resolve(),
   };
 }
 
@@ -170,6 +210,9 @@ function mapSession(row: SessionRow): DataIntakeSessionRecord | null {
     status: row.status as DataIntakeSessionStatus,
     sourceKind: row.source_kind,
     targetDomain: row.target_domain,
+    currentPlanId: row.current_plan_id,
+    approvedAt: row.approved_at,
+    approvedByUserId: row.approved_by_user_id,
   };
 }
 
@@ -273,6 +316,56 @@ export function createStoreDataIntakeRecordLookup(
         }));
       return dataOk(rows);
     },
+    async findLatestEvent(input) {
+      const matches = store.events.filter(
+        (event) =>
+          event.event_type === input.eventType &&
+          (event.session_id === input.sessionId ||
+            (!event.session_id &&
+              typeof event.metadata.source_id === "string" &&
+              store.sources.some(
+                (source) =>
+                  source.id === event.metadata.source_id && source.session_id === input.sessionId,
+              ))),
+      );
+      const latest = matches.at(-1);
+      const mapped: DataIntakeEventRecord | null = latest
+        ? {
+            eventType: latest.event_type,
+            sessionId: latest.session_id ?? input.sessionId,
+            metadata: latest.metadata,
+          }
+        : null;
+      return dataOk(mapped);
+    },
+    async findPlans(input) {
+      const rows: DataIntakePlanRecord[] = store.plans
+        .filter(
+          (plan) =>
+            plan.organization_id === input.organizationId && plan.session_id === input.sessionId,
+        )
+        .map((plan) => ({
+          id: plan.id,
+          organizationId: plan.organization_id,
+          sessionId: plan.session_id,
+          version: plan.version,
+          sourceId: plan.source_id,
+          sourceSha256: plan.source_sha256,
+          targetDomain: plan.target_domain,
+          adapterVersion: plan.adapter_version,
+          mappingSnapshot: plan.mapping_snapshot,
+          includedFingerprints: plan.included_fingerprints,
+          summary: plan.summary,
+          planHash: plan.plan_hash,
+          status: plan.status,
+          createdByUserId: plan.created_by_user_id,
+          approvedByUserId: plan.approved_by_user_id,
+          createdAt: plan.created_at,
+          approvedAt: plan.approved_at,
+          supersededAt: plan.superseded_at,
+        }));
+      return dataOk(rows);
+    },
   };
 }
 
@@ -345,6 +438,9 @@ export function createMemoryDataIntakeFoundationRpc(input: {
           source_kind: sourceKind,
           created_by_user_id: args.p_actor_user_id,
           cancelled_at: null,
+          current_plan_id: null,
+          approved_by_user_id: null,
+          approved_at: null,
         };
         input.store.sessions.push(session);
         input.store.events.push({
@@ -385,12 +481,13 @@ export function createMemoryDataIntakeFoundationRpc(input: {
           session.status !== "mapped" &&
           session.status !== "validating" &&
           session.status !== "review_required" &&
-          session.status !== "ready_for_approval"
+          session.status !== "ready_for_approval" &&
+          session.status !== "approved"
         ) {
           return {
             data: fail(
               "INVALID_STATE",
-              "DATA can cancel only created, source_ready, parsed, mapping_required, mapped, validating, review_required, or ready_for_approval sessions",
+              "DATA can cancel only created, source_ready, parsed, mapping_required, mapped, validating, review_required, ready_for_approval, or approved sessions",
             ),
             error: null,
           };
@@ -1867,6 +1964,7 @@ async function runMatchingRpc(
   session.status = nextStatus;
   input.store.events.push({
     event_type: "matching_completed",
+    session_id: session.id,
     metadata: {
       source_id: source.id,
       mapping_hash: mappingHash,
@@ -1896,6 +1994,427 @@ async function runMatchingRpc(
       mapping_hash: mappingHash,
       summary,
     },
+    error: null,
+  };
+}
+
+export function createMemoryDataIntakePlanningRpc(input: {
+  tables: DataIntakeMemoryTables;
+  store: DataIntakeMemoryStore;
+  requireServiceRole?: boolean;
+  isServiceRole?: boolean;
+}): DataIntakePlanningRpcClient {
+  const requireServiceRole = input.requireServiceRole ?? true;
+  return {
+    async rpc(fn, args: DataIntakePlanningRpcArgs) {
+      const previous = input.store.planningTail;
+      let release!: (value?: unknown) => void;
+      input.store.planningTail = new Promise((resolve) => {
+        release = resolve;
+      });
+      await previous.catch(() => undefined);
+      try {
+        return await runPlanningRpc(input, requireServiceRole, fn, args);
+      } finally {
+        release();
+      }
+    },
+  };
+}
+
+function planningSummary(summary: Record<string, unknown>) {
+  return {
+    source_data_rows: typeof summary.source_data_rows === "number" ? summary.source_data_rows : 0,
+    validated_rows: typeof summary.validated_rows === "number" ? summary.validated_rows : 0,
+    create_candidates:
+      typeof summary.create_candidates === "number" ? summary.create_candidates : 0,
+    link_candidates: typeof summary.link_candidates === "number" ? summary.link_candidates : 0,
+    blocked_rows: typeof summary.blocked_rows === "number" ? summary.blocked_rows : 0,
+    conflicts: typeof summary.conflicts === "number" ? summary.conflicts : 0,
+    no_key_rows: typeof summary.no_key_rows === "number" ? summary.no_key_rows : 0,
+    excluded_rows: typeof summary.excluded_rows === "number" ? summary.excluded_rows : 0,
+    executable_rows: typeof summary.executable_rows === "number" ? summary.executable_rows : 0,
+    mapping_hash: typeof summary.mapping_hash === "string" ? summary.mapping_hash : "",
+    matcher_version:
+      typeof summary.matcher_version === "string" ? summary.matcher_version : DATA_CUSTOMER_MATCHER_VERSION,
+  };
+}
+
+function planningResult(input: {
+  session: SessionRow;
+  source: SourceRow;
+  plan: MemoryImportPlan;
+  eventId: string | null;
+  eventType: string | null;
+  replayed: boolean;
+  mappingHash: string;
+}) {
+  return {
+    ok: true,
+    session_id: input.session.id,
+    status: input.session.status,
+    target_domain: input.session.target_domain,
+    source_kind: input.session.source_kind,
+    source_id: input.source.id,
+    storage_path: input.source.storage_path,
+    storage_bucket: input.source.storage_bucket,
+    event_id: input.eventId,
+    event_type: input.eventType,
+    replayed: input.replayed,
+    plan_id: input.plan.id,
+    plan_hash: input.plan.plan_hash,
+    plan_status: input.plan.status,
+    version: input.plan.version,
+    approved_at: input.plan.approved_at,
+    approved_by_user_id: input.plan.approved_by_user_id,
+    mapping_hash: input.mappingHash,
+    summary: planningSummary(input.plan.summary),
+  };
+}
+
+async function runPlanningRpc(
+  input: {
+    tables: DataIntakeMemoryTables;
+    store: DataIntakeMemoryStore;
+    isServiceRole?: boolean;
+  },
+  requireServiceRole: boolean,
+  fn: string,
+  args: DataIntakePlanningRpcArgs,
+) {
+  if (fn !== DATA_INTAKE_PLANNING_RPC) {
+    return { data: null, error: { message: "unknown rpc" } };
+  }
+  if (requireServiceRole && input.isServiceRole === false) {
+    return {
+      data: fail("UNAUTHORIZED", "DATA mutation requires the privileged database role"),
+      error: null,
+    };
+  }
+  const org = input.tables.organizations.find((row) => row.id === args.p_organization_id);
+  if (!org || org.status !== "active") {
+    return { data: fail("ORG_NOT_FOUND", "Organization not found or not active"), error: null };
+  }
+  const member = input.tables.organization_members.find(
+    (row) =>
+      row.organization_id === args.p_organization_id &&
+      row.id === args.p_actor_member_id &&
+      row.user_id === args.p_actor_user_id,
+  );
+  if (!member || member.status !== "active") {
+    return {
+      data: fail("UNAUTHORIZED", "Active organization membership is required"),
+      error: null,
+    };
+  }
+  if (member.role !== "owner" && member.role !== "admin") {
+    return { data: fail("FORBIDDEN_ROLE", "Owner or Admin role is required"), error: null };
+  }
+  if (
+    args.p_payload.storage_path ||
+    args.p_payload.records ||
+    args.p_payload.bytes ||
+    args.p_payload.rows ||
+    args.p_payload.cells ||
+    args.p_payload.target_record_id ||
+    args.p_payload.target_operation ||
+    args.p_payload.targetRecordId ||
+    args.p_payload.targetOperation
+  ) {
+    return {
+      data: fail("SOURCE_INVALID", "Client plan targets and source rows are not accepted"),
+      error: null,
+    };
+  }
+  if (args.p_operation !== "create_import_plan" && args.p_operation !== "approve_import_plan") {
+    return { data: fail("INVALID_STATE", "Unknown DATA planning operation"), error: null };
+  }
+
+  const sessionId = typeof args.p_payload.session_id === "string" ? args.p_payload.session_id : "";
+  const sourceId = typeof args.p_payload.source_id === "string" ? args.p_payload.source_id : "";
+  const mappingHash =
+    typeof args.p_payload.mapping_hash === "string" ? args.p_payload.mapping_hash : "";
+  const sourceSha256 =
+    typeof args.p_payload.source_sha256 === "string" ? args.p_payload.source_sha256 : "";
+  const matcherVersion =
+    typeof args.p_payload.matcher_version === "string" ? args.p_payload.matcher_version : "";
+  const planHash = typeof args.p_payload.plan_hash === "string" ? args.p_payload.plan_hash : "";
+
+  if (!UUID.test(sessionId)) {
+    return { data: fail("SESSION_NOT_FOUND", "sessionId is required"), error: null };
+  }
+  if (!UUID.test(sourceId)) {
+    return { data: fail("SOURCE_NOT_FOUND", "sourceId is required"), error: null };
+  }
+  if (
+    !/^[0-9a-f]{64}$/.test(mappingHash) ||
+    !/^[0-9a-f]{64}$/.test(sourceSha256) ||
+    !/^[0-9a-f]{64}$/.test(planHash)
+  ) {
+    return { data: fail("PLAN_STALE", "Planning is bound to the current immutable snapshot"), error: null };
+  }
+  if (matcherVersion !== DATA_CUSTOMER_MATCHER_VERSION) {
+    return { data: fail("SOURCE_INVALID", "Unknown matcher version"), error: null };
+  }
+
+  const session = input.store.sessions.find(
+    (row) => row.id === sessionId && row.organization_id === args.p_organization_id,
+  );
+  if (!session) {
+    return { data: fail("SESSION_NOT_FOUND", "Intake session not found"), error: null };
+  }
+  if (session.target_domain !== "customer") {
+    return {
+      data: fail("TARGET_NOT_SUPPORTED", "DATA-1I planning supports customer only"),
+      error: null,
+    };
+  }
+  if (session.status === "cancelled") {
+    return {
+      data: fail("INVALID_STATE", "Cancelled sessions cannot accept import planning"),
+      error: null,
+    };
+  }
+  const source = input.store.sources.find(
+    (row) =>
+      row.id === sourceId &&
+      row.organization_id === args.p_organization_id &&
+      row.session_id === session.id,
+  );
+  if (!source) {
+    return {
+      data: fail("SOURCE_NOT_FOUND", "Intake source not found for this session"),
+      error: null,
+    };
+  }
+  if (source.sha256 !== sourceSha256) {
+    return {
+      data: fail("SOURCE_HASH_INVALID", "Stored object no longer matches the verified source"),
+      error: null,
+    };
+  }
+
+  const matching = [...input.store.events]
+    .reverse()
+    .find(
+      (event) =>
+        event.event_type === "matching_completed" &&
+        (event.session_id === session.id || event.metadata.source_id === source.id),
+    );
+  if (!matching) {
+    return {
+      data: fail("INVALID_STATE", "Import planning requires current matching completion"),
+      error: null,
+    };
+  }
+  if (
+    matching.metadata.source_id !== source.id ||
+    matching.metadata.mapping_hash !== mappingHash ||
+    matching.metadata.matcher_version !== DATA_CUSTOMER_MATCHER_VERSION
+  ) {
+    return {
+      data: fail("PLAN_STALE", "Matching completion is not current for this source and mapping"),
+      error: null,
+    };
+  }
+
+  const sessionPlans = input.store.plans.filter((plan) => plan.session_id === session.id);
+  const current =
+    sessionPlans.find((plan) => plan.status === "approved" || plan.status === "executing") ??
+    sessionPlans.filter((plan) => plan.status === "draft").sort((a, b) => b.version - a.version)[0] ??
+    null;
+
+  if (args.p_operation === "create_import_plan") {
+    if (session.status === "review_required") {
+      return {
+        data: fail("INVALID_STATE", "Import-plan creation is denied until review blockers are resolved"),
+        error: null,
+      };
+    }
+    if (session.status !== "ready_for_approval" && session.status !== "approved") {
+      return {
+        data: fail("INVALID_STATE", "Import planning requires ready_for_approval and current matching"),
+        error: null,
+      };
+    }
+    if (current && current.plan_hash === planHash) {
+      return {
+        data: planningResult({
+          session,
+          source,
+          plan: current,
+          eventId: input.store.events.find((event) => event.event_type === "plan_created")
+            ? randomUuid()
+            : null,
+          eventType: "plan_created",
+          replayed: true,
+          mappingHash,
+        }),
+        error: null,
+      };
+    }
+    if (current && current.status === "approved") {
+      return {
+        data: fail("PLAN_STALE", "An approved plan cannot be rewritten in place"),
+        error: null,
+      };
+    }
+    if (current && current.status === "draft" && current.plan_hash !== planHash) {
+      current.status = "superseded";
+      current.superseded_at = new Date().toISOString();
+      input.store.events.push({
+        event_type: "plan_superseded",
+        session_id: session.id,
+        plan_id: current.id,
+        metadata: {
+          plan_id: current.id,
+          plan_hash: current.plan_hash,
+          version: current.version,
+        },
+      });
+    }
+    const mappingSnapshot = args.p_payload.mapping_snapshot;
+    const includedFingerprints = args.p_payload.included_fingerprints;
+    const summary = args.p_payload.summary;
+    if (
+      !mappingSnapshot ||
+      typeof mappingSnapshot !== "object" ||
+      Array.isArray(mappingSnapshot) ||
+      !Array.isArray(includedFingerprints) ||
+      !summary ||
+      typeof summary !== "object" ||
+      Array.isArray(summary)
+    ) {
+      return { data: fail("SOURCE_INVALID", "Plan snapshot is incomplete"), error: null };
+    }
+    const nextVersion = sessionPlans.reduce((max, plan) => Math.max(max, plan.version), 0) + 1;
+    const createdAt = new Date().toISOString();
+    const plan: MemoryImportPlan = {
+      id: randomUuid(),
+      organization_id: args.p_organization_id,
+      session_id: session.id,
+      version: nextVersion,
+      source_id: source.id,
+      source_sha256: sourceSha256,
+      target_domain: "customer",
+      adapter_version:
+        typeof args.p_payload.adapter_version === "string"
+          ? args.p_payload.adapter_version
+          : "customer.v1",
+      mapping_snapshot: mappingSnapshot as DataMappingSnapshot,
+      included_fingerprints: includedFingerprints.filter(
+        (value): value is string => typeof value === "string",
+      ),
+      summary: summary as Record<string, unknown>,
+      plan_hash: planHash,
+      status: "draft",
+      created_by_user_id: args.p_actor_user_id,
+      approved_by_user_id: null,
+      created_at: createdAt,
+      approved_at: null,
+      superseded_at: null,
+    };
+    input.store.plans.push(plan);
+    session.current_plan_id = plan.id;
+    const eventId = randomUuid();
+    input.store.events.push({
+      event_type: "plan_created",
+      session_id: session.id,
+      plan_id: plan.id,
+      metadata: {
+        plan_id: plan.id,
+        plan_hash: plan.plan_hash,
+        version: plan.version,
+        create_candidates: plan.summary.create_candidates,
+        link_candidates: plan.summary.link_candidates,
+        executable_rows: plan.summary.executable_rows,
+      },
+    });
+    return {
+      data: planningResult({
+        session,
+        source,
+        plan,
+        eventId,
+        eventType: "plan_created",
+        replayed: false,
+        mappingHash,
+      }),
+      error: null,
+    };
+  }
+
+  const planId = typeof args.p_payload.plan_id === "string" ? args.p_payload.plan_id : "";
+  const plan =
+    sessionPlans.find((row) => row.id === planId) ??
+    current;
+  if (!plan) {
+    return { data: fail("INVALID_STATE", "Approval requires a current import plan"), error: null };
+  }
+  if (plan.organization_id !== args.p_organization_id || plan.session_id !== session.id) {
+    return { data: fail("SESSION_NOT_FOUND", "Import plan not found for this session"), error: null };
+  }
+  if (plan.plan_hash !== planHash || plan.source_sha256 !== sourceSha256) {
+    return {
+      data: fail("PLAN_STALE", "Approval is bound to the exact current plan snapshot"),
+      error: null,
+    };
+  }
+  if (plan.status === "approved") {
+    return {
+      data: planningResult({
+        session,
+        source,
+        plan,
+        eventId: input.store.events.find((event) => event.event_type === "plan_approved")
+          ? randomUuid()
+          : null,
+        eventType: "plan_approved",
+        replayed: true,
+        mappingHash,
+      }),
+      error: null,
+    };
+  }
+  if (plan.status !== "draft") {
+    return { data: fail("INVALID_STATE", "Only a draft plan can be approved"), error: null };
+  }
+  if (session.status !== "ready_for_approval") {
+    return {
+      data: fail("INVALID_STATE", "Approval requires a current ready_for_approval plan"),
+      error: null,
+    };
+  }
+  const approvedAt = new Date().toISOString();
+  plan.status = "approved";
+  plan.approved_at = approvedAt;
+  plan.approved_by_user_id = args.p_actor_user_id;
+  session.status = "approved";
+  session.approved_at = approvedAt;
+  session.approved_by_user_id = args.p_actor_user_id;
+  session.current_plan_id = plan.id;
+  const eventId = randomUuid();
+  input.store.events.push({
+    event_type: "plan_approved",
+    session_id: session.id,
+    plan_id: plan.id,
+    metadata: {
+      plan_id: plan.id,
+      plan_hash: plan.plan_hash,
+      version: plan.version,
+      approved_by_user_id: args.p_actor_user_id,
+    },
+  });
+  return {
+    data: planningResult({
+      session,
+      source,
+      plan,
+      eventId,
+      eventType: "plan_approved",
+      replayed: false,
+      mappingHash,
+    }),
     error: null,
   };
 }

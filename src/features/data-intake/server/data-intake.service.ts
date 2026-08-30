@@ -39,9 +39,11 @@ import type {
   DataIntakeMappingCommandInput,
   DataIntakeMappingSuccess,
   DataIntakeMatchingSuccess,
+  DataIntakePlanningSuccess,
   DataIntakeStagingSuccess,
   DiscoverDataIntakeSourceStructureInput,
   MatchDataIntakeSourceInput,
+  PlanDataIntakeSourceInput,
   ValidateDataIntakeSourceInput,
   RegisterDataIntakeSourceInput,
   UploadDataIntakeSourceInput,
@@ -55,6 +57,7 @@ import {
   createDataIntakeSourceObjectRpcClient,
   createDataIntakeSourceStructureRpcClient,
   createDataIntakeMatchingRpcClient,
+  createDataIntakePlanningRpcClient,
   createDataIntakeStagingRpcClient,
   createCustomerIdentityLookup,
 } from "@/features/data-intake/server/data-intake-client";
@@ -73,6 +76,7 @@ import {
 import type { DataIntakeMappingRpcClient } from "@/features/data-intake/server/data-intake-mapping-rpc";
 import type { DataIntakeStagingRpcClient } from "@/features/data-intake/server/data-intake-staging-rpc";
 import type { DataIntakeMatchingRpcClient } from "@/features/data-intake/server/data-intake-matching-rpc";
+import type { DataIntakePlanningRpcClient } from "@/features/data-intake/server/data-intake-planning-rpc";
 import type { CustomerIdentityLookup } from "@/features/data-intake/server/customer-identity-lookup";
 import {
   confirmDataIntakeMapping,
@@ -89,6 +93,11 @@ import {
   listDataIntakeMatchingState,
   matchDataIntakeSourceCustomers,
 } from "@/features/data-intake/server/data-intake-matching-commands";
+import {
+  approveDataIntakeImportPlan,
+  createOrReplayDataIntakeImportPlan,
+  listDataIntakePlanningState,
+} from "@/features/data-intake/server/data-intake-planning-commands";
 import type { DataCustomerImportField } from "@/features/data-intake/domain/target-catalog";
 import type { DataIntakeQueryClient } from "@/features/data-intake/server/data-intake-query";
 import type { DataIntakeRecordLookup } from "@/features/data-intake/server/data-intake-lookup";
@@ -110,6 +119,7 @@ export type DataIntakeServiceDeps = {
   mappingMutate?: DataIntakeMappingRpcClient;
   stagingMutate?: DataIntakeStagingRpcClient;
   matchingMutate?: DataIntakeMatchingRpcClient;
+  planningMutate?: DataIntakePlanningRpcClient;
   customers?: CustomerIdentityLookup;
 };
 
@@ -806,6 +816,78 @@ export class DataIntakeService {
     );
   }
 
+  async createOrReplayDataIntakeImportPlan(
+    input: PlanDataIntakeSourceInput,
+  ): Promise<DataIntakeResult<DataIntakePlanningSuccess>> {
+    if (
+      !this.deps.lookup ||
+      !this.deps.objectStore ||
+      !this.deps.planningMutate ||
+      !this.deps.customers
+    ) {
+      return dataFail("DATABASE_WRITE_ERROR", "DATA planning is not configured");
+    }
+    return createOrReplayDataIntakeImportPlan(
+      {
+        auth: this.deps.auth,
+        queryClient: this.deps.queryClient,
+        lookup: this.deps.lookup,
+        objectStore: this.deps.objectStore,
+        customers: this.deps.customers,
+        planningMutate: this.deps.planningMutate,
+      },
+      input,
+    );
+  }
+
+  async approveDataIntakeImportPlan(
+    input: PlanDataIntakeSourceInput,
+  ): Promise<DataIntakeResult<DataIntakePlanningSuccess>> {
+    if (
+      !this.deps.lookup ||
+      !this.deps.objectStore ||
+      !this.deps.planningMutate ||
+      !this.deps.customers
+    ) {
+      return dataFail("DATABASE_WRITE_ERROR", "DATA planning is not configured");
+    }
+    return approveDataIntakeImportPlan(
+      {
+        auth: this.deps.auth,
+        queryClient: this.deps.queryClient,
+        lookup: this.deps.lookup,
+        objectStore: this.deps.objectStore,
+        customers: this.deps.customers,
+        planningMutate: this.deps.planningMutate,
+      },
+      input,
+    );
+  }
+
+  async listDataIntakePlanningState(
+    input: PlanDataIntakeSourceInput,
+  ): Promise<DataIntakeResult<DataIntakePlanningSuccess>> {
+    if (
+      !this.deps.lookup ||
+      !this.deps.objectStore ||
+      !this.deps.planningMutate ||
+      !this.deps.customers
+    ) {
+      return dataFail("DATABASE_WRITE_ERROR", "DATA planning is not configured");
+    }
+    return listDataIntakePlanningState(
+      {
+        auth: this.deps.auth,
+        queryClient: this.deps.queryClient,
+        lookup: this.deps.lookup,
+        objectStore: this.deps.objectStore,
+        customers: this.deps.customers,
+        planningMutate: this.deps.planningMutate,
+      },
+      input,
+    );
+  }
+
   private async authorizeCommand(organizationId: string) {
     const authorized = await authorizeDataIntakeCaller({
       auth: this.deps.auth,
@@ -834,6 +916,7 @@ export function createDataIntakeService(input: {
   mappingMutate?: DataIntakeMappingRpcClient;
   stagingMutate?: DataIntakeStagingRpcClient;
   matchingMutate?: DataIntakeMatchingRpcClient;
+  planningMutate?: DataIntakePlanningRpcClient;
   customers?: CustomerIdentityLookup;
 } = {}): DataIntakeService {
   const env = input.env ?? process.env;
@@ -846,6 +929,7 @@ export function createDataIntakeService(input: {
   const mappingMutate = input.mappingMutate ?? createDataIntakeMappingRpcClient(env);
   const stagingMutate = input.stagingMutate ?? createDataIntakeStagingRpcClient(env);
   const matchingMutate = input.matchingMutate ?? createDataIntakeMatchingRpcClient(env);
+  const planningMutate = input.planningMutate ?? createDataIntakePlanningRpcClient(env);
   const customers = input.customers ?? createCustomerIdentityLookup(env);
   const auth =
     input.auth ??
@@ -867,6 +951,7 @@ export function createDataIntakeService(input: {
     mappingMutate,
     stagingMutate,
     matchingMutate,
+    planningMutate,
     customers,
   });
 }

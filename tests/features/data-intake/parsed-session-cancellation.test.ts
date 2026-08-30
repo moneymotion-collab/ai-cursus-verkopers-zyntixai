@@ -213,7 +213,7 @@ describe("DATA-1E-R1 parsed session cancellation", () => {
 
     const later = ctx.store.sessions[0];
     if (!later) throw new Error("missing session");
-    later.status = "approved";
+    later.status = "importing";
     const blocked = await ctx.service.cancelDataIntakeSession({
       organizationId: ORG_A,
       sessionId: ctx.created.value.sessionId,

@@ -8,6 +8,7 @@ import type { DataIntakeSourceStructureRpcClient } from "@/features/data-intake/
 import type { DataIntakeMappingRpcClient } from "@/features/data-intake/server/data-intake-mapping-rpc";
 import type { DataIntakeStagingRpcClient } from "@/features/data-intake/server/data-intake-staging-rpc";
 import type { DataIntakeMatchingRpcClient } from "@/features/data-intake/server/data-intake-matching-rpc";
+import type { DataIntakePlanningRpcClient } from "@/features/data-intake/server/data-intake-planning-rpc";
 import {
   createQueryCustomerIdentityLookup,
   type CustomerIdentityLookup,
@@ -65,6 +66,12 @@ export function createDataIntakeMatchingRpcClient(
   env: Record<string, string | undefined> = process.env,
 ): DataIntakeMatchingRpcClient {
   return createSupabaseServiceRoleClient(env) as unknown as DataIntakeMatchingRpcClient;
+}
+
+export function createDataIntakePlanningRpcClient(
+  env: Record<string, string | undefined> = process.env,
+): DataIntakePlanningRpcClient {
+  return createSupabaseServiceRoleClient(env) as unknown as DataIntakePlanningRpcClient;
 }
 
 export function createCustomerIdentityLookup(

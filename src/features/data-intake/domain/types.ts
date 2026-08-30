@@ -10,6 +10,11 @@ import type {
   DataMappingSnapshot,
 } from "@/features/data-intake/domain/mapping";
 import type { DataMatchSummary } from "@/features/data-intake/domain/matching";
+import type {
+  DataImportPlanSnapshot,
+  DataImportPlanStatus,
+  DataImportPlanSummary,
+} from "@/features/data-intake/domain/planning";
 import type { DataIntakeStagingRow, DataStagingSummary } from "@/features/data-intake/domain/staging";
 
 export type DataIntakeMembership = {
@@ -106,6 +111,14 @@ export type MatchDataIntakeSourceInput = {
   mappingHash?: string;
 };
 
+export type PlanDataIntakeSourceInput = {
+  organizationId: string;
+  sessionId: string;
+  sourceId?: string;
+  mappingHash?: string;
+  planHash?: string;
+};
+
 export type DataIntakeFoundationSuccess = {
   sessionId: string;
   status: DataIntakeSessionStatus;
@@ -148,6 +161,19 @@ export type DataIntakeMatchingSuccess = DataIntakeFoundationSuccess & {
   matcherVersion: string;
   summary: DataMatchSummary;
   rows: DataIntakeStagingRow[];
+};
+
+export type DataIntakePlanningSuccess = DataIntakeFoundationSuccess & {
+  mappingHash: string | null;
+  sourceSha256: string;
+  planId: string | null;
+  planHash: string | null;
+  planStatus: DataImportPlanStatus | null;
+  version: number | null;
+  approvedAt: string | null;
+  approvedByUserId: string | null;
+  summary: DataImportPlanSummary | null;
+  snapshot: DataImportPlanSnapshot | null;
 };
 
 export type DataIntakeFoundationCommand =

@@ -6822,6 +6822,16 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_data_intake_planning_mutation: {
+        Args: {
+          p_actor_member_id: string
+          p_actor_user_id: string
+          p_operation: string
+          p_organization_id: string
+          p_payload: Json
+        }
+        Returns: Json
+      }
       apply_organization_context_bqa_mutation: {
         Args: {
           p_actor_user_id: string

@@ -261,7 +261,7 @@ describe("DATA-1F-R1 mapping-state cancellation", () => {
     const mapped = await mappedSession();
     const later = mapped.store.sessions[0];
     if (!later) throw new Error("missing session");
-    later.status = "approved";
+    later.status = "importing";
     const blocked = await mapped.service.cancelDataIntakeSession({
       organizationId: ORG_A,
       sessionId: mapped.sessionId,
