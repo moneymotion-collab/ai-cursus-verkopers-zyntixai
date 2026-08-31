@@ -12,6 +12,10 @@ import type {
   DataMappingDecisionStatus,
   DataMappingSnapshot,
 } from "@/features/data-intake/domain/mapping";
+import type {
+  DataImportRowOperation,
+  DataImportRowOutcome,
+} from "@/features/data-intake/domain/execution";
 import type { DataImportPlanStatus } from "@/features/data-intake/domain/planning";
 import {
   DATA_STAGING_RESOLUTIONS,
@@ -118,6 +122,19 @@ export type DataIntakeRecordLookup = {
     organizationId: string;
     sessionId: string;
   }): Promise<DataIntakeResult<DataIntakePlanRecord[]>>;
+  findRowResults(input: {
+    organizationId: string;
+    planId: string;
+  }): Promise<DataIntakeResult<DataIntakeRowResultRecord[]>>;
+};
+
+export type DataIntakeRowResultRecord = {
+  rowFingerprint: string;
+  sourceRowNumber: number;
+  operation: DataImportRowOperation;
+  outcome: DataImportRowOutcome;
+  targetRecordId: string | null;
+  errorCode: string | null;
 };
 
 const SESSION_STATUSES = new Set<DataIntakeSessionStatus>([
@@ -353,6 +370,22 @@ export function createQueryDataIntakeRecordLookup(
       }
       return dataOk(rows.value.flatMap(mapPlan));
     },
+
+    async findRowResults(input) {
+      const rows = await executeDataIntakeQuery(
+        queryClient
+          .from("data_import_row_results")
+          .select(
+            "row_fingerprint, source_row_number, operation, outcome, target_record_id, error_code",
+          )
+          .eq("organization_id", input.organizationId)
+          .eq("plan_id", input.planId),
+      );
+      if (!rows.ok) {
+        return rows;
+      }
+      return dataOk(rows.value.flatMap(mapRowResult));
+    },
   };
 }
 
@@ -510,6 +543,32 @@ function mapStaging(row: Record<string, unknown>): DataIntakeStagingRow[] {
             );
           })
         : [],
+    },
+  ];
+}
+
+function mapRowResult(row: Record<string, unknown>): DataIntakeRowResultRecord[] {
+  const rowFingerprint = asString(row.row_fingerprint);
+  const sourceRowNumber =
+    typeof row.source_row_number === "number" ? row.source_row_number : Number.NaN;
+  const operation = asString(row.operation);
+  const outcome = asString(row.outcome);
+  if (
+    !rowFingerprint ||
+    !Number.isInteger(sourceRowNumber) ||
+    (operation !== "create" && operation !== "link" && operation !== "skip") ||
+    (outcome !== "imported" && outcome !== "failed" && outcome !== "skipped")
+  ) {
+    return [];
+  }
+  return [
+    {
+      rowFingerprint,
+      sourceRowNumber,
+      operation,
+      outcome,
+      targetRecordId: asString(row.target_record_id),
+      errorCode: asString(row.error_code),
     },
   ];
 }

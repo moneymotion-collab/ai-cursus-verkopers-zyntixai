@@ -39,8 +39,10 @@ import type {
   DataIntakeMappingCommandInput,
   DataIntakeMappingSuccess,
   DataIntakeMatchingSuccess,
+  DataIntakeExecutionSuccess,
   DataIntakePlanningSuccess,
   DataIntakeStagingSuccess,
+  ExecuteDataIntakeSourceInput,
   DiscoverDataIntakeSourceStructureInput,
   MatchDataIntakeSourceInput,
   PlanDataIntakeSourceInput,
@@ -58,6 +60,7 @@ import {
   createDataIntakeSourceStructureRpcClient,
   createDataIntakeMatchingRpcClient,
   createDataIntakePlanningRpcClient,
+  createDataIntakeExecutionRpcClient,
   createDataIntakeStagingRpcClient,
   createCustomerIdentityLookup,
 } from "@/features/data-intake/server/data-intake-client";
@@ -77,6 +80,10 @@ import type { DataIntakeMappingRpcClient } from "@/features/data-intake/server/d
 import type { DataIntakeStagingRpcClient } from "@/features/data-intake/server/data-intake-staging-rpc";
 import type { DataIntakeMatchingRpcClient } from "@/features/data-intake/server/data-intake-matching-rpc";
 import type { DataIntakePlanningRpcClient } from "@/features/data-intake/server/data-intake-planning-rpc";
+import type { DataIntakeExecutionRpcClient } from "@/features/data-intake/server/data-intake-execution-rpc";
+import {
+  executeDataIntakeImportPlan,
+} from "@/features/data-intake/server/data-intake-execution-commands";
 import type { CustomerIdentityLookup } from "@/features/data-intake/server/customer-identity-lookup";
 import {
   confirmDataIntakeMapping,
@@ -120,6 +127,7 @@ export type DataIntakeServiceDeps = {
   stagingMutate?: DataIntakeStagingRpcClient;
   matchingMutate?: DataIntakeMatchingRpcClient;
   planningMutate?: DataIntakePlanningRpcClient;
+  executionMutate?: DataIntakeExecutionRpcClient;
   customers?: CustomerIdentityLookup;
 };
 
@@ -864,6 +872,30 @@ export class DataIntakeService {
     );
   }
 
+  async executeDataIntakeImportPlan(
+    input: ExecuteDataIntakeSourceInput,
+  ): Promise<DataIntakeResult<DataIntakeExecutionSuccess>> {
+    if (
+      !this.deps.lookup ||
+      !this.deps.objectStore ||
+      !this.deps.executionMutate ||
+      !this.deps.customers
+    ) {
+      return dataFail("DATABASE_WRITE_ERROR", "DATA execution is not configured");
+    }
+    return executeDataIntakeImportPlan(
+      {
+        auth: this.deps.auth,
+        queryClient: this.deps.queryClient,
+        lookup: this.deps.lookup,
+        objectStore: this.deps.objectStore,
+        customers: this.deps.customers,
+        executionMutate: this.deps.executionMutate,
+      },
+      input,
+    );
+  }
+
   async listDataIntakePlanningState(
     input: PlanDataIntakeSourceInput,
   ): Promise<DataIntakeResult<DataIntakePlanningSuccess>> {
@@ -917,6 +949,7 @@ export function createDataIntakeService(input: {
   stagingMutate?: DataIntakeStagingRpcClient;
   matchingMutate?: DataIntakeMatchingRpcClient;
   planningMutate?: DataIntakePlanningRpcClient;
+  executionMutate?: DataIntakeExecutionRpcClient;
   customers?: CustomerIdentityLookup;
 } = {}): DataIntakeService {
   const env = input.env ?? process.env;
@@ -930,6 +963,7 @@ export function createDataIntakeService(input: {
   const stagingMutate = input.stagingMutate ?? createDataIntakeStagingRpcClient(env);
   const matchingMutate = input.matchingMutate ?? createDataIntakeMatchingRpcClient(env);
   const planningMutate = input.planningMutate ?? createDataIntakePlanningRpcClient(env);
+  const executionMutate = input.executionMutate ?? createDataIntakeExecutionRpcClient(env);
   const customers = input.customers ?? createCustomerIdentityLookup(env);
   const auth =
     input.auth ??
@@ -952,6 +986,7 @@ export function createDataIntakeService(input: {
     stagingMutate,
     matchingMutate,
     planningMutate,
+    executionMutate,
     customers,
   });
 }

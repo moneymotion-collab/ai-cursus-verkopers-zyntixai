@@ -25,6 +25,7 @@ import {
   createMemoryDataIntakeMappingRpc,
   createMemoryDataIntakeMatchingRpc,
   createMemoryDataIntakePlanningRpc,
+  createMemoryDataIntakeExecutionRpc,
   createMemoryDataIntakeSourceObjectRpc,
   createMemoryDataIntakeSourceStructureRpc,
   createMemoryDataIntakeStagingRpc,
@@ -151,6 +152,11 @@ export function createService(input: {
       isServiceRole: input.isServiceRole,
     }),
     planningMutate: createMemoryDataIntakePlanningRpc({
+      tables,
+      store,
+      isServiceRole: input.isServiceRole,
+    }),
+    executionMutate: createMemoryDataIntakeExecutionRpc({
       tables,
       store,
       isServiceRole: input.isServiceRole,

@@ -34,6 +34,17 @@ import {
   type DataIntakePlanningRpcArgs,
   type DataIntakePlanningRpcClient,
 } from "@/features/data-intake/server/data-intake-planning-rpc";
+import {
+  DATA_INTAKE_EXECUTION_RPC,
+  type DataIntakeExecutionRpcArgs,
+  type DataIntakeExecutionRpcClient,
+} from "@/features/data-intake/server/data-intake-execution-rpc";
+import {
+  importableCustomerFields,
+  type DataImportRowOperation,
+  type DataImportRowOutcome,
+} from "@/features/data-intake/domain/execution";
+import { DATA_BATCH_SIZE } from "@/features/data-intake/domain/constants";
 import type { DataMappingSnapshot } from "@/features/data-intake/domain/mapping";
 import type { DataImportPlanStatus } from "@/features/data-intake/domain/planning";
 import type { CustomerIdentityLookup } from "@/features/data-intake/server/customer-identity-lookup";
@@ -49,6 +60,7 @@ import type {
   DataIntakeEventRecord,
   DataIntakePlanRecord,
   DataIntakeRecordLookup,
+  DataIntakeRowResultRecord,
   DataIntakeSessionRecord,
   DataIntakeSourceRecord,
 } from "@/features/data-intake/server/data-intake-lookup";
@@ -67,6 +79,10 @@ type SessionRow = {
   current_plan_id: string | null;
   approved_by_user_id: string | null;
   approved_at: string | null;
+  execution_attempt?: number;
+  last_completed_batch_index?: number | null;
+  execution_started_at?: string | null;
+  completed_at?: string | null;
 };
 
 export type MemoryImportPlan = {
@@ -135,6 +151,28 @@ export type MemoryCustomer = {
   email: string | null;
   archived_at: string | null;
   display_name?: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  phone?: string | null;
+  status?: string;
+  owner_member_id?: string | null;
+  created_by_member_id?: string | null;
+  source?: string;
+};
+
+export type MemoryRowResult = {
+  id: string;
+  organization_id: string;
+  session_id: string;
+  plan_id: string;
+  row_fingerprint: string;
+  source_row_number: number;
+  operation: DataImportRowOperation;
+  outcome: DataImportRowOutcome;
+  target_domain: string;
+  target_record_id: string | null;
+  error_code: string | null;
+  created_at: string;
 };
 
 export type DataIntakeMemoryStore = {
@@ -150,10 +188,14 @@ export type DataIntakeMemoryStore = {
   staging: StagingRow[];
   customers: MemoryCustomer[];
   plans: MemoryImportPlan[];
-  rowResults: unknown[];
+  rowResults: MemoryRowResult[];
   links: unknown[];
   matchingTail: Promise<unknown>;
   planningTail: Promise<unknown>;
+  executionTail: Promise<unknown>;
+  executionBatchSize?: number;
+  executionFault?: "after_claim" | "after_create_before_result" | null;
+  failRowFingerprints?: string[];
 };
 
 export type StagingRow = {
@@ -197,6 +239,7 @@ export function emptyDataIntakeStore(): DataIntakeMemoryStore {
     links: [],
     matchingTail: Promise.resolve(),
     planningTail: Promise.resolve(),
+    executionTail: Promise.resolve(),
   };
 }
 
@@ -363,6 +406,22 @@ export function createStoreDataIntakeRecordLookup(
           createdAt: plan.created_at,
           approvedAt: plan.approved_at,
           supersededAt: plan.superseded_at,
+        }));
+      return dataOk(rows);
+    },
+    async findRowResults(input) {
+      const rows: DataIntakeRowResultRecord[] = store.rowResults
+        .filter(
+          (row) =>
+            row.organization_id === input.organizationId && row.plan_id === input.planId,
+        )
+        .map((row) => ({
+          rowFingerprint: row.row_fingerprint,
+          sourceRowNumber: row.source_row_number,
+          operation: row.operation,
+          outcome: row.outcome,
+          targetRecordId: row.target_record_id,
+          errorCode: row.error_code,
         }));
       return dataOk(rows);
     },
@@ -2417,4 +2476,677 @@ async function runPlanningRpc(
     }),
     error: null,
   };
+}
+
+type ExecutionPlanOperation = {
+  source_row_number: number;
+  row_fingerprint: string;
+  target_operation: string | null;
+  target_record_id: string | null;
+};
+
+export function createMemoryDataIntakeExecutionRpc(input: {
+  tables: DataIntakeMemoryTables;
+  store: DataIntakeMemoryStore;
+  requireServiceRole?: boolean;
+  isServiceRole?: boolean;
+}): DataIntakeExecutionRpcClient {
+  const requireServiceRole = input.requireServiceRole ?? true;
+  return {
+    async rpc(fn, args: DataIntakeExecutionRpcArgs) {
+      const previous = input.store.executionTail;
+      let release!: (value?: unknown) => void;
+      input.store.executionTail = new Promise((resolve) => {
+        release = resolve;
+      });
+      await previous.catch(() => undefined);
+      try {
+        return await runExecutionRpc(input, requireServiceRole, fn, args);
+      } finally {
+        release();
+      }
+    },
+  };
+}
+
+function snapshotExecutionStore(store: DataIntakeMemoryStore) {
+  return {
+    sessions: structuredClone(store.sessions),
+    plans: structuredClone(store.plans),
+    customers: structuredClone(store.customers),
+    rowResults: structuredClone(store.rowResults),
+    events: structuredClone(store.events),
+  };
+}
+
+function restoreExecutionStore(
+  store: DataIntakeMemoryStore,
+  snapshot: ReturnType<typeof snapshotExecutionStore>,
+) {
+  store.sessions.splice(0, store.sessions.length, ...snapshot.sessions);
+  store.plans.splice(0, store.plans.length, ...snapshot.plans);
+  store.customers.splice(0, store.customers.length, ...snapshot.customers);
+  store.rowResults.splice(0, store.rowResults.length, ...snapshot.rowResults);
+  store.events.splice(0, store.events.length, ...snapshot.events);
+}
+
+function planOperations(plan: MemoryImportPlan): ExecutionPlanOperation[] {
+  const raw = plan.summary.operations;
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  return raw.flatMap((value): ExecutionPlanOperation[] => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return [];
+    }
+    const row = value as Record<string, unknown>;
+    if (typeof row.source_row_number !== "number" || typeof row.row_fingerprint !== "string") {
+      return [];
+    }
+    return [
+      {
+        source_row_number: row.source_row_number,
+        row_fingerprint: row.row_fingerprint,
+        target_operation:
+          row.target_operation === "create" ||
+          row.target_operation === "link" ||
+          row.target_operation === "skip"
+            ? row.target_operation
+            : null,
+        target_record_id: typeof row.target_record_id === "string" ? row.target_record_id : null,
+      },
+    ];
+  });
+}
+
+function executionResult(input: {
+  session: SessionRow;
+  source: SourceRow;
+  plan: MemoryImportPlan;
+  eventId: string | null;
+  eventType: string | null;
+  replayed: boolean;
+  mappingHash: string;
+  batchIndex: number | null;
+  done: boolean;
+  results: MemoryRowResult[];
+}) {
+  const imported = input.results.filter((row) => row.outcome === "imported").length;
+  const failed = input.results.filter((row) => row.outcome === "failed").length;
+  const skipped = input.results.filter((row) => row.outcome === "skipped").length;
+  return {
+    ok: true,
+    session_id: input.session.id,
+    status: input.session.status,
+    target_domain: input.session.target_domain,
+    source_kind: input.source.source_kind,
+    source_id: input.source.id,
+    storage_path: input.source.storage_path,
+    storage_bucket: input.source.storage_bucket,
+    event_id: input.eventId,
+    event_type: input.eventType,
+    replayed: input.replayed,
+    plan_id: input.plan.id,
+    plan_hash: input.plan.plan_hash,
+    plan_status: input.plan.status,
+    version: input.plan.version,
+    approved_at: input.plan.approved_at,
+    approved_by_user_id: input.plan.approved_by_user_id,
+    mapping_hash: input.mappingHash,
+    batch_index: input.batchIndex,
+    last_completed_batch_index: input.session.last_completed_batch_index ?? null,
+    done: input.done,
+    summary: {
+      imported,
+      failed,
+      skipped,
+      created: input.results.filter((row) => row.operation === "create" && row.outcome === "imported")
+        .length,
+      linked: input.results.filter((row) => row.operation === "link" && row.outcome === "imported")
+        .length,
+    },
+    results: input.results.map((row) => ({
+      row_fingerprint: row.row_fingerprint,
+      source_row_number: row.source_row_number,
+      operation: row.operation,
+      outcome: row.outcome,
+      target_record_id: row.target_record_id,
+      error_code: row.error_code,
+    })),
+  };
+}
+
+async function runExecutionRpc(
+  input: {
+    tables: DataIntakeMemoryTables;
+    store: DataIntakeMemoryStore;
+    isServiceRole?: boolean;
+  },
+  requireServiceRole: boolean,
+  fn: string,
+  args: DataIntakeExecutionRpcArgs,
+) {
+  if (fn !== DATA_INTAKE_EXECUTION_RPC) {
+    return { data: null, error: { message: "unknown rpc" } };
+  }
+  if (requireServiceRole && input.isServiceRole === false) {
+    return {
+      data: fail("UNAUTHORIZED", "DATA mutation requires the privileged database role"),
+      error: null,
+    };
+  }
+  const org = input.tables.organizations.find((row) => row.id === args.p_organization_id);
+  if (!org || org.status !== "active") {
+    return { data: fail("ORG_NOT_FOUND", "Organization not found or not active"), error: null };
+  }
+  const member = input.tables.organization_members.find(
+    (row) =>
+      row.organization_id === args.p_organization_id &&
+      row.id === args.p_actor_member_id &&
+      row.user_id === args.p_actor_user_id,
+  );
+  if (!member || member.status !== "active") {
+    return {
+      data: fail("UNAUTHORIZED", "Active organization membership is required"),
+      error: null,
+    };
+  }
+  if (member.role !== "owner" && member.role !== "admin") {
+    return { data: fail("FORBIDDEN_ROLE", "Owner or Admin role is required"), error: null };
+  }
+  if (
+    args.p_payload.storage_path ||
+    args.p_payload.records ||
+    args.p_payload.bytes ||
+    args.p_payload.rows ||
+    args.p_payload.cells ||
+    args.p_payload.target_record_id ||
+    args.p_payload.target_operation ||
+    args.p_payload.targetRecordId ||
+    args.p_payload.targetOperation ||
+    args.p_payload.display_name ||
+    args.p_payload.email ||
+    args.p_payload.customers ||
+    args.p_payload.normalized_values ||
+    args.p_payload.raw_values
+  ) {
+    return {
+      data: fail("SOURCE_INVALID", "Client execution targets and Customer fields are not accepted"),
+      error: null,
+    };
+  }
+  if (args.p_operation !== "execute_import_plan") {
+    return { data: fail("INVALID_STATE", "Unknown DATA execution operation"), error: null };
+  }
+
+  const sessionId = typeof args.p_payload.session_id === "string" ? args.p_payload.session_id : "";
+  const sourceId = typeof args.p_payload.source_id === "string" ? args.p_payload.source_id : "";
+  const planId = typeof args.p_payload.plan_id === "string" ? args.p_payload.plan_id : "";
+  const mappingHash =
+    typeof args.p_payload.mapping_hash === "string" ? args.p_payload.mapping_hash : "";
+  const sourceSha256 =
+    typeof args.p_payload.source_sha256 === "string" ? args.p_payload.source_sha256 : "";
+  const matcherVersion =
+    typeof args.p_payload.matcher_version === "string" ? args.p_payload.matcher_version : "";
+  const planHash = typeof args.p_payload.plan_hash === "string" ? args.p_payload.plan_hash : "";
+
+  if (!UUID.test(sessionId)) {
+    return { data: fail("SESSION_NOT_FOUND", "sessionId is required"), error: null };
+  }
+  if (!UUID.test(sourceId)) {
+    return { data: fail("SOURCE_NOT_FOUND", "sourceId is required"), error: null };
+  }
+  if (!UUID.test(planId)) {
+    return { data: fail("INVALID_STATE", "planId is required"), error: null };
+  }
+  if (
+    !/^[0-9a-f]{64}$/.test(mappingHash) ||
+    !/^[0-9a-f]{64}$/.test(sourceSha256) ||
+    !/^[0-9a-f]{64}$/.test(planHash)
+  ) {
+    return { data: fail("PLAN_STALE", "Execution is bound to the current immutable snapshot"), error: null };
+  }
+  if (matcherVersion !== DATA_CUSTOMER_MATCHER_VERSION) {
+    return { data: fail("SOURCE_INVALID", "Unknown matcher version"), error: null };
+  }
+
+  const session = input.store.sessions.find(
+    (row) => row.id === sessionId && row.organization_id === args.p_organization_id,
+  );
+  if (!session) {
+    return { data: fail("SESSION_NOT_FOUND", "Intake session not found"), error: null };
+  }
+  if (session.target_domain !== "customer") {
+    return {
+      data: fail("TARGET_NOT_SUPPORTED", "DATA-1J execution supports customer only"),
+      error: null,
+    };
+  }
+  if (session.status === "cancelled") {
+    return { data: fail("INVALID_STATE", "Cancelled sessions cannot be executed"), error: null };
+  }
+  if (
+    session.status !== "approved" &&
+    session.status !== "importing" &&
+    session.status !== "failed" &&
+    session.status !== "completed" &&
+    session.status !== "completed_with_errors"
+  ) {
+    return { data: fail("INVALID_STATE", "Import execution requires an approved plan"), error: null };
+  }
+
+  const source = input.store.sources.find(
+    (row) =>
+      row.id === sourceId &&
+      row.organization_id === args.p_organization_id &&
+      row.session_id === session.id,
+  );
+  if (!source) {
+    return {
+      data: fail("SOURCE_NOT_FOUND", "Intake source not found for this session"),
+      error: null,
+    };
+  }
+  if (source.sha256 !== sourceSha256) {
+    return {
+      data: fail("SOURCE_HASH_INVALID", "Stored object no longer matches the verified source"),
+      error: null,
+    };
+  }
+
+  const matching = [...input.store.events]
+    .reverse()
+    .find(
+      (event) =>
+        event.event_type === "matching_completed" &&
+        (event.session_id === session.id || event.metadata.source_id === source.id),
+    );
+  if (!matching) {
+    return {
+      data: fail("INVALID_STATE", "Import execution requires current matching completion"),
+      error: null,
+    };
+  }
+  if (
+    matching.metadata.source_id !== source.id ||
+    matching.metadata.mapping_hash !== mappingHash ||
+    matching.metadata.matcher_version !== DATA_CUSTOMER_MATCHER_VERSION
+  ) {
+    return {
+      data: fail("PLAN_STALE", "Matching completion is not current for this source and mapping"),
+      error: null,
+    };
+  }
+
+  const plan = input.store.plans.find(
+    (row) =>
+      row.id === planId &&
+      row.organization_id === args.p_organization_id &&
+      row.session_id === session.id,
+  );
+  if (!plan) {
+    return { data: fail("INVALID_STATE", "Import execution requires an approved plan"), error: null };
+  }
+  if (plan.plan_hash !== planHash || plan.source_sha256 !== sourceSha256) {
+    return {
+      data: fail("PLAN_STALE", "Execution is bound to the exact current plan snapshot"),
+      error: null,
+    };
+  }
+  if (plan.status === "draft") {
+    return { data: fail("INVALID_STATE", "Only an approved plan can be executed"), error: null };
+  }
+  if (plan.status === "superseded") {
+    return { data: fail("PLAN_STALE", "A superseded plan cannot be executed"), error: null };
+  }
+  if (!plan.approved_by_user_id || !plan.approved_at) {
+    return { data: fail("INVALID_STATE", "Execution requires a human-approved plan"), error: null };
+  }
+
+  const operations = planOperations(plan).sort((a, b) => a.source_row_number - b.source_row_number);
+  const existingResults = input.store.rowResults.filter((row) => row.plan_id === plan.id);
+  const resultByFingerprint = new Map(existingResults.map((row) => [row.row_fingerprint, row]));
+  const allTerminal =
+    operations.length > 0 &&
+    operations.every((operation) => {
+      const result = resultByFingerprint.get(operation.row_fingerprint);
+      return result?.outcome === "imported" || result?.outcome === "skipped" || result?.outcome === "failed";
+    });
+
+  if (
+    (plan.status === "executed" ||
+      session.status === "completed" ||
+      session.status === "completed_with_errors") &&
+    allTerminal
+  ) {
+    return {
+      data: executionResult({
+        session,
+        source,
+        plan,
+        eventId: input.store.events.find((event) => event.event_type === "import_completed")
+          ? randomUuid()
+          : null,
+        eventType: "import_completed",
+        replayed: true,
+        mappingHash,
+        batchIndex: session.last_completed_batch_index ?? null,
+        done: true,
+        results: existingResults,
+      }),
+      error: null,
+    };
+  }
+
+  for (const operation of operations) {
+    const existing = resultByFingerprint.get(operation.row_fingerprint);
+    if (existing && (existing.outcome === "imported" || existing.outcome === "skipped")) {
+      continue;
+    }
+    const staged = input.store.staging.find(
+      (row) =>
+        row.row_fingerprint === operation.row_fingerprint &&
+        row.organization_id === args.p_organization_id &&
+        row.source_id === source.id,
+    );
+    if (!staged || staged.lifecycle !== "validated") {
+      return { data: fail("PLAN_STALE", "Executable plan row is no longer valid"), error: null };
+    }
+    if (operation.target_operation === "link" && operation.target_record_id) {
+      const target = input.store.customers.find(
+        (customer) =>
+          customer.id === operation.target_record_id &&
+          customer.organization_id === args.p_organization_id,
+      );
+      if (!target || !staged.normalized_values.email || target.email !== staged.normalized_values.email) {
+        return {
+          data: fail("PLAN_STALE", "Link target Customer is no longer valid for this plan"),
+          error: null,
+        };
+      }
+    }
+    if (operation.target_operation === "create") {
+      const email = staged.normalized_values.email;
+      if (
+        email &&
+        input.store.customers.some(
+          (customer) =>
+            customer.organization_id === args.p_organization_id && customer.email === email,
+        )
+      ) {
+        return {
+          data: fail("PLAN_STALE", "Create target Customer already exists for this plan"),
+          error: null,
+        };
+      }
+    }
+    if (
+      operation.target_operation !== "create" &&
+      operation.target_operation !== "link" &&
+      operation.target_operation !== "skip"
+    ) {
+      return { data: fail("PLAN_STALE", "Blocked or conflict rows cannot be executed"), error: null };
+    }
+  }
+
+  const snapshot = snapshotExecutionStore(input.store);
+  try {
+    if (session.status === "approved" && plan.status === "approved") {
+      session.status = "importing";
+      session.execution_attempt = (session.execution_attempt ?? 0) + 1;
+      session.execution_started_at = new Date().toISOString();
+      plan.status = "executing";
+      input.store.events.push({
+        event_type: "import_started",
+        session_id: session.id,
+        plan_id: plan.id,
+        metadata: {
+          plan_id: plan.id,
+          plan_hash: plan.plan_hash,
+          version: plan.version,
+        },
+      });
+    } else if (session.status === "failed" && plan.status === "executing") {
+      session.status = "importing";
+      session.execution_attempt = (session.execution_attempt ?? 0) + 1;
+      input.store.events.push({
+        event_type: "import_started",
+        session_id: session.id,
+        plan_id: plan.id,
+        metadata: {
+          plan_id: plan.id,
+          plan_hash: plan.plan_hash,
+          retry: true,
+        },
+      });
+    } else if (!(session.status === "importing" && plan.status === "executing")) {
+      return { data: fail("INVALID_STATE", "Import execution requires an approved plan"), error: null };
+    }
+
+    if (input.store.executionFault === "after_claim") {
+      throw { executionFault: true };
+    }
+
+    const batchSize = input.store.executionBatchSize ?? DATA_BATCH_SIZE;
+    const pending = operations.filter((operation) => {
+      const result = resultByFingerprint.get(operation.row_fingerprint);
+      return !result || (result.outcome !== "imported" && result.outcome !== "skipped" && result.outcome !== "failed");
+    });
+    const batch = pending.slice(0, batchSize);
+    const batchIndex = (session.last_completed_batch_index ?? -1) + 1;
+
+    for (const operation of batch) {
+      const staged = input.store.staging.find(
+        (row) => row.row_fingerprint === operation.row_fingerprint,
+      );
+      if (!staged) {
+        return { data: fail("PLAN_STALE", "Executable plan row is no longer valid"), error: null };
+      }
+      if (input.store.failRowFingerprints?.includes(operation.row_fingerprint)) {
+        const failed: MemoryRowResult = {
+          id: randomUuid(),
+          organization_id: args.p_organization_id,
+          session_id: session.id,
+          plan_id: plan.id,
+          row_fingerprint: operation.row_fingerprint,
+          source_row_number: operation.source_row_number,
+          operation: (operation.target_operation as DataImportRowOperation) ?? "create",
+          outcome: "failed",
+          target_domain: "customer",
+          target_record_id: null,
+          error_code: "CUSTOMER_CREATE_FAILED",
+          created_at: new Date().toISOString(),
+        };
+        input.store.rowResults.push(failed);
+        resultByFingerprint.set(failed.row_fingerprint, failed);
+        continue;
+      }
+      if (operation.target_operation === "create") {
+        const fields = importableCustomerFields(staged.normalized_values);
+        if (!fields.ok) {
+          const failed: MemoryRowResult = {
+            id: randomUuid(),
+            organization_id: args.p_organization_id,
+            session_id: session.id,
+            plan_id: plan.id,
+            row_fingerprint: operation.row_fingerprint,
+            source_row_number: operation.source_row_number,
+            operation: "create",
+            outcome: "failed",
+            target_domain: "customer",
+            target_record_id: null,
+            error_code: "CUSTOMER_CREATE_FAILED",
+            created_at: new Date().toISOString(),
+          };
+          input.store.rowResults.push(failed);
+          resultByFingerprint.set(failed.row_fingerprint, failed);
+          continue;
+        }
+        if (
+          fields.fields.email &&
+          input.store.customers.some(
+            (customer) =>
+              customer.organization_id === args.p_organization_id &&
+              customer.email === fields.fields.email,
+          )
+        ) {
+          const failed: MemoryRowResult = {
+            id: randomUuid(),
+            organization_id: args.p_organization_id,
+            session_id: session.id,
+            plan_id: plan.id,
+            row_fingerprint: operation.row_fingerprint,
+            source_row_number: operation.source_row_number,
+            operation: "create",
+            outcome: "failed",
+            target_domain: "customer",
+            target_record_id: null,
+            error_code: "CUSTOMER_CONFLICT",
+            created_at: new Date().toISOString(),
+          };
+          input.store.rowResults.push(failed);
+          resultByFingerprint.set(failed.row_fingerprint, failed);
+          continue;
+        }
+        const created: MemoryCustomer = {
+          id: randomUuid(),
+          organization_id: args.p_organization_id,
+          email: fields.fields.email,
+          archived_at: null,
+          display_name: fields.fields.display_name,
+          first_name: fields.fields.first_name,
+          last_name: fields.fields.last_name,
+          phone: fields.fields.phone,
+          status: "onboarding",
+          owner_member_id: null,
+          created_by_member_id: args.p_actor_member_id,
+          source: "import",
+        };
+        input.store.customers.push(created);
+        if (input.store.executionFault === "after_create_before_result") {
+          throw { executionFault: true };
+        }
+        const result: MemoryRowResult = {
+          id: randomUuid(),
+          organization_id: args.p_organization_id,
+          session_id: session.id,
+          plan_id: plan.id,
+          row_fingerprint: operation.row_fingerprint,
+          source_row_number: operation.source_row_number,
+          operation: "create",
+          outcome: "imported",
+          target_domain: "customer",
+          target_record_id: created.id,
+          error_code: null,
+          created_at: new Date().toISOString(),
+        };
+        input.store.rowResults.push(result);
+        resultByFingerprint.set(result.row_fingerprint, result);
+        continue;
+      }
+      if (operation.target_operation === "link" && operation.target_record_id) {
+        const result: MemoryRowResult = {
+          id: randomUuid(),
+          organization_id: args.p_organization_id,
+          session_id: session.id,
+          plan_id: plan.id,
+          row_fingerprint: operation.row_fingerprint,
+          source_row_number: operation.source_row_number,
+          operation: "link",
+          outcome: "imported",
+          target_domain: "customer",
+          target_record_id: operation.target_record_id,
+          error_code: null,
+          created_at: new Date().toISOString(),
+        };
+        input.store.rowResults.push(result);
+        resultByFingerprint.set(result.row_fingerprint, result);
+        continue;
+      }
+      const skipped: MemoryRowResult = {
+        id: randomUuid(),
+        organization_id: args.p_organization_id,
+        session_id: session.id,
+        plan_id: plan.id,
+        row_fingerprint: operation.row_fingerprint,
+        source_row_number: operation.source_row_number,
+        operation: "skip",
+        outcome: "skipped",
+        target_domain: "customer",
+        target_record_id: null,
+        error_code: null,
+        created_at: new Date().toISOString(),
+      };
+      input.store.rowResults.push(skipped);
+      resultByFingerprint.set(skipped.row_fingerprint, skipped);
+    }
+
+    session.last_completed_batch_index = batchIndex;
+    const allResults = input.store.rowResults.filter((row) => row.plan_id === plan.id);
+    const remaining = operations.filter((operation) => {
+      const result = allResults.find((row) => row.row_fingerprint === operation.row_fingerprint);
+      return !result;
+    });
+    const failedCount = operations.filter((operation) => {
+      const result = allResults.find((row) => row.row_fingerprint === operation.row_fingerprint);
+      return result?.outcome === "failed";
+    }).length;
+    let eventId = randomUuid();
+    let eventType = "import_batch_completed";
+    input.store.events.push({
+      event_type: "import_batch_completed",
+      session_id: session.id,
+      plan_id: plan.id,
+      metadata: {
+        plan_id: plan.id,
+        plan_hash: plan.plan_hash,
+        batch_index: batchIndex,
+        imported: allResults.filter((row) => row.outcome === "imported").length,
+        failed: failedCount,
+      },
+    });
+    const done = remaining.length === 0;
+    if (done) {
+      session.status = failedCount > 0 ? "completed_with_errors" : "completed";
+      session.completed_at = new Date().toISOString();
+      plan.status = "executed";
+      eventType = "import_completed";
+      eventId = randomUuid();
+      input.store.events.push({
+        event_type: "import_completed",
+        session_id: session.id,
+        plan_id: plan.id,
+        metadata: {
+          plan_id: plan.id,
+          plan_hash: plan.plan_hash,
+          imported: allResults.filter((row) => row.outcome === "imported").length,
+          failed: failedCount,
+        },
+      });
+    }
+    return {
+      data: executionResult({
+        session,
+        source,
+        plan,
+        eventId,
+        eventType,
+        replayed: false,
+        mappingHash,
+        batchIndex,
+        done,
+        results: allResults,
+      }),
+      error: null,
+    };
+  } catch (error) {
+    restoreExecutionStore(input.store, snapshot);
+    if (error && typeof error === "object" && "executionFault" in error) {
+      return {
+        data: fail("DATABASE_WRITE_ERROR", "Import execution transaction rolled back"),
+        error: null,
+      };
+    }
+    throw error;
+  }
 }

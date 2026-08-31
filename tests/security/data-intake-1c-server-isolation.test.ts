@@ -120,5 +120,12 @@ describe("DATA-1C server-only isolation", () => {
     expect(planning).toContain(
       'apply_data_intake_planning_mutation" as const satisfies keyof Database["public"]["Functions"]',
     );
+    const execution = readFileSync(
+      join(ROOT, "src/features/data-intake/server/data-intake-execution-rpc.ts"),
+      "utf8",
+    );
+    expect(execution).toContain(
+      'apply_data_intake_execution_mutation" as const satisfies keyof Database["public"]["Functions"]',
+    );
   });
 });

@@ -27,6 +27,8 @@ export type DataIntakeMatchingOperation = "confirm_source_matching";
 
 export type DataIntakePlanningOperation = "create_import_plan" | "approve_import_plan";
 
+export type DataIntakeExecutionOperation = "execute_import_plan";
+
 export function isKnownDataIntakeRole(
   value: string,
 ): value is DataIntakeOrganizationRole {

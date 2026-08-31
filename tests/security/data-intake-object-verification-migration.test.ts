@@ -17,6 +17,8 @@ const MATCHING_MIGRATION =
   "20260830200000_add_data_intake_customer_identity_resolution.sql";
 const PLANNING_MIGRATION =
   "20260830300000_add_data_intake_import_planning_approval.sql";
+const EXECUTION_MIGRATION =
+  "20260830400000_add_data_intake_customer_import_execution.sql";
 const STORAGE_MIGRATION = "20260827140020_add_data_intake_storage_bucket.sql";
 const SCHEMA_MIGRATION = "20260827140000_create_data_intake_foundation.sql";
 const RLS_MIGRATION = "20260827140010_enable_data_intake_rls.sql";
@@ -42,6 +44,7 @@ describe("DATA-1D object verification migration", () => {
       STAGING_MIGRATION,
       MATCHING_MIGRATION,
       PLANNING_MIGRATION,
+      EXECUTION_MIGRATION,
     ]);
     expect(sql).toContain("object_verified_at");
     expect(sql).toContain("apply_data_intake_source_object_mutation");

@@ -6762,6 +6762,16 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_data_intake_execution_mutation: {
+        Args: {
+          p_actor_member_id: string
+          p_actor_user_id: string
+          p_operation: string
+          p_organization_id: string
+          p_payload: Json
+        }
+        Returns: Json
+      }
       apply_data_intake_foundation_mutation: {
         Args: {
           p_actor_member_id: string

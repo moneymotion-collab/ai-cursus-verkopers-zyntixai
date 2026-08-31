@@ -20,6 +20,7 @@ export type DataIntakeMemoryTables = {
   data_intake_staging_rows: Array<Record<string, unknown>>;
   data_intake_events: Array<Record<string, unknown>>;
   data_import_plans: Array<Record<string, unknown>>;
+  data_import_row_results: Array<Record<string, unknown>>;
 };
 
 type Filter = { column: string; value: string | number | boolean };
@@ -61,6 +62,7 @@ export function emptyDataIntakeTables(): DataIntakeMemoryTables {
     data_intake_staging_rows: [],
     data_intake_events: [],
     data_import_plans: [],
+    data_import_row_results: [],
   };
 }
 

@@ -11,6 +11,10 @@ import type {
 } from "@/features/data-intake/domain/mapping";
 import type { DataMatchSummary } from "@/features/data-intake/domain/matching";
 import type {
+  DataImportExecutionSummary,
+  DataImportRowResultView,
+} from "@/features/data-intake/domain/execution";
+import type {
   DataImportPlanSnapshot,
   DataImportPlanStatus,
   DataImportPlanSummary,
@@ -119,6 +123,8 @@ export type PlanDataIntakeSourceInput = {
   planHash?: string;
 };
 
+export type ExecuteDataIntakeSourceInput = PlanDataIntakeSourceInput;
+
 export type DataIntakeFoundationSuccess = {
   sessionId: string;
   status: DataIntakeSessionStatus;
@@ -174,6 +180,22 @@ export type DataIntakePlanningSuccess = DataIntakeFoundationSuccess & {
   approvedByUserId: string | null;
   summary: DataImportPlanSummary | null;
   snapshot: DataImportPlanSnapshot | null;
+};
+
+export type DataIntakeExecutionSuccess = DataIntakeFoundationSuccess & {
+  mappingHash: string | null;
+  sourceSha256: string;
+  planId: string | null;
+  planHash: string | null;
+  planStatus: DataImportPlanStatus | null;
+  version: number | null;
+  approvedAt: string | null;
+  approvedByUserId: string | null;
+  batchIndex: number | null;
+  lastCompletedBatchIndex: number | null;
+  done: boolean;
+  summary: DataImportExecutionSummary | null;
+  results: DataImportRowResultView[];
 };
 
 export type DataIntakeFoundationCommand =
