@@ -43,11 +43,11 @@ Three new foundation context packs, eight new capability keys, pack capability m
 | Branch | `core/platform-readiness-20260707` |
 | Start HEAD | `8f4a0199062ac4848c9de76bfd51f4f3c0510de5` |
 | Start subject | `docs(beta1): freeze four-target-group product scope` |
-| Final HEAD | *(recorded after evidence commit)* |
-| Evidence commit | *(recorded after push)* |
+| Final HEAD | `088773a7d87cdc22ebc59c1fbae887b65a4fedab` |
+| Evidence commit | `088773a` — `feat(beta1): add four-target-group context packs` |
 | Upstream | `origin/core/platform-readiness-20260707` |
 | Start divergence | `0 0` |
-| Final divergence | *(recorded after push)* |
+| Final divergence | `0 0` |
 | Worktree | clean after commit |
 
 ---
