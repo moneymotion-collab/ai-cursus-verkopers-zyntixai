@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const SCHEMA_MIGRATION = "20260824180000_create_capability_registry.sql";
 const SEED_MIGRATION = "20260824180010_seed_capability_registry_cap1.sql";
+const FOUR_TG_SEED_MIGRATION = "20260901100000_seed_capability_registry_4tg_cap2.sql";
 
 const schemaMigration = readFileSync(
   join(process.cwd(), "supabase/migrations", SCHEMA_MIGRATION),
@@ -168,11 +169,14 @@ describe("CAP-1B capability registry security contract", () => {
 });
 
 describe("CAP-1B capability migration inventory", () => {
-  it("registers exactly two ordered capability migrations", () => {
+  it("registers the frozen CAP-1 pair first and the additive 4TG seed after it", () => {
     const capability = readdirSync(join(process.cwd(), "supabase/migrations"))
       .filter((name) => name.includes("capability"))
       .sort();
-    expect(capability).toEqual([SCHEMA_MIGRATION, SEED_MIGRATION]);
+    expect(capability[0]).toBe(SCHEMA_MIGRATION);
+    expect(capability[1]).toBe(SEED_MIGRATION);
+    expect(capability[2]).toBe(FOUR_TG_SEED_MIGRATION);
     expect(SEED_MIGRATION > SCHEMA_MIGRATION).toBe(true);
+    expect(FOUR_TG_SEED_MIGRATION > SEED_MIGRATION).toBe(true);
   });
 });

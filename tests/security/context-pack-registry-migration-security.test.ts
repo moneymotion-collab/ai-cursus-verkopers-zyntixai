@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const SCHEMA_MIGRATION = "20260824190000_create_context_pack_registry.sql";
 const SEED_MIGRATION = "20260824190010_seed_context_pack_registry_ctx1.sql";
+const FOUR_TG_SEED_MIGRATION = "20260901100010_seed_context_pack_registry_4tg_ctx2.sql";
 
 const schemaMigration = readFileSync(
   join(process.cwd(), "supabase/migrations", SCHEMA_MIGRATION),
@@ -251,6 +252,8 @@ describe("CTX-1B context pack migration inventory", () => {
       .sort();
     expect(context[0]).toBe(SCHEMA_MIGRATION);
     expect(context[1]).toBe(SEED_MIGRATION);
+    expect(context.at(-1)).toBe(FOUR_TG_SEED_MIGRATION);
     expect(SEED_MIGRATION > SCHEMA_MIGRATION).toBe(true);
+    expect(FOUR_TG_SEED_MIGRATION > SEED_MIGRATION).toBe(true);
   });
 });

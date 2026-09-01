@@ -7,6 +7,7 @@ const SEED_MIGRATION = "20260824190010_seed_context_pack_registry_ctx1.sql";
 const KEY_FIX_MIGRATION = "20260824200500_fix_context_pack_key_format_check.sql";
 const CHILD_FIX_MIGRATION =
   "20260824203000_fix_context_pack_child_protection_trigger.sql";
+const FOUR_TG_SEED_MIGRATION = "20260901100010_seed_context_pack_registry_4tg_ctx2.sql";
 
 const schemaMigration = readFileSync(
   join(process.cwd(), "supabase/migrations", SCHEMA_MIGRATION),
@@ -163,12 +164,13 @@ describe("CTX-1FV-R1C context pack child-protection trigger remediation", () => 
     const context = readdirSync(join(process.cwd(), "supabase/migrations"))
       .filter((name) => name.includes("context_pack") || name.includes("context-pack"))
       .sort();
-    expect(context).toEqual([
+    expect(context.slice(0, 4)).toEqual([
       SCHEMA_MIGRATION,
       SEED_MIGRATION,
       KEY_FIX_MIGRATION,
       CHILD_FIX_MIGRATION,
     ]);
+    expect(context.at(-1)).toBe(FOUR_TG_SEED_MIGRATION);
   });
 
   it("does not add a runtime Context consumer or Organization assignment", () => {
