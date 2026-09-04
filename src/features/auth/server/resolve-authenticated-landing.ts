@@ -111,7 +111,10 @@ export async function resolvePostLoginDestination(
     return resolveAuthenticatedLanding(supabase);
   }
 
-  if (pathname === "/onboarding") {
+  if (
+    pathname === "/onboarding" ||
+    pathname === "/onboarding/operating-model"
+  ) {
     return safeNext;
   }
 

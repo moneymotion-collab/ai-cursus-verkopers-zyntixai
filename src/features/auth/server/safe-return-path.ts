@@ -77,7 +77,10 @@ function isAllowlistedPathname(pathname: string): boolean {
     return true;
   }
 
-  if (pathname === "/onboarding") {
+  if (
+    pathname === "/onboarding" ||
+    pathname === "/onboarding/operating-model"
+  ) {
     return true;
   }
 
@@ -199,7 +202,8 @@ export function isProtectedApplicationPath(pathname: string): boolean {
     isSocialClosedBetaOperatorPathname(pathname) ||
     isR1InstagramConnectPathname(pathname) ||
     isB18InstagramPublishPathname(pathname) ||
-    pathname === "/onboarding"
+    pathname === "/onboarding" ||
+    pathname === "/onboarding/operating-model"
   );
 }
 

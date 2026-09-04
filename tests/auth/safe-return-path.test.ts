@@ -61,6 +61,13 @@ describe("resolveSafeReturnPath", () => {
     expect(
       resolveSafeReturnPath("/onboarding?org=11111111-1111-4111-8111-111111111111"),
     ).toBe("/onboarding?org=11111111-1111-4111-8111-111111111111");
+    expect(
+      resolveSafeReturnPath(
+        "/onboarding/operating-model?org=11111111-1111-4111-8111-111111111111",
+      ),
+    ).toBe(
+      "/onboarding/operating-model?org=11111111-1111-4111-8111-111111111111",
+    );
   });
 
   it("accepts exact Invitation continuation path and rejects /invite wildcards", () => {

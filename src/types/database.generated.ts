@@ -6875,6 +6875,14 @@ export type Database = {
         }
         Returns: Json
       }
+      assign_organization_operating_model: {
+        Args: {
+          p_actor_user_id: string
+          p_operating_model: string
+          p_organization_id: string
+        }
+        Returns: Json
+      }
       archive_attention_item: {
         Args: { p_attention_item_id: string; p_organization_id: string }
         Returns: undefined

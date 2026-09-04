@@ -63,7 +63,7 @@ describe("B1.3 onboarding routing contract", () => {
   });
 
   it("sends newly provisioned owners to onboarding before CRM", () => {
-    expect(provision).toContain("/onboarding?org=");
+    expect(provision).toContain("buildOperatingModelOnboardingPath");
   });
 
   it("keeps recovery routes outside onboarding middleware interference", () => {

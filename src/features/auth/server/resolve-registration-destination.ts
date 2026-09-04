@@ -8,6 +8,7 @@ import {
 import { resolveAuthenticatedLanding } from "@/features/auth/server/resolve-authenticated-landing";
 import { isPublicRegistrationEnabled } from "@/features/auth/server/public-registration";
 import { shouldResumeInvitationAdmissionBeforeOwnerCompletion } from "@/features/invitations/server/invitations-feature";
+import { buildOperatingModelOnboardingPath } from "@/features/onboarding/domain/operating-model";
 import {
   hasTrustedInvitationAuthContext,
   type InvitationAuthState,
@@ -115,6 +116,6 @@ export async function tryProvisionAndLand(
 
   return {
     ok: true,
-    path: `/onboarding?org=${encodeURIComponent(provisioned.organizationId)}`,
+    path: buildOperatingModelOnboardingPath(provisioned.organizationId),
   };
 }

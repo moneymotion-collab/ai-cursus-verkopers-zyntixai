@@ -8,6 +8,11 @@ import {
 } from "@/features/onboarding/domain/onboarding-steps";
 import { OnboardingWizard } from "@/features/onboarding/ui/onboarding-wizard";
 import { OnboardingStatusPanel } from "@/features/onboarding/ui/onboarding-status-panel";
+import { buildOperatingModelOnboardingPath } from "@/features/onboarding/domain/operating-model";
+import {
+  isCourseSellerContextPack,
+  resolveOperatingModelSetupStatus,
+} from "@/features/onboarding/server/operating-model-status";
 import styles from "./page.module.css";
 
 /** Always read live onboarding draft — never serve a cached Step 2 snapshot. */
@@ -112,6 +117,20 @@ export default async function OnboardingPage({
         />
       </main>
     );
+  }
+
+  const operatingModel = await resolveOperatingModelSetupStatus({
+    supabase,
+    organizationId: result.context.organizationId,
+    role: result.context.membershipRole,
+  });
+  if (operatingModel.kind !== "configured") {
+    redirect(
+      buildOperatingModelOnboardingPath(result.context.organizationId),
+    );
+  }
+  if (!isCourseSellerContextPack(operatingModel.packKey)) {
+    redirect(buildProductDestination(result.context.organizationId));
   }
 
   if (result.context.isComplete) {

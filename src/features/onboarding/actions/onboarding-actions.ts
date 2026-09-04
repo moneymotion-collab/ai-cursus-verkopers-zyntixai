@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
+  operatingModelAssignmentInputSchema,
+  operatingModelMessage,
+  type OperatingModelAssignmentResult,
+} from "@/features/onboarding/domain/operating-model";
+import {
   parseOnboardingCompleteInput,
   parseOnboardingDraftInput,
 } from "@/features/onboarding/domain/onboarding-schema";
@@ -22,6 +27,7 @@ import {
   type ChecklistDismissResult,
 } from "@/features/onboarding/server/dismiss-first-value-checklist";
 import { readOnboardingContext } from "@/features/onboarding/server/read-onboarding-context";
+import { assignOrganizationOperatingModel } from "@/features/onboarding/server/assign-operating-model";
 
 const dismissChecklistInputSchema = z
   .object({
@@ -102,6 +108,38 @@ export async function completeOnboardingAction(
       ok: false,
       code: "unexpected_error",
       message: onboardingMessage("unexpected_error"),
+    };
+  }
+}
+
+export async function assignOperatingModelAction(
+  input: unknown,
+): Promise<OperatingModelAssignmentResult> {
+  const parsed = operatingModelAssignmentInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      code: "invalid_operating_model",
+      message: operatingModelMessage("invalid_operating_model"),
+    };
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const result = await assignOrganizationOperatingModel(
+      supabase,
+      parsed.data,
+    );
+    if (result.ok) {
+      revalidatePath("/home");
+      revalidatePath("/onboarding/operating-model");
+    }
+    return result;
+  } catch {
+    return {
+      ok: false,
+      code: "assignment_failed",
+      message: operatingModelMessage("assignment_failed"),
     };
   }
 }

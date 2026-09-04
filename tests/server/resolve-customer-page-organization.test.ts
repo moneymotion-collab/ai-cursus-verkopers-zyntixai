@@ -19,6 +19,19 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
+vi.mock("@/features/onboarding/server/operating-model-status", () => ({
+  resolveOperatingModelSetupStatus: vi.fn(async (input: {
+    organizationId: string;
+    role: string;
+  }) => ({
+    kind: "configured",
+    organizationId: input.organizationId,
+    role: input.role,
+    packKey: "niche.online-course-business",
+  })),
+  isCourseSellerContextPack: () => true,
+}));
+
 const ORG_B = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 
 function createOrgResolverSupabase(options: {
