@@ -31,6 +31,10 @@ import {
 } from "@/features/support/closed-beta-support-contact";
 import type { ModuleNavVisibility } from "@/features/product-access/domain/types";
 import { FAIL_CLOSED_MODULE_NAV_VISIBILITY } from "@/features/product-access/domain/module-access";
+import {
+  DEFAULT_PRODUCT_TERMINOLOGY,
+  type ProductTerminology,
+} from "@/features/product-access/domain/terminology";
 import { OrgAwareLink } from "./org-aware-link";
 
 export type AppShellActiveNav =
@@ -52,6 +56,12 @@ export type AppShellProps = {
   organizationSelectorAction?: string;
   /** Authoritative module visibility from resolved organization context. Fail-closed when omitted. */
   moduleNavVisibility?: ModuleNavVisibility;
+  /**
+   * Display terminology resolved from the same effective context as moduleNavVisibility.
+   * Presentation only — never influences navVisibility, route access, or capability checks.
+   * Defaults to generic system wording (not a Course Seller-specific fallback) when omitted.
+   */
+  terminology?: ProductTerminology;
   /**
    * Members nav visibility override.
    * When omitted: fail-closed derivation from organizationOptions[].role.
@@ -76,12 +86,14 @@ function PrimaryNavFallback({
   socialNavVisible,
   showMembersNav,
   moduleNavVisibility,
+  terminology,
   activeNav,
 }: {
   selectedOrganizationId?: string;
   socialNavVisible?: boolean;
   showMembersNav: boolean;
   moduleNavVisibility: ModuleNavVisibility;
+  terminology: ProductTerminology;
   activeNav: AppShellActiveNav;
 }) {
   const withOrg = (path: string) =>
@@ -115,7 +127,7 @@ function PrimaryNavFallback({
           href={withOrg("/customers")}
           aria-current={activeNav === "customers" ? "page" : undefined}
         >
-          Customers
+          {terminology.customer.plural}
         </Link>
       ) : null}
       {moduleNavVisibility.programs ? (
@@ -186,12 +198,14 @@ function PrimaryNav({
   socialNavVisible,
   showMembersNav,
   moduleNavVisibility,
+  terminology,
   activeNav,
 }: {
   selectedOrganizationId?: string;
   socialNavVisible?: boolean;
   showMembersNav: boolean;
   moduleNavVisibility: ModuleNavVisibility;
+  terminology: ProductTerminology;
   activeNav: AppShellActiveNav;
 }) {
   return (
@@ -223,7 +237,7 @@ function PrimaryNav({
           organizationId={selectedOrganizationId}
           aria-current={activeNav === "customers" ? "page" : undefined}
         >
-          Customers
+          {terminology.customer.plural}
         </OrgAwareLink>
       ) : null}
       {moduleNavVisibility.programs ? (
@@ -301,6 +315,7 @@ export function AppShell({
   selectedOrganizationId,
   organizationSelectorAction = "/tasks",
   moduleNavVisibility = FAIL_CLOSED_MODULE_NAV_VISIBILITY,
+  terminology = DEFAULT_PRODUCT_TERMINOLOGY,
   membersNavVisible,
   socialNavVisible,
   activeNav = "tasks",
@@ -326,6 +341,7 @@ export function AppShell({
                   socialNavVisible={socialNavVisible}
                   showMembersNav={showMembersNav}
                   moduleNavVisibility={moduleNavVisibility}
+                  terminology={terminology}
                   activeNav={activeNav}
                 />
               }
@@ -335,6 +351,7 @@ export function AppShell({
                 socialNavVisible={socialNavVisible}
                 showMembersNav={showMembersNav}
                 moduleNavVisibility={moduleNavVisibility}
+                terminology={terminology}
                 activeNav={activeNav}
               />
             </Suspense>

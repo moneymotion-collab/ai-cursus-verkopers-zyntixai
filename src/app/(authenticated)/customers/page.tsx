@@ -14,6 +14,7 @@ import {
 } from "@/features/customers/ui/customer-list-search-params";
 import { buildCustomerCreateHref } from "@/features/customers/ui/customer-navigation";
 import { canShowCreateWorkflow } from "@/features/customers/ui/customer-workflow-visibility";
+import type { ProductTerminology } from "@/features/product-access/domain/terminology";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
 
@@ -31,15 +32,20 @@ function buildPageHref(urlState: CustomerListUrlState, page: number): string {
   return `/customers${buildCustomerListQueryString({ ...urlState, page })}`;
 }
 
-function resolveEmptyState(urlState: CustomerListUrlState): {
+function resolveEmptyState(
+  urlState: CustomerListUrlState,
+  terminology: ProductTerminology,
+): {
   title: string;
   description: string;
   clearHref?: string;
 } {
+  const pluralLower = terminology.customer.plural.toLowerCase();
+
   if (urlState.archived) {
     return {
-      title: "No archived customers are available.",
-      description: "Archived customers will appear here when they exist for your organization.",
+      title: `No archived ${pluralLower} are available.`,
+      description: `Archived ${pluralLower} will appear here when they exist for your organization.`,
       clearHref: hasActiveFilters(urlState)
         ? `/customers${buildCustomerListQueryString({
             org: urlState.org,
@@ -55,8 +61,8 @@ function resolveEmptyState(urlState: CustomerListUrlState): {
 
   if (hasActiveFilters(urlState)) {
     return {
-      title: "No customers match the selected filters.",
-      description: "Try adjusting or clearing your filters to see more customers.",
+      title: `No ${pluralLower} match the selected filters.`,
+      description: `Try adjusting or clearing your filters to see more ${pluralLower}.`,
       clearHref: `/customers${buildCustomerListQueryString({
         org: urlState.org,
         archived: false,
@@ -69,8 +75,8 @@ function resolveEmptyState(urlState: CustomerListUrlState): {
   }
 
   return {
-    title: "No customers are available.",
-    description: "Customers in your organization will appear here.",
+    title: `No ${pluralLower} are available.`,
+    description: `${terminology.customer.plural} in your organization will appear here.`,
   };
 }
 
@@ -155,7 +161,8 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
     );
   }
 
-  const emptyState = resolveEmptyState(result.urlState);
+  const terminology = result.moduleAccess.terminology;
+  const emptyState = resolveEmptyState(result.urlState, terminology);
   const { pagination } = result.list;
   const previousHref =
     pagination.hasPreviousPage ? buildPageHref(result.urlState, pagination.page - 1) : undefined;
@@ -165,6 +172,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
   return (
     <AppShell
       moduleNavVisibility={result.moduleAccess.navVisibility}
+      terminology={result.moduleAccess.terminology}
       activeNav="customers"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.selectedOrganizationId}
@@ -173,18 +181,20 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
       <section className={styles.page}>
         <header className={styles.pageHeader}>
           <div className={styles.pageHeaderRow}>
-            <h1>Customers</h1>
+            <h1>{terminology.customer.plural}</h1>
             {canShowCreateWorkflow(result.role) ? (
               <a className={styles.newCustomerLink} href={buildCustomerCreateHref(result.urlState)}>
-                New customer
+                New {terminology.customer.singular.toLowerCase()}
               </a>
             ) : null}
           </div>
           <p className={styles.subtitle}>
-            Customer list for {result.organizationName}. Times shown in {result.timeZone}.
+            {terminology.customer.singular} list for {result.organizationName}. Times shown in{" "}
+            {result.timeZone}.
           </p>
           <p className={styles.summary}>
-            Showing {result.list.items.length} of {pagination.total} customers
+            Showing {result.list.items.length} of {pagination.total}{" "}
+            {terminology.customer.plural.toLowerCase()}
           </p>
         </header>
 
@@ -198,12 +208,14 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
           urlState={result.urlState}
           role={result.role}
           ownerOptions={result.ownerOptions}
+          terminology={terminology}
         />
 
         <CustomerListPresentation
           customers={result.list.items}
           timeZone={result.timeZone}
           listState={result.urlState}
+          terminology={terminology}
           emptyTitle={emptyState.title}
           emptyDescription={emptyState.description}
           clearFiltersHref={emptyState.clearHref}
@@ -214,7 +226,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
           totalPages={pagination.totalPages}
           previousHref={previousHref}
           nextHref={nextHref}
-          ariaLabel="Customer list pagination"
+          ariaLabel={`${terminology.customer.singular} list pagination`}
         />
       </section>
     </AppShell>

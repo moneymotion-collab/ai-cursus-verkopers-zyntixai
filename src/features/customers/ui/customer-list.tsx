@@ -6,12 +6,17 @@ import {
   toCustomerListPresentationRow,
   type CustomerListPresentationRow,
 } from "@/features/customers/ui/customer-presentation";
+import {
+  DEFAULT_PRODUCT_TERMINOLOGY,
+  type ProductTerminology,
+} from "@/features/product-access/domain/terminology";
 import styles from "./customer-list.module.css";
 
 export type CustomerListPresentationProps = {
   customers: CustomerListItemReadModel[];
   timeZone: string;
   listState: CustomerListUrlState;
+  terminology?: ProductTerminology;
   emptyTitle: string;
   emptyDescription: string;
   clearFiltersHref?: string;
@@ -41,11 +46,13 @@ export function CustomerListPresentation({
   customers,
   timeZone,
   listState,
+  terminology = DEFAULT_PRODUCT_TERMINOLOGY,
   emptyTitle,
   emptyDescription,
   clearFiltersHref,
 }: CustomerListPresentationProps) {
   const rows = mapCustomersToPresentationRows(customers, timeZone, listState);
+  const singular = terminology.customer.singular;
 
   if (rows.length === 0) {
     return (
@@ -70,11 +77,11 @@ export function CustomerListPresentation({
         <table className={styles.table}>
           <thead>
             <tr>
-              <th scope="col">Customer</th>
-              <th scope="col">Customer status</th>
+              <th scope="col">{singular}</th>
+              <th scope="col">{singular} status</th>
               <th scope="col">Assigned to</th>
               <th scope="col">Email</th>
-              <th scope="col">Customer since</th>
+              <th scope="col">{singular} since</th>
               <th scope="col">Updated</th>
             </tr>
           </thead>
@@ -104,7 +111,7 @@ export function CustomerListPresentation({
         </table>
       </div>
 
-      <ul className={styles.cardList} aria-label="Customer list">
+      <ul className={styles.cardList} aria-label={`${singular} list`}>
         {rows.map((row) => (
           <li key={row.id} className={styles.card}>
             <h3 className={styles.cardTitle}>

@@ -5,6 +5,7 @@ import {
   buildResolvedProductModuleAccess,
   buildUnresolvedProductModuleAccess,
 } from "@/features/product-access/domain/module-access";
+import { projectProductTerminology } from "@/features/product-access/domain/terminology";
 import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import { PRODUCT_MODULE_ACCESS_RESOLUTION_MODE } from "@/features/product-access/server/product-module-access-mode";
 
@@ -24,5 +25,8 @@ export async function loadProductModuleAccess(
     return buildUnresolvedProductModuleAccess();
   }
 
-  return buildResolvedProductModuleAccess(resolved.value.relevantCapabilities);
+  return buildResolvedProductModuleAccess(
+    resolved.value.relevantCapabilities,
+    projectProductTerminology(resolved.value.terminology),
+  );
 }

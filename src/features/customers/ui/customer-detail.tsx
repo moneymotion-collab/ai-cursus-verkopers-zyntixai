@@ -9,6 +9,10 @@ import {
 import { CustomerHistorySection } from "@/features/customers/ui/customer-history";
 import { CustomerEnrollmentSection } from "@/features/customers/ui/customer-enrollments";
 import { CustomerRelatedTasksSection } from "@/features/customers/ui/customer-related-tasks";
+import {
+  DEFAULT_PRODUCT_TERMINOLOGY,
+  type ProductTerminology,
+} from "@/features/product-access/domain/terminology";
 import styles from "./customer-detail.module.css";
 
 type CustomerDetailProps = {
@@ -16,6 +20,7 @@ type CustomerDetailProps = {
   reloadHref?: string;
   workflowLinks?: CustomerWorkflowLinks;
   enrollmentLinks?: CustomerEnrollmentLinks;
+  terminology?: ProductTerminology;
 };
 
 export type CustomerWorkflowLinks = {
@@ -37,13 +42,21 @@ function badgeVariantForStatus(label: string): "neutral" | "success" | "warning"
   return "neutral";
 }
 
-export function CustomerUnavailableDetail({ backHref }: { backHref: string }) {
+export function CustomerUnavailableDetail({
+  backHref,
+  terminology = DEFAULT_PRODUCT_TERMINOLOGY,
+}: {
+  backHref: string;
+  terminology?: ProductTerminology;
+}) {
+  const singular = terminology.customer.singular;
+  const pluralLower = terminology.customer.plural.toLowerCase();
   return (
     <section className={styles.statePanel} aria-labelledby="customer-unavailable-title">
-      <h1 id="customer-unavailable-title">Customer unavailable</h1>
-      <p>This customer is unavailable. It may have been removed or you may not have access.</p>
+      <h1 id="customer-unavailable-title">{singular} unavailable</h1>
+      <p>This {singular.toLowerCase()} is unavailable. It may have been removed or you may not have access.</p>
       <p>
-        <a href={backHref}>Back to customers</a>
+        <a href={backHref}>Back to {pluralLower}</a>
       </p>
     </section>
   );
@@ -54,16 +67,19 @@ export function CustomerDetail({
   reloadHref,
   workflowLinks,
   enrollmentLinks,
+  terminology = DEFAULT_PRODUCT_TERMINOLOGY,
 }: CustomerDetailProps) {
   const { customer, history, historyState, enrollments, enrollmentState, relatedTasks, relatedTasksState, organizationTimezone, backHref } =
     viewModel;
 
   const fullName = formatCustomerName(customer.firstName, customer.lastName);
+  const singular = terminology.customer.singular;
+  const pluralLower = terminology.customer.plural.toLowerCase();
 
   return (
     <article className={styles.customerDetail}>
       <a className={styles.backLink} href={backHref}>
-        Back to customers
+        Back to {pluralLower}
       </a>
 
       <header className={styles.header}>
@@ -75,21 +91,27 @@ export function CustomerDetail({
           {customer.derived.isArchived ? <Badge variant="info">Archived</Badge> : null}
         </div>
         {workflowLinks ? (
-          <nav className={styles.workflowLinks} aria-label="Customer actions">
-            {workflowLinks.edit ? <a href={workflowLinks.edit}>Edit customer</a> : null}
-            {workflowLinks.status ? <a href={workflowLinks.status}>Change customer status</a> : null}
-            {workflowLinks.archive ? <a href={workflowLinks.archive}>Archive customer</a> : null}
-            {workflowLinks.restore ? <a href={workflowLinks.restore}>Restore customer</a> : null}
+          <nav className={styles.workflowLinks} aria-label={`${singular} actions`}>
+            {workflowLinks.edit ? <a href={workflowLinks.edit}>Edit {singular.toLowerCase()}</a> : null}
+            {workflowLinks.status ? (
+              <a href={workflowLinks.status}>Change {singular.toLowerCase()} status</a>
+            ) : null}
+            {workflowLinks.archive ? (
+              <a href={workflowLinks.archive}>Archive {singular.toLowerCase()}</a>
+            ) : null}
+            {workflowLinks.restore ? (
+              <a href={workflowLinks.restore}>Restore {singular.toLowerCase()}</a>
+            ) : null}
           </nav>
         ) : null}
       </header>
 
       <div className={styles.layout}>
         <section className={styles.identitySection} aria-labelledby="customer-details-title">
-          <h2 id="customer-details-title">Customer details</h2>
+          <h2 id="customer-details-title">{singular} details</h2>
           <dl className={styles.metaGrid}>
             <div>
-              <dt>Customer name</dt>
+              <dt>{singular} name</dt>
               <dd>{customer.displayName}</dd>
             </div>
             <div>
@@ -125,7 +147,7 @@ export function CustomerDetail({
               <dd>{customer.createdByLabel}</dd>
             </div>
             <div>
-              <dt>Customer status</dt>
+              <dt>{singular} status</dt>
               <dd>{customer.statusLabel}</dd>
             </div>
             <div>
@@ -133,7 +155,7 @@ export function CustomerDetail({
               <dd>{customer.derived.isArchived ? "Archived" : "Not archived"}</dd>
             </div>
             <div>
-              <dt>Customer since</dt>
+              <dt>{singular} since</dt>
               <dd>{formatCustomerDate(customer.startedAt, organizationTimezone)}</dd>
             </div>
             <div>

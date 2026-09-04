@@ -106,6 +106,7 @@ export default async function AttentionPage({ searchParams }: AttentionPageProps
   return (
     <AppShell
       moduleNavVisibility={result.moduleAccess.navVisibility}
+      terminology={result.moduleAccess.terminology}
       activeNav="attention"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.selectedOrganizationId}

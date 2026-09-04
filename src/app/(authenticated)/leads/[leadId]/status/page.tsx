@@ -93,6 +93,7 @@ export default async function LeadStatusPage({ params, searchParams }: LeadStatu
   return (
     <AppShell
       moduleNavVisibility={result.moduleAccess.navVisibility}
+      terminology={result.moduleAccess.terminology}
       activeNav="leads"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}

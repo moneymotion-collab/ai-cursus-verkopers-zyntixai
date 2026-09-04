@@ -173,6 +173,7 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
   return (
     <AppShell
       moduleNavVisibility={result.moduleAccess.navVisibility}
+      terminology={result.moduleAccess.terminology}
       activeNav="leads"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.selectedOrganizationId}

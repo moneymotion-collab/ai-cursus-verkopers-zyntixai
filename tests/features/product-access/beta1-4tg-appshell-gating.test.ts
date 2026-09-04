@@ -8,6 +8,7 @@ import {
   FAIL_CLOSED_MODULE_NAV_VISIBILITY,
 } from "@/features/product-access/domain/module-access";
 import { PRODUCT_MODULE_DEFINITIONS } from "@/features/product-access/domain/module-registry";
+import { DEFAULT_PRODUCT_TERMINOLOGY } from "@/features/product-access/domain/terminology";
 import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
 import {
   CORE_KEYS,
@@ -151,6 +152,7 @@ describe("BETA1-4TG AppShell module access", () => {
         resolution: "resolved" as const,
         navVisibility: buildModuleNavVisibility(capabilities),
         relevantCapabilities: capabilities,
+        terminology: DEFAULT_PRODUCT_TERMINOLOGY,
       };
       expect(
         evaluateProductModuleRouteAccess({ moduleId: "programs", access }).allowed,
@@ -171,6 +173,7 @@ describe("BETA1-4TG AppShell module access", () => {
         resolution: "resolved" as const,
         navVisibility: buildModuleNavVisibility(capabilities),
         relevantCapabilities: capabilities,
+        terminology: DEFAULT_PRODUCT_TERMINOLOGY,
       };
       expect(
         evaluateProductModuleRouteAccess({ moduleId: "enrollments", access }).allowed,

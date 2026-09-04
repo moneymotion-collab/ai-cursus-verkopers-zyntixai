@@ -8,19 +8,28 @@ import {
 } from "@/features/customers/ui/customer-list-search-params";
 import type { CustomerMemberOption } from "@/features/customers/server/load-customer-member-filter-options";
 import type { CustomerRole } from "@/features/customers/domain/types";
+import {
+  DEFAULT_PRODUCT_TERMINOLOGY,
+  type ProductTerminology,
+} from "@/features/product-access/domain/terminology";
 import styles from "./customer-list-filters.module.css";
 
 type CustomerListFiltersProps = {
   urlState: CustomerListUrlState;
   role: CustomerRole;
   ownerOptions?: CustomerMemberOption[];
+  terminology?: ProductTerminology;
 };
 
 export function CustomerListFilters({
   urlState,
   role,
   ownerOptions = [],
+  terminology = DEFAULT_PRODUCT_TERMINOLOGY,
 }: CustomerListFiltersProps) {
+  const singular = terminology.customer.singular;
+  const singularLower = singular.toLowerCase();
+  const pluralLower = terminology.customer.plural.toLowerCase();
   const clearHref = `/customers${buildCustomerListQueryString({
     org: urlState.org,
     archived: false,
@@ -40,7 +49,7 @@ export function CustomerListFilters({
         <input type="hidden" name="page" value="1" />
 
         <div className={styles.field}>
-          <label htmlFor="filter-customer-status">Customer status</label>
+          <label htmlFor="filter-customer-status">{singular} status</label>
           <select id="filter-customer-status" name="status" defaultValue={urlState.status ?? "all"}>
             <option value="all">All statuses</option>
             {CUSTOMER_STATUSES.map((status) => (
@@ -69,10 +78,10 @@ export function CustomerListFilters({
         <div className={styles.field}>
           <label htmlFor="filter-customer-sort">Sort by</label>
           <select id="filter-customer-sort" name="sort" defaultValue={urlState.sort ?? "display_name"}>
-            <option value="display_name">Customer name</option>
+            <option value="display_name">{singular} name</option>
             <option value="updated_at">Updated date</option>
             <option value="status">Status</option>
-            <option value="started_at">Customer since</option>
+            <option value="started_at">{singular} since</option>
           </select>
         </div>
 
@@ -96,7 +105,7 @@ export function CustomerListFilters({
             type="search"
             defaultValue={urlState.q ?? ""}
             maxLength={200}
-            placeholder="Search by customer name or email"
+            placeholder={`Search by ${singularLower} name or email`}
           />
         </div>
 
@@ -109,7 +118,7 @@ export function CustomerListFilters({
               value="true"
               defaultChecked={urlState.archived}
             />
-            <label htmlFor="filter-customer-archived">Show archived customers</label>
+            <label htmlFor="filter-customer-archived">Show archived {pluralLower}</label>
           </div>
         ) : null}
 

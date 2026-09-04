@@ -50,7 +50,7 @@ export default async function ProgressCreatePage({ searchParams }: ProgressCreat
 
   if (result.kind === "forbidden") {
     return (
-      <AppShell activeNav="progress" moduleNavVisibility={result.moduleAccess.navVisibility}>
+      <AppShell activeNav="progress" moduleNavVisibility={result.moduleAccess.navVisibility} terminology={result.moduleAccess.terminology}>
         <section className={styles.statePanel} aria-labelledby="forbidden-title">
           <h1 id="forbidden-title">Access denied</h1>
           <p>{result.message}</p>
@@ -85,6 +85,7 @@ export default async function ProgressCreatePage({ searchParams }: ProgressCreat
   return (
     <AppShell
       moduleNavVisibility={result.moduleAccess.navVisibility}
+      terminology={result.moduleAccess.terminology}
       activeNav="progress"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}

@@ -92,6 +92,7 @@ export default async function AttentionDetailPage({
   return (
     <AppShell
       moduleNavVisibility={result.moduleAccess.navVisibility}
+      terminology={result.moduleAccess.terminology}
       activeNav="attention"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.selectedOrganizationId}

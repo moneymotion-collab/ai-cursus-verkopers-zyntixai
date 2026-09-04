@@ -159,6 +159,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
   return (
     <AppShell
       moduleNavVisibility={result.moduleAccess.navVisibility}
+      terminology={result.moduleAccess.terminology}
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.selectedOrganizationId}
     >

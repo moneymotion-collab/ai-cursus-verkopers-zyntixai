@@ -4,6 +4,7 @@ import {
   IMPLEMENTED_PRODUCT_MODULE_IDS,
   PRODUCT_MODULE_BY_ID,
 } from "@/features/product-access/domain/module-registry";
+import { DEFAULT_PRODUCT_TERMINOLOGY, type ProductTerminology } from "@/features/product-access/domain/terminology";
 import type {
   ModuleNavVisibility,
   ProductModuleAccessState,
@@ -83,11 +84,13 @@ export function buildModuleNavVisibility(
 
 export function buildResolvedProductModuleAccess(
   relevantCapabilities: readonly EffectiveCapability[],
+  terminology: ProductTerminology = DEFAULT_PRODUCT_TERMINOLOGY,
 ): Extract<ProductModuleAccessState, { resolution: "resolved" }> {
   return {
     resolution: "resolved",
     navVisibility: buildModuleNavVisibility(relevantCapabilities),
     relevantCapabilities,
+    terminology,
   };
 }
 
@@ -99,5 +102,6 @@ export function buildUnresolvedProductModuleAccess(): Extract<
     resolution: "unresolved",
     navVisibility: FAIL_CLOSED_MODULE_NAV_VISIBILITY,
     relevantCapabilities: null,
+    terminology: DEFAULT_PRODUCT_TERMINOLOGY,
   };
 }

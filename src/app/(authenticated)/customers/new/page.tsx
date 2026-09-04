@@ -75,6 +75,7 @@ export default async function CustomerCreatePage({ searchParams }: CustomerCreat
   return (
     <AppShell
       moduleNavVisibility={result.moduleAccess.navVisibility}
+      terminology={result.moduleAccess.terminology}
       activeNav="customers"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}

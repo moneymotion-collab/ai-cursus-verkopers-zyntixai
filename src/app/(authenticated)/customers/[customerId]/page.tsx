@@ -127,6 +127,7 @@ export default async function CustomerDetailPage({
   return (
     <AppShell
       moduleNavVisibility={result.moduleAccess.navVisibility}
+      terminology={result.moduleAccess.terminology}
       activeNav="customers"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.selectedOrganizationId}
@@ -138,6 +139,7 @@ export default async function CustomerDetailPage({
           reloadHref={reloadHref}
           workflowLinks={workflowLinks}
           enrollmentLinks={enrollmentLinks}
+          terminology={result.moduleAccess.terminology}
         />
       </section>
     </AppShell>

@@ -93,6 +93,7 @@ export default async function LeadEditPage({ params, searchParams }: LeadEditPag
   return (
     <AppShell
       moduleNavVisibility={result.moduleAccess.navVisibility}
+      terminology={result.moduleAccess.terminology}
       activeNav="leads"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}

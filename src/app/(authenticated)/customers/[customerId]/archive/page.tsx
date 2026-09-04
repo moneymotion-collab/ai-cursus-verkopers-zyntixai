@@ -93,6 +93,7 @@ export default async function CustomerArchivePage({ params, searchParams }: Cust
   return (
     <AppShell
       moduleNavVisibility={result.moduleAccess.navVisibility}
+      terminology={result.moduleAccess.terminology}
       activeNav="customers"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}

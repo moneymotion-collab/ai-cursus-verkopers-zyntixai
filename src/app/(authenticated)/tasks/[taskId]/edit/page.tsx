@@ -83,6 +83,7 @@ export default async function TaskEditPage({ params, searchParams }: TaskEditPag
   return (
     <AppShell
       moduleNavVisibility={result.moduleAccess.navVisibility}
+      terminology={result.moduleAccess.terminology}
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}
       organizationSelectorAction={`/tasks/${taskId}/edit`}

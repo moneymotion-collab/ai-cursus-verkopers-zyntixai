@@ -124,6 +124,7 @@ export default async function TaskDetailPage({ params, searchParams }: TaskDetai
   return (
     <AppShell
       moduleNavVisibility={result.moduleAccess.navVisibility}
+      terminology={result.moduleAccess.terminology}
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.selectedOrganizationId}
       organizationSelectorAction={`/tasks/${taskId}`}
