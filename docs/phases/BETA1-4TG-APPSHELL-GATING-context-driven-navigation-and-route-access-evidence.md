@@ -44,8 +44,8 @@ AppShell primary navigation and representative Knowledge-only route loaders now 
 | Worktree | `D:\project ai cursus verkopers.worktrees\parallel__laptop-product-track-20260707-1` |
 | Branch | `core/platform-readiness-20260707` |
 | Start HEAD | `7ef172f7289432602c8080fdf3b35aaa541e0745` |
-| Final HEAD | *(recorded after commit)* |
-| Implementation commit | *(recorded after commit)* |
+| Final HEAD | `2edf4276492435e8a791517daa0a5035d0adfb42` |
+| Implementation commit | `2edf427` — `feat(beta1): gate app shell by resolved context` |
 | Upstream | `origin/core/platform-readiness-20260707` |
 | Start divergence | `0 0` |
 | Final divergence | *(verified after push)* |
