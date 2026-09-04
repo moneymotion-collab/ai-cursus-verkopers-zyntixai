@@ -92,6 +92,7 @@ export default async function LeadRestorePage({ params, searchParams }: LeadRest
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       activeNav="leads"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}

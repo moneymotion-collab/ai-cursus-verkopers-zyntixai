@@ -17,6 +17,7 @@ import {
   sampleProgramHistory,
   sampleProgramListItem,
 } from "../helpers/program-test-fixtures";
+import { mockKnowledgeProductModuleAccess } from "../features/product-access/module-access-fixtures";
 
 vi.mock("@/features/programs/server/resolve-program-page-organization", () => ({
   resolveProgramPageOrganization: vi.fn(),
@@ -50,6 +51,7 @@ function readyOrg(role: "owner" | "admin" | "staff" | "viewer" = "owner") {
     role,
     timezone: "Europe/Amsterdam",
     isMultiOrganization: false,
+    moduleAccess: mockKnowledgeProductModuleAccess(),
   };
 }
 

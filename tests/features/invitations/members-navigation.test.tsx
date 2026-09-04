@@ -12,6 +12,7 @@ import {
   isMembersPathname,
   resolveMembersNavVisible,
 } from "@/features/invitations/domain/members-navigation";
+import { KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY } from "../../features/product-access/module-access-fixtures";
 
 const ORG_A = "11111111-1111-4111-8111-111111111111";
 const ORG_B = "99999999-9999-4999-8999-999999999999";
@@ -115,6 +116,7 @@ describe("Members navigation AppShell presentation", () => {
     const ownerHtml = renderToStaticMarkup(
       <AppShell
         activeNav="members"
+        moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
         organizationOptions={[
           { organizationId: ORG_A, role: "owner", displayName: "Acme" },
         ]}
@@ -129,6 +131,7 @@ describe("Members navigation AppShell presentation", () => {
     const staffHtml = renderToStaticMarkup(
       <AppShell
         activeNav="tasks"
+        moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
         organizationOptions={[
           { organizationId: ORG_A, role: "staff", displayName: "Acme" },
         ]}
@@ -153,6 +156,7 @@ describe("Members navigation AppShell presentation", () => {
     const html = renderToStaticMarkup(
       <AppShell
         activeNav="tasks"
+        moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
         organizationOptions={[
           { organizationId: ORG_A, role: "owner", displayName: "Org A" },
           { organizationId: ORG_B, role: "viewer", displayName: "Org B" },

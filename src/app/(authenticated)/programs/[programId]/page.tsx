@@ -75,6 +75,17 @@ export default async function ProgramDetailPage({
     );
   }
 
+  if (result.kind === "forbidden") {
+    return (
+      <AppShell activeNav="programs" moduleNavVisibility={result.moduleAccess.navVisibility}>
+        <section className={styles.statePanel} aria-labelledby="forbidden-title">
+          <h1 id="forbidden-title">Access denied</h1>
+          <p>{result.message}</p>
+        </section>
+      </AppShell>
+    );
+  }
+
   if (result.kind === "org_context_missing" || result.kind === "query_error") {
     return (
       <AppShell activeNav="programs">
@@ -140,6 +151,7 @@ export default async function ProgramDetailPage({
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       activeNav="programs"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.selectedOrganizationId}

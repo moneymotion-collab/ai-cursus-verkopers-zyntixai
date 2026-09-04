@@ -9,6 +9,7 @@ import type { AttentionDetailViewModel } from "@/features/attention/ui/load-atte
 import { AppShell } from "@/components/app-shell";
 import { Pagination } from "@/components/ui/pagination";
 import { ATTENTION_ITEM_ID, ORG_ID } from "../helpers/attention-test-fixtures";
+import { KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY } from "../features/product-access/module-access-fixtures";
 
 vi.mock("@/components/ui/badge", () => ({
   Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
@@ -158,7 +159,11 @@ describe("Attention accessibility structure (B1.7.5-E)", () => {
     expect(detail).not.toMatch(/>Archive</);
 
     const shell = renderToStaticMarkup(
-      <AppShell activeNav="attention" membersNavVisible={false}>
+      <AppShell
+        activeNav="attention"
+        membersNavVisible={false}
+        moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
+      >
         <p>workspace</p>
       </AppShell>,
     );

@@ -5,6 +5,7 @@ import { loadAttentionShellPage } from "@/features/attention/ui/load-attention-s
 import { resolveAttentionPageOrganization } from "@/features/attention/server/resolve-attention-page-organization";
 import { ATTENTION_NAV_VISIBLE } from "@/features/attention/domain/attention-navigation";
 import { ORG_ID } from "../helpers/attention-test-fixtures";
+import { mockKnowledgeProductModuleAccess } from "../features/product-access/module-access-fixtures";
 
 vi.mock("@/features/attention/server/resolve-attention-page-organization", () => ({
   resolveAttentionPageOrganization: vi.fn(),
@@ -27,6 +28,7 @@ function readyOrg(role: "owner" | "admin" | "staff" | "viewer" = "owner") {
     role,
     timezone: "UTC",
     isMultiOrganization: false,
+    moduleAccess: mockKnowledgeProductModuleAccess(),
   };
 }
 
@@ -87,7 +89,7 @@ describe("attention shell page loader (B1.7.5-A)", () => {
     });
   });
 
-  it("returns success with role capabilities and keeps nav hidden", async () => {
+  it("returns success with role capabilities and resolved module access", async () => {
     pageOrgMock.mockResolvedValue(readyOrg("viewer"));
     const result = await loadAttentionShellPage(createSupabase(), {
       org: ORG_ID,
@@ -102,7 +104,11 @@ describe("attention shell page loader (B1.7.5-A)", () => {
     expect(result.capabilities.canViewArchivedItems).toBe(false);
     expect(result.capabilities.canAcknowledge).toBe(false);
     expect(result.timeZone).toBe("UTC");
-    expect(ATTENTION_NAV_VISIBLE).toBe(true);
+    expect(ATTENTION_NAV_VISIBLE).toBe(false);
+    expect(result.moduleAccess.resolution).toBe("resolved");
+    if (result.moduleAccess.resolution === "resolved") {
+      expect(result.moduleAccess.navVisibility.attention).toBe(true);
+    }
 
     expect(pageOrgMock).toHaveBeenCalledWith(expect.anything(), ORG_ID);
   });

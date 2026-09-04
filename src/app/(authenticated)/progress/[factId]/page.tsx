@@ -66,6 +66,17 @@ export default async function ProgressDetailPage({
     );
   }
 
+  if (result.kind === "forbidden") {
+    return (
+      <AppShell activeNav="progress" moduleNavVisibility={result.moduleAccess.navVisibility}>
+        <section className={styles.statePanel} aria-labelledby="forbidden-title">
+          <h1 id="forbidden-title">Access denied</h1>
+          <p>{result.message}</p>
+        </section>
+      </AppShell>
+    );
+  }
+
   if (result.kind === "org_context_missing" || result.kind === "query_error") {
     return (
       <AppShell activeNav="progress">
@@ -98,6 +109,7 @@ export default async function ProgressDetailPage({
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       activeNav="progress"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.selectedOrganizationId}

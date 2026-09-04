@@ -79,6 +79,17 @@ export default async function EnrollmentDetailPage({
     );
   }
 
+  if (result.kind === "forbidden") {
+    return (
+      <AppShell activeNav="enrollments" moduleNavVisibility={result.moduleAccess.navVisibility}>
+        <section className={styles.statePanel} aria-labelledby="forbidden-title">
+          <h1 id="forbidden-title">Access denied</h1>
+          <p>{result.message}</p>
+        </section>
+      </AppShell>
+    );
+  }
+
   if (result.kind === "org_context_missing" || result.kind === "query_error") {
     return (
       <AppShell activeNav="enrollments">
@@ -159,6 +170,7 @@ export default async function EnrollmentDetailPage({
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       activeNav="enrollments"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.selectedOrganizationId}

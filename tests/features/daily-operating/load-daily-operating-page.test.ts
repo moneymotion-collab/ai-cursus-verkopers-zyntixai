@@ -6,6 +6,7 @@ import { resolveTaskPageOrganization } from "@/features/tasks/ui/resolve-task-pa
 import { resolveOrganizationContext } from "@/features/organizations/server/resolve-organization-context";
 import { listAttentionItems } from "@/features/attention/server/attention-read-queries";
 import { listTasks } from "@/features/tasks/server/task-read-queries";
+import { mockKnowledgeProductModuleAccess } from "../product-access/module-access-fixtures";
 
 vi.mock("@/features/tasks/ui/resolve-task-page-organization", () => ({
   resolveTaskPageOrganization: vi.fn(),
@@ -46,6 +47,7 @@ function readyOrg(role: "owner" | "admin" | "staff" | "viewer") {
     ],
     role,
     timeZone: "Europe/Amsterdam",
+    moduleAccess: mockKnowledgeProductModuleAccess(),
   };
 }
 

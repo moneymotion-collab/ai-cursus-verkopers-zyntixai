@@ -15,6 +15,8 @@ import {
 } from "@/features/enrollments/ui/enrollment-navigation";
 import type { EnrollmentListUrlState } from "@/features/enrollments/ui/enrollment-list-search-params";
 import { canShowEditEnrollmentWorkflow } from "@/features/enrollments/ui/enrollment-workflow-visibility";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 const ENROLLMENT_ID_PATTERN =
@@ -25,7 +27,8 @@ type WorkflowOrgFailure =
   | { kind: "organization_unavailable" }
   | { kind: "organization_required"; organizations: OrganizationOption[] }
   | { kind: "org_context_missing"; message: string }
-  | { kind: "query_error"; message: string };
+  | { kind: "query_error"; message: string }
+  | { kind: "forbidden"; message: string; moduleAccess: ProductModuleAccessState };
 
 type WorkflowOrgReady = {
   kind: "ready";
@@ -34,6 +37,7 @@ type WorkflowOrgReady = {
   role: EnrollmentRole;
   timeZone: string;
   listState: EnrollmentListUrlState;
+  moduleAccess: ProductModuleAccessState;
 };
 
 async function resolveWorkflowOrganization(
@@ -50,6 +54,18 @@ async function resolveWorkflowOrganization(
     return orgResult;
   }
 
+  const routeAccess = evaluateProductModuleRouteAccess({
+    moduleId: "enrollments",
+    access: orgResult.moduleAccess,
+  });
+  if (!routeAccess.allowed) {
+    return {
+      kind: "forbidden",
+      message: routeAccess.message,
+      moduleAccess: orgResult.moduleAccess,
+    };
+  }
+
   const listState: EnrollmentListUrlState = {
     ...parseEnrollmentListReturnState(rawSearchParams, orgResult.role),
     org: orgResult.organizationId,
@@ -62,6 +78,7 @@ async function resolveWorkflowOrganization(
     role: orgResult.role,
     timeZone: orgResult.timezone,
     listState,
+    moduleAccess: orgResult.moduleAccess,
   };
 }
 
@@ -81,6 +98,7 @@ export type EnrollmentEditPageResult =
       backHref: string;
       members: EnrollmentMemberOption[];
       membersError?: string;
+      moduleAccess: ProductModuleAccessState;
     };
 
 /**
@@ -142,5 +160,6 @@ export async function loadEnrollmentEditPage(
     membersError: membersResult.failed
       ? "Some organization members could not be loaded. Please try again."
       : undefined,
+    moduleAccess: org.moduleAccess,
   };
 }

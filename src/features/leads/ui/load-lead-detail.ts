@@ -30,6 +30,7 @@ import {
 } from "@/features/leads/ui/lead-navigation";
 import type { LeadListUrlState } from "@/features/leads/ui/lead-list-search-params";
 import { formatLeadDate, formatLeadHistorySourceLabel } from "@/features/leads/ui/lead-presentation";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 const LEAD_ID_PATTERN =
@@ -107,6 +108,7 @@ export type LeadDetailPageResult =
       organizationOptions: OrganizationOption[];
       selectedOrganizationId: string;
       role: LeadRole;
+      moduleAccess: ProductModuleAccessState;
     }
   | { kind: "auth_required" }
   | { kind: "organization_required"; organizations: OrganizationOption[] }
@@ -379,6 +381,7 @@ export async function loadLeadDetailPage(
     selectedOrganizationId: orgResult.organizationId,
     organizationOptions: orgResult.organizationOptions,
     role: orgResult.role,
+    moduleAccess: orgResult.moduleAccess,
     data: {
       lead,
       permissions,

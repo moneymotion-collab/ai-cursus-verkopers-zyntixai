@@ -9,13 +9,18 @@ import {
 } from "@/features/attention/domain/attention-navigation";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY } from "../features/product-access/module-access-fixtures";
 
 describe("Attention AppShell navigation (B1.7.5-E)", () => {
-  it("shows Attention nav with active state when visibility is enabled", () => {
-    expect(ATTENTION_NAV_VISIBLE).toBe(true);
+  it("shows Attention nav with active state when context permits", () => {
+    expect(ATTENTION_NAV_VISIBLE).toBe(false);
 
     const html = renderToStaticMarkup(
-      <AppShell activeNav="attention" membersNavVisible={false}>
+      <AppShell
+        activeNav="attention"
+        membersNavVisible={false}
+        moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
+      >
         <p>content</p>
       </AppShell>,
     );
@@ -30,7 +35,7 @@ describe("Attention AppShell navigation (B1.7.5-E)", () => {
       path.join(process.cwd(), "src/components/app-shell.tsx"),
       "utf8",
     );
-    expect(shellSource).toContain("ATTENTION_NAV_VISIBLE");
+    expect(shellSource).toContain("moduleNavVisibility.attention");
     expect(shellSource).toContain("ATTENTION_ROUTE");
     expect(shellSource).toContain("OrgAwareLink");
     expect(shellSource).not.toMatch(
@@ -40,7 +45,11 @@ describe("Attention AppShell navigation (B1.7.5-E)", () => {
 
   it("keeps Attention inactive when another nav section is active", () => {
     const html = renderToStaticMarkup(
-      <AppShell activeNav="tasks" membersNavVisible={false}>
+      <AppShell
+        activeNav="tasks"
+        membersNavVisible={false}
+        moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
+      >
         <p>content</p>
       </AppShell>,
     );
@@ -52,5 +61,22 @@ describe("Attention AppShell navigation (B1.7.5-E)", () => {
         `aria-current="page"[^>]*href="${ATTENTION_ROUTE}"|href="${ATTENTION_ROUTE}"[^>]*aria-current="page"`,
       ),
     );
+  });
+
+  it("hides Attention link when context denies access", () => {
+    const html = renderToStaticMarkup(
+      <AppShell
+        activeNav="tasks"
+        membersNavVisible={false}
+        moduleNavVisibility={{
+          ...KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY,
+          attention: false,
+        }}
+      >
+        <p>content</p>
+      </AppShell>,
+    );
+
+    expect(html).not.toContain(`>${ATTENTION_NAV_LABEL}<`);
   });
 });

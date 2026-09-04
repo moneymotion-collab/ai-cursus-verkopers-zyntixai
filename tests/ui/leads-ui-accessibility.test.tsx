@@ -6,6 +6,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { LeadListFilters } from "@/features/leads/ui/lead-list-filters";
 import { LeadListPresentation } from "@/features/leads/ui/lead-list";
 import { LeadStatusHistorySection } from "@/features/leads/ui/lead-status-history";
+import { KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY } from "../features/product-access/module-access-fixtures";
 
 describe("leads UI accessibility", () => {
   it("renders Leads navigation between Home and Customers with active state", () => {
@@ -13,6 +14,7 @@ describe("leads UI accessibility", () => {
       <AppShell
         activeNav="leads"
         membersNavVisible={false}
+        moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
         organizationOptions={[
           { organizationId: "11111111-1111-4111-8111-111111111111", role: "owner", displayName: "Org Alpha" },
         ]}

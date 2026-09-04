@@ -8,6 +8,7 @@ import { TaskListPresentation } from "@/features/tasks/ui/task-list";
 import { TaskHistorySection } from "@/features/tasks/ui/task-history";
 import { emptyLabelBundle } from "@/features/tasks/ui/resolve-task-display-labels";
 import type { TaskListItemReadModel } from "@/features/tasks/domain/read-types";
+import { KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY } from "../features/product-access/module-access-fixtures";
 
 const listItem: TaskListItemReadModel = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -37,6 +38,7 @@ describe("tasks UI accessibility landmarks", () => {
     const html = renderToStaticMarkup(
       <AppShell
         membersNavVisible={false}
+        moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
         organizationOptions={[
           { organizationId: "02016e91-7237-4a20-aec3-6275d2e8a67f", role: "owner", displayName: "Org Alpha" },
           { organizationId: "e6e4c376-697c-4863-bb30-fd52b7256ff9", role: "staff", displayName: "Org Beta" },

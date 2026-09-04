@@ -11,6 +11,8 @@ import {
   resolveSelectedOrganization,
   type OrganizationOption,
 } from "@/features/tasks/ui/resolve-task-organization-selection";
+import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 export type TaskPageOrganizationResult =
@@ -25,6 +27,7 @@ export type TaskPageOrganizationResult =
       organizationOptions: OrganizationOption[];
       role: OrganizationRole;
       timeZone: string;
+      moduleAccess: ProductModuleAccessState;
     };
 
 export async function resolveTaskPageOrganization(
@@ -98,11 +101,14 @@ export async function resolveTaskPageOrganization(
     orgContext.context.role,
   );
 
+  const moduleAccess = await loadProductModuleAccess(selection.organizationId);
+
   return {
     kind: "ready",
     organizationId: selection.organizationId,
     organizationOptions,
     role: orgContext.context.role,
     timeZone,
+    moduleAccess,
   };
 }

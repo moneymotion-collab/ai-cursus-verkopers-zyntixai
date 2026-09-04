@@ -28,6 +28,7 @@ import {
 import { buildHistoryPresentationItems } from "@/features/tasks/ui/task-history-presentation";
 import { formatTaskDueAt } from "@/features/tasks/ui/task-presentation";
 import type { TaskListUrlState } from "@/features/tasks/ui/task-list-search-params";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 const TASK_ID_PATTERN =
@@ -74,6 +75,7 @@ export type TaskDetailPageResult =
       organizationOptions: OrganizationOption[];
       selectedOrganizationId: string;
       role: OrganizationRole;
+      moduleAccess: ProductModuleAccessState;
     }
   | { kind: "auth_required" }
   | { kind: "organization_required"; organizations: OrganizationOption[] }
@@ -242,6 +244,7 @@ export async function loadTaskDetailPage(
     selectedOrganizationId: orgResult.organizationId,
     organizationOptions: orgResult.organizationOptions,
     role: orgResult.role,
+    moduleAccess: orgResult.moduleAccess,
     data: {
       task: taskResult.data,
       labels: buildDetailLabels(taskResult.data, labelBundle),

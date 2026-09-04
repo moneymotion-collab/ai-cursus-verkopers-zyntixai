@@ -92,6 +92,7 @@ export default async function LeadArchivePage({ params, searchParams }: LeadArch
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       activeNav="leads"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}

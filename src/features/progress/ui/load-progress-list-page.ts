@@ -16,6 +16,8 @@ import {
   parseProgressListSearchParams,
   type ProgressListUrlState,
 } from "@/features/progress/ui/progress-list-search-params";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 export type ProgressListRelationshipContext = {
@@ -50,7 +52,8 @@ export type ProgressListPageResult =
       error?: ProgressApplicationError;
       retryable?: boolean;
     }
-  | ProgressListPageSuccess;
+  | { kind: "forbidden"; message: string; moduleAccess: ProductModuleAccessState }
+  | (ProgressListPageSuccess & { moduleAccess: ProductModuleAccessState });
 
 function filterWarningMessage(warnings: string[]): string | null {
   if (warnings.includes("include_voided_not_allowed")) {
@@ -94,6 +97,18 @@ export async function loadProgressListPage(
 
   if (orgResult.kind === "query_error") {
     return { kind: "query_error", message: orgResult.message, retryable: true };
+  }
+
+  const routeAccess = evaluateProductModuleRouteAccess({
+    moduleId: "progress",
+    access: orgResult.moduleAccess,
+  });
+  if (!routeAccess.allowed) {
+    return {
+      kind: "forbidden",
+      message: routeAccess.message,
+      moduleAccess: orgResult.moduleAccess,
+    };
   }
 
   const parsed = parseProgressListSearchParams(rawSearchParams, {
@@ -151,5 +166,6 @@ export async function loadProgressListPage(
     recorderLabels,
     filterWarning: filterWarningMessage(parsed.warnings),
     context,
+    moduleAccess: orgResult.moduleAccess,
   };
 }

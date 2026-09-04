@@ -74,6 +74,7 @@ export default async function LeadCreatePage({ searchParams }: LeadCreatePagePro
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       activeNav="leads"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}

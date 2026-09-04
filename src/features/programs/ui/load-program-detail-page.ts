@@ -19,6 +19,8 @@ import {
   formatProgramHistorySourceLabel,
   formatProgramHistoryTransition,
 } from "@/features/programs/ui/program-presentation";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 const PROGRAM_ID_PATTERN =
@@ -51,7 +53,9 @@ export type ProgramDetailPageResult =
       organizationOptions: OrganizationOption[];
       selectedOrganizationId: string;
       role: ProgramRole;
+      moduleAccess: ProductModuleAccessState;
     }
+  | { kind: "forbidden"; message: string; moduleAccess: ProductModuleAccessState }
   | { kind: "auth_required" }
   | { kind: "organization_required"; organizations: OrganizationOption[] }
   | { kind: "organization_unavailable" }
@@ -105,6 +109,18 @@ export async function loadProgramDetailPage(
     return { kind: "query_error", message: orgResult.message };
   }
 
+  const routeAccess = evaluateProductModuleRouteAccess({
+    moduleId: "programs",
+    access: orgResult.moduleAccess,
+  });
+  if (!routeAccess.allowed) {
+    return {
+      kind: "forbidden",
+      message: routeAccess.message,
+      moduleAccess: orgResult.moduleAccess,
+    };
+  }
+
   const listState: ProgramListUrlState = {
     ...parseProgramListReturnState(rawSearchParams, orgResult.role),
     org: orgResult.organizationId,
@@ -140,6 +156,7 @@ export async function loadProgramDetailPage(
     organizationOptions: orgResult.organizationOptions,
     selectedOrganizationId: orgResult.organizationId,
     role: orgResult.role,
+    moduleAccess: orgResult.moduleAccess,
     data: {
       program,
       permissions: capabilities,

@@ -25,6 +25,7 @@ import {
   sampleAttentionItemDetailRow,
   sampleAttentionSignalRow,
 } from "../helpers/attention-test-fixtures";
+import { mockKnowledgeProductModuleAccess } from "../features/product-access/module-access-fixtures";
 
 vi.mock("@/features/attention/server/resolve-attention-page-organization", () => ({
   resolveAttentionPageOrganization: vi.fn(),
@@ -90,6 +91,7 @@ function readyOrg(role: "owner" | "admin" | "staff" | "viewer" = "owner") {
     role,
     timezone: "UTC",
     isMultiOrganization: false,
+    moduleAccess: mockKnowledgeProductModuleAccess(),
   };
 }
 
@@ -318,7 +320,11 @@ describe("attention detail page loader (B1.7.5-D)", () => {
     ]);
     expect(result.data.assigneeOptionsFailed).toBe(false);
     expect(canShowAttentionLifecycleActions()).toBe(false);
-    expect(ATTENTION_NAV_VISIBLE).toBe(true);
+    expect(ATTENTION_NAV_VISIBLE).toBe(false);
+    expect(result.moduleAccess.resolution).toBe("resolved");
+    if (result.moduleAccess.resolution === "resolved") {
+      expect(result.moduleAccess.navVisibility.attention).toBe(true);
+    }
   });
 
   it("does not load assignee options for viewers", async () => {

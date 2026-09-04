@@ -23,8 +23,8 @@ import {
 } from "@/features/auth/server/safe-return-path";
 
 describe("attention navigation (B1.7.5-E)", () => {
-  it("activates Attention nav after B1.7.5-E readiness", () => {
-    expect(ATTENTION_NAV_VISIBLE).toBe(true);
+  it("registers canonical routes; nav visibility is context-driven", () => {
+    expect(ATTENTION_NAV_VISIBLE).toBe(false);
     expect(ATTENTION_ROUTE).toBe("/attention");
     expect(ATTENTION_NAV_LABEL).toBe("Attention");
     expect(ATTENTION_NAV_ORDER_AFTER).toBe("progress");

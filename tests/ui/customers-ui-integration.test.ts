@@ -6,6 +6,7 @@ import { loadCustomerDetailPage } from "@/features/customers/ui/load-customer-de
 import { listCustomers, getCustomerById } from "@/features/customers/server/customer-read-queries";
 import { resolveCustomerPageOrganization } from "@/features/customers/server/resolve-customer-page-organization";
 import { loadCustomerMemberFilterOptions } from "@/features/customers/server/load-customer-member-filter-options";
+import { mockKnowledgeProductModuleAccess } from "../features/product-access/module-access-fixtures";
 
 const ORG_A = "11111111-1111-4111-8111-111111111111";
 const ORG_B = "22222222-2222-4222-8222-222222222222";
@@ -70,6 +71,7 @@ beforeEach(() => {
     role: "staff",
     timezone: "UTC",
     isMultiOrganization: true,
+    moduleAccess: mockKnowledgeProductModuleAccess(),
   });
   listCustomersMock.mockResolvedValue({
     ok: true,

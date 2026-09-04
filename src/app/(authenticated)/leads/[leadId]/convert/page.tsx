@@ -92,6 +92,7 @@ export default async function LeadConvertPage({ params, searchParams }: LeadConv
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       activeNav="leads"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}

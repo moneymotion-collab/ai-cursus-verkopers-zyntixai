@@ -24,6 +24,8 @@ import {
   resolveProgressFactTitle,
   resolveProgressProgramLabel,
 } from "@/features/progress/ui/progress-presentation";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 const FACT_ID_PATTERN =
@@ -56,6 +58,7 @@ export type ProgressDetailPageResult =
   | { kind: "org_context_missing"; message: string }
   | { kind: "query_error"; message: string }
   | { kind: "progress_unavailable"; backHref: string }
+  | { kind: "forbidden"; message: string; moduleAccess: ProductModuleAccessState }
   | {
       kind: "success";
       organizationOptions: OrganizationOption[];
@@ -63,6 +66,7 @@ export type ProgressDetailPageResult =
       role: ProgressRole;
       capabilities: ProgressPermissionSet;
       data: ProgressDetailViewModel;
+      moduleAccess: ProductModuleAccessState;
     };
 
 function buildBackHref(listState: ProgressListUrlState): string {
@@ -98,6 +102,18 @@ export async function loadProgressDetailPage(
 
   if (orgResult.kind === "query_error") {
     return { kind: "query_error", message: orgResult.message };
+  }
+
+  const routeAccess = evaluateProductModuleRouteAccess({
+    moduleId: "progress",
+    access: orgResult.moduleAccess,
+  });
+  if (!routeAccess.allowed) {
+    return {
+      kind: "forbidden",
+      message: routeAccess.message,
+      moduleAccess: orgResult.moduleAccess,
+    };
   }
 
   const listState = {
@@ -144,6 +160,7 @@ export async function loadProgressDetailPage(
     selectedOrganizationId: orgResult.organizationId,
     role: orgResult.role,
     capabilities: foundation.data.capabilities,
+    moduleAccess: orgResult.moduleAccess,
     data: {
       fact,
       titleLabel: resolveProgressFactTitle(fact),

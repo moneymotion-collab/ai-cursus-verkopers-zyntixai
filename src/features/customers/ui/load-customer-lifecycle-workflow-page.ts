@@ -16,6 +16,7 @@ import {
   canShowRestoreWorkflow,
   canShowStatusWorkflow,
 } from "@/features/customers/ui/customer-workflow-visibility";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 const CUSTOMER_ID_PATTERN =
@@ -35,6 +36,7 @@ type LifecycleOrgReady = {
   role: CustomerRole;
   timeZone: string;
   listState: CustomerListUrlState;
+  moduleAccess: ProductModuleAccessState;
 };
 
 export type CustomerLifecycleWorkflowPageResult =
@@ -51,6 +53,7 @@ export type CustomerLifecycleWorkflowPageResult =
       timeZone: string;
       listState: CustomerListUrlState;
       backHref: string;
+      moduleAccess: ProductModuleAccessState;
     };
 
 const ACTION_UNAVAILABLE_MESSAGES = {
@@ -87,6 +90,7 @@ async function resolveLifecycleOrganization(
     role: orgResult.role,
     timeZone: orgResult.timezone,
     listState,
+    moduleAccess: orgResult.moduleAccess,
   };
 }
 
@@ -144,6 +148,7 @@ async function loadCustomerLifecycleWorkflowPage(
     timeZone: org.timeZone,
     listState: org.listState,
     backHref,
+    moduleAccess: org.moduleAccess,
   };
 }
 

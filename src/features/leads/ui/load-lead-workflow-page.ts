@@ -26,6 +26,7 @@ import {
   canShowStageLeadWorkflow,
   canShowStatusLeadWorkflow,
 } from "@/features/leads/ui/lead-workflow-visibility";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 const LEAD_ID_PATTERN =
@@ -47,6 +48,7 @@ type WorkflowOrgReady = {
   role: LeadRole;
   timeZone: string;
   listState: LeadListUrlState;
+  moduleAccess: ProductModuleAccessState;
 };
 
 export type LeadOwnerFormOptions = {
@@ -80,6 +82,7 @@ export type LeadWorkflowPageBase =
       timeZone: string;
       listState: LeadListUrlState;
       backHref: string;
+      moduleAccess: ProductModuleAccessState;
     };
 
 const ACTION_UNAVAILABLE_MESSAGES = {
@@ -119,6 +122,7 @@ async function resolveWorkflowOrganization(
     role: orgResult.role,
     timeZone: orgResult.timezone,
     listState,
+    moduleAccess: orgResult.moduleAccess,
   };
 }
 
@@ -234,6 +238,7 @@ async function loadLeadWorkflowPage(
     timeZone: org.timeZone,
     listState: org.listState,
     backHref,
+    moduleAccess: org.moduleAccess,
   };
 }
 
@@ -248,6 +253,7 @@ export type LeadCreatePageResult =
       timeZone: string;
       listState: LeadListUrlState;
       ownerOptions: LeadOwnerFormOptions;
+      moduleAccess: ProductModuleAccessState;
     };
 
 export async function loadLeadCreatePage(
@@ -273,6 +279,7 @@ export async function loadLeadCreatePage(
     timeZone: org.timeZone,
     listState: org.listState,
     ownerOptions,
+    moduleAccess: org.moduleAccess,
   };
 }
 

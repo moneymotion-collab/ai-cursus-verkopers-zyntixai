@@ -11,6 +11,8 @@ import {
   resolveSelectedOrganization,
   type OrganizationOption,
 } from "@/features/tasks/ui/resolve-task-organization-selection";
+import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 export type ProgressPageOrganizationResult =
@@ -27,6 +29,7 @@ export type ProgressPageOrganizationResult =
       role: ProgressRole;
       timezone: string;
       isMultiOrganization: boolean;
+      moduleAccess: ProductModuleAccessState;
     };
 
 export async function resolveProgressPageOrganization(
@@ -108,6 +111,8 @@ export async function resolveProgressPageOrganization(
     orgContext.context.role,
   );
 
+  const moduleAccess = await loadProductModuleAccess(selection.organizationId);
+
   return {
     kind: "ready",
     organizationId: selection.organizationId,
@@ -116,5 +121,6 @@ export async function resolveProgressPageOrganization(
     role: orgContext.context.role,
     timezone,
     isMultiOrganization,
+    moduleAccess,
   };
 }

@@ -94,7 +94,7 @@ export function buildEnrollmentRestoreHref(
 }
 
 /**
- * Visible primary-nav Enrollments link — activated in B1.5.5 now that
- * list/create/detail routes exist under /enrollments.
+ * Primary-nav Enrollments link — visibility is context-driven via product-access (AppShell moduleNavVisibility).
+ * Kept for backward-compatible imports; always false at compile time.
  */
-export const ENROLLMENTS_NAV_VISIBLE = true as const;
+export const ENROLLMENTS_NAV_VISIBLE = false as const;

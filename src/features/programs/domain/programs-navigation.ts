@@ -61,6 +61,7 @@ export function buildProgramEditHref(
 }
 
 /**
- * Visible primary-nav Programs link — activated in B1.5.2 once list/create/detail routes exist.
+ * Primary-nav Programs link — visibility is context-driven via product-access (AppShell moduleNavVisibility).
+ * Kept for backward-compatible imports; always false at compile time.
  */
-export const PROGRAMS_NAV_VISIBLE = true as const;
+export const PROGRAMS_NAV_VISIBLE = false as const;

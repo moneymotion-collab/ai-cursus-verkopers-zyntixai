@@ -14,6 +14,7 @@ import { canShowAttentionLifecycleActions } from "@/features/attention/ui/attent
 import { ATTENTION_NAV_VISIBLE } from "@/features/attention/domain/attention-navigation";
 import { resolveAttentionPermissions } from "@/features/attention/domain/permissions";
 import { ORG_ID } from "../helpers/attention-test-fixtures";
+import { mockKnowledgeProductModuleAccess, KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY } from "../features/product-access/module-access-fixtures";
 
 vi.mock("@/components/ui/alert", () => ({
   Alert: ({
@@ -95,6 +96,7 @@ describe("attention shared state panels (B1.7.5-A)", () => {
           capabilities,
           timeZone: "UTC",
           isMultiOrganization: false,
+          moduleAccess: mockKnowledgeProductModuleAccess(),
         }}
       />,
     );
@@ -107,6 +109,7 @@ describe("attention shared state panels (B1.7.5-A)", () => {
     expect(html).not.toContain("Resolve");
     expect(html).not.toContain("Filter");
     expect(canShowAttentionLifecycleActions()).toBe(false);
-    expect(ATTENTION_NAV_VISIBLE).toBe(true);
+    expect(ATTENTION_NAV_VISIBLE).toBe(false);
+    expect(KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY.attention).toBe(true);
   });
 });

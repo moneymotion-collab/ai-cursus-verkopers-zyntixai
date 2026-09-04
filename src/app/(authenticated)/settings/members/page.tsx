@@ -142,6 +142,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       activeNav="members"
       membersNavVisible
       organizationOptions={result.organizationOptions}

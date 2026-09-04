@@ -19,6 +19,7 @@ import {
   canShowEditWorkflow,
 } from "@/features/customers/ui/customer-workflow-visibility";
 import { resolveCustomerPermissions } from "@/features/customers/domain/permissions";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 const CUSTOMER_ID_PATTERN =
@@ -38,6 +39,7 @@ type WorkflowOrgReady = {
   role: CustomerRole;
   timeZone: string;
   listState: CustomerListUrlState;
+  moduleAccess: ProductModuleAccessState;
 };
 
 export type CustomerOwnerFormOptions = {
@@ -72,6 +74,7 @@ async function resolveWorkflowOrganization(
     role: orgResult.role,
     timeZone: orgResult.timezone,
     listState,
+    moduleAccess: orgResult.moduleAccess,
   };
 }
 
@@ -105,6 +108,7 @@ export type CustomerCreatePageResult =
       timeZone: string;
       listState: CustomerListUrlState;
       ownerOptions: CustomerOwnerFormOptions;
+      moduleAccess: ProductModuleAccessState;
     };
 
 export async function loadCustomerCreatePage(
@@ -130,6 +134,7 @@ export async function loadCustomerCreatePage(
     timeZone: org.timeZone,
     listState: org.listState,
     ownerOptions,
+    moduleAccess: org.moduleAccess,
   };
 }
 
@@ -148,6 +153,7 @@ export type CustomerEditPageResult =
       listState: CustomerListUrlState;
       backHref: string;
       ownerOptions: CustomerOwnerFormOptions;
+      moduleAccess: ProductModuleAccessState;
     };
 
 export async function loadCustomerEditPage(
@@ -202,5 +208,6 @@ export async function loadCustomerEditPage(
     listState: org.listState,
     backHref,
     ownerOptions,
+    moduleAccess: org.moduleAccess,
   };
 }

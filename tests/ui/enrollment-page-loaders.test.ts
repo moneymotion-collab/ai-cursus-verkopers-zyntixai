@@ -22,6 +22,7 @@ import {
   sampleEnrollmentHistory,
   sampleEnrollmentListItem,
 } from "../helpers/enrollment-test-fixtures";
+import { mockKnowledgeProductModuleAccess } from "../features/product-access/module-access-fixtures";
 
 vi.mock("@/features/enrollments/server/resolve-enrollment-page-organization", () => ({
   resolveEnrollmentPageOrganization: vi.fn(),
@@ -108,6 +109,7 @@ function readyOrg(role: "owner" | "admin" | "staff" | "viewer" = "owner") {
     role,
     timezone: "Europe/Amsterdam",
     isMultiOrganization: false,
+    moduleAccess: mockKnowledgeProductModuleAccess(),
   };
 }
 

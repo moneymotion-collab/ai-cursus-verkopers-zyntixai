@@ -48,6 +48,17 @@ export default async function ProgressCreatePage({ searchParams }: ProgressCreat
     );
   }
 
+  if (result.kind === "forbidden") {
+    return (
+      <AppShell activeNav="progress" moduleNavVisibility={result.moduleAccess.navVisibility}>
+        <section className={styles.statePanel} aria-labelledby="forbidden-title">
+          <h1 id="forbidden-title">Access denied</h1>
+          <p>{result.message}</p>
+        </section>
+      </AppShell>
+    );
+  }
+
   if (result.kind === "query_error" || result.kind === "org_context_missing") {
     return (
       <AppShell activeNav="progress">
@@ -73,6 +84,7 @@ export default async function ProgressCreatePage({ searchParams }: ProgressCreat
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       activeNav="progress"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}

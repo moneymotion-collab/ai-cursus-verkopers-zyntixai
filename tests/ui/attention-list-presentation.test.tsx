@@ -7,6 +7,7 @@ import type { AttentionListWorkspaceRow } from "@/features/attention/ui/load-att
 import { ATTENTION_NAV_VISIBLE } from "@/features/attention/domain/attention-navigation";
 import { canShowAttentionLifecycleActions } from "@/features/attention/ui/attention-workflow-visibility";
 import { ATTENTION_ITEM_ID, ORG_ID } from "../helpers/attention-test-fixtures";
+import { KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY } from "../features/product-access/module-access-fixtures";
 
 vi.mock("@/components/ui/badge", () => ({
   Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
@@ -58,7 +59,8 @@ describe("AttentionListPresentation (B1.7.5-C/D)", () => {
     expect(html).not.toMatch(/>Assign</);
     expect(html).not.toMatch(/>Resolve</);
     expect(canShowAttentionLifecycleActions()).toBe(false);
-    expect(ATTENTION_NAV_VISIBLE).toBe(true);
+    expect(ATTENTION_NAV_VISIBLE).toBe(false);
+    expect(KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY.attention).toBe(true);
   });
 
   it("renders filtered empty state with reset link", () => {

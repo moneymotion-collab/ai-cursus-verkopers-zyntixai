@@ -11,6 +11,8 @@ import {
 } from "@/features/programs/ui/program-navigation";
 import type { ProgramListUrlState } from "@/features/programs/ui/program-list-search-params";
 import { canShowEditProgramWorkflow } from "@/features/programs/ui/program-workflow-visibility";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 const PROGRAM_ID_PATTERN =
@@ -21,7 +23,8 @@ type WorkflowOrgFailure =
   | { kind: "organization_unavailable" }
   | { kind: "organization_required"; organizations: OrganizationOption[] }
   | { kind: "org_context_missing"; message: string }
-  | { kind: "query_error"; message: string };
+  | { kind: "query_error"; message: string }
+  | { kind: "forbidden"; message: string; moduleAccess: ProductModuleAccessState };
 
 type WorkflowOrgReady = {
   kind: "ready";
@@ -30,6 +33,7 @@ type WorkflowOrgReady = {
   role: ProgramRole;
   timeZone: string;
   listState: ProgramListUrlState;
+  moduleAccess: ProductModuleAccessState;
 };
 
 async function resolveWorkflowOrganization(
@@ -46,6 +50,18 @@ async function resolveWorkflowOrganization(
     return orgResult;
   }
 
+  const routeAccess = evaluateProductModuleRouteAccess({
+    moduleId: "programs",
+    access: orgResult.moduleAccess,
+  });
+  if (!routeAccess.allowed) {
+    return {
+      kind: "forbidden",
+      message: routeAccess.message,
+      moduleAccess: orgResult.moduleAccess,
+    };
+  }
+
   const listState: ProgramListUrlState = {
     ...parseProgramListReturnState(rawSearchParams, orgResult.role),
     org: orgResult.organizationId,
@@ -58,6 +74,7 @@ async function resolveWorkflowOrganization(
     role: orgResult.role,
     timeZone: orgResult.timezone,
     listState,
+    moduleAccess: orgResult.moduleAccess,
   };
 }
 
@@ -75,6 +92,7 @@ export type ProgramEditPageResult =
       timeZone: string;
       listState: ProgramListUrlState;
       backHref: string;
+      moduleAccess: ProductModuleAccessState;
     };
 
 export async function loadProgramEditPage(
@@ -126,5 +144,6 @@ export async function loadProgramEditPage(
     timeZone: org.timeZone,
     listState: org.listState,
     backHref,
+    moduleAccess: org.moduleAccess,
   };
 }

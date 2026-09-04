@@ -16,6 +16,8 @@ import {
   canShowRestoreEnrollmentWorkflow,
   canShowStatusEnrollmentWorkflow,
 } from "@/features/enrollments/ui/enrollment-workflow-visibility";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 const ENROLLMENT_ID_PATTERN =
@@ -26,7 +28,8 @@ type LifecycleOrgFailure =
   | { kind: "organization_unavailable" }
   | { kind: "organization_required"; organizations: OrganizationOption[] }
   | { kind: "org_context_missing"; message: string }
-  | { kind: "query_error"; message: string };
+  | { kind: "query_error"; message: string }
+  | { kind: "forbidden"; message: string; moduleAccess: ProductModuleAccessState };
 
 type LifecycleOrgReady = {
   kind: "ready";
@@ -35,6 +38,7 @@ type LifecycleOrgReady = {
   role: EnrollmentRole;
   timeZone: string;
   listState: EnrollmentListUrlState;
+  moduleAccess: ProductModuleAccessState;
 };
 
 export type EnrollmentLifecycleWorkflowPageResult =
@@ -51,6 +55,7 @@ export type EnrollmentLifecycleWorkflowPageResult =
       timeZone: string;
       listState: EnrollmentListUrlState;
       backHref: string;
+      moduleAccess: ProductModuleAccessState;
     };
 
 const ACTION_UNAVAILABLE_MESSAGES = {
@@ -75,6 +80,18 @@ async function resolveLifecycleOrganization(
     return orgResult;
   }
 
+  const routeAccess = evaluateProductModuleRouteAccess({
+    moduleId: "enrollments",
+    access: orgResult.moduleAccess,
+  });
+  if (!routeAccess.allowed) {
+    return {
+      kind: "forbidden",
+      message: routeAccess.message,
+      moduleAccess: orgResult.moduleAccess,
+    };
+  }
+
   const listState: EnrollmentListUrlState = {
     ...parseEnrollmentListReturnState(rawSearchParams, orgResult.role),
     org: orgResult.organizationId,
@@ -87,6 +104,7 @@ async function resolveLifecycleOrganization(
     role: orgResult.role,
     timeZone: orgResult.timezone,
     listState,
+    moduleAccess: orgResult.moduleAccess,
   };
 }
 
@@ -144,6 +162,7 @@ async function loadEnrollmentLifecycleWorkflowPage(
     timeZone: org.timeZone,
     listState: org.listState,
     backHref,
+    moduleAccess: org.moduleAccess,
   };
 }
 

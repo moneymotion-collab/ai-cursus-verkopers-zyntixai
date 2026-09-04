@@ -83,6 +83,7 @@ export default async function TaskRestorePage({ params, searchParams }: TaskRest
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}
       organizationSelectorAction={`/tasks/${taskId}/restore`}

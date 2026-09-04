@@ -7,6 +7,8 @@ import {
   type ProgramListUrlState,
 } from "@/features/programs/ui/program-list-search-params";
 import { canShowCreateProgramWorkflow } from "@/features/programs/ui/program-workflow-visibility";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 type WorkflowOrgFailure =
@@ -14,7 +16,8 @@ type WorkflowOrgFailure =
   | { kind: "organization_unavailable" }
   | { kind: "organization_required"; organizations: OrganizationOption[] }
   | { kind: "org_context_missing"; message: string }
-  | { kind: "query_error"; message: string };
+  | { kind: "query_error"; message: string }
+  | { kind: "forbidden"; message: string; moduleAccess: ProductModuleAccessState };
 
 export type ProgramCreatePageResult =
   | WorkflowOrgFailure
@@ -26,6 +29,7 @@ export type ProgramCreatePageResult =
       role: ProgramRole;
       timeZone: string;
       listState: ProgramListUrlState;
+      moduleAccess: ProductModuleAccessState;
     };
 
 export async function loadProgramCreatePage(
@@ -40,6 +44,18 @@ export async function loadProgramCreatePage(
 
   if (orgResult.kind !== "ready") {
     return orgResult;
+  }
+
+  const routeAccess = evaluateProductModuleRouteAccess({
+    moduleId: "programs",
+    access: orgResult.moduleAccess,
+  });
+  if (!routeAccess.allowed) {
+    return {
+      kind: "forbidden",
+      message: routeAccess.message,
+      moduleAccess: orgResult.moduleAccess,
+    };
   }
 
   const listState: ProgramListUrlState = {
@@ -58,5 +74,6 @@ export async function loadProgramCreatePage(
     role: orgResult.role,
     timeZone: orgResult.timezone,
     listState,
+    moduleAccess: orgResult.moduleAccess,
   };
 }

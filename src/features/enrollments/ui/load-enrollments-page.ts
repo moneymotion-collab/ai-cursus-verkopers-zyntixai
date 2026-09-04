@@ -12,6 +12,8 @@ import {
   parseEnrollmentListSearchParams,
   type EnrollmentListUrlState,
 } from "@/features/enrollments/ui/enrollment-list-search-params";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 import type {
   EnrollmentPermissionSet,
@@ -54,7 +56,8 @@ export type EnrollmentsPageResult =
       retryable?: boolean;
     }
   | { kind: "context_unavailable"; message: string; backHref: string }
-  | EnrollmentsPageSuccess;
+  | { kind: "forbidden"; message: string; moduleAccess: ProductModuleAccessState }
+  | (EnrollmentsPageSuccess & { moduleAccess: ProductModuleAccessState });
 
 const CONTEXT_UNAVAILABLE_MESSAGE =
   "This enrollment context is unavailable. It may have been removed or you may not have access.";
@@ -87,6 +90,18 @@ export async function loadEnrollmentsPage(
 
   if (orgResult.kind === "query_error") {
     return { kind: "query_error", message: orgResult.message };
+  }
+
+  const routeAccess = evaluateProductModuleRouteAccess({
+    moduleId: "enrollments",
+    access: orgResult.moduleAccess,
+  });
+  if (!routeAccess.allowed) {
+    return {
+      kind: "forbidden",
+      message: routeAccess.message,
+      moduleAccess: orgResult.moduleAccess,
+    };
   }
 
   const parsed = parseEnrollmentListSearchParams(rawSearchParams, {
@@ -185,6 +200,7 @@ export async function loadEnrollmentsPage(
     filterWarning,
     context,
     operationalHints,
+    moduleAccess: orgResult.moduleAccess,
   };
 }
 

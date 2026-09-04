@@ -33,6 +33,7 @@ import {
   formatOptionalCustomerDate,
 } from "@/features/customers/ui/customer-presentation";
 import { getCustomerStatusLabel } from "@/features/customers/domain/status";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 const CUSTOMER_ID_PATTERN =
@@ -88,6 +89,7 @@ export type CustomerDetailPageResult =
       organizationOptions: OrganizationOption[];
       selectedOrganizationId: string;
       role: CustomerRole;
+      moduleAccess: ProductModuleAccessState;
     }
   | { kind: "auth_required" }
   | { kind: "organization_required"; organizations: OrganizationOption[] }
@@ -337,6 +339,7 @@ export async function loadCustomerDetailPage(
     selectedOrganizationId: orgResult.organizationId,
     organizationOptions: orgResult.organizationOptions,
     role: orgResult.role,
+    moduleAccess: orgResult.moduleAccess,
     data: {
       customer,
       permissions,

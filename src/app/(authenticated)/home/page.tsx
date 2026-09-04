@@ -64,6 +64,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       activeNav="home"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.selectedOrganizationId}

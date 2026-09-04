@@ -16,6 +16,8 @@ import {
   canShowRestoreProgramWorkflow,
   canShowStatusProgramWorkflow,
 } from "@/features/programs/ui/program-workflow-visibility";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 const PROGRAM_ID_PATTERN =
@@ -26,7 +28,8 @@ type LifecycleOrgFailure =
   | { kind: "organization_unavailable" }
   | { kind: "organization_required"; organizations: OrganizationOption[] }
   | { kind: "org_context_missing"; message: string }
-  | { kind: "query_error"; message: string };
+  | { kind: "query_error"; message: string }
+  | { kind: "forbidden"; message: string; moduleAccess: ProductModuleAccessState };
 
 type LifecycleOrgReady = {
   kind: "ready";
@@ -35,6 +38,7 @@ type LifecycleOrgReady = {
   role: ProgramRole;
   timeZone: string;
   listState: ProgramListUrlState;
+  moduleAccess: ProductModuleAccessState;
 };
 
 export type ProgramLifecycleWorkflowPageResult =
@@ -51,6 +55,7 @@ export type ProgramLifecycleWorkflowPageResult =
       timeZone: string;
       listState: ProgramListUrlState;
       backHref: string;
+      moduleAccess: ProductModuleAccessState;
     };
 
 const ACTION_UNAVAILABLE_MESSAGES = {
@@ -75,6 +80,18 @@ async function resolveLifecycleOrganization(
     return orgResult;
   }
 
+  const routeAccess = evaluateProductModuleRouteAccess({
+    moduleId: "programs",
+    access: orgResult.moduleAccess,
+  });
+  if (!routeAccess.allowed) {
+    return {
+      kind: "forbidden",
+      message: routeAccess.message,
+      moduleAccess: orgResult.moduleAccess,
+    };
+  }
+
   const listState: ProgramListUrlState = {
     ...parseProgramListReturnState(rawSearchParams, orgResult.role),
     org: orgResult.organizationId,
@@ -87,6 +104,7 @@ async function resolveLifecycleOrganization(
     role: orgResult.role,
     timeZone: orgResult.timezone,
     listState,
+    moduleAccess: orgResult.moduleAccess,
   };
 }
 
@@ -144,6 +162,7 @@ async function loadProgramLifecycleWorkflowPage(
     timeZone: org.timeZone,
     listState: org.listState,
     backHref,
+    moduleAccess: org.moduleAccess,
   };
 }
 

@@ -9,6 +9,8 @@ import {
   parseProgramListSearchParams,
   type ProgramListUrlState,
 } from "@/features/programs/ui/program-list-search-params";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 import type { ProgramPermissionSet, ProgramRole } from "@/features/programs/domain/types";
 
@@ -30,8 +32,9 @@ export type ProgramsPageResult =
   | { kind: "no_organizations" }
   | { kind: "organization_required"; organizations: OrganizationOption[] }
   | { kind: "org_context_missing"; message: string }
+  | { kind: "forbidden"; message: string; moduleAccess: ProductModuleAccessState }
   | { kind: "query_error"; message: string; error?: ProgramApplicationError; retryable?: boolean }
-  | ProgramsPageSuccess;
+  | (ProgramsPageSuccess & { moduleAccess: ProductModuleAccessState });
 
 export async function loadProgramsPage(
   supabase: SupabaseClient<Database>,
@@ -61,6 +64,18 @@ export async function loadProgramsPage(
 
   if (orgResult.kind === "query_error") {
     return { kind: "query_error", message: orgResult.message };
+  }
+
+  const routeAccess = evaluateProductModuleRouteAccess({
+    moduleId: "programs",
+    access: orgResult.moduleAccess,
+  });
+  if (!routeAccess.allowed) {
+    return {
+      kind: "forbidden",
+      message: routeAccess.message,
+      moduleAccess: orgResult.moduleAccess,
+    };
   }
 
   const parsed = parseProgramListSearchParams(rawSearchParams, {
@@ -106,6 +121,7 @@ export async function loadProgramsPage(
     urlState,
     list: listResult.data.result,
     filterWarning,
+    moduleAccess: orgResult.moduleAccess,
   };
 }
 

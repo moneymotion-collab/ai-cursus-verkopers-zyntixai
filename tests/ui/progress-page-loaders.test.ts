@@ -24,6 +24,7 @@ import {
   mapProgressFactListItem,
 } from "@/features/progress/server/map-progress-read-model";
 import { resolveProgressPermissions } from "@/features/progress/domain/permissions";
+import { mockKnowledgeProductModuleAccess } from "../features/product-access/module-access-fixtures";
 
 vi.mock("@/features/progress/server/resolve-progress-page-organization", () => ({
   resolveProgressPageOrganization: vi.fn(),
@@ -62,6 +63,7 @@ function readyOrg(role: "owner" | "admin" | "staff" | "viewer" = "owner") {
     role,
     timezone: "UTC",
     isMultiOrganization: false,
+    moduleAccess: mockKnowledgeProductModuleAccess(),
   };
 }
 

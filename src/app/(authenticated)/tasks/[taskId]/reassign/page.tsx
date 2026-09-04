@@ -82,6 +82,7 @@ export default async function TaskReassignPage({ params, searchParams }: TaskRea
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}
       organizationSelectorAction={`/tasks/${taskId}/reassign`}

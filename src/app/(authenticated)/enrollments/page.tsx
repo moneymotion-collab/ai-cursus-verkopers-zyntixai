@@ -163,6 +163,18 @@ export default async function EnrollmentsPage({ searchParams }: EnrollmentsPageP
     );
   }
 
+  
+  if (result.kind === "forbidden") {
+    return (
+      <AppShell activeNav="enrollments" moduleNavVisibility={result.moduleAccess.navVisibility}>
+        <section className={styles.statePanel} aria-labelledby="forbidden-title">
+          <h1 id="forbidden-title">Access denied</h1>
+          <p>{result.message}</p>
+        </section>
+      </AppShell>
+    );
+  }
+
   if (result.kind === "query_error") {
     const retryHref = enrollmentsPageRetryHref({
       org: rawSearchParams.org
@@ -219,6 +231,7 @@ export default async function EnrollmentsPage({ searchParams }: EnrollmentsPageP
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       activeNav="enrollments"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.selectedOrganizationId}

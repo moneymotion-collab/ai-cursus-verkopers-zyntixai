@@ -14,6 +14,7 @@ import {
 import { parseListReturnState } from "@/features/tasks/ui/task-navigation";
 import { splitDueAtForForm } from "@/features/tasks/ui/task-form-datetime";
 import type { TaskListUrlState } from "@/features/tasks/ui/task-list-search-params";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 const TASK_ID_PATTERN =
@@ -33,6 +34,7 @@ type WorkflowOrgReady = {
   role: OrganizationRole;
   timeZone: string;
   listState: TaskListUrlState;
+  moduleAccess: ProductModuleAccessState;
 };
 
 async function resolveWorkflowOrganization(
@@ -61,6 +63,7 @@ async function resolveWorkflowOrganization(
     role: orgResult.role,
     timeZone: orgResult.timeZone,
     listState,
+    moduleAccess: orgResult.moduleAccess,
   };
 }
 
@@ -76,6 +79,7 @@ export type TaskCreatePageResult =
       timeZone: string;
       listState: TaskListUrlState;
       options: TaskFormOptions;
+      moduleAccess: ProductModuleAccessState;
     };
 
 export async function loadTaskCreatePage(
@@ -113,6 +117,7 @@ export async function loadTaskCreatePage(
     timeZone: org.timeZone,
     listState: org.listState,
     options,
+    moduleAccess: org.moduleAccess,
   };
 }
 
@@ -130,6 +135,7 @@ type TaskWorkflowPageBase =
       timeZone: string;
       listState: TaskListUrlState;
       options: TaskFormOptions;
+      moduleAccess: ProductModuleAccessState;
     };
 
 async function loadMutableTaskWorkflowPage(
@@ -172,6 +178,7 @@ async function loadMutableTaskWorkflowPage(
     timeZone: org.timeZone,
     listState: org.listState,
     options,
+    moduleAccess: org.moduleAccess,
   };
 }
 
@@ -190,6 +197,7 @@ export type TaskReschedulePageResult =
       options: TaskFormOptions;
       dueDate: string;
       dueTime: string;
+      moduleAccess: ProductModuleAccessState;
     };
 
 export function loadTaskEditPage(

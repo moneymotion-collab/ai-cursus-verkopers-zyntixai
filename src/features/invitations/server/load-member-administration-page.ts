@@ -18,6 +18,8 @@ import type {
 } from "@/features/invitations/domain/member-administration-read-types";
 import { loadActiveOrganizationMembers } from "@/features/invitations/server/load-active-organization-members";
 import { loadPendingOrganizationInvitations } from "@/features/invitations/server/load-pending-organization-invitations";
+import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 
 function firstSearchParam(
   value: string | string[] | undefined,
@@ -53,6 +55,7 @@ export type MemberAdministrationPageResult =
       invitationsLoadFailed: boolean;
       membersErrorMessage?: string;
       invitationsErrorMessage?: string;
+      moduleAccess: ProductModuleAccessState;
     };
 
 /**
@@ -164,6 +167,8 @@ export async function loadMemberAdministrationPage(
       ?.displayName ||
     "Organization";
 
+  const moduleAccess = await loadProductModuleAccess(organizationId);
+
   return {
     kind: "success",
     organizationId,
@@ -183,5 +188,6 @@ export async function loadMemberAdministrationPage(
     invitationsErrorMessage: invitationsResult.ok
       ? undefined
       : invitationsResult.error.message,
+    moduleAccess,
   };
 }

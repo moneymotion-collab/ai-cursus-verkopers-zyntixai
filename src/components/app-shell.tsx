@@ -4,23 +4,15 @@ import { logoutAction } from "@/features/auth/actions/auth-actions";
 import styles from "./app-shell.module.css";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
 import {
-  PROGRAMS_NAV_LABEL,
-  PROGRAMS_NAV_VISIBLE,
-  PROGRAMS_ROUTE,
-} from "@/features/programs/domain/programs-navigation";
-import {
   ENROLLMENTS_NAV_LABEL,
-  ENROLLMENTS_NAV_VISIBLE,
   ENROLLMENTS_ROUTE,
 } from "@/features/enrollments/domain/enrollments-navigation";
 import {
   PROGRESS_NAV_LABEL,
-  PROGRESS_NAV_VISIBLE,
   PROGRESS_ROUTE,
 } from "@/features/progress/domain/progress-navigation";
 import {
   ATTENTION_NAV_LABEL,
-  ATTENTION_NAV_VISIBLE,
   ATTENTION_ROUTE,
 } from "@/features/attention/domain/attention-navigation";
 import {
@@ -28,18 +20,38 @@ import {
   MEMBERS_ROUTE,
   resolveMembersNavVisible,
 } from "@/features/invitations/domain/members-navigation";
+import {
+  PROGRAMS_NAV_LABEL,
+  PROGRAMS_ROUTE,
+} from "@/features/programs/domain/programs-navigation";
 import { SocialPrimaryNavLink } from "@/features/social-media/ui/social-primary-nav-link";
 import {
   CLOSED_BETA_SUPPORT_LABEL,
   resolveClosedBetaSupportMailto,
 } from "@/features/support/closed-beta-support-contact";
+import type { ModuleNavVisibility } from "@/features/product-access/domain/types";
+import { FAIL_CLOSED_MODULE_NAV_VISIBILITY } from "@/features/product-access/domain/module-access";
 import { OrgAwareLink } from "./org-aware-link";
 
-type AppShellProps = {
+export type AppShellActiveNav =
+  | "home"
+  | "leads"
+  | "customers"
+  | "programs"
+  | "enrollments"
+  | "progress"
+  | "attention"
+  | "social"
+  | "tasks"
+  | "members";
+
+export type AppShellProps = {
   children: React.ReactNode;
   organizationOptions?: OrganizationOption[];
   selectedOrganizationId?: string;
   organizationSelectorAction?: string;
+  /** Authoritative module visibility from resolved organization context. Fail-closed when omitted. */
+  moduleNavVisibility?: ModuleNavVisibility;
   /**
    * Members nav visibility override.
    * When omitted: fail-closed derivation from organizationOptions[].role.
@@ -56,29 +68,21 @@ type AppShellProps = {
    * Presentation only — /social route authorization remains authoritative.
    */
   socialNavVisible?: boolean;
-  activeNav?:
-    | "home"
-    | "leads"
-    | "customers"
-    | "programs"
-    | "enrollments"
-    | "progress"
-    | "attention"
-    | "social"
-    | "tasks"
-    | "members";
+  activeNav?: AppShellActiveNav;
 };
 
 function PrimaryNavFallback({
   selectedOrganizationId,
   socialNavVisible,
   showMembersNav,
+  moduleNavVisibility,
   activeNav,
 }: {
   selectedOrganizationId?: string;
   socialNavVisible?: boolean;
   showMembersNav: boolean;
-  activeNav: NonNullable<AppShellProps["activeNav"]>;
+  moduleNavVisibility: ModuleNavVisibility;
+  activeNav: AppShellActiveNav;
 }) {
   const withOrg = (path: string) =>
     selectedOrganizationId
@@ -87,28 +91,34 @@ function PrimaryNavFallback({
 
   return (
     <nav className={styles.nav} aria-label="Primary">
-      <Link
-        className={styles.navLink}
-        href={withOrg("/home")}
-        aria-current={activeNav === "home" ? "page" : undefined}
-      >
-        Home
-      </Link>
-      <Link
-        className={styles.navLink}
-        href={withOrg("/leads")}
-        aria-current={activeNav === "leads" ? "page" : undefined}
-      >
-        Leads
-      </Link>
-      <Link
-        className={styles.navLink}
-        href={withOrg("/customers")}
-        aria-current={activeNav === "customers" ? "page" : undefined}
-      >
-        Customers
-      </Link>
-      {PROGRAMS_NAV_VISIBLE ? (
+      {moduleNavVisibility.home ? (
+        <Link
+          className={styles.navLink}
+          href={withOrg("/home")}
+          aria-current={activeNav === "home" ? "page" : undefined}
+        >
+          Home
+        </Link>
+      ) : null}
+      {moduleNavVisibility.leads ? (
+        <Link
+          className={styles.navLink}
+          href={withOrg("/leads")}
+          aria-current={activeNav === "leads" ? "page" : undefined}
+        >
+          Leads
+        </Link>
+      ) : null}
+      {moduleNavVisibility.customers ? (
+        <Link
+          className={styles.navLink}
+          href={withOrg("/customers")}
+          aria-current={activeNav === "customers" ? "page" : undefined}
+        >
+          Customers
+        </Link>
+      ) : null}
+      {moduleNavVisibility.programs ? (
         <Link
           className={styles.navLink}
           href={withOrg(PROGRAMS_ROUTE)}
@@ -117,7 +127,7 @@ function PrimaryNavFallback({
           {PROGRAMS_NAV_LABEL}
         </Link>
       ) : null}
-      {ENROLLMENTS_NAV_VISIBLE ? (
+      {moduleNavVisibility.enrollments ? (
         <Link
           className={styles.navLink}
           href={withOrg(ENROLLMENTS_ROUTE)}
@@ -126,7 +136,7 @@ function PrimaryNavFallback({
           {ENROLLMENTS_NAV_LABEL}
         </Link>
       ) : null}
-      {PROGRESS_NAV_VISIBLE ? (
+      {moduleNavVisibility.progress ? (
         <Link
           className={styles.navLink}
           href={withOrg(PROGRESS_ROUTE)}
@@ -135,7 +145,7 @@ function PrimaryNavFallback({
           {PROGRESS_NAV_LABEL}
         </Link>
       ) : null}
-      {ATTENTION_NAV_VISIBLE ? (
+      {moduleNavVisibility.attention ? (
         <Link
           className={styles.navLink}
           href={withOrg(ATTENTION_ROUTE)}
@@ -149,14 +159,16 @@ function PrimaryNavFallback({
         explicitVisibility={socialNavVisible}
         active={activeNav === "social"}
       />
-      <Link
-        className={styles.navLink}
-        href={withOrg("/tasks")}
-        aria-current={activeNav === "tasks" ? "page" : undefined}
-      >
-        Tasks
-      </Link>
-      {showMembersNav ? (
+      {moduleNavVisibility.tasks ? (
+        <Link
+          className={styles.navLink}
+          href={withOrg("/tasks")}
+          aria-current={activeNav === "tasks" ? "page" : undefined}
+        >
+          Tasks
+        </Link>
+      ) : null}
+      {showMembersNav && moduleNavVisibility.members ? (
         <Link
           className={styles.navLink}
           href={withOrg(MEMBERS_ROUTE)}
@@ -173,40 +185,48 @@ function PrimaryNav({
   selectedOrganizationId,
   socialNavVisible,
   showMembersNav,
+  moduleNavVisibility,
   activeNav,
 }: {
   selectedOrganizationId?: string;
   socialNavVisible?: boolean;
   showMembersNav: boolean;
-  activeNav: NonNullable<AppShellProps["activeNav"]>;
+  moduleNavVisibility: ModuleNavVisibility;
+  activeNav: AppShellActiveNav;
 }) {
   return (
     <nav className={styles.nav} aria-label="Primary">
-      <OrgAwareLink
-        className={styles.navLink}
-        href="/home"
-        organizationId={selectedOrganizationId}
-        aria-current={activeNav === "home" ? "page" : undefined}
-      >
-        Home
-      </OrgAwareLink>
-      <OrgAwareLink
-        className={styles.navLink}
-        href="/leads"
-        organizationId={selectedOrganizationId}
-        aria-current={activeNav === "leads" ? "page" : undefined}
-      >
-        Leads
-      </OrgAwareLink>
-      <OrgAwareLink
-        className={styles.navLink}
-        href="/customers"
-        organizationId={selectedOrganizationId}
-        aria-current={activeNav === "customers" ? "page" : undefined}
-      >
-        Customers
-      </OrgAwareLink>
-      {PROGRAMS_NAV_VISIBLE ? (
+      {moduleNavVisibility.home ? (
+        <OrgAwareLink
+          className={styles.navLink}
+          href="/home"
+          organizationId={selectedOrganizationId}
+          aria-current={activeNav === "home" ? "page" : undefined}
+        >
+          Home
+        </OrgAwareLink>
+      ) : null}
+      {moduleNavVisibility.leads ? (
+        <OrgAwareLink
+          className={styles.navLink}
+          href="/leads"
+          organizationId={selectedOrganizationId}
+          aria-current={activeNav === "leads" ? "page" : undefined}
+        >
+          Leads
+        </OrgAwareLink>
+      ) : null}
+      {moduleNavVisibility.customers ? (
+        <OrgAwareLink
+          className={styles.navLink}
+          href="/customers"
+          organizationId={selectedOrganizationId}
+          aria-current={activeNav === "customers" ? "page" : undefined}
+        >
+          Customers
+        </OrgAwareLink>
+      ) : null}
+      {moduleNavVisibility.programs ? (
         <OrgAwareLink
           className={styles.navLink}
           href={PROGRAMS_ROUTE}
@@ -216,7 +236,7 @@ function PrimaryNav({
           {PROGRAMS_NAV_LABEL}
         </OrgAwareLink>
       ) : null}
-      {ENROLLMENTS_NAV_VISIBLE ? (
+      {moduleNavVisibility.enrollments ? (
         <OrgAwareLink
           className={styles.navLink}
           href={ENROLLMENTS_ROUTE}
@@ -226,7 +246,7 @@ function PrimaryNav({
           {ENROLLMENTS_NAV_LABEL}
         </OrgAwareLink>
       ) : null}
-      {PROGRESS_NAV_VISIBLE ? (
+      {moduleNavVisibility.progress ? (
         <OrgAwareLink
           className={styles.navLink}
           href={PROGRESS_ROUTE}
@@ -236,7 +256,7 @@ function PrimaryNav({
           {PROGRESS_NAV_LABEL}
         </OrgAwareLink>
       ) : null}
-      {ATTENTION_NAV_VISIBLE ? (
+      {moduleNavVisibility.attention ? (
         <OrgAwareLink
           className={styles.navLink}
           href={ATTENTION_ROUTE}
@@ -251,15 +271,17 @@ function PrimaryNav({
         explicitVisibility={socialNavVisible}
         active={activeNav === "social"}
       />
-      <OrgAwareLink
-        className={styles.navLink}
-        href="/tasks"
-        organizationId={selectedOrganizationId}
-        aria-current={activeNav === "tasks" ? "page" : undefined}
-      >
-        Tasks
-      </OrgAwareLink>
-      {showMembersNav ? (
+      {moduleNavVisibility.tasks ? (
+        <OrgAwareLink
+          className={styles.navLink}
+          href="/tasks"
+          organizationId={selectedOrganizationId}
+          aria-current={activeNav === "tasks" ? "page" : undefined}
+        >
+          Tasks
+        </OrgAwareLink>
+      ) : null}
+      {showMembersNav && moduleNavVisibility.members ? (
         <OrgAwareLink
           className={styles.navLink}
           href={MEMBERS_ROUTE}
@@ -278,6 +300,7 @@ export function AppShell({
   organizationOptions = [],
   selectedOrganizationId,
   organizationSelectorAction = "/tasks",
+  moduleNavVisibility = FAIL_CLOSED_MODULE_NAV_VISIBILITY,
   membersNavVisible,
   socialNavVisible,
   activeNav = "tasks",
@@ -302,6 +325,7 @@ export function AppShell({
                   selectedOrganizationId={selectedOrganizationId}
                   socialNavVisible={socialNavVisible}
                   showMembersNav={showMembersNav}
+                  moduleNavVisibility={moduleNavVisibility}
                   activeNav={activeNav}
                 />
               }
@@ -310,6 +334,7 @@ export function AppShell({
                 selectedOrganizationId={selectedOrganizationId}
                 socialNavVisible={socialNavVisible}
                 showMembersNav={showMembersNav}
+                moduleNavVisibility={moduleNavVisibility}
                 activeNav={activeNav}
               />
             </Suspense>

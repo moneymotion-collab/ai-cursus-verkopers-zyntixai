@@ -6,6 +6,7 @@ import type {
 import { resolveAttentionPermissions } from "@/features/attention/domain/permissions";
 import { resolveAttentionPageOrganization } from "@/features/attention/server/resolve-attention-page-organization";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 export type AttentionShellPageSuccess = {
@@ -17,6 +18,7 @@ export type AttentionShellPageSuccess = {
   capabilities: AttentionPermissionSet;
   timeZone: string;
   isMultiOrganization: boolean;
+  moduleAccess: ProductModuleAccessState;
 };
 
 export type AttentionShellPageResult =
@@ -73,5 +75,6 @@ export async function loadAttentionShellPage(
     capabilities,
     timeZone: orgResult.timezone,
     isMultiOrganization: orgResult.isMultiOrganization,
+    moduleAccess: orgResult.moduleAccess,
   };
 }

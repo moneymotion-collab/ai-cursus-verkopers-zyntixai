@@ -11,6 +11,7 @@ import {
   type CustomerListUrlState,
 } from "@/features/customers/ui/customer-list-search-params";
 import type { CustomerMemberOption } from "@/features/customers/server/load-customer-member-filter-options";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 export type CustomersPageSuccess = {
@@ -24,6 +25,7 @@ export type CustomersPageSuccess = {
   list: CustomerListReadResult;
   ownerOptions: CustomerMemberOption[];
   filterWarning: string | null;
+  moduleAccess: ProductModuleAccessState;
 };
 
 export type CustomersPageResult =
@@ -112,6 +114,7 @@ export async function loadCustomersPage(
     list: listResult.data,
     ownerOptions,
     filterWarning,
+    moduleAccess: orgResult.moduleAccess,
   };
 }
 

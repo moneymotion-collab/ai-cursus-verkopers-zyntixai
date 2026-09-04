@@ -11,6 +11,7 @@ import {
   ORG_ID,
   sampleAttentionItemListRow,
 } from "../helpers/attention-test-fixtures";
+import { mockKnowledgeProductModuleAccess } from "../features/product-access/module-access-fixtures";
 
 vi.mock("@/features/attention/server/resolve-attention-page-organization", () => ({
   resolveAttentionPageOrganization: vi.fn(),
@@ -38,6 +39,7 @@ function readyOrg(role: "owner" | "admin" | "staff" | "viewer" = "owner") {
     role,
     timezone: "UTC",
     isMultiOrganization: false,
+    moduleAccess: mockKnowledgeProductModuleAccess(),
   };
 }
 
@@ -114,7 +116,11 @@ describe("attention list page loader (B1.7.5-C)", () => {
     expect(result.rows[0]?.detailHref).toContain("status=open");
     expect(result.rows[0]?.detailHref).toContain("page=2");
     expect(result.capabilities.canViewArchivedItems).toBe(false);
-    expect(ATTENTION_NAV_VISIBLE).toBe(true);
+    expect(ATTENTION_NAV_VISIBLE).toBe(false);
+    expect(result.moduleAccess.resolution).toBe("resolved");
+    if (result.moduleAccess.resolution === "resolved") {
+      expect(result.moduleAccess.navVisibility.attention).toBe(true);
+    }
   });
 
   it("does not forward unauthorized archived filter", async () => {

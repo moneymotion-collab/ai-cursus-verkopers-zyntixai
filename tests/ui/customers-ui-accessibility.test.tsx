@@ -8,6 +8,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { CustomerListFilters } from "@/features/customers/ui/customer-list-filters";
 import { CustomerListPresentation } from "@/features/customers/ui/customer-list";
 import { CustomerHistorySection } from "@/features/customers/ui/customer-history";
+import { KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY } from "../features/product-access/module-access-fixtures";
 
 describe("customers UI accessibility", () => {
   it("renders Customers navigation between Leads and Tasks with active state", () => {
@@ -15,6 +16,7 @@ describe("customers UI accessibility", () => {
       <AppShell
         activeNav="customers"
         membersNavVisible={false}
+        moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
         organizationOptions={[
           { organizationId: "11111111-1111-4111-8111-111111111111", role: "owner", displayName: "Org Alpha" },
         ]}

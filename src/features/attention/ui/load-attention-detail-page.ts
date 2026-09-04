@@ -36,6 +36,7 @@ import {
   type AttentionSignalPresentation,
   type AttentionTimelineEventPresentation,
 } from "@/features/attention/ui/attention-presentation";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 const ATTENTION_ITEM_ID_PATTERN =
@@ -82,6 +83,7 @@ export type AttentionDetailPageResult =
       role: AttentionRole;
       capabilities: AttentionPermissionSet;
       data: AttentionDetailViewModel;
+      moduleAccess: ProductModuleAccessState;
     };
 
 function normalizeRouteParam(
@@ -263,6 +265,7 @@ export async function loadAttentionDetailPage(
     selectedOrganizationId: orgResult.organizationId,
     role: orgResult.role,
     capabilities,
+    moduleAccess: orgResult.moduleAccess,
     data: {
       detail,
       signals,

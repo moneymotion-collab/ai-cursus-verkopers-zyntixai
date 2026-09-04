@@ -13,8 +13,8 @@ import {
 } from "@/features/auth/server/safe-return-path";
 
 describe("progress navigation and routes", () => {
-  it("shows Progress nav when list/detail routes exist", () => {
-    expect(PROGRESS_NAV_VISIBLE).toBe(true);
+  it("registers canonical routes; nav visibility is context-driven", () => {
+    expect(PROGRESS_NAV_VISIBLE).toBe(false);
     expect(PROGRESS_ROUTE).toBe("/progress");
   });
 

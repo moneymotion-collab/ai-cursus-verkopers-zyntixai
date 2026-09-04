@@ -126,6 +126,7 @@ export default async function CustomerDetailPage({
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       activeNav="customers"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.selectedOrganizationId}

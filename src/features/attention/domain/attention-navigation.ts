@@ -75,7 +75,7 @@ export function buildAttentionDetailHref(
 }
 
 /**
- * Visible primary-nav Attention link — activated in B1.7.5-E after readiness evidence.
- * Rollback: set back to `false`.
+ * Primary-nav Attention link — visibility is context-driven via product-access (AppShell moduleNavVisibility).
+ * Kept for backward-compatible imports; always false at compile time.
  */
-export const ATTENTION_NAV_VISIBLE = true as const;
+export const ATTENTION_NAV_VISIBLE = false as const;

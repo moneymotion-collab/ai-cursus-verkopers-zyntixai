@@ -9,8 +9,8 @@ function readSrc(relativePath: string): string {
 }
 
 describe("attention presentation foundation boundaries (B1.7.5-E)", () => {
-  it("activates navigation while keeping lifecycle actions disabled", () => {
-    expect(ATTENTION_NAV_VISIBLE).toBe(true);
+  it("activates navigation via context while keeping lifecycle actions disabled", () => {
+    expect(ATTENTION_NAV_VISIBLE).toBe(false);
     expect(canShowAttentionLifecycleActions()).toBe(false);
   });
 
@@ -98,6 +98,11 @@ describe("attention presentation foundation boundaries (B1.7.5-E)", () => {
     const navigation = readSrc(
       "src/features/attention/domain/attention-navigation.ts",
     );
-    expect(navigation).toMatch(/ATTENTION_NAV_VISIBLE\s*=\s*true/);
+    expect(navigation).toMatch(/ATTENTION_NAV_VISIBLE\s*=\s*false/);
+    expect(navigation).toContain("moduleNavVisibility");
+
+    const shell = readSrc("src/components/app-shell.tsx");
+    expect(shell).toContain("moduleNavVisibility.attention");
+    expect(shell).toContain("ATTENTION_ROUTE");
   });
 });

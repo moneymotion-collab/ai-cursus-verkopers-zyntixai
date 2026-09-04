@@ -7,6 +7,7 @@ import { loadTaskEditPage } from "@/features/tasks/ui/load-task-workflow-page";
 import { listTasks, getTaskById } from "@/features/tasks/server/task-read-queries";
 import { loadTaskMemberFilterOptions } from "@/features/tasks/ui/load-task-form-options";
 import { resolveTaskPageOrganization } from "@/features/tasks/ui/resolve-task-page-organization";
+import { mockKnowledgeProductModuleAccess } from "../features/product-access/module-access-fixtures";
 
 const ORG_A = "02016e91-7237-4a20-aec3-6275d2e8a67f";
 const ORG_B = "e6e4c376-697c-4863-bb30-fd52b7256ff9";
@@ -62,15 +63,20 @@ function createSupabase() {
   return {} as SupabaseClient<Database>;
 }
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  pageOrgMock.mockResolvedValue({
-    kind: "ready",
+function readyOrg(role: "owner" | "admin" | "staff" | "viewer" = "staff") {
+  return {
+    kind: "ready" as const,
     organizationId: ORG_A,
     organizationOptions,
-    role: "staff",
+    role,
     timeZone: "UTC",
-  });
+    moduleAccess: mockKnowledgeProductModuleAccess(),
+  };
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  pageOrgMock.mockResolvedValue(readyOrg("staff"));
   listTasksMock.mockResolvedValue({
     ok: true,
     data: {

@@ -10,6 +10,7 @@ import {
   listLeadStatusHistory,
 } from "@/features/leads/server/lead-read-queries";
 import { resolveLeadPageOrganization } from "@/features/leads/server/resolve-lead-page-organization";
+import { mockKnowledgeProductModuleAccess } from "../features/product-access/module-access-fixtures";
 
 const ORG_ID = "11111111-1111-4111-8111-111111111111";
 const LEAD_ID = "22222222-2222-4222-8222-222222222222";
@@ -99,6 +100,7 @@ beforeEach(() => {
     role: "staff",
     timezone: "UTC",
     isMultiOrganization: false,
+    moduleAccess: mockKnowledgeProductModuleAccess(),
   });
   getLeadByIdMock.mockResolvedValue({ ok: true, data: sampleLead });
   statusHistoryMock.mockResolvedValue({ ok: true, data: [] });

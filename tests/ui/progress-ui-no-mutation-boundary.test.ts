@@ -54,11 +54,11 @@ describe("progress B1.6.3 mutation boundary", () => {
     expect(actionsSource).toMatch(/correctProgressFactAction/);
   });
 
-  it("enables Progress nav only via the dedicated visibility flag", () => {
+  it("gates Progress nav via context-driven moduleNavVisibility", () => {
     const navigation = read("src/features/progress/domain/progress-navigation.ts");
     const shell = read("src/components/app-shell.tsx");
-    expect(navigation).toMatch(/PROGRESS_NAV_VISIBLE = true/);
-    expect(shell).toContain("PROGRESS_NAV_VISIBLE");
+    expect(navigation).toMatch(/PROGRESS_NAV_VISIBLE = false/);
+    expect(shell).toContain("moduleNavVisibility.progress");
     expect(shell).toContain("PROGRESS_ROUTE");
   });
 });

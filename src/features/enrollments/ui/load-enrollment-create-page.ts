@@ -13,6 +13,8 @@ import {
   type EnrollmentListUrlState,
 } from "@/features/enrollments/ui/enrollment-list-search-params";
 import { canShowCreateEnrollmentWorkflow } from "@/features/enrollments/ui/enrollment-workflow-visibility";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 type WorkflowOrgFailure =
@@ -20,7 +22,8 @@ type WorkflowOrgFailure =
   | { kind: "organization_unavailable" }
   | { kind: "organization_required"; organizations: OrganizationOption[] }
   | { kind: "org_context_missing"; message: string }
-  | { kind: "query_error"; message: string };
+  | { kind: "query_error"; message: string }
+  | { kind: "forbidden"; message: string; moduleAccess: ProductModuleAccessState };
 
 export type EnrollmentCreatePageResult =
   | WorkflowOrgFailure
@@ -45,6 +48,7 @@ export type EnrollmentCreatePageResult =
       initialProgramId?: string;
       contextNotice?: string;
       duplicateOpenNotice?: string;
+      moduleAccess: ProductModuleAccessState;
     };
 
 const CONTEXT_UNAVAILABLE_NOTICE =
@@ -65,6 +69,18 @@ export async function loadEnrollmentCreatePage(
 
   if (orgResult.kind !== "ready") {
     return orgResult;
+  }
+
+  const routeAccess = evaluateProductModuleRouteAccess({
+    moduleId: "enrollments",
+    access: orgResult.moduleAccess,
+  });
+  if (!routeAccess.allowed) {
+    return {
+      kind: "forbidden",
+      message: routeAccess.message,
+      moduleAccess: orgResult.moduleAccess,
+    };
   }
 
   const listState: EnrollmentListUrlState = {
@@ -131,5 +147,6 @@ export async function loadEnrollmentCreatePage(
     initialProgramId,
     contextNotice,
     duplicateOpenNotice,
+    moduleAccess: orgResult.moduleAccess,
   };
 }

@@ -4,6 +4,7 @@ import type { Database } from "@/types/database";
 import { loadTaskDetailPage } from "@/features/tasks/ui/load-task-detail";
 import { getTaskById, getTaskStatusHistory } from "@/features/tasks/server/task-read-queries";
 import { resolveTaskPageOrganization } from "@/features/tasks/ui/resolve-task-page-organization";
+import { mockKnowledgeProductModuleAccess } from "../features/product-access/module-access-fixtures";
 import { resolveTaskDisplayLabels } from "@/features/tasks/ui/resolve-task-display-labels";
 
 const ORG_A = "02016e91-7237-4a20-aec3-6275d2e8a67f";
@@ -79,15 +80,20 @@ function createSupabase() {
   return {} as SupabaseClient<Database>;
 }
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  pageOrgMock.mockResolvedValue({
-    kind: "ready",
+function readyOrg(role: "owner" | "admin" | "staff" | "viewer" = "staff") {
+  return {
+    kind: "ready" as const,
     organizationId: ORG_A,
     organizationOptions,
-    role: "staff",
+    role,
     timeZone: "UTC",
-  });
+    moduleAccess: mockKnowledgeProductModuleAccess(),
+  };
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  pageOrgMock.mockResolvedValue(readyOrg("staff"));
   getTaskByIdMock.mockResolvedValue({ ok: true, data: sampleTask });
   getTaskStatusHistoryMock.mockResolvedValue({
     ok: true,

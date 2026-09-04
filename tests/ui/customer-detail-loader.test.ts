@@ -9,6 +9,7 @@ import {
   listCustomerStatusHistory,
 } from "@/features/customers/server/customer-read-queries";
 import { resolveCustomerPageOrganization } from "@/features/customers/server/resolve-customer-page-organization";
+import { mockKnowledgeProductModuleAccess } from "../features/product-access/module-access-fixtures";
 import { listTasksForCustomer } from "@/features/tasks/server/task-read-queries";
 
 const ORG_ID = "11111111-1111-4111-8111-111111111111";
@@ -91,6 +92,7 @@ beforeEach(() => {
     role: "staff",
     timezone: "UTC",
     isMultiOrganization: false,
+    moduleAccess: mockKnowledgeProductModuleAccess(),
   });
   getCustomerByIdMock.mockResolvedValue({ ok: true, data: sampleCustomer });
   historyMock.mockResolvedValue({ ok: true, data: [] });

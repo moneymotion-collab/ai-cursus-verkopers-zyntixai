@@ -17,6 +17,7 @@ import {
 import { resolveTaskPageOrganization } from "@/features/tasks/ui/resolve-task-page-organization";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
 import type { TaskMemberOption } from "@/features/tasks/ui/load-task-form-options";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 export type TasksPageSuccess = {
@@ -30,6 +31,7 @@ export type TasksPageSuccess = {
   labels: TaskDisplayLabelBundle;
   assigneeOptions: TaskMemberOption[];
   filterWarning: string | null;
+  moduleAccess: ProductModuleAccessState;
 };
 
 export type TasksPageResult =
@@ -127,6 +129,7 @@ export async function loadTasksPage(
     labels,
     assigneeOptions,
     filterWarning,
+    moduleAccess: orgResult.moduleAccess,
   };
 }
 

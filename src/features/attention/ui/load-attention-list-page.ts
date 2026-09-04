@@ -31,6 +31,7 @@ import {
 } from "@/features/attention/ui/attention-list-search-params";
 import { buildAttentionDetailHref } from "@/features/attention/domain/attention-navigation";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 /** @deprecated Prefer ATTENTION_LIST_DEFAULT_SORT_* from search-params (B1.7.5-C). */
@@ -61,6 +62,7 @@ export type AttentionListPageSuccess = {
   urlState: AttentionListUrlState;
   sort: { field: AttentionListUrlState["sort"]; direction: AttentionListUrlState["direction"] };
   filterWarning: string | null;
+  moduleAccess: ProductModuleAccessState;
 };
 
 export type AttentionListPageResult =
@@ -216,5 +218,6 @@ export async function loadAttentionListPage(
       direction: urlState.direction,
     },
     filterWarning: attentionListFilterWarningMessage(parsed.warnings),
+    moduleAccess: orgResult.moduleAccess,
   };
 }

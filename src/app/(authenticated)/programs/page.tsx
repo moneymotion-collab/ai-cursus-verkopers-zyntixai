@@ -127,6 +127,18 @@ export default async function ProgramsPage({ searchParams }: ProgramsPageProps) 
     );
   }
 
+  
+  if (result.kind === "forbidden") {
+    return (
+      <AppShell activeNav="programs" moduleNavVisibility={result.moduleAccess.navVisibility}>
+        <section className={styles.statePanel} aria-labelledby="forbidden-title">
+          <h1 id="forbidden-title">Access denied</h1>
+          <p>{result.message}</p>
+        </section>
+      </AppShell>
+    );
+  }
+
   if (result.kind === "query_error") {
     const retryHref = programsPageRetryHref({
       org: rawSearchParams.org
@@ -169,6 +181,7 @@ export default async function ProgramsPage({ searchParams }: ProgramsPageProps) 
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       activeNav="programs"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.selectedOrganizationId}

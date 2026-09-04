@@ -102,6 +102,7 @@ export function buildProgressCorrectHref(
 }
 
 /**
- * Visible primary-nav Progress link — enabled for B1.6.2 list/detail routes.
+ * Primary-nav Progress link — visibility is context-driven via product-access (AppShell moduleNavVisibility).
+ * Kept for backward-compatible imports; always false at compile time.
  */
-export const PROGRESS_NAV_VISIBLE = true as const;
+export const PROGRESS_NAV_VISIBLE = false as const;

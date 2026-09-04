@@ -7,6 +7,7 @@ import {
 } from "@/features/progress/ui/load-progress-detail-page";
 import { canShowCorrectProgressWorkflow } from "@/features/progress/ui/progress-workflow-visibility";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 type WorkflowOrgFailure =
@@ -14,7 +15,8 @@ type WorkflowOrgFailure =
   | { kind: "organization_unavailable" }
   | { kind: "organization_required"; organizations: OrganizationOption[] }
   | { kind: "org_context_missing"; message: string }
-  | { kind: "query_error"; message: string };
+  | { kind: "query_error"; message: string }
+  | { kind: "forbidden"; message: string; moduleAccess: ProductModuleAccessState };
 
 export type ProgressCorrectPageResult =
   | WorkflowOrgFailure
@@ -27,6 +29,7 @@ export type ProgressCorrectPageResult =
       role: ProgressRole;
       data: ProgressDetailViewModel;
       backHref: string;
+      moduleAccess: ProductModuleAccessState;
     };
 
 const ACTION_UNAVAILABLE_MESSAGE =
@@ -63,6 +66,10 @@ export async function loadProgressCorrectPage(
     return { kind: "query_error", message: result.message };
   }
 
+  if (result.kind === "forbidden") {
+    return result;
+  }
+
   if (result.kind === "progress_unavailable") {
     return { kind: "progress_unavailable", backHref: result.backHref };
   }
@@ -80,5 +87,6 @@ export async function loadProgressCorrectPage(
     role: result.role,
     data: result.data,
     backHref,
+    moduleAccess: result.moduleAccess,
   };
 }

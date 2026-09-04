@@ -20,6 +20,7 @@ import {
   ORG_ID,
   PROGRAM_ID,
 } from "../helpers/attention-test-fixtures";
+import { KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY } from "../features/product-access/module-access-fixtures";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
@@ -150,7 +151,8 @@ describe("AttentionDetail presentation (B1.7.6-E)", () => {
     expect(canShowAttentionAssignmentActions()).toBe(true);
     expect(canShowAttentionResolutionDismissActions()).toBe(true);
     expect(canShowAttentionArchiveAction()).toBe(true);
-    expect(ATTENTION_NAV_VISIBLE).toBe(true);
+    expect(ATTENTION_NAV_VISIBLE).toBe(false);
+    expect(KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY.attention).toBe(true);
   });
 
   it("shows Unassign only when currently assigned", () => {

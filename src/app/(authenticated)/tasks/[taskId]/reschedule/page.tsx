@@ -82,6 +82,7 @@ export default async function TaskReschedulePage({ params, searchParams }: TaskR
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}
       organizationSelectorAction={`/tasks/${taskId}/reschedule`}

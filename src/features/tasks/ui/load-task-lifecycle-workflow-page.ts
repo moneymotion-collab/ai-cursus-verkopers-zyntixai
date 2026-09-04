@@ -10,6 +10,7 @@ import { resolveTaskPageOrganization } from "@/features/tasks/ui/resolve-task-pa
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
 import { buildTaskDetailHref, parseListReturnState } from "@/features/tasks/ui/task-navigation";
 import type { TaskListUrlState } from "@/features/tasks/ui/task-list-search-params";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 const TASK_ID_PATTERN =
@@ -29,6 +30,7 @@ type LifecycleOrgReady = {
   role: OrganizationRole;
   timeZone: string;
   listState: TaskListUrlState;
+  moduleAccess: ProductModuleAccessState;
 };
 
 async function resolveLifecycleOrganization(
@@ -57,6 +59,7 @@ async function resolveLifecycleOrganization(
     role: orgResult.role,
     timeZone: orgResult.timeZone,
     listState,
+    moduleAccess: orgResult.moduleAccess,
   };
 }
 
@@ -75,6 +78,7 @@ export type TaskLifecycleWorkflowPageResult =
       listState: TaskListUrlState;
       backHref: string;
       assigneeLabel: string | null;
+      moduleAccess: ProductModuleAccessState;
     };
 
 const ACTION_UNAVAILABLE_MESSAGES = {
@@ -137,6 +141,7 @@ async function loadTaskLifecycleWorkflowPage(
     listState: org.listState,
     backHref,
     assigneeLabel,
+    moduleAccess: org.moduleAccess,
   };
 }
 

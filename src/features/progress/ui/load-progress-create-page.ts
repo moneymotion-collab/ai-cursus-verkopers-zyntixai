@@ -8,6 +8,8 @@ import {
 import { resolveProgressPageOrganization } from "@/features/progress/server/resolve-progress-page-organization";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
 import { canShowRecordProgressWorkflow } from "@/features/progress/ui/progress-workflow-visibility";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 const UUID_PATTERN =
@@ -18,7 +20,8 @@ type WorkflowOrgFailure =
   | { kind: "organization_unavailable" }
   | { kind: "organization_required"; organizations: OrganizationOption[] }
   | { kind: "org_context_missing"; message: string }
-  | { kind: "query_error"; message: string };
+  | { kind: "query_error"; message: string }
+  | { kind: "forbidden"; message: string; moduleAccess: ProductModuleAccessState };
 
 export type ProgressCreatePageResult =
   | WorkflowOrgFailure
@@ -33,6 +36,7 @@ export type ProgressCreatePageResult =
       enrollmentOptionsCapped: boolean;
       initialEnrollmentId?: string;
       backHref: string;
+      moduleAccess: ProductModuleAccessState;
     };
 
 function firstValue(value: string | string[] | undefined): string | undefined {
@@ -48,6 +52,18 @@ export async function loadProgressCreatePage(
 
   if (orgResult.kind !== "ready") {
     return orgResult;
+  }
+
+  const routeAccess = evaluateProductModuleRouteAccess({
+    moduleId: "progress",
+    access: orgResult.moduleAccess,
+  });
+  if (!routeAccess.allowed) {
+    return {
+      kind: "forbidden",
+      message: routeAccess.message,
+      moduleAccess: orgResult.moduleAccess,
+    };
   }
 
   const backHref = buildProgressListHref(orgResult.organizationId);
@@ -79,5 +95,6 @@ export async function loadProgressCreatePage(
     enrollmentOptionsCapped: enrollmentOptionsResult.capped,
     initialEnrollmentId,
     backHref,
+    moduleAccess: orgResult.moduleAccess,
   };
 }

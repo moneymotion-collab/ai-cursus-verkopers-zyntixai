@@ -19,6 +19,7 @@ import {
   parseLeadListSearchParams,
   type LeadListUrlState,
 } from "@/features/leads/ui/lead-list-search-params";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 export type LeadsPageSuccess = {
@@ -34,6 +35,7 @@ export type LeadsPageSuccess = {
   stageOptions: LeadPipelineStageOption[];
   filterWarning: string | null;
   checklist: FirstValueChecklistViewModel | null;
+  moduleAccess: ProductModuleAccessState;
 };
 
 export type LeadsPageResult =
@@ -138,6 +140,7 @@ export async function loadLeadsPage(
     stageOptions,
     filterWarning,
     checklist,
+    moduleAccess: orgResult.moduleAccess,
   };
 }
 

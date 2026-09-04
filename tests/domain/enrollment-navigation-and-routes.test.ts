@@ -18,9 +18,9 @@ import {
 } from "@/features/auth/server/safe-return-path";
 
 describe("enrollments navigation groundwork", () => {
-  it("registers the canonical route and shows the nav link now that routes exist", () => {
+  it("registers the canonical route; nav visibility is context-driven", () => {
     expect(ENROLLMENTS_ROUTE).toBe("/enrollments");
-    expect(ENROLLMENTS_NAV_VISIBLE).toBe(true);
+    expect(ENROLLMENTS_NAV_VISIBLE).toBe(false);
   });
 
   it("identifies enrollments pathnames including nested routes", () => {

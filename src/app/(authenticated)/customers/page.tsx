@@ -164,6 +164,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       activeNav="customers"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.selectedOrganizationId}

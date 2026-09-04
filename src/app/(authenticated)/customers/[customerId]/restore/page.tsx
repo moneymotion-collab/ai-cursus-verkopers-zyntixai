@@ -92,6 +92,7 @@ export default async function CustomerRestorePage({ params, searchParams }: Cust
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       activeNav="customers"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.organizationId}

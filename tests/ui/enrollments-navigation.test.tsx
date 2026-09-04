@@ -7,13 +7,18 @@ import {
   ENROLLMENTS_NAV_VISIBLE,
   ENROLLMENTS_ROUTE,
 } from "@/features/enrollments/domain/enrollments-navigation";
+import { KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY } from "../features/product-access/module-access-fixtures";
 
 describe("Enrollments navigation activation", () => {
-  it("exposes Enrollments link in authenticated shell after Programs and before Tasks", () => {
-    expect(ENROLLMENTS_NAV_VISIBLE).toBe(true);
+  it("exposes Enrollments link when context permits and preserves nav order", () => {
+    expect(ENROLLMENTS_NAV_VISIBLE).toBe(false);
 
     const html = renderToStaticMarkup(
-      <AppShell activeNav="enrollments" membersNavVisible={false}>
+      <AppShell
+        activeNav="enrollments"
+        membersNavVisible={false}
+        moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
+      >
         <p>content</p>
       </AppShell>,
     );
@@ -34,11 +39,32 @@ describe("Enrollments navigation activation", () => {
 
   it("marks the Enrollments link as the current page when active", () => {
     const html = renderToStaticMarkup(
-      <AppShell activeNav="enrollments" membersNavVisible={false}>
+      <AppShell
+        activeNav="enrollments"
+        membersNavVisible={false}
+        moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
+      >
         <p>content</p>
       </AppShell>,
     );
 
     expect(html).toContain(`aria-current="page" href="${ENROLLMENTS_ROUTE}"`);
+  });
+
+  it("hides Enrollments link when context denies access", () => {
+    const html = renderToStaticMarkup(
+      <AppShell
+        activeNav="customers"
+        membersNavVisible={false}
+        moduleNavVisibility={{
+          ...KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY,
+          enrollments: false,
+        }}
+      >
+        <p>content</p>
+      </AppShell>,
+    );
+
+    expect(html).not.toContain(`>${ENROLLMENTS_NAV_LABEL}<`);
   });
 });

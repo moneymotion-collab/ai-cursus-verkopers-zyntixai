@@ -78,6 +78,18 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
     );
   }
 
+  
+  if (result.kind === "forbidden") {
+    return (
+      <AppShell activeNav="progress" moduleNavVisibility={result.moduleAccess.navVisibility}>
+        <section className={styles.statePanel} aria-labelledby="forbidden-title">
+          <h1 id="forbidden-title">Access denied</h1>
+          <p>{result.message}</p>
+        </section>
+      </AppShell>
+    );
+  }
+
   if (result.kind === "query_error") {
     const retryHref = progressListPageRetryHref({
       org: Array.isArray(rawSearchParams.org)
@@ -118,6 +130,7 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
 
   return (
     <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
       activeNav="progress"
       organizationOptions={result.organizationOptions}
       selectedOrganizationId={result.selectedOrganizationId}

@@ -10,6 +10,7 @@ import {
 } from "@/features/tasks/ui/load-task-lifecycle-workflow-page";
 import { getTaskById } from "@/features/tasks/server/task-read-queries";
 import { resolveTaskPageOrganization } from "@/features/tasks/ui/resolve-task-page-organization";
+import { mockKnowledgeProductModuleAccess } from "../features/product-access/module-access-fixtures";
 import {
   canShowArchiveWorkflow,
   canShowCancelWorkflow,
@@ -70,6 +71,17 @@ function createSupabase() {
   return {} as SupabaseClient<Database>;
 }
 
+function readyOrg(role: "owner" | "admin" | "staff" | "viewer" = "staff") {
+  return {
+    kind: "ready" as const,
+    organizationId: ORG_A,
+    organizationOptions,
+    role,
+    timeZone: "UTC",
+    moduleAccess: mockKnowledgeProductModuleAccess(),
+  };
+}
+
 function completedTask(): TaskReadModel {
   return {
     ...openTask,
@@ -89,13 +101,7 @@ function archivedCompletedTask(): TaskReadModel {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  pageOrgMock.mockResolvedValue({
-    kind: "ready",
-    organizationId: ORG_A,
-    organizationOptions,
-    role: "staff",
-    timeZone: "UTC",
-  });
+  pageOrgMock.mockResolvedValue(readyOrg("staff"));
   getTaskByIdMock.mockResolvedValue({ ok: true, data: openTask });
 });
 
@@ -170,13 +176,7 @@ describe("loadTaskLifecycleWorkflowPage", () => {
   });
 
   it("returns action_unavailable when archive is not eligible for open tasks", async () => {
-    pageOrgMock.mockResolvedValue({
-      kind: "ready",
-      organizationId: ORG_A,
-      organizationOptions,
-      role: "owner",
-      timeZone: "UTC",
-    });
+    pageOrgMock.mockResolvedValue(readyOrg("owner"));
     const result = await loadTaskArchivePage(createSupabase(), TASK_ID, {}, canShowArchiveWorkflow);
     expect(result.kind).toBe("action_unavailable");
   });
@@ -188,39 +188,21 @@ describe("loadTaskLifecycleWorkflowPage", () => {
   });
 
   it("returns ready for owner archive on terminal task", async () => {
-    pageOrgMock.mockResolvedValue({
-      kind: "ready",
-      organizationId: ORG_A,
-      organizationOptions,
-      role: "owner",
-      timeZone: "UTC",
-    });
+    pageOrgMock.mockResolvedValue(readyOrg("owner"));
     getTaskByIdMock.mockResolvedValue({ ok: true, data: completedTask() });
     const result = await loadTaskArchivePage(createSupabase(), TASK_ID, {}, canShowArchiveWorkflow);
     expect(result.kind).toBe("ready");
   });
 
   it("returns ready for owner restore on archived terminal task", async () => {
-    pageOrgMock.mockResolvedValue({
-      kind: "ready",
-      organizationId: ORG_A,
-      organizationOptions,
-      role: "admin",
-      timeZone: "UTC",
-    });
+    pageOrgMock.mockResolvedValue(readyOrg("admin"));
     getTaskByIdMock.mockResolvedValue({ ok: true, data: archivedCompletedTask() });
     const result = await loadTaskRestorePage(createSupabase(), TASK_ID, {}, canShowRestoreWorkflow);
     expect(result.kind).toBe("ready");
   });
 
   it("returns action_unavailable when restore requested for non-archived task", async () => {
-    pageOrgMock.mockResolvedValue({
-      kind: "ready",
-      organizationId: ORG_A,
-      organizationOptions,
-      role: "owner",
-      timeZone: "UTC",
-    });
+    pageOrgMock.mockResolvedValue(readyOrg("owner"));
     getTaskByIdMock.mockResolvedValue({ ok: true, data: completedTask() });
     const result = await loadTaskRestorePage(createSupabase(), TASK_ID, {}, canShowRestoreWorkflow);
     expect(result.kind).toBe("action_unavailable");

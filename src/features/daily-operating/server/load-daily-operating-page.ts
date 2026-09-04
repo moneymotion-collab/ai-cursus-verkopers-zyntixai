@@ -6,6 +6,7 @@ import { listTasks } from "@/features/tasks/server/task-read-queries";
 import { resolveOrganizationContext } from "@/features/organizations/server/resolve-organization-context";
 import { resolveTaskPageOrganization } from "@/features/tasks/ui/resolve-task-page-organization";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 import {
   composeDailyOperatingBrief,
@@ -29,6 +30,7 @@ export type DailyOperatingPageResult =
       brief: DailyOperatingBrief;
       attentionQueryFailed: boolean;
       tasksQueryFailed: boolean;
+      moduleAccess: ProductModuleAccessState;
     };
 
 export async function loadDailyOperatingPage(
@@ -139,5 +141,6 @@ export async function loadDailyOperatingPage(
     brief,
     attentionQueryFailed,
     tasksQueryFailed,
+    moduleAccess: orgResult.moduleAccess,
   };
 }

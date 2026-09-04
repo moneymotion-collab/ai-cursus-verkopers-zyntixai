@@ -22,6 +22,8 @@ import {
   formatEnrollmentHistoryTransition,
   formatEnrollmentSourceLabel,
 } from "@/features/enrollments/ui/enrollment-presentation";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
@@ -66,7 +68,9 @@ export type EnrollmentDetailPageResult =
       organizationOptions: OrganizationOption[];
       selectedOrganizationId: string;
       role: EnrollmentRole;
+      moduleAccess: ProductModuleAccessState;
     }
+  | { kind: "forbidden"; message: string; moduleAccess: ProductModuleAccessState }
   | { kind: "auth_required" }
   | { kind: "organization_required"; organizations: OrganizationOption[] }
   | { kind: "organization_unavailable" }
@@ -120,6 +124,18 @@ export async function loadEnrollmentDetailPage(
   }
   if (orgResult.kind === "query_error") {
     return { kind: "query_error", message: orgResult.message };
+  }
+
+  const routeAccess = evaluateProductModuleRouteAccess({
+    moduleId: "enrollments",
+    access: orgResult.moduleAccess,
+  });
+  if (!routeAccess.allowed) {
+    return {
+      kind: "forbidden",
+      message: routeAccess.message,
+      moduleAccess: orgResult.moduleAccess,
+    };
   }
 
   const listState: EnrollmentListUrlState = {
@@ -185,6 +201,7 @@ export async function loadEnrollmentDetailPage(
     organizationOptions: orgResult.organizationOptions,
     selectedOrganizationId: orgResult.organizationId,
     role: orgResult.role,
+    moduleAccess: orgResult.moduleAccess,
     data: {
       enrollment,
       permissions: capabilities,
