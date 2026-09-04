@@ -45,9 +45,9 @@ The AppShell "Customers" nav label and the Customers shared page (list, filters,
 | Worktree | `D:\project ai cursus verkopers.worktrees\parallel__laptop-product-track-20260707-1` |
 | Branch | `core/platform-readiness-20260707` |
 | Start HEAD | `0f9eda15f24eae6b8e66cba0326e572bb0bc55cc` |
-| Final HEAD | *(recorded after push — see §16)* |
-| Implementation commit | `feat(beta1): wire target-aware terminology` |
-| Evidence commit | this document, same commit as implementation unless a follow-up HEAD-alignment commit is required |
+| Final HEAD | `17e514f93810c67121f9102d4b5aa6cc9145556b` |
+| Implementation commit | `17e514f` — `feat(beta1): wire target-aware terminology` |
+| Evidence commit | this document, included in the implementation commit `17e514f` |
 | Upstream | `origin/core/platform-readiness-20260707` |
 | Start divergence | `0 0` |
 | Final divergence | `0 0` (verified after push, §16) |
@@ -286,7 +286,7 @@ Retained:
 - `TERM EXISTS ≠ MODULE IMPLEMENTED`
 - `TERMINOLOGY MUST NOT GRANT ACCESS`
 
-Final HEAD / divergence / worktree state to be recorded immediately after push (this section is updated in the same commit or a follow-up HEAD-alignment commit, matching established repository convention).
+Final HEAD: `17e514f93810c67121f9102d4b5aa6cc9145556b` (implementation commit `feat(beta1): wire target-aware terminology`, includes this evidence document). Divergence after push: `0 0`. Worktree: clean.
 
 ---
 
