@@ -27,8 +27,8 @@ presentation-only.
 | Worktree | `D:\project ai cursus verkopers.worktrees\parallel__laptop-product-track-20260707-1` |
 | Branch | `core/platform-readiness-20260707` |
 | Start HEAD | `cc8e331d520aa79c9dbd33d7e91e7546f37c048a` |
-| Final implementation HEAD | recorded in the follow-up evidence alignment |
-| Implementation commit | `feat(beta1): add shared projects foundation` |
+| Final implementation HEAD | `3579525199cd3baaa205643c32380db95ae54fc6` |
+| Implementation commit | `3579525199cd3baaa205643c32380db95ae54fc6` — `feat(beta1): add shared projects foundation` |
 | Evidence commit | follow-up closure-HEAD record containing implementation SHA alignment |
 | Upstream | `origin/core/platform-readiness-20260707` |
 | Start divergence | `0 0` |
@@ -261,7 +261,8 @@ Fulfillment module was introduced.
 
 ## Changed files
 
-The implementation commit contains:
+The implementation commit contains 56 files with 4,701 additions and 61
+deletions:
 
 - `supabase/migrations/20260905123943_shared_projects_foundation.sql`;
 - `src/types/database.generated.ts`;
