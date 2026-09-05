@@ -18,6 +18,8 @@ import {
   type ProjectContextResult,
 } from "@/features/projects/server/resolve-project-page-context";
 import type { Database } from "@/types/database";
+import { listSites, listWorkOrders } from "@/features/field-operations/server/queries";
+import type { SiteRecord, WorkOrderRecord } from "@/features/field-operations/domain/types";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 type LoaderFailure = Exclude<ProjectContextResult, { kind: "ready" }>;
@@ -83,6 +85,9 @@ export type ProjectDetailPageResult =
       project: ProjectRecord;
       tasks: ProjectTask[];
       tasksWarning: string | null;
+      fieldSites: SiteRecord[];
+      fieldWorkOrders: WorkOrderRecord[];
+      fieldWarning: string | null;
     };
 
 export async function loadProjectDetailPage(
@@ -106,12 +111,27 @@ export async function loadProjectDetailPage(
   if (!project.data) return { kind: "unavailable", context: resolved.context };
 
   const tasks = await listProjectTasks(supabase, resolved.context.organizationId, projectId);
+  const fieldEnabled =
+    resolved.context.moduleAccess.navVisibility.sites &&
+    resolved.context.moduleAccess.navVisibility.workOrders;
+  const [sites, workOrders] = fieldEnabled
+    ? await Promise.all([
+        listSites(supabase, resolved.context.organizationId, { projectId }),
+        listWorkOrders(supabase, resolved.context.organizationId, { projectId }),
+      ])
+    : [
+        { data: [] as SiteRecord[], error: null },
+        { data: [] as WorkOrderRecord[], error: null },
+      ];
   return {
     kind: "ready",
     context: resolved.context,
     project: project.data,
     tasks: tasks.data,
     tasksWarning: tasks.error,
+    fieldSites: sites.data,
+    fieldWorkOrders: workOrders.data,
+    fieldWarning: sites.error ?? workOrders.error,
   };
 }
 

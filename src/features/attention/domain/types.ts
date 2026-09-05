@@ -11,7 +11,8 @@ export type AttentionSourceType =
   | "enrollment"
   | "social_publication"
   | "social_connection"
-  | "project";
+  | "project"
+  | "work_order";
 
 export type AttentionSignalOrigin = "manual" | "rule";
 
@@ -24,7 +25,9 @@ export type AttentionRuleKey =
   | "scheduled_publication_failed"
   | "project_overdue_active"
   | "project_task_overdue"
-  | "project_no_owner";
+  | "project_no_owner"
+  | "work_order_overdue"
+  | "work_order_unassigned";
 
 export type AttentionEventType =
   | "created"

@@ -7,6 +7,9 @@ export const KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY: ModuleNavVisibility = {
   leads: true,
   customers: true,
   projects: false,
+  sites: false,
+  workOrders: false,
+  dispatch: false,
   programs: true,
   enrollments: true,
   progress: true,
@@ -21,6 +24,9 @@ export const SERVICE_MODULE_NAV_VISIBILITY: ModuleNavVisibility = {
   leads: true,
   customers: true,
   projects: true,
+  sites: false,
+  workOrders: false,
+  dispatch: false,
   programs: false,
   enrollments: false,
   progress: false,
@@ -33,17 +39,26 @@ export const SERVICE_MODULE_NAV_VISIBILITY: ModuleNavVisibility = {
 export const SERVICE_PRODUCT_TERMINOLOGY: ProductTerminology = {
   customer: { singular: "Client", plural: "Clients" },
   project: { singular: "Project", plural: "Projects" },
+  site: { singular: "Site", plural: "Sites" },
+  workOrder: { singular: "Work order", plural: "Work orders" },
+  technician: { singular: "Technician", plural: "Technicians" },
 };
 
 /** Field foundation lawful shared baseline, including shared Projects. */
 export const FIELD_MODULE_NAV_VISIBILITY: ModuleNavVisibility = {
   ...SERVICE_MODULE_NAV_VISIBILITY,
+  sites: true,
+  workOrders: true,
+  dispatch: true,
 };
 
 /** Field foundation seeded terminology uses Job(s) for the shared Project concept. */
 export const FIELD_PRODUCT_TERMINOLOGY: ProductTerminology = {
   customer: { singular: "Customer", plural: "Customers" },
   project: { singular: "Job", plural: "Jobs" },
+  site: { singular: "Site", plural: "Sites" },
+  workOrder: { singular: "Work order", plural: "Work orders" },
+  technician: { singular: "Technician", plural: "Technicians" },
 };
 
 export function mockKnowledgeProductModuleAccess(): Extract<

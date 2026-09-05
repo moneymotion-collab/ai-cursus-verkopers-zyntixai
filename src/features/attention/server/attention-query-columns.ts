@@ -1,8 +1,8 @@
 export const ATTENTION_ITEM_LIST_SELECT_COLUMNS =
-  "id, organization_id, enrollment_id, customer_id, program_id, project_id, task_id, source_type, source_entity_id, title, summary, status, severity, assignee_member_id, detection_count, first_detected_at, last_detected_at, acknowledged_at, resolved_at, dismissed_at, expired_at, archived_at, created_at, updated_at" as const;
+  "id, organization_id, enrollment_id, customer_id, program_id, project_id, task_id, work_order_id, source_type, source_entity_id, title, summary, status, severity, assignee_member_id, detection_count, first_detected_at, last_detected_at, acknowledged_at, resolved_at, dismissed_at, expired_at, archived_at, created_at, updated_at" as const;
 
 export const ATTENTION_ITEM_DETAIL_SELECT_COLUMNS =
-  "id, organization_id, enrollment_id, customer_id, program_id, project_id, task_id, source_type, source_entity_id, social_publication_id, social_connection_id, title, summary, status, severity, assignee_member_id, dedupe_key, detection_count, first_detected_at, last_detected_at, acknowledged_at, resolved_at, dismissed_at, expired_at, resolution_reason, dismissal_reason, archived_at, created_by_member_id, updated_by_member_id, created_at, updated_at" as const;
+  "id, organization_id, enrollment_id, customer_id, program_id, project_id, task_id, work_order_id, source_type, source_entity_id, social_publication_id, social_connection_id, title, summary, status, severity, assignee_member_id, dedupe_key, detection_count, first_detected_at, last_detected_at, acknowledged_at, resolved_at, dismissed_at, expired_at, resolution_reason, dismissal_reason, archived_at, created_by_member_id, updated_by_member_id, created_at, updated_at" as const;
 
 export const ATTENTION_SIGNAL_SELECT_COLUMNS =
   "id, organization_id, attention_item_id, enrollment_id, signal_origin, rule_key, explanation, evidence, detected_at, created_by_member_id, created_at" as const;
@@ -24,3 +24,6 @@ export const ATTENTION_PROJECT_SUMMARY_SELECT_COLUMNS =
 
 export const ATTENTION_TASK_SUMMARY_SELECT_COLUMNS =
   "id, title, status, due_at" as const;
+
+export const ATTENTION_WORK_ORDER_SUMMARY_SELECT_COLUMNS =
+  "id, title, status, site_id, scheduled_for" as const;

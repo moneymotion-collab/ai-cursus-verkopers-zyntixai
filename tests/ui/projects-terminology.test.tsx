@@ -12,13 +12,16 @@ import type {
   ProjectTask,
 } from "@/features/projects/domain/types";
 import { ProjectDetail, ProjectList } from "@/features/projects/ui/project-views";
-import type { ProductTerminology } from "@/features/product-access/domain/terminology";
+import {
+  DEFAULT_PRODUCT_TERMINOLOGY,
+  type ProductTerminology,
+} from "@/features/product-access/domain/terminology";
 
 const ORG_ID = "11111111-1111-4111-8111-111111111111";
 const PROJECT_ID = "22222222-2222-4222-8222-222222222222";
 
 function context(
-  terminology: ProductTerminology,
+  terminology: Pick<ProductTerminology, "customer" | "project">,
   role: ProjectRole = "staff",
 ): ProjectPageContext {
   const navVisibility = {
@@ -26,12 +29,19 @@ function context(
     leads: true,
     customers: true,
     projects: true,
+    sites: false,
+    workOrders: false,
+    dispatch: false,
     programs: false,
     enrollments: false,
     progress: false,
     attention: true,
     tasks: true,
     members: true,
+  };
+  const resolvedTerminology: ProductTerminology = {
+    ...DEFAULT_PRODUCT_TERMINOLOGY,
+    ...terminology,
   };
   return {
     organizationId: ORG_ID,
@@ -40,12 +50,12 @@ function context(
       { organizationId: ORG_ID, role, displayName: "Delivery Org" },
     ],
     role,
-    terminology,
+    terminology: resolvedTerminology,
     moduleAccess: {
       resolution: "resolved",
       navVisibility,
       relevantCapabilities: [],
-      terminology,
+      terminology: resolvedTerminology,
     },
   };
 }
@@ -67,7 +77,7 @@ const project: ProjectRecord = {
   updatedAt: "2026-09-05T10:00:00.000Z",
 };
 
-function render(terminology: ProductTerminology): string {
+function render(terminology: Pick<ProductTerminology, "customer" | "project">): string {
   return renderToStaticMarkup(
     <ProjectList
       context={context(terminology)}

@@ -5,7 +5,7 @@ import type { EffectiveTerminology } from "@/features/context-resolver/domain/ty
  * Only concepts required by the BETA1-4TG-SCOPE-FREEZE terminology decision
  * (Terminology Mode B) are represented here. New fields must correspond to
  * an already-seeded CTX terminology term key and an implemented shared
- * module — do not add speculative terms for unimplemented modules.
+ * or an implemented target-specific module — do not add speculative terms.
  */
 export type ProductTerminology = {
   customer: {
@@ -16,10 +16,25 @@ export type ProductTerminology = {
     singular: string;
     plural: string;
   };
+  site: {
+    singular: string;
+    plural: string;
+  };
+  workOrder: {
+    singular: string;
+    plural: string;
+  };
+  technician: {
+    singular: string;
+    plural: string;
+  };
 };
 
 const CUSTOMER_TERM_KEY = "customer";
 const PROJECT_TERM_KEY = "project";
+const SITE_TERM_KEY = "site";
+const WORK_ORDER_TERM_KEY = "work_order";
+const TECHNICIAN_TERM_KEY = "technician";
 
 /**
  * System/default generic wording. Used when context is unresolved or a
@@ -30,6 +45,9 @@ const PROJECT_TERM_KEY = "project";
 export const DEFAULT_PRODUCT_TERMINOLOGY: ProductTerminology = {
   customer: { singular: "Customer", plural: "Customers" },
   project: { singular: "Project", plural: "Projects" },
+  site: { singular: "Site", plural: "Sites" },
+  workOrder: { singular: "Work order", plural: "Work orders" },
+  technician: { singular: "Technician", plural: "Technicians" },
 };
 
 /**
@@ -43,6 +61,9 @@ export function projectProductTerminology(
 ): ProductTerminology {
   const customerTerm = terms?.find((term) => term.termKey === CUSTOMER_TERM_KEY);
   const projectTerm = terms?.find((term) => term.termKey === PROJECT_TERM_KEY);
+  const siteTerm = terms?.find((term) => term.termKey === SITE_TERM_KEY);
+  const workOrderTerm = terms?.find((term) => term.termKey === WORK_ORDER_TERM_KEY);
+  const technicianTerm = terms?.find((term) => term.termKey === TECHNICIAN_TERM_KEY);
 
   return {
     customer: customerTerm
@@ -57,5 +78,14 @@ export function projectProductTerminology(
           plural: projectTerm.pluralLabel,
         }
       : DEFAULT_PRODUCT_TERMINOLOGY.project,
+    site: siteTerm
+      ? { singular: siteTerm.singularLabel, plural: siteTerm.pluralLabel }
+      : DEFAULT_PRODUCT_TERMINOLOGY.site,
+    workOrder: workOrderTerm
+      ? { singular: workOrderTerm.singularLabel, plural: workOrderTerm.pluralLabel }
+      : DEFAULT_PRODUCT_TERMINOLOGY.workOrder,
+    technician: technicianTerm
+      ? { singular: technicianTerm.singularLabel, plural: technicianTerm.pluralLabel }
+      : DEFAULT_PRODUCT_TERMINOLOGY.technician,
   };
 }

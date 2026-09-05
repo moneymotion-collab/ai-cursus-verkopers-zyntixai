@@ -28,6 +28,7 @@ import {
   ATTENTION_PROJECT_SUMMARY_SELECT_COLUMNS,
   ATTENTION_SIGNAL_SELECT_COLUMNS,
   ATTENTION_TASK_SUMMARY_SELECT_COLUMNS,
+  ATTENTION_WORK_ORDER_SUMMARY_SELECT_COLUMNS,
 } from "@/features/attention/server/attention-query-columns";
 import {
   mapAttentionCustomerSummary,
@@ -39,6 +40,7 @@ import {
   mapAttentionProjectSummary,
   mapAttentionSignal,
   mapAttentionTaskSummary,
+  mapAttentionWorkOrderSummary,
   type AttentionCustomerSummaryRow,
   type AttentionEnrollmentSummaryRow,
   type AttentionEventRow,
@@ -48,6 +50,7 @@ import {
   type AttentionProjectSummaryRow,
   type AttentionSignalRow,
   type AttentionTaskSummaryRow,
+  type AttentionWorkOrderSummaryRow,
 } from "@/features/attention/server/map-attention-read-model";
 import {
   attentionItemUnavailableError,
@@ -458,6 +461,7 @@ export async function getAttentionItemById(
     programResult,
     projectResult,
     taskResult,
+    workOrderResult,
     signalsResult,
     eventsResult,
   ] = await Promise.all([
@@ -499,6 +503,14 @@ export async function getAttentionItemById(
             .select(ATTENTION_TASK_SUMMARY_SELECT_COLUMNS)
             .eq("organization_id", params.organizationId)
             .eq("id", row.task_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      row.work_order_id
+        ? params.supabase
+            .from("work_orders")
+            .select(ATTENTION_WORK_ORDER_SUMMARY_SELECT_COLUMNS)
+            .eq("organization_id", params.organizationId)
+            .eq("id", row.work_order_id)
             .maybeSingle()
         : Promise.resolve({ data: null, error: null }),
       params.supabase
@@ -565,6 +577,11 @@ export async function getAttentionItemById(
       : null,
     task: taskResult.data
       ? mapAttentionTaskSummary(taskResult.data as AttentionTaskSummaryRow)
+      : null,
+    workOrder: workOrderResult.data
+      ? mapAttentionWorkOrderSummary(
+          workOrderResult.data as AttentionWorkOrderSummaryRow,
+        )
       : null,
     signals,
     events,

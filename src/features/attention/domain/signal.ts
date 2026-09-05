@@ -18,6 +18,8 @@ export const ATTENTION_RULE_KEYS = [
   "project_overdue_active",
   "project_task_overdue",
   "project_no_owner",
+  "work_order_overdue",
+  "work_order_unassigned",
 ] as const satisfies readonly AttentionRuleKey[];
 
 export const ENROLLMENT_NO_RECENT_PROGRESS_RULE_KEY =

@@ -158,14 +158,14 @@ export function toAttentionListItemPresentation(
     customerLabel:
       item.sourceType === "enrollment"
         ? resolveAttentionCustomerLabel(item.customerDisplayName)
-        : item.sourceType === "project"
+        : item.sourceType === "project" || item.sourceType === "work_order"
           ? resolveAttentionProjectLabel(item.projectName)
           : resolveSocialAttentionSourceLabel(item.sourceType),
     programLabel:
       item.sourceType === "enrollment"
         ? resolveAttentionProgramLabel(item.programName)
-        : item.sourceType === "project"
-          ? "Project"
+        : item.sourceType === "project" || item.sourceType === "work_order"
+          ? item.sourceType === "work_order" ? "Work order" : "Project"
           : "Social",
     assigneeLabel: resolveAttentionAssigneeLabel(
       item.assigneeDisplayName,
@@ -242,6 +242,12 @@ export function resolveAttentionTypeLabelFromDetail(
   if (primarySignal?.ruleKey === "project_no_owner") {
     return "No project owner";
   }
+  if (primarySignal?.ruleKey === "work_order_overdue") {
+    return "Work order overdue";
+  }
+  if (primarySignal?.ruleKey === "work_order_unassigned") {
+    return "Work order unassigned";
+  }
   if (primarySignal?.signalOrigin === "manual") {
     return "Manual signal";
   }
@@ -251,6 +257,7 @@ export function resolveAttentionTypeLabelFromDetail(
   if (item.sourceType === "social_publication") return "Instagram publication";
   if (item.sourceType === "social_connection") return "Instagram account";
   if (item.sourceType === "project") return "Project";
+  if (item.sourceType === "work_order") return "Work order";
   return item.sourceType === "enrollment" ? "Enrollment" : "Attention";
 }
 
@@ -276,14 +283,14 @@ export function toAttentionDetailPresentation(
     customerLabel:
       item.sourceType === "enrollment"
         ? resolveAttentionCustomerLabel(customerName)
-        : item.sourceType === "project"
+        : item.sourceType === "project" || item.sourceType === "work_order"
           ? resolveAttentionProjectLabel(projectName)
           : resolveSocialAttentionSourceLabel(item.sourceType),
     programLabel:
       item.sourceType === "enrollment"
         ? resolveAttentionProgramLabel(programName)
-        : item.sourceType === "project"
-          ? "Project"
+        : item.sourceType === "project" || item.sourceType === "work_order"
+          ? item.sourceType === "work_order" ? "Work order" : "Project"
           : "Social",
     enrollmentStatusLabel: enrollmentStatus
       ? enrollmentStatus.charAt(0).toUpperCase() + enrollmentStatus.slice(1)

@@ -16,6 +16,8 @@ import { buildProjectDetailHref } from "@/features/projects/domain/projects-navi
 import { ProjectActions } from "@/features/projects/ui/project-actions";
 import { buildTaskCreateHrefForProject } from "@/features/tasks/ui/task-navigation";
 import { AttentionEvaluateProjectRulesActions } from "@/features/attention/ui/attention-evaluate-project-rules-actions";
+import type { SiteRecord, WorkOrderRecord } from "@/features/field-operations/domain/types";
+import { JobFieldSections } from "@/features/field-operations/ui/views";
 import styles from "./projects.module.css";
 
 export function ProjectShell({
@@ -223,11 +225,17 @@ export function ProjectDetail({
   project,
   tasks,
   tasksWarning,
+  fieldSites = [],
+  fieldWorkOrders = [],
+  fieldWarning = null,
 }: {
   context: ProjectPageContext;
   project: ProjectRecord;
   tasks: ProjectTask[];
   tasksWarning: string | null;
+  fieldSites?: SiteRecord[];
+  fieldWorkOrders?: WorkOrderRecord[];
+  fieldWarning?: string | null;
 }) {
   const term = context.terminology.project.singular;
   const permissions = projectPermissions(context.role, Boolean(project.archivedAt));
@@ -317,6 +325,19 @@ export function ProjectDetail({
           </>
         ) : null}
       </section>
+      {context.moduleAccess.navVisibility.sites &&
+      context.moduleAccess.navVisibility.workOrders ? (
+        fieldWarning ? (
+          <section className={styles.panel}><p role="alert">{fieldWarning}</p></section>
+        ) : (
+          <JobFieldSections
+            context={context}
+            projectId={project.id}
+            sites={fieldSites}
+            workOrders={fieldWorkOrders}
+          />
+        )
+      ) : null}
     </article>
   );
 }

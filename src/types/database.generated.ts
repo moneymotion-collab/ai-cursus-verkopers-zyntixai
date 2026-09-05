@@ -159,6 +159,7 @@ export type Database = {
           status: string
           summary: string | null
           task_id: string | null
+          work_order_id: string | null
           title: string
           updated_at: string
           updated_by_member_id: string | null
@@ -192,6 +193,7 @@ export type Database = {
           status?: string
           summary?: string | null
           task_id?: string | null
+          work_order_id?: string | null
           title: string
           updated_at?: string
           updated_by_member_id?: string | null
@@ -225,6 +227,7 @@ export type Database = {
           status?: string
           summary?: string | null
           task_id?: string | null
+          work_order_id?: string | null
           title?: string
           updated_at?: string
           updated_by_member_id?: string | null
@@ -294,6 +297,13 @@ export type Database = {
             columns: ["organization_id", "task_id"]
             isOneToOne: false
             referencedRelation: "tasks"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "attention_items_work_order_fk"
+            columns: ["organization_id", "work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
             referencedColumns: ["organization_id", "id"]
           },
           {
@@ -3263,6 +3273,207 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      sites: {
+        Row: {
+          address_line_1: string
+          address_line_2: string | null
+          archived_at: string | null
+          city: string
+          country: string
+          created_at: string
+          created_by_member_id: string
+          customer_id: string
+          id: string
+          name: string
+          operational_note: string | null
+          organization_id: string
+          postal_code: string
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          address_line_1: string
+          address_line_2?: string | null
+          archived_at?: string | null
+          city: string
+          country: string
+          created_at?: string
+          created_by_member_id: string
+          customer_id: string
+          id?: string
+          name: string
+          operational_note?: string | null
+          organization_id: string
+          postal_code: string
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          address_line_1?: string
+          address_line_2?: string | null
+          archived_at?: string | null
+          city?: string
+          country?: string
+          created_at?: string
+          created_by_member_id?: string
+          customer_id?: string
+          id?: string
+          name?: string
+          operational_note?: string | null
+          organization_id?: string
+          postal_code?: string
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sites_created_by_member_fk"
+            columns: ["organization_id", "created_by_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "sites_customer_fk"
+            columns: ["organization_id", "customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "sites_project_fk"
+            columns: ["organization_id", "project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      work_order_status_history: {
+        Row: {
+          changed_by_member_id: string
+          created_at: string
+          from_status: string | null
+          id: string
+          organization_id: string
+          reason: string | null
+          to_status: string
+          work_order_id: string
+        }
+        Insert: {
+          changed_by_member_id: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          organization_id: string
+          reason?: string | null
+          to_status: string
+          work_order_id: string
+        }
+        Update: {
+          changed_by_member_id?: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          organization_id?: string
+          reason?: string | null
+          to_status?: string
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_order_status_history_member_fk"
+            columns: ["organization_id", "changed_by_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "work_order_status_history_work_order_fk"
+            columns: ["organization_id", "work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      work_orders: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by_member_id: string
+          id: string
+          instructions: string | null
+          organization_id: string
+          project_id: string
+          scheduled_for: string | null
+          site_id: string
+          status: string
+          technician_member_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by_member_id: string
+          id?: string
+          instructions?: string | null
+          organization_id: string
+          project_id: string
+          scheduled_for?: string | null
+          site_id: string
+          status?: string
+          technician_member_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by_member_id?: string
+          id?: string
+          instructions?: string | null
+          organization_id?: string
+          project_id?: string
+          scheduled_for?: string | null
+          site_id?: string
+          status?: string
+          technician_member_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_orders_created_by_member_fk"
+            columns: ["organization_id", "created_by_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "work_orders_project_fk"
+            columns: ["organization_id", "project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "work_orders_site_fk"
+            columns: ["organization_id", "site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "work_orders_technician_member_fk"
+            columns: ["organization_id", "technician_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
       }
       project_status_history: {
         Row: {
@@ -7072,6 +7283,10 @@ export type Database = {
         Args: { p_organization_id: string; p_project_id: string }
         Returns: undefined
       }
+      archive_site: {
+        Args: { p_organization_id: string; p_site_id: string }
+        Returns: undefined
+      }
       archive_program: {
         Args: { p_organization_id: string; p_program_id: string }
         Returns: undefined
@@ -7288,6 +7503,33 @@ export type Database = {
           p_lead_id: string
           p_organization_id: string
           p_reason?: string
+        }
+        Returns: string
+      }
+      create_site: {
+        Args: {
+          p_address_line_1: string
+          p_address_line_2?: string
+          p_city: string
+          p_country: string
+          p_customer_id: string
+          p_name: string
+          p_operational_note?: string
+          p_organization_id: string
+          p_postal_code: string
+          p_project_id: string
+        }
+        Returns: string
+      }
+      create_work_order: {
+        Args: {
+          p_instructions?: string
+          p_organization_id: string
+          p_project_id: string
+          p_scheduled_for?: string
+          p_site_id: string
+          p_technician_member_id?: string
+          p_title: string
         }
         Returns: string
       }
@@ -7672,6 +7914,10 @@ export type Database = {
       }
       evaluate_project_attention_rules: {
         Args: { p_organization_id: string; p_project_id?: string }
+        Returns: Json
+      }
+      evaluate_work_order_attention_rules: {
+        Args: { p_organization_id: string; p_work_order_id?: string }
         Returns: Json
       }
       evaluate_social_provider_write_gates: {
@@ -8212,6 +8458,10 @@ export type Database = {
         Args: { p_organization_id: string; p_project_id: string }
         Returns: undefined
       }
+      restore_site: {
+        Args: { p_organization_id: string; p_site_id: string }
+        Returns: undefined
+      }
       restore_program: {
         Args: { p_organization_id: string; p_program_id: string }
         Returns: undefined
@@ -8454,6 +8704,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      transition_work_order_status: {
+        Args: {
+          p_organization_id: string
+          p_reason?: string
+          p_to_status: string
+          p_work_order_id: string
+        }
+        Returns: undefined
+      }
       transition_program_status: {
         Args: {
           p_organization_id: string
@@ -8491,6 +8750,35 @@ export type Database = {
           p_planned_start?: string
           p_project_id: string
           p_summary?: string
+        }
+        Returns: undefined
+      }
+      update_site: {
+        Args: {
+          p_address_line_1: string
+          p_address_line_2?: string
+          p_city: string
+          p_country: string
+          p_customer_id: string
+          p_name: string
+          p_operational_note?: string
+          p_organization_id: string
+          p_postal_code: string
+          p_project_id: string
+          p_site_id: string
+        }
+        Returns: undefined
+      }
+      update_work_order: {
+        Args: {
+          p_instructions?: string
+          p_organization_id: string
+          p_project_id: string
+          p_scheduled_for?: string
+          p_site_id: string
+          p_technician_member_id?: string
+          p_title: string
+          p_work_order_id: string
         }
         Returns: undefined
       }

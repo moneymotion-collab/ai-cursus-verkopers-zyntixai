@@ -32,6 +32,9 @@ const SERVICE_TERMS = [
 const FIELD_TERMS = [
   ["customer", "Customer", "Customers"],
   ["project", "Job", "Jobs"],
+  ["site", "Site", "Sites"],
+  ["work_order", "Work order", "Work orders"],
+  ["technician", "Technician", "Technicians"],
 ] as const;
 const PRODUCT_TERMS = [["customer", "Customer", "Customers"]] as const;
 
@@ -158,6 +161,7 @@ describe("projectProductTerminology", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(projectProductTerminology(result.value.terminology)).toEqual({
+      ...DEFAULT_PRODUCT_TERMINOLOGY,
       customer: { singular: "Customer", plural: "Customers" },
       project: { singular: "Project", plural: "Projects" },
     });
@@ -177,6 +181,7 @@ describe("projectProductTerminology", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(projectProductTerminology(result.value.terminology)).toEqual({
+      ...DEFAULT_PRODUCT_TERMINOLOGY,
       customer: { singular: "Client", plural: "Clients" },
       project: { singular: "Project", plural: "Projects" },
     });
@@ -196,6 +201,7 @@ describe("projectProductTerminology", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(projectProductTerminology(result.value.terminology)).toEqual({
+      ...DEFAULT_PRODUCT_TERMINOLOGY,
       customer: { singular: "Customer", plural: "Customers" },
       project: { singular: "Job", plural: "Jobs" },
     });
@@ -215,6 +221,7 @@ describe("projectProductTerminology", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(projectProductTerminology(result.value.terminology)).toEqual({
+      ...DEFAULT_PRODUCT_TERMINOLOGY,
       customer: { singular: "Customer", plural: "Customers" },
       project: { singular: "Project", plural: "Projects" },
     });

@@ -110,12 +110,19 @@ function resolveAttentionTypeLabel(
     if (item.primaryRuleKey === "project_no_owner") {
       return "No project owner";
     }
+    if (item.primaryRuleKey === "work_order_overdue") {
+      return "Work order overdue";
+    }
+    if (item.primaryRuleKey === "work_order_unassigned") {
+      return "Work order unassigned";
+    }
     return item.primaryRuleKey;
   }
   if (item.primarySignalOrigin && isAttentionSignalOrigin(item.primarySignalOrigin)) {
     return item.primarySignalOrigin === "manual" ? "Manual signal" : "Rule signal";
   }
   if (item.sourceType === "project") return "Project";
+  if (item.sourceType === "work_order") return "Work order";
   return item.sourceType === "enrollment" ? "Enrollment" : "Attention";
 }
 

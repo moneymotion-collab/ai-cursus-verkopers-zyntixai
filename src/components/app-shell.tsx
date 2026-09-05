@@ -42,6 +42,9 @@ export type AppShellActiveNav =
   | "leads"
   | "customers"
   | "projects"
+  | "sites"
+  | "workOrders"
+  | "dispatch"
   | "programs"
   | "enrollments"
   | "progress"
@@ -138,6 +141,21 @@ function PrimaryNavFallback({
           aria-current={activeNav === "projects" ? "page" : undefined}
         >
           {terminology.project.plural}
+        </Link>
+      ) : null}
+      {moduleNavVisibility.sites ? (
+        <Link className={styles.navLink} href={withOrg("/sites")} aria-current={activeNav === "sites" ? "page" : undefined}>
+          {terminology.site.plural}
+        </Link>
+      ) : null}
+      {moduleNavVisibility.workOrders ? (
+        <Link className={styles.navLink} href={withOrg("/work-orders")} aria-current={activeNav === "workOrders" ? "page" : undefined}>
+          {terminology.workOrder.plural}
+        </Link>
+      ) : null}
+      {moduleNavVisibility.dispatch ? (
+        <Link className={styles.navLink} href={withOrg("/dispatch")} aria-current={activeNav === "dispatch" ? "page" : undefined}>
+          Dispatch
         </Link>
       ) : null}
       {moduleNavVisibility.programs ? (
@@ -258,6 +276,21 @@ function PrimaryNav({
           aria-current={activeNav === "projects" ? "page" : undefined}
         >
           {terminology.project.plural}
+        </OrgAwareLink>
+      ) : null}
+      {moduleNavVisibility.sites ? (
+        <OrgAwareLink className={styles.navLink} href="/sites" organizationId={selectedOrganizationId} aria-current={activeNav === "sites" ? "page" : undefined}>
+          {terminology.site.plural}
+        </OrgAwareLink>
+      ) : null}
+      {moduleNavVisibility.workOrders ? (
+        <OrgAwareLink className={styles.navLink} href="/work-orders" organizationId={selectedOrganizationId} aria-current={activeNav === "workOrders" ? "page" : undefined}>
+          {terminology.workOrder.plural}
+        </OrgAwareLink>
+      ) : null}
+      {moduleNavVisibility.dispatch ? (
+        <OrgAwareLink className={styles.navLink} href="/dispatch" organizationId={selectedOrganizationId} aria-current={activeNav === "dispatch" ? "page" : undefined}>
+          Dispatch
         </OrgAwareLink>
       ) : null}
       {moduleNavVisibility.programs ? (

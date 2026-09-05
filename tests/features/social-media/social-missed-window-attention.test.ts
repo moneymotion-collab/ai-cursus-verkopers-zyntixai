@@ -400,6 +400,7 @@ describe("SMM-B1.11-D Attention source model", () => {
       "social_publication",
       "social_connection",
       "project",
+      "work_order",
     ]);
     expect(ATTENTION_RULE_KEYS).toContain("enrollment_no_recent_progress");
     expect(ATTENTION_RULE_KEYS).toContain("scheduled_publication_missed");

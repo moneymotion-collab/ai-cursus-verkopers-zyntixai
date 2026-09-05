@@ -54,6 +54,9 @@ export default async function ProjectDetailPage({
         project={result.project}
         tasks={result.tasks}
         tasksWarning={result.tasksWarning}
+        fieldSites={result.fieldSites}
+        fieldWorkOrders={result.fieldWorkOrders}
+        fieldWarning={result.fieldWarning}
       />
     </ProjectShell>
   );

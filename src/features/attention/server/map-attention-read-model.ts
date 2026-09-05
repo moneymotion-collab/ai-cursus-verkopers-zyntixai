@@ -27,6 +27,7 @@ import type {
   AttentionProjectSummary,
   AttentionSignalReadModel,
   AttentionTaskSummary,
+  AttentionWorkOrderSummary,
 } from "@/features/attention/domain/read-types";
 import type {
   AttentionApplicationError,
@@ -63,6 +64,7 @@ export type AttentionItemListRow = Pick<
 > & {
   source_type?: string | null;
   source_entity_id?: string | null;
+  work_order_id?: string | null;
 };
 
 export type AttentionItemDetailRow = Pick<
@@ -97,6 +99,7 @@ export type AttentionItemDetailRow = Pick<
 > & {
   source_type?: string | null;
   source_entity_id?: string | null;
+  work_order_id?: string | null;
 };
 
 export type AttentionSignalRow = Pick<
@@ -167,6 +170,14 @@ export type AttentionTaskSummaryRow = {
   title: string;
   status: string;
   due_at: string | null;
+};
+
+export type AttentionWorkOrderSummaryRow = {
+  id: string;
+  title: string;
+  status: string;
+  site_id: string;
+  scheduled_for: string | null;
 };
 
 export type AttentionMapResult<T> =
@@ -267,13 +278,13 @@ function resolveAttentionSource(row: {
   source_type?: string | null;
   source_entity_id?: string | null;
   enrollment_id: string | null;
-}): { sourceType: "enrollment" | "social_publication" | "social_connection" | "project"; sourceEntityId: string } {
+}): { sourceType: import("@/features/attention/domain/types").AttentionSourceType; sourceEntityId: string } {
   const sourceType = isAttentionSourceType(row.source_type ?? "")
-    ? row.source_type
+    ? row.source_type as import("@/features/attention/domain/types").AttentionSourceType
     : ATTENTION_PRIMARY_SOURCE_TYPE;
   const sourceEntityId = row.source_entity_id ?? row.enrollment_id;
   return {
-    sourceType: sourceType as "enrollment" | "social_publication" | "social_connection" | "project",
+    sourceType,
     sourceEntityId: sourceEntityId ?? "",
   };
 }
@@ -334,6 +345,18 @@ export function mapAttentionTaskSummary(
   };
 }
 
+export function mapAttentionWorkOrderSummary(
+  row: AttentionWorkOrderSummaryRow,
+): AttentionWorkOrderSummary {
+  return {
+    id: row.id,
+    title: row.title,
+    status: row.status,
+    siteId: row.site_id,
+    scheduledFor: row.scheduled_for,
+  };
+}
+
 export function mapAttentionItemListItem(
   row: AttentionItemListRow,
   options?: {
@@ -369,6 +392,7 @@ export function mapAttentionItemListItem(
       programId: row.program_id,
       projectId: row.project_id,
       taskId: row.task_id,
+      workOrderId: row.work_order_id ?? null,
       title: row.title,
       summary: row.summary,
       status: status.data,
@@ -604,6 +628,7 @@ export function mapAttentionItemDetail(
     program?: AttentionProgramSummary | null;
     project?: AttentionProjectSummary | null;
     task?: AttentionTaskSummary | null;
+    workOrder?: AttentionWorkOrderSummary | null;
     signals?: AttentionSignalReadModel[];
     events?: AttentionEventReadModel[];
     evaluatedAt?: string | null;
@@ -632,6 +657,7 @@ export function mapAttentionItemDetail(
       programId: row.program_id,
       projectId: row.project_id,
       taskId: row.task_id,
+      workOrderId: row.work_order_id ?? null,
       socialActionHref: null,
       title: row.title,
       summary: row.summary,
@@ -663,6 +689,7 @@ export function mapAttentionItemDetail(
       program: related?.program ?? null,
       project: related?.project ?? null,
       task: related?.task ?? null,
+      workOrder: related?.workOrder ?? null,
       signals: related?.signals ?? [],
       events: related?.events ?? [],
       derived: buildDerivedFlags({

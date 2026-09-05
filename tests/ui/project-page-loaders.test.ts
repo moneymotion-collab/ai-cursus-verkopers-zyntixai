@@ -46,6 +46,9 @@ const moduleAccess: ProjectPageContext["moduleAccess"] = {
     leads: true,
     customers: true,
     projects: true,
+    sites: false,
+    workOrders: false,
+    dispatch: false,
     programs: false,
     enrollments: false,
     progress: false,
@@ -57,6 +60,9 @@ const moduleAccess: ProjectPageContext["moduleAccess"] = {
   terminology: {
     customer: { singular: "Client", plural: "Clients" },
     project: { singular: "Project", plural: "Projects" },
+    site: { singular: "Site", plural: "Sites" },
+    workOrder: { singular: "Work order", plural: "Work orders" },
+    technician: { singular: "Technician", plural: "Technicians" },
   },
 };
 

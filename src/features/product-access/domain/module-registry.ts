@@ -4,6 +4,11 @@ import { MEMBERS_NAV_LABEL, MEMBERS_ROUTE } from "@/features/invitations/domain/
 import { PROGRESS_NAV_LABEL, PROGRESS_ROUTE } from "@/features/progress/domain/progress-navigation";
 import { PROGRAMS_NAV_LABEL, PROGRAMS_ROUTE } from "@/features/programs/domain/programs-navigation";
 import { PROJECTS_NAV_LABEL, PROJECTS_ROUTE } from "@/features/projects/domain/projects-navigation";
+import {
+  DISPATCH_ROUTE,
+  SITES_ROUTE,
+  WORK_ORDERS_ROUTE,
+} from "@/features/field-operations/domain/navigation";
 import type { ContextRelevance } from "@/features/control-plane/domain/types";
 import type { ProductModuleId } from "@/features/product-access/domain/types";
 
@@ -55,6 +60,36 @@ export const PRODUCT_MODULE_DEFINITIONS: readonly ProductModuleDefinition[] = [
     implemented: true,
     capabilityRequirement: {
       capabilityKey: "shared.projects",
+      minRelevance: "required",
+    },
+  },
+  {
+    id: "sites",
+    route: SITES_ROUTE,
+    label: "Sites",
+    implemented: true,
+    capabilityRequirement: {
+      capabilityKey: "field.locations",
+      minRelevance: "required",
+    },
+  },
+  {
+    id: "workOrders",
+    route: WORK_ORDERS_ROUTE,
+    label: "Work orders",
+    implemented: true,
+    capabilityRequirement: {
+      capabilityKey: "field.work-orders",
+      minRelevance: "required",
+    },
+  },
+  {
+    id: "dispatch",
+    route: DISPATCH_ROUTE,
+    label: "Dispatch",
+    implemented: true,
+    capabilityRequirement: {
+      capabilityKey: "field.dispatch",
       minRelevance: "required",
     },
   },

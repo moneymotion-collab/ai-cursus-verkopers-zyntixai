@@ -52,6 +52,7 @@ export type AttentionDetailViewModel = {
   enrollmentHref: string | null;
   projectHref: string | null;
   taskHref: string | null;
+  workOrderHref?: string | null;
   socialHref?: string | null;
   backHref: string;
   organizationTimezone: string;
@@ -287,6 +288,9 @@ export async function loadAttentionDetailPage(
         : null,
       taskHref: item.task
         ? `/tasks/${item.task.id}?org=${encodeURIComponent(orgResult.organizationId)}`
+        : null,
+      workOrderHref: item.workOrder
+        ? `/work-orders/${item.workOrder.id}?org=${encodeURIComponent(orgResult.organizationId)}`
         : null,
       socialHref:
         item.sourceType === "social_connection"

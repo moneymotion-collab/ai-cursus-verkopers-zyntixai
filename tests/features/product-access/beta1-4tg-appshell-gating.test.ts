@@ -58,12 +58,14 @@ function expectProjectsAccess(
 }
 
 describe("BETA1-4TG AppShell module access", () => {
-  it("registers shared Projects without registering unimplemented future modules", () => {
+  it("registers shared Projects and Field-only TG3 modules", () => {
     const moduleKeys = PRODUCT_MODULE_DEFINITIONS.map((row) => row.id);
     expect(moduleKeys).toContain("projects");
     expect(moduleKeys).not.toContain("products");
     expect(moduleKeys).not.toContain("orders");
-    expect(moduleKeys).not.toContain("work-orders");
+    expect(moduleKeys).toContain("sites");
+    expect(moduleKeys).toContain("workOrders");
+    expect(moduleKeys).toContain("dispatch");
   });
 
   it("fail-closes unresolved context without Course Seller fallback", () => {
@@ -73,6 +75,9 @@ describe("BETA1-4TG AppShell module access", () => {
     expect(unresolved.navVisibility.leads).toBe(false);
     expect(unresolved.navVisibility.customers).toBe(false);
     expect(unresolved.navVisibility.projects).toBe(false);
+    expect(unresolved.navVisibility.sites).toBe(false);
+    expect(unresolved.navVisibility.workOrders).toBe(false);
+    expect(unresolved.navVisibility.dispatch).toBe(false);
     expect(
       evaluateProductModuleRouteAccess({ moduleId: "projects", access: unresolved }).allowed,
     ).toBe(false);
@@ -97,6 +102,9 @@ describe("BETA1-4TG AppShell module access", () => {
       expect(nav.attention).toBe(true);
       expect(nav.members).toBe(true);
       expectProjectsAccess(resolved.value.relevantCapabilities, false);
+      expect(nav.sites).toBe(false);
+      expect(nav.workOrders).toBe(false);
+      expect(nav.dispatch).toBe(false);
     });
   });
 
@@ -118,6 +126,9 @@ describe("BETA1-4TG AppShell module access", () => {
       expect(nav.enrollments).toBe(false);
       expect(nav.progress).toBe(false);
       expectProjectsAccess(capabilities, true);
+      expect(nav.sites).toBe(false);
+      expect(nav.workOrders).toBe(false);
+      expect(nav.dispatch).toBe(false);
     });
   });
 
@@ -139,6 +150,15 @@ describe("BETA1-4TG AppShell module access", () => {
       expect(nav.enrollments).toBe(false);
       expect(nav.progress).toBe(false);
       expectProjectsAccess(capabilities, true);
+      expect(nav.sites).toBe(true);
+      expect(nav.workOrders).toBe(true);
+      expect(nav.dispatch).toBe(true);
+      for (const moduleId of ["sites", "workOrders", "dispatch"] as const) {
+        expect(evaluateProductModuleRouteAccess({
+          moduleId,
+          access: buildResolvedProductModuleAccess(capabilities),
+        }).allowed).toBe(true);
+      }
     });
   });
 
@@ -159,6 +179,9 @@ describe("BETA1-4TG AppShell module access", () => {
       expect(nav.enrollments).toBe(false);
       expect(nav.progress).toBe(false);
       expectProjectsAccess(capabilities, false);
+      expect(nav.sites).toBe(false);
+      expect(nav.workOrders).toBe(false);
+      expect(nav.dispatch).toBe(false);
     });
   });
 

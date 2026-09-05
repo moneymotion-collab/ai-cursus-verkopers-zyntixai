@@ -47,6 +47,14 @@ export type AttentionTaskSummary = {
   dueAt: string | null;
 };
 
+export type AttentionWorkOrderSummary = {
+  id: string;
+  title: string;
+  status: string;
+  siteId: string;
+  scheduledFor: string | null;
+};
+
 export type AttentionItemDerivedFlags = {
   isAcknowledged: boolean;
   isArchived: boolean;
@@ -66,6 +74,7 @@ export type AttentionItemListItemReadModel = {
   programId: string | null;
   projectId: string | null;
   taskId: string | null;
+  workOrderId?: string | null;
   title: string;
   summary: string | null;
   status: AttentionItemStatus;
@@ -136,6 +145,7 @@ export type AttentionItemDetailReadModel = {
   programId: string | null;
   projectId: string | null;
   taskId: string | null;
+  workOrderId?: string | null;
   socialActionHref?: string | null;
   title: string;
   summary: string | null;
@@ -164,6 +174,7 @@ export type AttentionItemDetailReadModel = {
   program: AttentionProgramSummary | null;
   project: AttentionProjectSummary | null;
   task: AttentionTaskSummary | null;
+  workOrder?: AttentionWorkOrderSummary | null;
   signals: AttentionSignalReadModel[];
   events: AttentionEventReadModel[];
   derived: AttentionItemDerivedFlags;

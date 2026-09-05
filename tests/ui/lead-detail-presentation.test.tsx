@@ -203,6 +203,9 @@ describe("LeadDetail Service terminology (TG2-AGENCY-SLICE)", () => {
         terminology={{
           customer: { singular: "Client", plural: "Clients" },
           project: { singular: "Project", plural: "Projects" },
+          site: { singular: "Site", plural: "Sites" },
+          workOrder: { singular: "Work order", plural: "Work orders" },
+          technician: { singular: "Technician", plural: "Technicians" },
         }}
       />,
     );
