@@ -327,6 +327,36 @@ describe("attention detail page loader (B1.7.5-D)", () => {
     }
   });
 
+  it("builds the Site link carried by Work Order Attention context", async () => {
+    const workOrderId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const siteId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+    pageOrgMock.mockResolvedValue(readyOrg("staff"));
+    detailMock.mockResolvedValue({
+      ok: true,
+      data: {
+        ...sampleDetail(),
+        workOrder: {
+          id: workOrderId,
+          title: "Install equipment",
+          status: "scheduled",
+          siteId,
+          scheduledFor: "2026-09-05T10:00:00.000Z",
+        },
+      },
+    });
+
+    const result = await loadAttentionDetailPage(
+      createSupabase(),
+      ATTENTION_ITEM_ID,
+      { org: ORG_ID },
+    );
+
+    expect(result.kind).toBe("success");
+    if (result.kind !== "success") return;
+    expect(result.data.workOrderHref).toBe(`/work-orders/${workOrderId}?org=${ORG_ID}`);
+    expect(result.data.siteHref).toBe(`/sites/${siteId}?org=${ORG_ID}`);
+  });
+
   it("does not load assignee options for viewers", async () => {
     const { loadAttentionAssigneeOptions } = await import(
       "@/features/attention/server/load-attention-assignee-options"

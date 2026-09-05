@@ -77,6 +77,7 @@ export function AttentionDetail({
     projectHref,
     taskHref,
     workOrderHref,
+    siteHref,
     productHref,
     orderHref,
     socialHref,
@@ -260,6 +261,12 @@ export function AttentionDetail({
                 <div>
                   <dt>Job</dt>
                   <dd><a href={projectHref}>{detail.customerLabel}</a></dd>
+                </div>
+              ) : null}
+              {siteHref ? (
+                <div>
+                  <dt>Site</dt>
+                  <dd><a href={siteHref}>Open related site</a></dd>
                 </div>
               ) : null}
             </dl>

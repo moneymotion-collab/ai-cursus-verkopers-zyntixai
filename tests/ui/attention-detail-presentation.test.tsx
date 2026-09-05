@@ -114,7 +114,35 @@ const viewModel: AttentionDetailViewModel = {
   nextBestAction: null,
 };
 
+const WORK_ORDER_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const PROJECT_ID = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const SITE_ID = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+
 describe("AttentionDetail presentation (B1.7.6-E)", () => {
+  it("links Work Order Attention directly to its Work order, Job, and Site", () => {
+    const html = renderToStaticMarkup(
+      <AttentionDetail
+        viewModel={{
+          ...viewModel,
+          customerHref: null,
+          programHref: null,
+          enrollmentHref: null,
+          workOrderHref: `/work-orders/${WORK_ORDER_ID}?org=${ORG_ID}`,
+          projectHref: `/projects/${PROJECT_ID}?org=${ORG_ID}`,
+          siteHref: `/sites/${SITE_ID}?org=${ORG_ID}`,
+        }}
+        organizationId={ORG_ID}
+        role="staff"
+      />,
+    );
+
+    expect(html).toContain(`href="/work-orders/${WORK_ORDER_ID}?org=${ORG_ID}"`);
+    expect(html).toContain(`href="/projects/${PROJECT_ID}?org=${ORG_ID}"`);
+    expect(html).toContain(`href="/sites/${SITE_ID}?org=${ORG_ID}"`);
+    expect(html).toContain("Open related work order");
+    expect(html).toContain("Open related site");
+  });
+
   it("renders detail timeline with B–D scoped actions for owner open items", () => {
     const html = renderToStaticMarkup(
       <AttentionDetail viewModel={viewModel} organizationId={ORG_ID} role="owner" />,

@@ -27,6 +27,7 @@ import {
   type AttentionListUrlState,
 } from "@/features/attention/ui/attention-list-search-params";
 import { buildSocialWorkspaceHref } from "@/features/social-media/domain/social-navigation";
+import { siteDetailHref } from "@/features/field-operations/domain/navigation";
 import {
   toAttentionDetailPresentation,
   toAttentionSafeErrorPresentation,
@@ -53,6 +54,7 @@ export type AttentionDetailViewModel = {
   projectHref: string | null;
   taskHref: string | null;
   workOrderHref?: string | null;
+  siteHref?: string | null;
   productHref?: string | null;
   orderHref?: string | null;
   socialHref?: string | null;
@@ -293,6 +295,9 @@ export async function loadAttentionDetailPage(
         : null,
       workOrderHref: item.workOrder
         ? `/work-orders/${item.workOrder.id}?org=${encodeURIComponent(orgResult.organizationId)}`
+        : null,
+      siteHref: item.workOrder
+        ? siteDetailHref(item.workOrder.siteId, orgResult.organizationId)
         : null,
       productHref: item.productId
         ? `/products/${item.productId}?org=${encodeURIComponent(orgResult.organizationId)}`
