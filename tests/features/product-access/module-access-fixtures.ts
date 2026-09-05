@@ -10,6 +10,10 @@ export const KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY: ModuleNavVisibility = {
   sites: false,
   workOrders: false,
   dispatch: false,
+  products: false,
+  orders: false,
+  inventory: false,
+  fulfillment: false,
   programs: true,
   enrollments: true,
   progress: true,
@@ -27,6 +31,10 @@ export const SERVICE_MODULE_NAV_VISIBILITY: ModuleNavVisibility = {
   sites: false,
   workOrders: false,
   dispatch: false,
+  products: false,
+  orders: false,
+  inventory: false,
+  fulfillment: false,
   programs: false,
   enrollments: false,
   progress: false,
@@ -37,6 +45,7 @@ export const SERVICE_MODULE_NAV_VISIBILITY: ModuleNavVisibility = {
 
 /** Service foundation seeded terminology: Client(s) for the shared Customer concept. */
 export const SERVICE_PRODUCT_TERMINOLOGY: ProductTerminology = {
+  ...DEFAULT_PRODUCT_TERMINOLOGY,
   customer: { singular: "Client", plural: "Clients" },
   project: { singular: "Project", plural: "Projects" },
   site: { singular: "Site", plural: "Sites" },
@@ -54,6 +63,7 @@ export const FIELD_MODULE_NAV_VISIBILITY: ModuleNavVisibility = {
 
 /** Field foundation seeded terminology uses Job(s) for the shared Project concept. */
 export const FIELD_PRODUCT_TERMINOLOGY: ProductTerminology = {
+  ...DEFAULT_PRODUCT_TERMINOLOGY,
   customer: { singular: "Customer", plural: "Customers" },
   project: { singular: "Job", plural: "Jobs" },
   site: { singular: "Site", plural: "Sites" },

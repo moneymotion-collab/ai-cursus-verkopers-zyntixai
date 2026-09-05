@@ -65,6 +65,8 @@ export type AttentionItemListRow = Pick<
   source_type?: string | null;
   source_entity_id?: string | null;
   work_order_id?: string | null;
+  product_id?: string | null;
+  order_id?: string | null;
 };
 
 export type AttentionItemDetailRow = Pick<
@@ -100,6 +102,8 @@ export type AttentionItemDetailRow = Pick<
   source_type?: string | null;
   source_entity_id?: string | null;
   work_order_id?: string | null;
+  product_id?: string | null;
+  order_id?: string | null;
 };
 
 export type AttentionSignalRow = Pick<
@@ -393,6 +397,8 @@ export function mapAttentionItemListItem(
       projectId: row.project_id,
       taskId: row.task_id,
       workOrderId: row.work_order_id ?? null,
+      productId: row.product_id ?? null,
+      orderId: row.order_id ?? null,
       title: row.title,
       summary: row.summary,
       status: status.data,
@@ -658,6 +664,8 @@ export function mapAttentionItemDetail(
       projectId: row.project_id,
       taskId: row.task_id,
       workOrderId: row.work_order_id ?? null,
+      productId: row.product_id ?? null,
+      orderId: row.order_id ?? null,
       socialActionHref: null,
       title: row.title,
       summary: row.summary,

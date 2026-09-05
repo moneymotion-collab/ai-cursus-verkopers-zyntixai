@@ -12,7 +12,9 @@ export type AttentionSourceType =
   | "social_publication"
   | "social_connection"
   | "project"
-  | "work_order";
+  | "work_order"
+  | "product"
+  | "order";
 
 export type AttentionSignalOrigin = "manual" | "rule";
 
@@ -27,7 +29,9 @@ export type AttentionRuleKey =
   | "project_task_overdue"
   | "project_no_owner"
   | "work_order_overdue"
-  | "work_order_unassigned";
+  | "work_order_unassigned"
+  | "inventory_out_of_stock"
+  | "fulfillment_stalled";
 
 export type AttentionEventType =
   | "created"

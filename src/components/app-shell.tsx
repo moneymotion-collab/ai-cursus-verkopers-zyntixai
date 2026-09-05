@@ -45,6 +45,10 @@ export type AppShellActiveNav =
   | "sites"
   | "workOrders"
   | "dispatch"
+  | "products"
+  | "orders"
+  | "inventory"
+  | "fulfillment"
   | "programs"
   | "enrollments"
   | "progress"
@@ -156,6 +160,26 @@ function PrimaryNavFallback({
       {moduleNavVisibility.dispatch ? (
         <Link className={styles.navLink} href={withOrg("/dispatch")} aria-current={activeNav === "dispatch" ? "page" : undefined}>
           Dispatch
+        </Link>
+      ) : null}
+      {moduleNavVisibility.products ? (
+        <Link className={styles.navLink} href={withOrg("/products")} aria-current={activeNav === "products" ? "page" : undefined}>
+          {terminology.product.plural}
+        </Link>
+      ) : null}
+      {moduleNavVisibility.orders ? (
+        <Link className={styles.navLink} href={withOrg("/orders")} aria-current={activeNav === "orders" ? "page" : undefined}>
+          {terminology.order.plural}
+        </Link>
+      ) : null}
+      {moduleNavVisibility.inventory ? (
+        <Link className={styles.navLink} href={withOrg("/inventory")} aria-current={activeNav === "inventory" ? "page" : undefined}>
+          {terminology.inventory.singular}
+        </Link>
+      ) : null}
+      {moduleNavVisibility.fulfillment ? (
+        <Link className={styles.navLink} href={withOrg("/fulfillment")} aria-current={activeNav === "fulfillment" ? "page" : undefined}>
+          {terminology.fulfillment.singular}
         </Link>
       ) : null}
       {moduleNavVisibility.programs ? (
@@ -291,6 +315,26 @@ function PrimaryNav({
       {moduleNavVisibility.dispatch ? (
         <OrgAwareLink className={styles.navLink} href="/dispatch" organizationId={selectedOrganizationId} aria-current={activeNav === "dispatch" ? "page" : undefined}>
           Dispatch
+        </OrgAwareLink>
+      ) : null}
+      {moduleNavVisibility.products ? (
+        <OrgAwareLink className={styles.navLink} href="/products" organizationId={selectedOrganizationId} aria-current={activeNav === "products" ? "page" : undefined}>
+          {terminology.product.plural}
+        </OrgAwareLink>
+      ) : null}
+      {moduleNavVisibility.orders ? (
+        <OrgAwareLink className={styles.navLink} href="/orders" organizationId={selectedOrganizationId} aria-current={activeNav === "orders" ? "page" : undefined}>
+          {terminology.order.plural}
+        </OrgAwareLink>
+      ) : null}
+      {moduleNavVisibility.inventory ? (
+        <OrgAwareLink className={styles.navLink} href="/inventory" organizationId={selectedOrganizationId} aria-current={activeNav === "inventory" ? "page" : undefined}>
+          {terminology.inventory.singular}
+        </OrgAwareLink>
+      ) : null}
+      {moduleNavVisibility.fulfillment ? (
+        <OrgAwareLink className={styles.navLink} href="/fulfillment" organizationId={selectedOrganizationId} aria-current={activeNav === "fulfillment" ? "page" : undefined}>
+          {terminology.fulfillment.singular}
         </OrgAwareLink>
       ) : null}
       {moduleNavVisibility.programs ? (

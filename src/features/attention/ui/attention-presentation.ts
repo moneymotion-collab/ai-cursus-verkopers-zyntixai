@@ -158,12 +158,17 @@ export function toAttentionListItemPresentation(
     customerLabel:
       item.sourceType === "enrollment"
         ? resolveAttentionCustomerLabel(item.customerDisplayName)
+        : item.sourceType === "order"
+          ? resolveAttentionCustomerLabel(item.customerDisplayName)
         : item.sourceType === "project" || item.sourceType === "work_order"
           ? resolveAttentionProjectLabel(item.projectName)
+          : item.sourceType === "product" ? "Product inventory"
           : resolveSocialAttentionSourceLabel(item.sourceType),
     programLabel:
       item.sourceType === "enrollment"
         ? resolveAttentionProgramLabel(item.programName)
+        : item.sourceType === "order" ? "Order"
+        : item.sourceType === "product" ? "Product"
         : item.sourceType === "project" || item.sourceType === "work_order"
           ? item.sourceType === "work_order" ? "Work order" : "Project"
           : "Social",
@@ -248,6 +253,8 @@ export function resolveAttentionTypeLabelFromDetail(
   if (primarySignal?.ruleKey === "work_order_unassigned") {
     return "Work order unassigned";
   }
+  if (primarySignal?.ruleKey === "inventory_out_of_stock") return "Inventory out of stock";
+  if (primarySignal?.ruleKey === "fulfillment_stalled") return "Fulfillment stalled";
   if (primarySignal?.signalOrigin === "manual") {
     return "Manual signal";
   }
@@ -258,6 +265,8 @@ export function resolveAttentionTypeLabelFromDetail(
   if (item.sourceType === "social_connection") return "Instagram account";
   if (item.sourceType === "project") return "Project";
   if (item.sourceType === "work_order") return "Work order";
+  if (item.sourceType === "product") return "Product";
+  if (item.sourceType === "order") return "Order";
   return item.sourceType === "enrollment" ? "Enrollment" : "Attention";
 }
 
@@ -283,12 +292,17 @@ export function toAttentionDetailPresentation(
     customerLabel:
       item.sourceType === "enrollment"
         ? resolveAttentionCustomerLabel(customerName)
+        : item.sourceType === "order"
+          ? resolveAttentionCustomerLabel(customerName)
         : item.sourceType === "project" || item.sourceType === "work_order"
           ? resolveAttentionProjectLabel(projectName)
+          : item.sourceType === "product" ? "Product inventory"
           : resolveSocialAttentionSourceLabel(item.sourceType),
     programLabel:
       item.sourceType === "enrollment"
         ? resolveAttentionProgramLabel(programName)
+        : item.sourceType === "order" ? "Order"
+        : item.sourceType === "product" ? "Product"
         : item.sourceType === "project" || item.sourceType === "work_order"
           ? item.sourceType === "work_order" ? "Work order" : "Project"
           : "Social",

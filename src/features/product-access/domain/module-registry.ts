@@ -11,6 +11,12 @@ import {
 } from "@/features/field-operations/domain/navigation";
 import type { ContextRelevance } from "@/features/control-plane/domain/types";
 import type { ProductModuleId } from "@/features/product-access/domain/types";
+import {
+  FULFILLMENT_ROUTE,
+  INVENTORY_ROUTE,
+  ORDERS_ROUTE,
+  PRODUCTS_ROUTE,
+} from "@/features/product-operations/domain/navigation";
 
 export type ProductModuleCapabilityRequirement = {
   capabilityKey: string;
@@ -92,6 +98,34 @@ export const PRODUCT_MODULE_DEFINITIONS: readonly ProductModuleDefinition[] = [
       capabilityKey: "field.dispatch",
       minRelevance: "required",
     },
+  },
+  {
+    id: "products",
+    route: PRODUCTS_ROUTE,
+    label: "Products",
+    implemented: true,
+    capabilityRequirement: { capabilityKey: "product.products", minRelevance: "required" },
+  },
+  {
+    id: "orders",
+    route: ORDERS_ROUTE,
+    label: "Orders",
+    implemented: true,
+    capabilityRequirement: { capabilityKey: "product.orders", minRelevance: "required" },
+  },
+  {
+    id: "inventory",
+    route: INVENTORY_ROUTE,
+    label: "Inventory",
+    implemented: true,
+    capabilityRequirement: { capabilityKey: "product.inventory", minRelevance: "required" },
+  },
+  {
+    id: "fulfillment",
+    route: FULFILLMENT_ROUTE,
+    label: "Fulfillment",
+    implemented: true,
+    capabilityRequirement: { capabilityKey: "product.fulfillment", minRelevance: "required" },
   },
   {
     id: "programs",

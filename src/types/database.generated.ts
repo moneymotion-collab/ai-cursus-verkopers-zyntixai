@@ -147,7 +147,9 @@ export type Database = {
           id: string
           last_detected_at: string
           organization_id: string
+          order_id: string | null
           program_id: string | null
+          product_id: string | null
           project_id: string | null
           resolution_reason: string | null
           resolved_at: string | null
@@ -181,7 +183,9 @@ export type Database = {
           id?: string
           last_detected_at?: string
           organization_id: string
+          order_id?: string | null
           program_id?: string | null
+          product_id?: string | null
           project_id?: string | null
           resolution_reason?: string | null
           resolved_at?: string | null
@@ -215,7 +219,9 @@ export type Database = {
           id?: string
           last_detected_at?: string
           organization_id?: string
+          order_id?: string | null
           program_id?: string | null
+          product_id?: string | null
           project_id?: string | null
           resolution_reason?: string | null
           resolved_at?: string | null
@@ -3270,6 +3276,222 @@ export type Database = {
           id?: string
           locale?: string | null
           timezone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      inventory_balances: {
+        Row: {
+          on_hand: number
+          organization_id: string
+          product_id: string
+          updated_at: string
+        }
+        Insert: {
+          on_hand?: number
+          organization_id: string
+          product_id: string
+          updated_at?: string
+        }
+        Update: {
+          on_hand?: number
+          organization_id?: string
+          product_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      inventory_movements: {
+        Row: {
+          created_at: string
+          created_by_member_id: string
+          id: string
+          idempotency_key: string
+          movement_type: string
+          order_id: string | null
+          organization_id: string
+          product_id: string
+          quantity_delta: number
+          reason: string
+          resulting_on_hand: number
+        }
+        Insert: {
+          created_at?: string
+          created_by_member_id: string
+          id?: string
+          idempotency_key: string
+          movement_type: string
+          order_id?: string | null
+          organization_id: string
+          product_id: string
+          quantity_delta: number
+          reason: string
+          resulting_on_hand: number
+        }
+        Update: {
+          created_at?: string
+          created_by_member_id?: string
+          id?: string
+          idempotency_key?: string
+          movement_type?: string
+          order_id?: string | null
+          organization_id?: string
+          product_id?: string
+          quantity_delta?: number
+          reason?: string
+          resulting_on_hand?: number
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          organization_id: string
+          product_id: string
+          product_name_snapshot: string
+          quantity: number
+          sku_snapshot: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          organization_id: string
+          product_id: string
+          product_name_snapshot: string
+          quantity: number
+          sku_snapshot: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          organization_id?: string
+          product_id?: string
+          product_name_snapshot?: string
+          quantity?: number
+          sku_snapshot?: string
+        }
+        Relationships: []
+      }
+      order_status_history: {
+        Row: {
+          changed_by_member_id: string
+          created_at: string
+          from_status: string | null
+          id: string
+          idempotency_key: string
+          order_id: string
+          organization_id: string
+          reason: string | null
+          to_status: string
+        }
+        Insert: {
+          changed_by_member_id: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          idempotency_key: string
+          order_id: string
+          organization_id: string
+          reason?: string | null
+          to_status: string
+        }
+        Update: {
+          changed_by_member_id?: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          idempotency_key?: string
+          order_id?: string
+          organization_id?: string
+          reason?: string | null
+          to_status?: string
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          cancelled_at: string | null
+          completed_at: string | null
+          created_at: string
+          created_by_member_id: string
+          customer_id: string
+          fulfillment_status: string
+          id: string
+          idempotency_key: string
+          organization_id: string
+          reference: string
+          request_items: Json
+          status_changed_at: string
+          updated_at: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by_member_id: string
+          customer_id: string
+          fulfillment_status?: string
+          id?: string
+          idempotency_key: string
+          organization_id: string
+          reference: string
+          request_items: Json
+          status_changed_at?: string
+          updated_at?: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by_member_id?: string
+          customer_id?: string
+          fulfillment_status?: string
+          id?: string
+          idempotency_key?: string
+          organization_id?: string
+          reference?: string
+          request_items?: Json
+          status_changed_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by_member_id: string
+          description: string | null
+          id: string
+          name: string
+          organization_id: string
+          sku: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by_member_id: string
+          description?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          sku: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by_member_id?: string
+          description?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          sku?: string
           updated_at?: string
         }
         Relationships: []
@@ -7506,6 +7728,39 @@ export type Database = {
         }
         Returns: string
       }
+      adjust_product_inventory: {
+        Args: {
+          p_idempotency_key: string
+          p_organization_id: string
+          p_product_id: string
+          p_quantity_delta: number
+          p_reason: string
+        }
+        Returns: number
+      }
+      archive_product: {
+        Args: { p_organization_id: string; p_product_id: string }
+        Returns: undefined
+      }
+      create_inventory_order: {
+        Args: {
+          p_customer_id: string
+          p_idempotency_key: string
+          p_items: Json
+          p_organization_id: string
+          p_reference: string
+        }
+        Returns: string
+      }
+      create_product: {
+        Args: {
+          p_description?: string
+          p_name: string
+          p_organization_id: string
+          p_sku: string
+        }
+        Returns: string
+      }
       create_site: {
         Args: {
           p_address_line_1: string
@@ -7532,6 +7787,10 @@ export type Database = {
           p_title: string
         }
         Returns: string
+      }
+      evaluate_product_attention_rules: {
+        Args: { p_organization_id: string }
+        Returns: Json
       }
       create_customer: {
         Args: {
@@ -8458,6 +8717,10 @@ export type Database = {
         Args: { p_organization_id: string; p_project_id: string }
         Returns: undefined
       }
+      restore_product: {
+        Args: { p_organization_id: string; p_product_id: string }
+        Returns: undefined
+      }
       restore_site: {
         Args: { p_organization_id: string; p_site_id: string }
         Returns: undefined
@@ -8713,6 +8976,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      transition_order_fulfillment: {
+        Args: {
+          p_idempotency_key: string
+          p_order_id: string
+          p_organization_id: string
+          p_reason: string
+          p_to_status: string
+        }
+        Returns: undefined
+      }
       transition_program_status: {
         Args: {
           p_organization_id: string
@@ -8766,6 +9039,16 @@ export type Database = {
           p_postal_code: string
           p_project_id: string
           p_site_id: string
+        }
+        Returns: undefined
+      }
+      update_product: {
+        Args: {
+          p_description?: string
+          p_name: string
+          p_organization_id: string
+          p_product_id: string
+          p_sku: string
         }
         Returns: undefined
       }

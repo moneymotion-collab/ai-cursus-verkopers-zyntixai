@@ -8,6 +8,7 @@ import {
 } from "@/features/leads/ui/lead-presentation";
 import type { LeadDetailViewModel } from "@/features/leads/ui/load-lead-detail";
 import { LeadStatusHistorySection } from "@/features/leads/ui/lead-status-history";
+import { DEFAULT_PRODUCT_TERMINOLOGY } from "@/features/product-access/domain/terminology";
 
 const ORG_ID = "11111111-1111-4111-8111-111111111111";
 const LEAD_ID = "22222222-2222-4222-8222-222222222222";
@@ -201,6 +202,7 @@ describe("LeadDetail Service terminology (TG2-AGENCY-SLICE)", () => {
         viewModel={buildViewModel()}
         workflowLinks={{ convert: `/leads/${LEAD_ID}/convert` }}
         terminology={{
+          ...DEFAULT_PRODUCT_TERMINOLOGY,
           customer: { singular: "Client", plural: "Clients" },
           project: { singular: "Project", plural: "Projects" },
           site: { singular: "Site", plural: "Sites" },

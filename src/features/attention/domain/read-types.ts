@@ -75,6 +75,8 @@ export type AttentionItemListItemReadModel = {
   projectId: string | null;
   taskId: string | null;
   workOrderId?: string | null;
+  productId?: string | null;
+  orderId?: string | null;
   title: string;
   summary: string | null;
   status: AttentionItemStatus;
@@ -146,6 +148,8 @@ export type AttentionItemDetailReadModel = {
   projectId: string | null;
   taskId: string | null;
   workOrderId?: string | null;
+  productId?: string | null;
+  orderId?: string | null;
   socialActionHref?: string | null;
   title: string;
   summary: string | null;

@@ -77,6 +77,8 @@ export function AttentionDetail({
     projectHref,
     taskHref,
     workOrderHref,
+    productHref,
+    orderHref,
     socialHref,
     backHref,
     organizationTimezone,
@@ -237,6 +239,16 @@ export function AttentionDetail({
                   <a href={socialHref}>{detail.customerLabel}</a>
                 </dd>
               </div>
+            </dl>
+          ) : orderHref ? (
+            <dl className={styles.metaGrid}>
+              <div><dt>Order</dt><dd><a href={orderHref}>Open related order</a></dd></div>
+              <div><dt>Fulfillment</dt><dd><a href={`${orderHref.replace(/\/orders\/[^?]+/, "/fulfillment")}`}>Open fulfillment queue</a></dd></div>
+            </dl>
+          ) : productHref ? (
+            <dl className={styles.metaGrid}>
+              <div><dt>Product</dt><dd><a href={productHref}>Open related product</a></dd></div>
+              <div><dt>Inventory</dt><dd><a href={productHref.replace("/products/", "/inventory/").replace(/\?.*$/, "/adjust$&")}>Adjust inventory</a></dd></div>
             </dl>
           ) : workOrderHref ? (
             <dl className={styles.metaGrid}>

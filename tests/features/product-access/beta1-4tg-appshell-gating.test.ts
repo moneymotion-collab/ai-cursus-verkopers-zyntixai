@@ -58,11 +58,13 @@ function expectProjectsAccess(
 }
 
 describe("BETA1-4TG AppShell module access", () => {
-  it("registers shared Projects and Field-only TG3 modules", () => {
+  it("registers shared Projects plus Field and Product modules", () => {
     const moduleKeys = PRODUCT_MODULE_DEFINITIONS.map((row) => row.id);
     expect(moduleKeys).toContain("projects");
-    expect(moduleKeys).not.toContain("products");
-    expect(moduleKeys).not.toContain("orders");
+    expect(moduleKeys).toContain("products");
+    expect(moduleKeys).toContain("orders");
+    expect(moduleKeys).toContain("inventory");
+    expect(moduleKeys).toContain("fulfillment");
     expect(moduleKeys).toContain("sites");
     expect(moduleKeys).toContain("workOrders");
     expect(moduleKeys).toContain("dispatch");
@@ -78,6 +80,10 @@ describe("BETA1-4TG AppShell module access", () => {
     expect(unresolved.navVisibility.sites).toBe(false);
     expect(unresolved.navVisibility.workOrders).toBe(false);
     expect(unresolved.navVisibility.dispatch).toBe(false);
+    expect(unresolved.navVisibility.products).toBe(false);
+    expect(unresolved.navVisibility.orders).toBe(false);
+    expect(unresolved.navVisibility.inventory).toBe(false);
+    expect(unresolved.navVisibility.fulfillment).toBe(false);
     expect(
       evaluateProductModuleRouteAccess({ moduleId: "projects", access: unresolved }).allowed,
     ).toBe(false);
@@ -105,6 +111,8 @@ describe("BETA1-4TG AppShell module access", () => {
       expect(nav.sites).toBe(false);
       expect(nav.workOrders).toBe(false);
       expect(nav.dispatch).toBe(false);
+      expect(nav.products).toBe(false);
+      expect(nav.orders).toBe(false);
     });
   });
 
@@ -129,6 +137,8 @@ describe("BETA1-4TG AppShell module access", () => {
       expect(nav.sites).toBe(false);
       expect(nav.workOrders).toBe(false);
       expect(nav.dispatch).toBe(false);
+      expect(nav.products).toBe(false);
+      expect(nav.orders).toBe(false);
     });
   });
 
@@ -153,6 +163,8 @@ describe("BETA1-4TG AppShell module access", () => {
       expect(nav.sites).toBe(true);
       expect(nav.workOrders).toBe(true);
       expect(nav.dispatch).toBe(true);
+      expect(nav.products).toBe(false);
+      expect(nav.orders).toBe(false);
       for (const moduleId of ["sites", "workOrders", "dispatch"] as const) {
         expect(evaluateProductModuleRouteAccess({
           moduleId,
@@ -182,6 +194,16 @@ describe("BETA1-4TG AppShell module access", () => {
       expect(nav.sites).toBe(false);
       expect(nav.workOrders).toBe(false);
       expect(nav.dispatch).toBe(false);
+      expect(nav.products).toBe(true);
+      expect(nav.orders).toBe(true);
+      expect(nav.inventory).toBe(true);
+      expect(nav.fulfillment).toBe(true);
+      for (const moduleId of ["products", "orders", "inventory", "fulfillment"] as const) {
+        expect(evaluateProductModuleRouteAccess({
+          moduleId,
+          access: buildResolvedProductModuleAccess(capabilities),
+        }).allowed).toBe(true);
+      }
     });
   });
 

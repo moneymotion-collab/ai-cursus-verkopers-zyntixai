@@ -6,6 +6,8 @@ export const ATTENTION_SOURCE_TYPES = [
   "social_connection",
   "project",
   "work_order",
+  "product",
+  "order",
 ] as const satisfies readonly AttentionSourceType[];
 
 export const ATTENTION_PRIMARY_SOURCE_TYPE =

@@ -116,6 +116,8 @@ function resolveAttentionTypeLabel(
     if (item.primaryRuleKey === "work_order_unassigned") {
       return "Work order unassigned";
     }
+    if (item.primaryRuleKey === "inventory_out_of_stock") return "Inventory out of stock";
+    if (item.primaryRuleKey === "fulfillment_stalled") return "Fulfillment stalled";
     return item.primaryRuleKey;
   }
   if (item.primarySignalOrigin && isAttentionSignalOrigin(item.primarySignalOrigin)) {
@@ -123,6 +125,8 @@ function resolveAttentionTypeLabel(
   }
   if (item.sourceType === "project") return "Project";
   if (item.sourceType === "work_order") return "Work order";
+  if (item.sourceType === "product") return "Product";
+  if (item.sourceType === "order") return "Order";
   return item.sourceType === "enrollment" ? "Enrollment" : "Attention";
 }
 

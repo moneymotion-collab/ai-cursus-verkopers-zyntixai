@@ -10,6 +10,7 @@ import {
 } from "@/features/customers/ui/customer-presentation";
 import { CustomerHistorySection } from "@/features/customers/ui/customer-history";
 import type { ProjectRecord } from "@/features/projects/domain/types";
+import { DEFAULT_PRODUCT_TERMINOLOGY } from "@/features/product-access/domain/terminology";
 
 const viewModel: CustomerDetailViewModel = {
   customer: {
@@ -252,6 +253,7 @@ describe("Customer detail Projects continuity (TG2-AGENCY-SLICE)", () => {
         }}
         projectLinks={{ createProjectHref: "/projects/new?customerId=customer" }}
         terminology={{
+          ...DEFAULT_PRODUCT_TERMINOLOGY,
           customer: { singular: "Customer", plural: "Customers" },
           project: { singular: "Job", plural: "Jobs" },
           site: { singular: "Site", plural: "Sites" },

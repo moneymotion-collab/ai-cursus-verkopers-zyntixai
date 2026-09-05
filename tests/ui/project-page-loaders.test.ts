@@ -49,6 +49,10 @@ const moduleAccess: ProjectPageContext["moduleAccess"] = {
     sites: false,
     workOrders: false,
     dispatch: false,
+    products: false,
+    orders: false,
+    inventory: false,
+    fulfillment: false,
     programs: false,
     enrollments: false,
     progress: false,
@@ -63,6 +67,10 @@ const moduleAccess: ProjectPageContext["moduleAccess"] = {
     site: { singular: "Site", plural: "Sites" },
     workOrder: { singular: "Work order", plural: "Work orders" },
     technician: { singular: "Technician", plural: "Technicians" },
+    product: { singular: "Product", plural: "Products" },
+    order: { singular: "Order", plural: "Orders" },
+    inventory: { singular: "Inventory", plural: "Inventory" },
+    fulfillment: { singular: "Fulfillment", plural: "Fulfillment" },
   },
 };
 

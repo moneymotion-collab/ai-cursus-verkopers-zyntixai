@@ -25,6 +25,7 @@ type CustomerDetailProps = {
   workflowLinks?: CustomerWorkflowLinks;
   enrollmentLinks?: CustomerEnrollmentLinks;
   projectLinks?: CustomerProjectLinks;
+  orderLinks?: { viewOrdersHref: string; createOrderHref?: string };
   terminology?: ProductTerminology;
 };
 
@@ -73,6 +74,7 @@ export function CustomerDetail({
   workflowLinks,
   enrollmentLinks,
   projectLinks,
+  orderLinks,
   terminology = DEFAULT_PRODUCT_TERMINOLOGY,
 }: CustomerDetailProps) {
   const {
@@ -191,6 +193,15 @@ export function CustomerDetail({
         </section>
 
         <div className={styles.panels}>
+          {orderLinks ? (
+            <section>
+              <h2>{terminology.order.plural}</h2>
+              <nav className={styles.workflowLinks} aria-label="Customer orders">
+                <a href={orderLinks.viewOrdersHref}>View orders</a>
+                {orderLinks.createOrderHref ? <a href={orderLinks.createOrderHref}>New order</a> : null}
+              </nav>
+            </section>
+          ) : null}
           <CustomerProjectsSection
             projects={projects}
             projectsState={projectsState}

@@ -28,6 +28,22 @@ export type ProductTerminology = {
     singular: string;
     plural: string;
   };
+  product: {
+    singular: string;
+    plural: string;
+  };
+  order: {
+    singular: string;
+    plural: string;
+  };
+  inventory: {
+    singular: string;
+    plural: string;
+  };
+  fulfillment: {
+    singular: string;
+    plural: string;
+  };
 };
 
 const CUSTOMER_TERM_KEY = "customer";
@@ -35,6 +51,10 @@ const PROJECT_TERM_KEY = "project";
 const SITE_TERM_KEY = "site";
 const WORK_ORDER_TERM_KEY = "work_order";
 const TECHNICIAN_TERM_KEY = "technician";
+const PRODUCT_TERM_KEY = "product";
+const ORDER_TERM_KEY = "order";
+const INVENTORY_TERM_KEY = "inventory";
+const FULFILLMENT_TERM_KEY = "fulfillment";
 
 /**
  * System/default generic wording. Used when context is unresolved or a
@@ -48,6 +68,10 @@ export const DEFAULT_PRODUCT_TERMINOLOGY: ProductTerminology = {
   site: { singular: "Site", plural: "Sites" },
   workOrder: { singular: "Work order", plural: "Work orders" },
   technician: { singular: "Technician", plural: "Technicians" },
+  product: { singular: "Product", plural: "Products" },
+  order: { singular: "Order", plural: "Orders" },
+  inventory: { singular: "Inventory", plural: "Inventory" },
+  fulfillment: { singular: "Fulfillment", plural: "Fulfillment" },
 };
 
 /**
@@ -64,6 +88,10 @@ export function projectProductTerminology(
   const siteTerm = terms?.find((term) => term.termKey === SITE_TERM_KEY);
   const workOrderTerm = terms?.find((term) => term.termKey === WORK_ORDER_TERM_KEY);
   const technicianTerm = terms?.find((term) => term.termKey === TECHNICIAN_TERM_KEY);
+  const productTerm = terms?.find((term) => term.termKey === PRODUCT_TERM_KEY);
+  const orderTerm = terms?.find((term) => term.termKey === ORDER_TERM_KEY);
+  const inventoryTerm = terms?.find((term) => term.termKey === INVENTORY_TERM_KEY);
+  const fulfillmentTerm = terms?.find((term) => term.termKey === FULFILLMENT_TERM_KEY);
 
   return {
     customer: customerTerm
@@ -87,5 +115,17 @@ export function projectProductTerminology(
     technician: technicianTerm
       ? { singular: technicianTerm.singularLabel, plural: technicianTerm.pluralLabel }
       : DEFAULT_PRODUCT_TERMINOLOGY.technician,
+    product: productTerm
+      ? { singular: productTerm.singularLabel, plural: productTerm.pluralLabel }
+      : DEFAULT_PRODUCT_TERMINOLOGY.product,
+    order: orderTerm
+      ? { singular: orderTerm.singularLabel, plural: orderTerm.pluralLabel }
+      : DEFAULT_PRODUCT_TERMINOLOGY.order,
+    inventory: inventoryTerm
+      ? { singular: inventoryTerm.singularLabel, plural: inventoryTerm.pluralLabel }
+      : DEFAULT_PRODUCT_TERMINOLOGY.inventory,
+    fulfillment: fulfillmentTerm
+      ? { singular: fulfillmentTerm.singularLabel, plural: fulfillmentTerm.pluralLabel }
+      : DEFAULT_PRODUCT_TERMINOLOGY.fulfillment,
   };
 }

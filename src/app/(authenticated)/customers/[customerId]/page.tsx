@@ -19,6 +19,7 @@ import { canShowCreateEnrollmentWorkflow } from "@/features/enrollments/ui/enrol
 import { isCustomerEligibleForEnrollmentCreate } from "@/features/enrollments/domain/contextual-enrollment";
 import { buildProjectCreateHrefForCustomer } from "@/features/projects/domain/projects-navigation";
 import { projectPermissions, type ProjectRole } from "@/features/projects/domain/types";
+import { orderCreateHrefForCustomer } from "@/features/product-operations/domain/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
 
@@ -136,6 +137,15 @@ export default async function CustomerDetailPage({
           ),
         }
       : undefined;
+  const orderLinks = result.moduleAccess.navVisibility.orders
+    ? {
+        viewOrdersHref: `/orders?org=${encodeURIComponent(result.selectedOrganizationId)}&customer=${encodeURIComponent(customerId)}`,
+        createOrderHref:
+          result.role === "owner" || result.role === "admin" || result.role === "staff"
+            ? `${orderCreateHrefForCustomer(customerId)}&org=${encodeURIComponent(result.selectedOrganizationId)}`
+            : undefined,
+      }
+    : undefined;
 
   return (
     <AppShell
@@ -153,6 +163,7 @@ export default async function CustomerDetailPage({
           workflowLinks={workflowLinks}
           enrollmentLinks={enrollmentLinks}
           projectLinks={projectLinks}
+          orderLinks={orderLinks}
           terminology={result.moduleAccess.terminology}
         />
       </section>
