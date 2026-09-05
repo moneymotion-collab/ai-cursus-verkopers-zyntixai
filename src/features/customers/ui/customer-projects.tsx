@@ -18,6 +18,7 @@ type CustomerProjectsSectionProps = {
   organizationId: string;
   reloadHref?: string;
   projectLinks?: CustomerProjectLinks;
+  projectTermSingular?: string;
   projectTermPlural?: string;
 };
 
@@ -31,13 +32,19 @@ function statusVariant(
   return "neutral";
 }
 
-function ProjectLinksNav({ projectLinks }: { projectLinks?: CustomerProjectLinks }) {
+function ProjectLinksNav({
+  projectLinks,
+  projectTermSingular,
+}: {
+  projectLinks?: CustomerProjectLinks;
+  projectTermSingular: string;
+}) {
   if (!projectLinks?.createProjectHref) {
     return null;
   }
   return (
-    <nav className={styles.projectLinks} aria-label="Project actions">
-      <a href={projectLinks.createProjectHref}>New project</a>
+    <nav className={styles.projectLinks} aria-label={`${projectTermSingular} actions`}>
+      <a href={projectLinks.createProjectHref}>New {projectTermSingular.toLowerCase()}</a>
     </nav>
   );
 }
@@ -48,6 +55,7 @@ export function CustomerProjectsSection({
   organizationId,
   reloadHref,
   projectLinks,
+  projectTermSingular = "Project",
   projectTermPlural = "Projects",
 }: CustomerProjectsSectionProps) {
   if (projectsState.kind === "hidden") {
@@ -58,7 +66,10 @@ export function CustomerProjectsSection({
     return (
       <section className={styles.section} aria-labelledby="customer-projects-title">
         <h2 id="customer-projects-title">{projectTermPlural}</h2>
-        <ProjectLinksNav projectLinks={projectLinks} />
+        <ProjectLinksNav
+          projectLinks={projectLinks}
+          projectTermSingular={projectTermSingular}
+        />
         <div className={styles.error} role="alert">
           <p>{projectsState.message}</p>
           {reloadHref ? (
@@ -75,7 +86,10 @@ export function CustomerProjectsSection({
     return (
       <section className={styles.section} aria-labelledby="customer-projects-title">
         <h2 id="customer-projects-title">{projectTermPlural}</h2>
-        <ProjectLinksNav projectLinks={projectLinks} />
+        <ProjectLinksNav
+          projectLinks={projectLinks}
+          projectTermSingular={projectTermSingular}
+        />
         <p className={styles.empty}>No {projectTermPlural.toLowerCase()} are linked to this customer yet.</p>
       </section>
     );
@@ -84,7 +98,10 @@ export function CustomerProjectsSection({
   return (
     <section className={styles.section} aria-labelledby="customer-projects-title">
       <h2 id="customer-projects-title">{projectTermPlural}</h2>
-      <ProjectLinksNav projectLinks={projectLinks} />
+      <ProjectLinksNav
+        projectLinks={projectLinks}
+        projectTermSingular={projectTermSingular}
+      />
       <ul className={styles.list}>
         {projects.map((project) => (
           <li key={project.id} className={styles.item}>

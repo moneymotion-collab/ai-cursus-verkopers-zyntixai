@@ -242,6 +242,31 @@ describe("Customer detail Projects continuity (TG2-AGENCY-SLICE)", () => {
     );
   });
 
+  it("uses Job terminology for the Field Customer-to-Job creation action", () => {
+    const html = renderToStaticMarkup(
+      <CustomerDetail
+        viewModel={{
+          ...viewModel,
+          projects: [sampleProject],
+          projectsState: { kind: "ready" },
+        }}
+        projectLinks={{ createProjectHref: "/projects/new?customerId=customer" }}
+        terminology={{
+          customer: { singular: "Customer", plural: "Customers" },
+          project: { singular: "Job", plural: "Jobs" },
+          site: { singular: "Site", plural: "Sites" },
+          workOrder: { singular: "Work order", plural: "Work orders" },
+          technician: { singular: "Technician", plural: "Technicians" },
+        }}
+      />,
+    );
+
+    expect(html).toContain(">Jobs<");
+    expect(html).toContain(">New job<");
+    expect(html).toContain('aria-label="Job actions"');
+    expect(html).not.toContain(">New project<");
+  });
+
   it("renders a useful empty state when no Projects are linked yet", () => {
     const html = renderToStaticMarkup(
       <CustomerDetail

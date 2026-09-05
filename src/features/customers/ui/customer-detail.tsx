@@ -197,6 +197,7 @@ export function CustomerDetail({
             organizationId={customer.organizationId}
             reloadHref={reloadHref}
             projectLinks={projectLinks}
+            projectTermSingular={terminology.project.singular}
             projectTermPlural={terminology.project.plural}
           />
           <CustomerHistorySection
