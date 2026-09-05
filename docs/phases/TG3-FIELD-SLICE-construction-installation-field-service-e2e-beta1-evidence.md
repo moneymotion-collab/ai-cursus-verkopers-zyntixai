@@ -25,13 +25,13 @@
 | Worktree | `D:\project ai cursus verkopers.worktrees\parallel__laptop-product-track-20260707-1` |
 | Branch | `core/platform-readiness-20260707` |
 | Start HEAD | `00b8d3fbee49dd0dec48a2302fe08ddf49dce1c8` |
-| Final implementation HEAD | recorded by the follow-up evidence commit |
-| Implementation commit | `feat(beta1): complete field operations slice` |
-| Evidence HEAD commit | follow-up closure-HEAD record |
+| Final implementation HEAD | `e9cefe3e13b6e344fde242d83bd396b94cebe600` |
+| Implementation commit | `e9cefe3e13b6e344fde242d83bd396b94cebe600` — `feat(beta1): complete field operations slice` |
+| Evidence HEAD commit | `docs(beta1): record field slice closure HEAD` (the commit containing this alignment) |
 | Upstream | `origin/core/platform-readiness-20260707` |
 | Start divergence | `0 0` |
-| Final divergence | verified after normal push |
-| Worktree | clean before implementation; clean required after push |
+| Final divergence | `0 0` after normal push |
+| Worktree | clean before implementation and after push |
 
 ## Investigation
 
@@ -333,8 +333,7 @@ The implementation commit contains:
   `tests/types`, and `tests/ui`, plus expected shared fixtures/assertion
   updates.
 
-Exact file/addition/deletion counts are recorded in the closure-HEAD evidence
-commit.
+Implementation commit: `55 files changed, 4540 insertions(+), 21 deletions(-)`.
 
 ## Tests / quality
 
