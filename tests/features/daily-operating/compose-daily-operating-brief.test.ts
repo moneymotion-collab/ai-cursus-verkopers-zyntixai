@@ -300,4 +300,32 @@ describe("composeDailyOperatingBrief", () => {
       ...brief.dueTodayTasks.map((row) => row.id),
     ]).size).toBe(5);
   });
+
+  it("uses the Product name as Home context for inventory Attention", () => {
+    const brief = composeDailyOperatingBrief({
+      organizationId: ORG,
+      membershipId: ME,
+      role: "owner",
+      attentionItems: [
+        attention({
+          id: "stock",
+          severity: "high",
+          title: "Product is out of stock",
+          sourceType: "product",
+          sourceEntityId: "product-1",
+          productId: "product-1",
+          enrollmentId: null,
+          customerId: null,
+          programId: null,
+          productName: "Field tablet",
+          customerDisplayName: null,
+          programName: null,
+        }),
+      ],
+      overdueTasks: [],
+      dueTodayTasks: [],
+    });
+
+    expect(brief.organizationAttention[0]?.contextLabel).toBe("Field tablet");
+  });
 });

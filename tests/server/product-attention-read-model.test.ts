@@ -33,12 +33,13 @@ const base = {
 
 describe("Product Operations Attention mapping", () => {
   it("preserves Product source identity for safe cross-linking", () => {
-    const result = mapAttentionItemListItem(base);
+    const result = mapAttentionItemListItem(base, { productName: "Field tablet" });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.sourceType).toBe("product");
       expect(result.data.productId).toBe(base.product_id);
       expect(result.data.orderId).toBeNull();
+      expect(result.data.productName).toBe("Field tablet");
     }
   });
 

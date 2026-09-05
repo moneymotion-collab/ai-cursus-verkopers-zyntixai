@@ -98,6 +98,7 @@ export type AttentionItemListItemReadModel = {
   customerDisplayName: string | null;
   programName: string | null;
   projectName: string | null;
+  productName?: string | null;
   assigneeDisplayName: string | null;
   primarySignalOrigin: AttentionSignalOrigin | null;
   primaryRuleKey: AttentionRuleKey | null;

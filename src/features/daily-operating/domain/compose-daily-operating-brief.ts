@@ -60,6 +60,7 @@ function attentionContextLabel(item: AttentionItemListItemReadModel): string | n
     item.customerDisplayName,
     item.programName,
     item.projectName,
+    item.productName,
   ].filter((value): value is string => Boolean(value && value.trim()));
   return parts.length > 0 ? parts.join(" · ") : null;
 }

@@ -367,6 +367,7 @@ export function mapAttentionItemListItem(
     customerDisplayName?: string | null;
     programName?: string | null;
     projectName?: string | null;
+    productName?: string | null;
     assigneeDisplayName?: string | null;
     primarySignalOrigin?: AttentionItemListItemReadModel["primarySignalOrigin"];
     primaryRuleKey?: AttentionItemListItemReadModel["primaryRuleKey"];
@@ -422,6 +423,7 @@ export function mapAttentionItemListItem(
       customerDisplayName: options?.customerDisplayName ?? null,
       programName: options?.programName ?? null,
       projectName: options?.projectName ?? null,
+      productName: options?.productName ?? null,
       assigneeDisplayName: options?.assigneeDisplayName ?? null,
       primarySignalOrigin: options?.primarySignalOrigin ?? null,
       primaryRuleKey: options?.primaryRuleKey ?? null,

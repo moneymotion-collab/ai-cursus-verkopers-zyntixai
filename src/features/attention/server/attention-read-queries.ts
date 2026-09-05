@@ -289,6 +289,20 @@ async function loadProjectLabels(
   return labels;
 }
 
+async function loadProductLabels(
+  supabase: SupabaseClient<Database>,
+  organizationId: string,
+  productIds: string[],
+): Promise<Record<string, string>> {
+  if (productIds.length === 0) return {};
+  const { data } = await supabase
+    .from("products")
+    .select("id, name")
+    .eq("organization_id", organizationId)
+    .in("id", productIds);
+  return Object.fromEntries((data ?? []).map((row) => [row.id, row.name]));
+}
+
 async function loadAttentionItemGate(
   params: AttentionChildListParams,
 ): Promise<
@@ -410,10 +424,14 @@ export async function listAttentionItems(
   const projectIds = [
     ...new Set(rows.map((row) => row.project_id).filter((id): id is string => Boolean(id))),
   ];
-  const [customerLabels, programLabels, projectLabels] = await Promise.all([
+  const productIds = [
+    ...new Set(rows.map((row) => row.product_id).filter((id): id is string => Boolean(id))),
+  ];
+  const [customerLabels, programLabels, projectLabels, productLabels] = await Promise.all([
     loadCustomerLabels(params.supabase, params.organizationId, customerIds),
     loadProgramLabels(params.supabase, params.organizationId, programIds),
     loadProjectLabels(params.supabase, params.organizationId, projectIds),
+    loadProductLabels(params.supabase, params.organizationId, productIds),
   ]);
 
   const items = [];
@@ -424,6 +442,7 @@ export async function listAttentionItems(
         : null,
       programName: row.program_id ? programLabels[row.program_id] ?? null : null,
       projectName: row.project_id ? projectLabels[row.project_id] ?? null : null,
+      productName: row.product_id ? productLabels[row.product_id] ?? null : null,
       evaluatedAt: params.evaluatedAt,
     });
     if (!mapped.ok) {
