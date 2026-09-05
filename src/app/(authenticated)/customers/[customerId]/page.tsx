@@ -112,20 +112,22 @@ export default async function CustomerDetailPage({
       : undefined,
   };
 
-  const enrollmentLinks = {
-    viewEnrollmentsHref: buildEnrollmentsListHrefFromContext({
-      org: result.selectedOrganizationId,
-      customerId,
-    }),
-    createEnrollmentHref:
-      canShowCreateEnrollmentWorkflow(result.role) &&
-      isCustomerEligibleForEnrollmentCreate(result.data.customer)
-        ? buildEnrollmentCreateHrefFromContext({
-            org: result.selectedOrganizationId,
-            customerId,
-          })
-        : undefined,
-  };
+  const enrollmentLinks = result.moduleAccess.navVisibility.enrollments
+    ? {
+        viewEnrollmentsHref: buildEnrollmentsListHrefFromContext({
+          org: result.selectedOrganizationId,
+          customerId,
+        }),
+        createEnrollmentHref:
+          canShowCreateEnrollmentWorkflow(result.role) &&
+          isCustomerEligibleForEnrollmentCreate(result.data.customer)
+            ? buildEnrollmentCreateHrefFromContext({
+                org: result.selectedOrganizationId,
+                customerId,
+              })
+            : undefined,
+      }
+    : undefined;
 
   const projectLinks =
     result.moduleAccess.navVisibility.projects &&

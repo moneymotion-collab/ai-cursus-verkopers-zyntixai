@@ -106,6 +106,7 @@ export default async function LeadConvertPage({ params, searchParams }: LeadConv
           customerOptions={result.customerOptions ?? { customers: [], capped: false }}
           listState={result.listState}
           cancelHref={result.backHref}
+          terminology={result.moduleAccess.terminology}
         />
       </section>
     </AppShell>

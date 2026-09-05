@@ -106,6 +106,7 @@ export default async function LeadStatusPage({ params, searchParams }: LeadStatu
           allowedTargets={result.allowedTargets ?? []}
           listState={result.listState}
           cancelHref={result.backHref}
+          terminology={result.moduleAccess.terminology}
         />
       </section>
     </AppShell>

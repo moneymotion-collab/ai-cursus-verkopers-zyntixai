@@ -9,6 +9,7 @@ import {
 } from "@/features/leads/ui/lead-convert-form";
 import { CUSTOMER_ID } from "../helpers/lead-read-query-mocks";
 import { sampleLeadDetail } from "../helpers/lead-mutation-mocks";
+import { SERVICE_PRODUCT_TERMINOLOGY } from "../features/product-access/module-access-fixtures";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
@@ -61,5 +62,28 @@ describe("LeadConvertForm", () => {
     expect(CONVERT_EXISTING_CUSTOMER_EFFECT).toContain("Lead status becomes Converted");
     expect(CONVERT_EXISTING_CUSTOMER_EFFECT).toContain("No new customer is created");
     expect(CONVERT_EXISTING_CUSTOMER_EFFECT).not.toContain("Onboarding");
+  });
+
+  it("uses Client terminology throughout the Service conversion workflow", () => {
+    const html = renderToStaticMarkup(
+      <LeadConvertForm
+        organizationId={sampleLeadDetail.organizationId}
+        lead={sampleLeadDetail}
+        customerOptions={{
+          customers: [{ value: CUSTOMER_ID, label: "Existing Client" }],
+          capped: true,
+        }}
+        listState={listState}
+        cancelHref={`/leads/${sampleLeadDetail.id}`}
+        terminology={SERVICE_PRODUCT_TERMINOLOGY}
+      />,
+    );
+
+    expect(html).toContain("Convert lead to client");
+    expect(html).toContain("create or link a client");
+    expect(html).toContain("Create a new client from this lead");
+    expect(html).toContain("Link to an existing client");
+    expect(html).toContain("Convert to client");
+    expect(html.replace(/<[^>]+>/g, " ")).not.toMatch(/\bcustomer(?:s)?\b/i);
   });
 });

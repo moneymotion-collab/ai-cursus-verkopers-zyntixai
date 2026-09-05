@@ -9,8 +9,12 @@ import {
   listCustomerStatusHistory,
 } from "@/features/customers/server/customer-read-queries";
 import { resolveCustomerPageOrganization } from "@/features/customers/server/resolve-customer-page-organization";
-import { mockKnowledgeProductModuleAccess } from "../features/product-access/module-access-fixtures";
+import {
+  mockKnowledgeProductModuleAccess,
+  mockServiceProductModuleAccess,
+} from "../features/product-access/module-access-fixtures";
 import { listTasksForCustomer } from "@/features/tasks/server/task-read-queries";
+import { listProjectsForCustomer } from "@/features/projects/server/project-queries";
 
 const ORG_ID = "11111111-1111-4111-8111-111111111111";
 const CUSTOMER_ID = "22222222-2222-4222-8222-222222222222";
@@ -55,6 +59,10 @@ vi.mock("@/features/tasks/server/task-read-queries", () => ({
   listTasksForCustomer: vi.fn(),
 }));
 
+vi.mock("@/features/projects/server/project-queries", () => ({
+  listProjectsForCustomer: vi.fn(),
+}));
+
 vi.mock("@/features/tasks/ui/resolve-task-display-labels", () => ({
   collectLabelReferencesFromListItems: vi.fn(() => ({
     memberIds: [],
@@ -77,6 +85,7 @@ const getCustomerByIdMock = vi.mocked(getCustomerById);
 const historyMock = vi.mocked(listCustomerStatusHistory);
 const enrollmentMock = vi.mocked(listCustomerEnrollmentSummaries);
 const tasksMock = vi.mocked(listTasksForCustomer);
+const projectsMock = vi.mocked(listProjectsForCustomer);
 
 function createSupabase() {
   return {} as SupabaseClient<Database>;
@@ -111,6 +120,7 @@ beforeEach(() => {
       },
     },
   });
+  projectsMock.mockResolvedValue({ data: [], error: null });
 });
 
 describe("loadCustomerDetailPage", () => {
@@ -167,5 +177,28 @@ describe("loadCustomerDetailPage", () => {
 
     const missing = await loadCustomerDetailPage(createSupabase(), CUSTOMER_ID, { org: ORG_ID });
     expect(missing.kind).toBe("customer_unavailable");
+  });
+
+  it("does not query or expose Knowledge enrollments in Service context", async () => {
+    pageOrgMock.mockResolvedValueOnce({
+      kind: "ready",
+      organizationId: ORG_ID,
+      organizationName: "Service Org",
+      organizationOptions: [{ organizationId: ORG_ID, role: "staff", displayName: "Service Org" }],
+      role: "staff",
+      timezone: "UTC",
+      isMultiOrganization: false,
+      moduleAccess: mockServiceProductModuleAccess(),
+    });
+
+    const result = await loadCustomerDetailPage(createSupabase(), CUSTOMER_ID, { org: ORG_ID });
+
+    expect(result.kind).toBe("ready");
+    if (result.kind === "ready") {
+      expect(result.data.enrollmentState).toEqual({ kind: "hidden" });
+      expect(result.data.enrollments).toEqual([]);
+    }
+    expect(enrollmentMock).not.toHaveBeenCalled();
+    expect(projectsMock).toHaveBeenCalledWith(expect.anything(), ORG_ID, CUSTOMER_ID);
   });
 });

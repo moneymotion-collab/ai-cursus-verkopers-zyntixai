@@ -208,6 +208,7 @@ export function CustomerDetail({
             organizationId={customer.organizationId}
             reloadHref={reloadHref}
             projectLinks={projectLinks}
+            customerTermSingular={terminology.customer.singular}
             projectTermSingular={terminology.project.singular}
             projectTermPlural={terminology.project.plural}
           />

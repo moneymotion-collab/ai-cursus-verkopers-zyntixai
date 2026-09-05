@@ -18,6 +18,10 @@ import {
 } from "@/features/leads/ui/lead-navigation";
 import type { LeadListUrlState } from "@/features/leads/ui/lead-list-search-params";
 import {
+  DEFAULT_PRODUCT_TERMINOLOGY,
+  type ProductTerminology,
+} from "@/features/product-access/domain/terminology";
+import {
   LeadLifecycleFormShell,
   LeadLifecycleSummary,
 } from "@/features/leads/ui/lead-lifecycle-confirmation";
@@ -42,6 +46,7 @@ type LeadConvertFormProps = {
   customerOptions: LeadConvertCustomerOptions;
   listState: LeadListUrlState;
   cancelHref: string;
+  terminology?: ProductTerminology;
 };
 
 export function LeadConvertForm({
@@ -50,6 +55,7 @@ export function LeadConvertForm({
   customerOptions,
   listState,
   cancelHref,
+  terminology = DEFAULT_PRODUCT_TERMINOLOGY,
 }: LeadConvertFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
@@ -65,6 +71,15 @@ export function LeadConvertForm({
   const fieldErrors = uiState.kind === "field_error" ? uiState.fieldErrors : undefined;
   const locked = leadFormIsLocked(uiState);
   const isPending = uiState.kind === "pending";
+  const customerSingular = terminology.customer.singular;
+  const customerSingularLower = customerSingular.toLowerCase();
+  const customerPluralLower = terminology.customer.plural.toLowerCase();
+  const confirmationDescription =
+    `Converting this lead will create or link a ${customerSingularLower} and change the lead status to Converted.`;
+  const newCustomerEffect =
+    `A new ${customerSingularLower} will be created from this lead. The ${customerSingularLower} starts with status Onboarding. Lead status becomes Converted. Lead history and the ${customerSingularLower} link are preserved. Archiving the lead or ${customerSingularLower} later remains independent.`;
+  const existingCustomerEffect =
+    `This lead will be linked to the selected existing ${customerSingularLower}. Lead status becomes Converted. No new ${customerSingularLower} is created. Lead history and the ${customerSingularLower} link are preserved. Archiving the lead or ${customerSingularLower} later remains independent.`;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -112,8 +127,8 @@ export function LeadConvertForm({
 
   return (
     <LeadLifecycleFormShell
-      heading="Convert lead to customer"
-      description={CONVERT_LEAD_CONFIRMATION_DESCRIPTION}
+      heading={`Convert lead to ${customerSingularLower}`}
+      description={confirmationDescription}
       backHref={cancelHref}
       isPending={isPending}
       pendingLabel={isPending ? "Converting…" : undefined}
@@ -137,9 +152,9 @@ export function LeadConvertForm({
           </div>
         </dl>
         {convertMode === CONVERT_MODE_NEW ? (
-          <p className={styles.transitionEffect}>{CONVERT_NEW_CUSTOMER_EFFECT}</p>
+          <p className={styles.transitionEffect}>{newCustomerEffect}</p>
         ) : (
-          <p className={styles.transitionEffect}>{CONVERT_EXISTING_CUSTOMER_EFFECT}</p>
+          <p className={styles.transitionEffect}>{existingCustomerEffect}</p>
         )}
       </section>
 
@@ -168,7 +183,7 @@ export function LeadConvertForm({
             {reloadCustomerId ? (
               <p>
                 <a href={buildCustomerDetailHrefFromLead(reloadCustomerId, organizationId)}>
-                  Open converted customer
+                  Open converted {customerSingularLower}
                 </a>
               </p>
             ) : (
@@ -199,7 +214,7 @@ export function LeadConvertForm({
                   onChange={() => setConvertMode(CONVERT_MODE_NEW)}
                   disabled={locked}
                 />
-                <span>Create a new customer from this lead</span>
+                <span>Create a new {customerSingularLower} from this lead</span>
               </label>
             </div>
             {customerOptions.customers.length > 0 ? (
@@ -214,7 +229,7 @@ export function LeadConvertForm({
                     onChange={() => setConvertMode(CONVERT_MODE_EXISTING)}
                     disabled={locked}
                   />
-                  <span>Link to an existing customer</span>
+                  <span>Link to an existing {customerSingularLower}</span>
                 </label>
               </div>
             ) : null}
@@ -223,9 +238,9 @@ export function LeadConvertForm({
 
         {convertMode === CONVERT_MODE_EXISTING ? (
           <section className={styles.section} aria-labelledby="convert-customer-title">
-            <h2 id="convert-customer-title">Existing customer</h2>
+            <h2 id="convert-customer-title">Existing {customerSingularLower}</h2>
             <div className={styles.field}>
-              <label htmlFor="convert-existing-customer">Customer</label>
+              <label htmlFor="convert-existing-customer">{customerSingular}</label>
               <select
                 id="convert-existing-customer"
                 name="existingCustomerId"
@@ -253,7 +268,7 @@ export function LeadConvertForm({
             </div>
             {customerOptions.capped ? (
               <p className={styles.transitionEffect}>
-                Showing the first available customers in this organization.
+                Showing the first available {customerPluralLower} in this organization.
               </p>
             ) : null}
           </section>
@@ -276,7 +291,7 @@ export function LeadConvertForm({
 
         <div className={styles.actions}>
           <button type="submit" className={styles.submitButton} disabled={locked || isPending}>
-            {isPending ? "Converting…" : "Convert to customer"}
+            {isPending ? "Converting…" : `Convert to ${customerSingularLower}`}
           </button>
           <a className={styles.secondaryButton} href={cancelHref}>
             Cancel

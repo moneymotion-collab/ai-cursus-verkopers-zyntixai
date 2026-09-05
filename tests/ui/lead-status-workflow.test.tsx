@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { LeadStatusForm } from "@/features/leads/ui/lead-status-form";
 import { sampleLeadDetail } from "../helpers/lead-mutation-mocks";
+import { SERVICE_PRODUCT_TERMINOLOGY } from "../features/product-access/module-access-fixtures";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
@@ -36,5 +37,21 @@ describe("LeadStatusForm", () => {
     expect(html).not.toContain("won deals");
     expect(html).not.toContain("Converted");
     expect(html).not.toContain('value="converted"');
+  });
+
+  it("uses Client terminology in Service conversion guidance", () => {
+    const html = renderToStaticMarkup(
+      <LeadStatusForm
+        organizationId={sampleLeadDetail.organizationId}
+        lead={sampleLeadDetail}
+        allowedTargets={["lost", "disqualified"]}
+        listState={listState}
+        cancelHref={`/leads/${sampleLeadDetail.id}`}
+        terminology={SERVICE_PRODUCT_TERMINOLOGY}
+      />,
+    );
+
+    expect(html).toContain("Convert to client.");
+    expect(html).not.toContain("Convert to customer.");
   });
 });

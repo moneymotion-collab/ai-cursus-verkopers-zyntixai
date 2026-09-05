@@ -279,6 +279,21 @@ describe("Customer detail Projects continuity (TG2-AGENCY-SLICE)", () => {
     expect(html).toContain("No projects are linked to this customer yet.");
   });
 
+  it("uses Client terminology in the Service Projects empty state", () => {
+    const html = renderToStaticMarkup(
+      <CustomerDetail
+        viewModel={{ ...viewModel, projects: [], projectsState: { kind: "empty" } }}
+        terminology={{
+          ...DEFAULT_PRODUCT_TERMINOLOGY,
+          customer: { singular: "Client", plural: "Clients" },
+        }}
+      />,
+    );
+
+    expect(html).toContain("No projects are linked to this client yet.");
+    expect(html).not.toContain("linked to this customer");
+  });
+
   it("omits the Projects section entirely when hidden (module not visible in this context)", () => {
     const html = renderToStaticMarkup(
       <CustomerDetail

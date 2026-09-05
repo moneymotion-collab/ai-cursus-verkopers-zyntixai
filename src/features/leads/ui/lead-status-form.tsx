@@ -18,6 +18,10 @@ import {
 } from "@/features/leads/ui/lead-form-state";
 import { buildLeadDetailHref } from "@/features/leads/ui/lead-navigation";
 import type { LeadListUrlState } from "@/features/leads/ui/lead-list-search-params";
+import {
+  DEFAULT_PRODUCT_TERMINOLOGY,
+  type ProductTerminology,
+} from "@/features/product-access/domain/terminology";
 import styles from "./lead-form.module.css";
 
 type LeadStatusFormProps = {
@@ -26,6 +30,7 @@ type LeadStatusFormProps = {
   allowedTargets: LeadStatus[];
   listState: LeadListUrlState;
   cancelHref: string;
+  terminology?: ProductTerminology;
 };
 
 export function LeadStatusForm({
@@ -34,6 +39,7 @@ export function LeadStatusForm({
   allowedTargets,
   listState,
   cancelHref,
+  terminology = DEFAULT_PRODUCT_TERMINOLOGY,
 }: LeadStatusFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
@@ -45,6 +51,7 @@ export function LeadStatusForm({
   const locked = leadFormIsLocked(uiState);
   const isPending = uiState.kind === "pending";
   const effectExplanation = getLeadStatusTransitionEffectExplanation(lead.status, toStatus);
+  const customerSingularLower = terminology.customer.singular.toLowerCase();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -98,7 +105,7 @@ export function LeadStatusForm({
       </p>
       <p>
         Pipeline stage stays <strong>{lead.stage.name}</strong>. To complete a successful lead, use
-        Convert to customer.
+        {" "}Convert to {customerSingularLower}.
       </p>
 
       {uiState.kind === "error" ? (

@@ -18,6 +18,7 @@ type CustomerProjectsSectionProps = {
   organizationId: string;
   reloadHref?: string;
   projectLinks?: CustomerProjectLinks;
+  customerTermSingular?: string;
   projectTermSingular?: string;
   projectTermPlural?: string;
 };
@@ -55,6 +56,7 @@ export function CustomerProjectsSection({
   organizationId,
   reloadHref,
   projectLinks,
+  customerTermSingular = "Customer",
   projectTermSingular = "Project",
   projectTermPlural = "Projects",
 }: CustomerProjectsSectionProps) {
@@ -90,7 +92,10 @@ export function CustomerProjectsSection({
           projectLinks={projectLinks}
           projectTermSingular={projectTermSingular}
         />
-        <p className={styles.empty}>No {projectTermPlural.toLowerCase()} are linked to this customer yet.</p>
+        <p className={styles.empty}>
+          No {projectTermPlural.toLowerCase()} are linked to this{" "}
+          {customerTermSingular.toLowerCase()} yet.
+        </p>
       </section>
     );
   }

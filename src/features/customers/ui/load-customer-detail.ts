@@ -281,7 +281,10 @@ export async function loadCustomerDetailPage(
     }
   }
 
-  if (permissions.canViewEnrollmentSummary) {
+  if (
+    permissions.canViewEnrollmentSummary &&
+    orgResult.moduleAccess.navVisibility.enrollments
+  ) {
     const enrollmentResult = await listCustomerEnrollmentSummaries({
       supabase,
       organizationId: orgResult.organizationId,
