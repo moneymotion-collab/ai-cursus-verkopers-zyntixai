@@ -7,6 +7,9 @@ import * as leadMutations from "@/features/leads/server/lead-mutations";
 import * as orgContext from "@/features/organizations/server/resolve-organization-context";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { LEAD_MUTATION_REFRESH_HINTS } from "@/features/leads/domain/types";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
+import { buildUnresolvedProductModuleAccess } from "@/features/product-access/domain/module-access";
 import {
   archiveRestoreInput,
   convertLeadInput,
@@ -64,6 +67,14 @@ vi.mock("@/features/organizations/server/resolve-organization-context", () => ({
   resolveOrganizationContext: vi.fn(),
 }));
 
+vi.mock("@/features/product-access/server/load-product-module-access", () => ({
+  loadProductModuleAccess: vi.fn(),
+}));
+
+vi.mock("@/features/product-access/server/enforce-product-module-access", () => ({
+  evaluateProductModuleRouteAccess: vi.fn(),
+}));
+
 vi.mock("@/features/leads/server/lead-mutations", () => ({
   createLeadMutation: vi.fn(),
   updateLeadProfileMutation: vi.fn(),
@@ -78,6 +89,8 @@ vi.mock("@/features/leads/server/lead-mutations", () => ({
 
 const serverClientMock = vi.mocked(createSupabaseServerClient);
 const resolveOrganizationContext = vi.mocked(orgContext.resolveOrganizationContext);
+const loadModuleAccessMock = vi.mocked(loadProductModuleAccess);
+const evaluateRouteAccessMock = vi.mocked(evaluateProductModuleRouteAccess);
 const mutationMocks = {
   create: vi.mocked(leadMutations.createLeadMutation),
   update: vi.mocked(leadMutations.updateLeadProfileMutation),
@@ -100,6 +113,8 @@ beforeEach(() => {
       userId: "44444444-4444-4444-8444-444444444444",
     },
   });
+  loadModuleAccessMock.mockResolvedValue(buildUnresolvedProductModuleAccess());
+  evaluateRouteAccessMock.mockReturnValue({ allowed: true });
   mutationMocks.create.mockResolvedValue(successResult);
   mutationMocks.update.mockResolvedValue(committedRefreshFailure);
   mutationMocks.transitionStage.mockResolvedValue(successResult);
@@ -175,5 +190,38 @@ describe("lead server actions", () => {
       expect(result.error.code).toBe("ORG_CONTEXT_MISSING");
     }
     expect(mutationMocks.create).not.toHaveBeenCalled();
+  });
+
+  it("denies every lead mutation when the Leads module route is hidden", async () => {
+    evaluateRouteAccessMock.mockReturnValue({
+      allowed: false,
+      message: "This area is not available for your organization.",
+    });
+
+    const results = await Promise.all([
+      leadActions.createLeadAction(createLeadInput),
+      leadActions.updateLeadProfileAction(updateProfileInput),
+      leadActions.transitionLeadStageAction(transitionStageInput),
+      leadActions.transitionLeadStatusAction(transitionStatusInput),
+      leadActions.convertLeadToCustomerAction(convertLeadInput),
+      leadActions.archiveLeadAction(archiveRestoreInput),
+      leadActions.restoreLeadAction(archiveRestoreInput),
+    ]);
+
+    expect(results).toHaveLength(7);
+    for (const result of results) {
+      expect(result.ok).toBe(false);
+      if (!result.ok && !result.committed) {
+        expect(result.error.code).toBe("PERMISSION_DENIED");
+      }
+    }
+    expect(evaluateRouteAccessMock).toHaveBeenCalledTimes(7);
+    expect(evaluateRouteAccessMock).toHaveBeenCalledWith({
+      moduleId: "leads",
+      access: expect.any(Object),
+    });
+    for (const mutation of Object.values(mutationMocks)) {
+      expect(mutation).not.toHaveBeenCalled();
+    }
   });
 });

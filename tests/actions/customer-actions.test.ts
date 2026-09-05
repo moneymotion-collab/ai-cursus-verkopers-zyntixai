@@ -7,6 +7,9 @@ import * as customerMutations from "@/features/customers/server/customer-mutatio
 import * as orgContext from "@/features/organizations/server/resolve-organization-context";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { CUSTOMER_MUTATION_REFRESH_HINTS } from "@/features/customers/domain/types";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
+import { buildUnresolvedProductModuleAccess } from "@/features/product-access/domain/module-access";
 import {
   archiveRestoreInput,
   createCustomerInput,
@@ -51,6 +54,14 @@ vi.mock("@/features/organizations/server/resolve-organization-context", () => ({
   resolveOrganizationContext: vi.fn(),
 }));
 
+vi.mock("@/features/product-access/server/load-product-module-access", () => ({
+  loadProductModuleAccess: vi.fn(),
+}));
+
+vi.mock("@/features/product-access/server/enforce-product-module-access", () => ({
+  evaluateProductModuleRouteAccess: vi.fn(),
+}));
+
 vi.mock("@/features/customers/server/customer-mutations", () => ({
   createCustomerMutation: vi.fn(),
   updateCustomerProfileMutation: vi.fn(),
@@ -63,6 +74,8 @@ vi.mock("@/features/customers/server/customer-mutations", () => ({
 
 const serverClientMock = vi.mocked(createSupabaseServerClient);
 const resolveOrganizationContext = vi.mocked(orgContext.resolveOrganizationContext);
+const loadModuleAccessMock = vi.mocked(loadProductModuleAccess);
+const evaluateRouteAccessMock = vi.mocked(evaluateProductModuleRouteAccess);
 const mutationMocks = {
   create: vi.mocked(customerMutations.createCustomerMutation),
   update: vi.mocked(customerMutations.updateCustomerProfileMutation),
@@ -83,6 +96,8 @@ beforeEach(() => {
       userId: "44444444-4444-4444-8444-444444444444",
     },
   });
+  loadModuleAccessMock.mockResolvedValue(buildUnresolvedProductModuleAccess());
+  evaluateRouteAccessMock.mockReturnValue({ allowed: true });
   mutationMocks.create.mockResolvedValue(successResult);
   mutationMocks.update.mockResolvedValue(committedRefreshFailure);
   mutationMocks.transition.mockResolvedValue(successResult);
@@ -156,5 +171,36 @@ describe("customer server actions", () => {
   it("does not expose generic dispatcher exports", () => {
     expect(Object.keys(customerActions)).not.toContain("customerMutationAction");
     expect(Object.keys(customerActions)).not.toContain("dispatchCustomerMutation");
+  });
+
+  it("denies every customer mutation when the Customers module route is hidden", async () => {
+    evaluateRouteAccessMock.mockReturnValue({
+      allowed: false,
+      message: "This area is not available for your organization.",
+    });
+
+    const results = await Promise.all([
+      customerActions.createCustomerAction(createCustomerInput),
+      customerActions.updateCustomerProfileAction(updateProfileInput),
+      customerActions.transitionCustomerStatusAction(transitionStatusInput),
+      customerActions.archiveCustomerAction(archiveRestoreInput),
+      customerActions.restoreCustomerAction(archiveRestoreInput),
+    ]);
+
+    expect(results).toHaveLength(5);
+    for (const result of results) {
+      expect(result.ok).toBe(false);
+      if (!result.ok && !result.committed) {
+        expect(result.error.code).toBe("PERMISSION_DENIED");
+      }
+    }
+    expect(evaluateRouteAccessMock).toHaveBeenCalledTimes(5);
+    expect(evaluateRouteAccessMock).toHaveBeenCalledWith({
+      moduleId: "customers",
+      access: expect.any(Object),
+    });
+    for (const mutation of Object.values(mutationMocks)) {
+      expect(mutation).not.toHaveBeenCalled();
+    }
   });
 });

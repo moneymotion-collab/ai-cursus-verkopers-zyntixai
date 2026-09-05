@@ -7,6 +7,8 @@ import { resolveOrganizationContext } from "@/features/organizations/server/reso
 import { loadActiveOrganizationMembers } from "@/features/invitations/server/load-active-organization-members";
 import { loadPendingOrganizationInvitations } from "@/features/invitations/server/load-pending-organization-invitations";
 import { redirectIfOrganizationOnboardingIncomplete } from "@/features/onboarding/server/enforce-product-onboarding";
+import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
+import { mockKnowledgeProductModuleAccess } from "../product-access/module-access-fixtures";
 
 vi.mock("@/features/organizations/server/resolve-organization-context", () => ({
   listActiveOrganizationMemberships: vi.fn(),
@@ -33,6 +35,7 @@ const resolveOrgContextMock = vi.mocked(resolveOrganizationContext);
 const loadMembersMock = vi.mocked(loadActiveOrganizationMembers);
 const loadInvitationsMock = vi.mocked(loadPendingOrganizationInvitations);
 const onboardingMock = vi.mocked(redirectIfOrganizationOnboardingIncomplete);
+const loadModuleAccessMock = vi.mocked(loadProductModuleAccess);
 
 const ORG_ID = "11111111-1111-4111-8111-111111111111";
 const OTHER_ORG = "99999999-9999-4999-8999-999999999999";
@@ -78,6 +81,7 @@ describe("loadMemberAdministrationPage authorization", () => {
     onboardingMock.mockResolvedValue(undefined as never);
     loadMembersMock.mockResolvedValue({ ok: true, members: [] });
     loadInvitationsMock.mockResolvedValue({ ok: true, invitations: [] });
+    loadModuleAccessMock.mockResolvedValue(mockKnowledgeProductModuleAccess());
   });
 
   it("allows active Owner and loads members + pending invitations", async () => {
@@ -146,6 +150,47 @@ describe("loadMemberAdministrationPage authorization", () => {
     });
 
     expect(result.kind).toBe("forbidden");
+    expect(loadInvitationsMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    {
+      label: "hidden",
+      access: {
+        ...mockKnowledgeProductModuleAccess(),
+        navVisibility: {
+          ...mockKnowledgeProductModuleAccess().navVisibility,
+          members: false,
+        },
+      },
+    },
+    {
+      label: "unresolved",
+      access: {
+        ...mockKnowledgeProductModuleAccess(),
+        resolution: "unresolved" as const,
+        relevantCapabilities: null,
+        navVisibility: {
+          ...mockKnowledgeProductModuleAccess().navVisibility,
+          members: false,
+        },
+      },
+    },
+  ])("denies direct route when members capability is $label before privileged reads", async ({ access }) => {
+    listMembershipsMock.mockResolvedValue({
+      ok: true,
+      memberships: [{ organizationId: ORG_ID, role: "owner" }],
+    });
+    resolveOrgContextMock.mockResolvedValue(readyContext("owner"));
+    loadModuleAccessMock.mockResolvedValue(access);
+
+    const result = await loadMemberAdministrationPage(createSupabase(), {
+      org: ORG_ID,
+    });
+
+    expect(result).toMatchObject({ kind: "forbidden", role: "owner" });
+    expect(loadModuleAccessMock).toHaveBeenCalledWith(ORG_ID);
+    expect(loadMembersMock).not.toHaveBeenCalled();
     expect(loadInvitationsMock).not.toHaveBeenCalled();
   });
 

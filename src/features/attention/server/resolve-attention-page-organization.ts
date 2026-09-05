@@ -12,6 +12,7 @@ import {
   resolveSelectedOrganization,
   type OrganizationOption,
 } from "@/features/tasks/ui/resolve-task-organization-selection";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
 import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
 import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
@@ -124,6 +125,13 @@ export async function resolveAttentionPageOrganization(
   );
 
   const moduleAccess = await loadProductModuleAccess(selection.organizationId);
+  const routeAccess = evaluateProductModuleRouteAccess({
+    moduleId: "attention",
+    access: moduleAccess,
+  });
+  if (!routeAccess.allowed) {
+    return { kind: "org_context_missing", message: routeAccess.message };
+  }
 
   return {
     kind: "ready",

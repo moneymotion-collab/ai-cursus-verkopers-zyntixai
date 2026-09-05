@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import * as lifecycleAttentionActions from "@/features/attention/actions/lifecycle-attention-actions";
 import * as attentionAdapters from "@/features/attention/server/attention-rpc-adapters";
+import { evaluateAttentionModuleAccess } from "@/features/attention/server/enforce-attention-module-access";
 import * as orgContext from "@/features/organizations/server/resolve-organization-context";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
@@ -37,7 +38,12 @@ vi.mock("@/features/attention/server/attention-rpc-adapters", () => ({
   archiveAttentionItem: vi.fn(),
 }));
 
+vi.mock("@/features/attention/server/enforce-attention-module-access", () => ({
+  evaluateAttentionModuleAccess: vi.fn(),
+}));
+
 const serverClientMock = vi.mocked(createSupabaseServerClient);
+const moduleAccessMock = vi.mocked(evaluateAttentionModuleAccess);
 const resolveOrganizationContext = vi.mocked(orgContext.resolveOrganizationContext);
 const acknowledgeMock = vi.mocked(attentionAdapters.acknowledgeAttentionItem);
 const assignMock = vi.mocked(attentionAdapters.assignAttentionItem);
@@ -61,6 +67,7 @@ function mockOrgRole(role: "owner" | "admin" | "staff" | "viewer") {
 beforeEach(() => {
   vi.clearAllMocks();
   serverClientMock.mockResolvedValue(mockSupabase);
+  moduleAccessMock.mockResolvedValue({ allowed: true });
   mockOrgRole("owner");
   acknowledgeMock.mockResolvedValue({
     ok: true,
@@ -228,6 +235,34 @@ describe("attention lifecycle server actions (B1.7.6-A)", () => {
     expect(resolveMock).toHaveBeenCalledOnce();
     expect(dismissMock).toHaveBeenCalledOnce();
     expect(archiveMock).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ["acknowledge", () => lifecycleAttentionActions.acknowledgeAttentionItemAction({ organizationId: ORG_ID, attentionItemId: ATTENTION_ITEM_ID }), acknowledgeMock],
+    ["assign", () => lifecycleAttentionActions.assignAttentionItemAction({ organizationId: ORG_ID, attentionItemId: ATTENTION_ITEM_ID, assigneeMemberId: MEMBER_ID }), assignMock],
+    ["update severity", () => lifecycleAttentionActions.updateAttentionSeverityAction({ organizationId: ORG_ID, attentionItemId: ATTENTION_ITEM_ID, severity: "low" }), severityMock],
+    ["resolve", () => lifecycleAttentionActions.resolveAttentionItemAction({ organizationId: ORG_ID, attentionItemId: ATTENTION_ITEM_ID, resolutionReason: "Done" }), resolveMock],
+    ["dismiss", () => lifecycleAttentionActions.dismissAttentionItemAction({ organizationId: ORG_ID, attentionItemId: ATTENTION_ITEM_ID, dismissalReason: "No longer relevant" }), dismissMock],
+    ["archive", () => lifecycleAttentionActions.archiveAttentionItemAction({ organizationId: ORG_ID, attentionItemId: ATTENTION_ITEM_ID }), archiveMock],
+  ] as const)("denies %s before its adapter when Attention is hidden", async (_name, run, adapter) => {
+    moduleAccessMock.mockResolvedValue({
+      allowed: false,
+      error: {
+        code: "PERMISSION_DENIED",
+        message: "This area is not available for your organization.",
+        retryable: false,
+        category: "permission",
+      },
+    });
+
+    const result = await run();
+
+    expect(result).toMatchObject({
+      ok: false,
+      committed: false,
+      error: { code: "PERMISSION_DENIED" },
+    });
+    expect(adapter).not.toHaveBeenCalled();
   });
 
   it("returns recoverable unexpected errors when the boundary throws", async () => {

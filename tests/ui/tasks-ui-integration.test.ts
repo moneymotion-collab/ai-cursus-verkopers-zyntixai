@@ -94,6 +94,22 @@ beforeEach(() => {
 });
 
 describe("tasks UI multi-organization integration", () => {
+  it("suppresses all feature reads when the shared Tasks route gate denies access", async () => {
+    pageOrgMock.mockResolvedValue({
+      kind: "org_context_missing",
+      message: "This area is not available for your organization.",
+    });
+
+    const result = await loadTasksPage(createSupabase(), { org: ORG_A });
+
+    expect(result).toEqual({
+      kind: "org_context_missing",
+      message: "This area is not available for your organization.",
+    });
+    expect(memberOptionsMock).not.toHaveBeenCalled();
+    expect(listTasksMock).not.toHaveBeenCalled();
+  });
+
   it("suppresses list and member-option queries when organization selection is required", async () => {
     pageOrgMock.mockResolvedValue({
       kind: "organization_required",

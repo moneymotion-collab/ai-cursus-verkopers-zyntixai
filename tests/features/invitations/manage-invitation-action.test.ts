@@ -39,6 +39,8 @@ import { revokeInvitationAction } from "@/features/invitations/actions/revoke-in
 import { RESEND_INVITATION_MESSAGES } from "@/features/invitations/server/resend-invitation-result";
 import { REVOKE_INVITATION_MESSAGES } from "@/features/invitations/server/revoke-invitation-result";
 import { MEMBERS_ROUTE } from "@/features/invitations/domain/members-navigation";
+import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
+import { mockKnowledgeProductModuleAccess } from "../product-access/module-access-fixtures";
 
 const ORG_ID = "11111111-1111-4111-8111-111111111111";
 const OTHER_ORG = "99999999-9999-4999-8999-999999999999";
@@ -47,6 +49,7 @@ const MEMBERSHIP_ID = "33333333-3333-4333-8333-333333333333";
 const INVITE_ID = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
 const SENTINEL = "RAW_TOKEN_SENTINEL_MUST_NOT_LEAK";
 const FUTURE = "2099-01-01T00:00:00.000Z";
+const loadModuleAccessMock = vi.mocked(loadProductModuleAccess);
 
 function readyContext(role: "owner" | "admin" | "staff" | "viewer") {
   return {
@@ -83,6 +86,7 @@ describe("resendInvitationAction / revokeInvitationAction", () => {
       data: { user: { id: USER_ID } },
       error: null,
     });
+    loadModuleAccessMock.mockResolvedValue(mockKnowledgeProductModuleAccess());
   });
 
   it("Owner may resend viewer/staff/admin and revalidates without leaking token", async () => {
@@ -259,6 +263,48 @@ describe("resendInvitationAction / revokeInvitationAction", () => {
       }
     }
   });
+
+  it.each([
+    ["resend", "hidden"],
+    ["resend", "unresolved"],
+    ["revoke", "hidden"],
+    ["revoke", "unresolved"],
+  ] as const)(
+    "denies %s when members capability is %s before invitation read",
+    async (operation, state) => {
+      resolveOrgContextMock.mockResolvedValue(readyContext("owner"));
+      const resolvedAccess = mockKnowledgeProductModuleAccess();
+      const hiddenNav = { ...resolvedAccess.navVisibility, members: false };
+      loadModuleAccessMock.mockResolvedValue(
+        state === "unresolved"
+          ? {
+              resolution: "unresolved",
+              relevantCapabilities: null,
+              navVisibility: hiddenNav,
+              terminology: resolvedAccess.terminology,
+            }
+          : { ...resolvedAccess, navVisibility: hiddenNav },
+      );
+
+      const result =
+        operation === "resend"
+          ? await resendInvitationAction({
+              organizationId: ORG_ID,
+              invitationId: INVITE_ID,
+            })
+          : await revokeInvitationAction({
+              organizationId: ORG_ID,
+              invitationId: INVITE_ID,
+            });
+
+      expect(result.code).toBe("forbidden");
+      expect(loadModuleAccessMock).toHaveBeenCalledWith(ORG_ID);
+      expect(loadInvitationMock).not.toHaveBeenCalled();
+      expect(resendRpcMock).not.toHaveBeenCalled();
+      expect(revokeRpcMock).not.toHaveBeenCalled();
+      expect(revalidatePathMock).not.toHaveBeenCalled();
+    },
+  );
 
   it("fails closed when active organization context is missing", async () => {
     resolveOrgContextMock.mockResolvedValue({

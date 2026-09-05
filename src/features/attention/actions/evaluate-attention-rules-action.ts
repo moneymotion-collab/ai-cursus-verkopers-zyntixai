@@ -18,6 +18,7 @@ import {
   listAttentionEvaluateRevalidationPaths,
   resolveAttentionEvaluateReturnPath,
 } from "@/features/attention/ui/attention-evaluate-return";
+import { evaluateAttentionModuleAccess } from "@/features/attention/server/enforce-attention-module-access";
 import { elevateStaleProgressAttentionForHomeSurfacing } from "@/features/attention/server/elevate-stale-progress-attention-for-home";
 import { resolveOrganizationContext } from "@/features/organizations/server/resolve-organization-context";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -81,6 +82,17 @@ export async function evaluateAttentionRulesAction(
         action: ATTENTION_EVALUATE_RULES_ACTION,
         committed: false,
         error: mapOrganizationContextError(org.error),
+        returnPath: fallbackReturnPath,
+      };
+    }
+
+    const access = await evaluateAttentionModuleAccess(org.context.organizationId);
+    if (!access.allowed) {
+      return {
+        ok: false,
+        action: ATTENTION_EVALUATE_RULES_ACTION,
+        committed: false,
+        error: access.error,
         returnPath: fallbackReturnPath,
       };
     }

@@ -18,6 +18,7 @@ import type {
 } from "@/features/invitations/domain/member-administration-read-types";
 import { loadActiveOrganizationMembers } from "@/features/invitations/server/load-active-organization-members";
 import { loadPendingOrganizationInvitations } from "@/features/invitations/server/load-pending-organization-invitations";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
 import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
 import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 
@@ -144,6 +145,19 @@ export async function loadMemberAdministrationPage(
     role,
   );
 
+  const moduleAccess = await loadProductModuleAccess(organizationId);
+  const routeAccess = evaluateProductModuleRouteAccess({
+    moduleId: "members",
+    access: moduleAccess,
+  });
+  if (!routeAccess.allowed) {
+    return {
+      kind: "forbidden",
+      message: routeAccess.message,
+      role,
+    };
+  }
+
   const [membersResult, invitationsResult] = await Promise.all([
     loadActiveOrganizationMembers(supabase, organizationId),
     loadPendingOrganizationInvitations(supabase, organizationId),
@@ -166,8 +180,6 @@ export async function loadMemberAdministrationPage(
     organizationOptions.find((o) => o.organizationId === organizationId)
       ?.displayName ||
     "Organization";
-
-  const moduleAccess = await loadProductModuleAccess(organizationId);
 
   return {
     kind: "success",

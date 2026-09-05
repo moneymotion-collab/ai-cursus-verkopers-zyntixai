@@ -16,6 +16,8 @@ import {
 import { loadOrganizationDisplayNameForDelivery } from "@/features/invitations/server/delivery/load-organization-display-name";
 import { createSupabaseInvitationDeliveryAttemptStore } from "@/features/invitations/server/delivery/attempt-store";
 import { orchestrateInvitationDelivery } from "@/features/invitations/server/delivery/orchestrate-invitation-delivery";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
 
 export type CreateInvitationActionInput = {
   organizationId: string;
@@ -92,6 +94,19 @@ export async function createInvitationAction(
     if (
       !canCreateOrganizationInvitation(role, "active", parsed.data.targetRole)
     ) {
+      return {
+        ok: false,
+        code: "forbidden",
+        message: CREATE_INVITATION_MESSAGES.forbidden,
+      };
+    }
+
+    const moduleAccess = await loadProductModuleAccess(organizationId);
+    const routeAccess = evaluateProductModuleRouteAccess({
+      moduleId: "members",
+      access: moduleAccess,
+    });
+    if (!routeAccess.allowed) {
       return {
         ok: false,
         code: "forbidden",

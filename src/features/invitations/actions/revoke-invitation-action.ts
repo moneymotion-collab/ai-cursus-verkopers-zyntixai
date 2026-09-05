@@ -14,6 +14,9 @@ import {
   toRevokeInvitationActionResult,
   type RevokeInvitationActionResult,
 } from "@/features/invitations/server/revoke-invitation-result";
+import { canAccessMemberAdministration } from "@/features/invitations/domain/member-administration-access";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
 
 export type RevokeInvitationActionInput = {
   organizationId: string;
@@ -72,6 +75,27 @@ export async function revokeInvitationAction(
     }
 
     const { role, organizationId } = orgContext.context;
+
+    if (!canAccessMemberAdministration(role, "active")) {
+      return {
+        ok: false,
+        code: "forbidden",
+        message: REVOKE_INVITATION_MESSAGES.forbidden,
+      };
+    }
+
+    const moduleAccess = await loadProductModuleAccess(organizationId);
+    const routeAccess = evaluateProductModuleRouteAccess({
+      moduleId: "members",
+      access: moduleAccess,
+    });
+    if (!routeAccess.allowed) {
+      return {
+        ok: false,
+        code: "forbidden",
+        message: REVOKE_INVITATION_MESSAGES.forbidden,
+      };
+    }
 
     const loaded = await loadInvitationForManage(supabase, {
       organizationId,

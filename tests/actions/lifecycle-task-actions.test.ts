@@ -6,6 +6,7 @@ import type { Database } from "@/types/database";
 import * as lifecycleTaskActions from "@/features/tasks/actions/lifecycle-task-actions";
 import * as taskMutations from "@/features/tasks/server/task-mutations";
 import { MUTATION_REFRESH_HINTS } from "@/features/tasks/server/task-mutations";
+import { evaluateTaskModuleAccess } from "@/features/tasks/server/enforce-task-module-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const ORG_ID = "11111111-1111-4111-8111-111111111111";
@@ -140,7 +141,12 @@ vi.mock("@/features/tasks/server/task-mutations", () => ({
   },
 }));
 
+vi.mock("@/features/tasks/server/enforce-task-module-access", () => ({
+  evaluateTaskModuleAccess: vi.fn(),
+}));
+
 const serverClientMock = vi.mocked(createSupabaseServerClient);
+const moduleAccessMock = vi.mocked(evaluateTaskModuleAccess);
 const mutationMocks = {
   completeTaskMutation: vi.mocked(taskMutations.completeTaskMutation),
   cancelTaskMutation: vi.mocked(taskMutations.cancelTaskMutation),
@@ -151,6 +157,7 @@ const mutationMocks = {
 beforeEach(() => {
   vi.clearAllMocks();
   serverClientMock.mockResolvedValue(mockSupabase);
+  moduleAccessMock.mockResolvedValue({ allowed: true });
   mutationMocks.completeTaskMutation.mockResolvedValue(completeSuccess);
   mutationMocks.cancelTaskMutation.mockResolvedValue(cancelSuccess);
   mutationMocks.archiveTaskMutation.mockResolvedValue(archiveSuccess);
@@ -443,6 +450,31 @@ describe("lifecycle task action client wiring", () => {
     await run();
     expect(serverClientMock).toHaveBeenCalledTimes(1);
     expect(service).toHaveBeenCalledWith(expect.objectContaining({ supabase: mockSupabase }));
+  });
+
+  it.each(cases)("denies $name before its mutation when Tasks is hidden", async ({ run, service }) => {
+    moduleAccessMock.mockResolvedValue({
+      allowed: false,
+      failure: {
+        ok: false,
+        committed: false,
+        error: {
+          code: "PERMISSION_DENIED",
+          message: "This area is not available for your organization.",
+          retryable: false,
+          category: "permission",
+        },
+      },
+    });
+
+    const result = await run();
+
+    expect(result).toMatchObject({
+      ok: false,
+      committed: false,
+      error: { code: "PERMISSION_DENIED" },
+    });
+    expect(service).not.toHaveBeenCalled();
   });
 });
 

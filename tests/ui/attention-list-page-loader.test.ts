@@ -63,6 +63,21 @@ describe("attention list page loader (B1.7.5-C)", () => {
     expect(listMock).not.toHaveBeenCalled();
   });
 
+  it("suppresses feature reads when the shared Attention route gate denies access", async () => {
+    pageOrgMock.mockResolvedValue({
+      kind: "org_context_missing",
+      message: "This area is not available for your organization.",
+    });
+
+    const result = await loadAttentionListPage(createSupabase(), { org: ORG_ID });
+
+    expect(result).toEqual({
+      kind: "org_context_missing",
+      message: "This area is not available for your organization.",
+    });
+    expect(listMock).not.toHaveBeenCalled();
+  });
+
   it("passes validated URL filters and last_detected_at default sort to listAttentionItems", async () => {
     expect(sampleMapped.ok).toBe(true);
     if (!sampleMapped.ok) return;

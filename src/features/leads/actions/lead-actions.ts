@@ -28,9 +28,12 @@ import {
 import {
   insufficientRoleError,
   mapOrganizationContextError,
+  permissionDeniedError,
   validationErrorFromZod,
   zodErrorToFieldMap,
 } from "@/features/leads/server/normalize-lead-error";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function boundaryValidationFailure(
@@ -80,6 +83,20 @@ async function runLeadMutation(
         operation,
         committed: false,
         error: mapOrganizationContextError(org.error),
+      };
+    }
+
+    const moduleAccess = await loadProductModuleAccess(org.context.organizationId);
+    const routeAccess = evaluateProductModuleRouteAccess({
+      moduleId: "leads",
+      access: moduleAccess,
+    });
+    if (!routeAccess.allowed) {
+      return {
+        ok: false,
+        operation,
+        committed: false,
+        error: permissionDeniedError(),
       };
     }
 

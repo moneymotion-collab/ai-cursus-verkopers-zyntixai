@@ -1,7 +1,15 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { resolveCustomerPageOrganization } from "@/features/customers/server/resolve-customer-page-organization";
+import { resolveLeadPageOrganization } from "@/features/leads/server/resolve-lead-page-organization";
+import {
+  buildUnresolvedProductModuleAccess,
+  FAIL_CLOSED_MODULE_NAV_VISIBILITY,
+} from "@/features/product-access/domain/module-access";
+import { DEFAULT_PRODUCT_TERMINOLOGY } from "@/features/product-access/domain/terminology";
+import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
+import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
 import {
   getCustomerById,
 } from "@/features/customers/server/customer-read-queries";
@@ -32,7 +40,28 @@ vi.mock("@/features/onboarding/server/operating-model-status", () => ({
   isCourseSellerContextPack: () => true,
 }));
 
+vi.mock("@/features/product-access/server/load-product-module-access", () => ({
+  loadProductModuleAccess: vi.fn(),
+}));
+
 const ORG_B = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const loadModuleAccessMock = vi.mocked(loadProductModuleAccess);
+
+function resolvedModuleAccess(input: {
+  leads: boolean;
+  customers: boolean;
+}): ProductModuleAccessState {
+  return {
+    resolution: "resolved",
+    navVisibility: {
+      ...FAIL_CLOSED_MODULE_NAV_VISIBILITY,
+      leads: input.leads,
+      customers: input.customers,
+    },
+    relevantCapabilities: [],
+    terminology: DEFAULT_PRODUCT_TERMINOLOGY,
+  };
+}
 
 function createOrgResolverSupabase(options: {
   user?: { id: string } | null;
@@ -94,6 +123,13 @@ function createOrgResolverSupabase(options: {
     }),
   } as unknown as SupabaseClient<Database>;
 }
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  loadModuleAccessMock.mockResolvedValue(
+    resolvedModuleAccess({ leads: true, customers: true }),
+  );
+});
 
 describe("resolveCustomerPageOrganization", () => {
   it("returns auth_required when unauthenticated", async () => {
@@ -165,6 +201,71 @@ describe("resolveCustomerPageOrganization", () => {
       expect(result.isMultiOrganization).toBe(true);
     }
   });
+});
+
+describe("Lead and Customer product module route access", () => {
+  function singleOrganizationSupabase() {
+    return createOrgResolverSupabase({
+      user: { id: USER_ID },
+      memberships: [{ organizationId: ORG_ID, role: "staff" }],
+      orgNames: { [ORG_ID]: "Org Alpha" },
+    });
+  }
+
+  it("allows Product Customers while denying Product Leads", async () => {
+    loadModuleAccessMock.mockResolvedValue(
+      resolvedModuleAccess({ leads: false, customers: true }),
+    );
+
+    const customerResult = await resolveCustomerPageOrganization(
+      singleOrganizationSupabase(),
+      ORG_ID,
+    );
+    const leadResult = await resolveLeadPageOrganization(
+      singleOrganizationSupabase(),
+      ORG_ID,
+    );
+
+    expect(customerResult.kind).toBe("ready");
+    expect(leadResult.kind).toBe("query_error");
+  });
+
+  it("denies both direct routes when module access is unresolved", async () => {
+    loadModuleAccessMock.mockResolvedValue(buildUnresolvedProductModuleAccess());
+
+    const customerResult = await resolveCustomerPageOrganization(
+      singleOrganizationSupabase(),
+      ORG_ID,
+    );
+    const leadResult = await resolveLeadPageOrganization(
+      singleOrganizationSupabase(),
+      ORG_ID,
+    );
+
+    expect(customerResult.kind).toBe("query_error");
+    expect(leadResult.kind).toBe("query_error");
+  });
+
+  it.each(["TG1", "TG2", "TG3"])(
+    "preserves lawful Lead and Customer access for %s",
+    async () => {
+      loadModuleAccessMock.mockResolvedValue(
+        resolvedModuleAccess({ leads: true, customers: true }),
+      );
+
+      const customerResult = await resolveCustomerPageOrganization(
+        singleOrganizationSupabase(),
+        ORG_ID,
+      );
+      const leadResult = await resolveLeadPageOrganization(
+        singleOrganizationSupabase(),
+        ORG_ID,
+      );
+
+      expect(customerResult.kind).toBe("ready");
+      expect(leadResult.kind).toBe("ready");
+    },
+  );
 });
 
 describe("customer read query suppression", () => {

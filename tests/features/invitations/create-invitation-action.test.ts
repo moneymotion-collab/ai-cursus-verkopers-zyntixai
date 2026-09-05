@@ -27,12 +27,15 @@ vi.mock("@/features/invitations/server/create-invitation", () => ({
 import { createInvitationAction } from "@/features/invitations/actions/create-invitation-action";
 import { CREATE_INVITATION_MESSAGES } from "@/features/invitations/server/create-invitation-result";
 import { MEMBERS_ROUTE } from "@/features/invitations/domain/members-navigation";
+import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
+import { mockKnowledgeProductModuleAccess } from "../product-access/module-access-fixtures";
 
 const ORG_ID = "11111111-1111-4111-8111-111111111111";
 const OTHER_ORG = "99999999-9999-4999-8999-999999999999";
 const USER_ID = "44444444-4444-4444-8444-444444444444";
 const MEMBERSHIP_ID = "33333333-3333-4333-8333-333333333333";
 const SENTINEL = "RAW_TOKEN_SENTINEL_MUST_NOT_LEAK";
+const loadModuleAccessMock = vi.mocked(loadProductModuleAccess);
 
 function readyContext(role: "owner" | "admin" | "staff" | "viewer") {
   return {
@@ -56,6 +59,7 @@ describe("createInvitationAction", () => {
       data: { user: { id: USER_ID } },
       error: null,
     });
+    loadModuleAccessMock.mockResolvedValue(mockKnowledgeProductModuleAccess());
   });
 
   it("creates for Owner with staff role and revalidates without leaking raw token", async () => {
@@ -170,6 +174,40 @@ describe("createInvitationAction", () => {
       expect(createRpcMock).not.toHaveBeenCalled();
     }
   });
+
+  it.each(["hidden", "unresolved"] as const)(
+    "denies create when members capability is %s before RPC",
+    async (state) => {
+      resolveOrgContextMock.mockResolvedValue(readyContext("owner"));
+      const resolvedAccess = mockKnowledgeProductModuleAccess();
+      const hiddenNav = { ...resolvedAccess.navVisibility, members: false };
+      loadModuleAccessMock.mockResolvedValue(
+        state === "unresolved"
+          ? {
+              resolution: "unresolved",
+              relevantCapabilities: null,
+              navVisibility: hiddenNav,
+              terminology: resolvedAccess.terminology,
+            }
+          : { ...resolvedAccess, navVisibility: hiddenNav },
+      );
+
+      const result = await createInvitationAction({
+        organizationId: ORG_ID,
+        email: "invitee@example.com",
+        targetRole: "staff",
+      });
+
+      expect(result).toEqual({
+        ok: false,
+        code: "forbidden",
+        message: CREATE_INVITATION_MESSAGES.forbidden,
+      });
+      expect(loadModuleAccessMock).toHaveBeenCalledWith(ORG_ID);
+      expect(createRpcMock).not.toHaveBeenCalled();
+      expect(revalidatePathMock).not.toHaveBeenCalled();
+    },
+  );
 
   it("does not trust a foreign organization id", async () => {
     resolveOrgContextMock.mockResolvedValue({

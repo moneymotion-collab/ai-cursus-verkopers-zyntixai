@@ -17,6 +17,7 @@ import {
   validationErrorFromZod,
   zodErrorToFieldMap,
 } from "@/features/tasks/server/normalize-task-error";
+import { evaluateTaskModuleAccess } from "@/features/tasks/server/enforce-task-module-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function boundaryValidationFailure(error: import("zod").ZodError): TaskMutationFailure {
@@ -49,6 +50,8 @@ export async function createTaskAction(input: unknown): Promise<TaskMutationResu
   try {
     const supabase = await createSupabaseServerClient();
     const { organizationId, ...taskFields } = parsed.data;
+    const access = await evaluateTaskModuleAccess(organizationId);
+    if (!access.allowed) return access.failure;
 
     return await createTaskMutation({
       supabase,
@@ -73,6 +76,8 @@ export async function updateTaskAction(input: unknown): Promise<TaskMutationResu
   try {
     const supabase = await createSupabaseServerClient();
     const { organizationId, ...taskInput } = parsed.data;
+    const access = await evaluateTaskModuleAccess(organizationId);
+    if (!access.allowed) return access.failure;
 
     return await updateTaskMutation({
       supabase,
@@ -93,6 +98,8 @@ export async function reassignTaskAction(input: unknown): Promise<TaskMutationRe
   try {
     const supabase = await createSupabaseServerClient();
     const { organizationId, ...taskInput } = parsed.data;
+    const access = await evaluateTaskModuleAccess(organizationId);
+    if (!access.allowed) return access.failure;
 
     return await reassignTaskMutation({
       supabase,
@@ -113,6 +120,8 @@ export async function rescheduleTaskAction(input: unknown): Promise<TaskMutation
   try {
     const supabase = await createSupabaseServerClient();
     const { organizationId, ...taskInput } = parsed.data;
+    const access = await evaluateTaskModuleAccess(organizationId);
+    if (!access.allowed) return access.failure;
 
     return await rescheduleTaskMutation({
       supabase,

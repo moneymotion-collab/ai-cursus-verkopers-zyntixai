@@ -11,6 +11,7 @@ import {
   resolveAttentionEvaluateReturnPath,
 } from "@/features/attention/ui/attention-evaluate-return";
 import { parseEvaluateAttentionRulesActionInput } from "@/features/attention/actions/evaluate-attention-rules-action-schemas";
+import { evaluateAttentionModuleAccess } from "@/features/attention/server/enforce-attention-module-access";
 
 const ORG_ID = "2fc07699-ece5-44b9-bbb3-abbc23e9fffb";
 const ENROLLMENT_ID = "e405c5c8-8b26-4768-bc74-67c7d52224e0";
@@ -182,6 +183,11 @@ vi.mock("@/lib/supabase/server", () => ({
 
 vi.mock("@/features/attention/server/attention-rpc-adapters", () => ({
   evaluateAttentionRules: vi.fn(),
+  evaluateProjectAttentionRules: vi.fn(),
+}));
+
+vi.mock("@/features/attention/server/enforce-attention-module-access", () => ({
+  evaluateAttentionModuleAccess: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({
@@ -192,6 +198,7 @@ describe("evaluateAttentionRulesAction", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
+    vi.mocked(evaluateAttentionModuleAccess).mockResolvedValue({ allowed: true });
   });
 
   it("evaluates with verified org context and revalidates home/attention", async () => {
@@ -284,6 +291,63 @@ describe("evaluateAttentionRulesAction", () => {
       expect(result.error.code).toBe("ORG_CONTEXT_MISSING");
     }
     expect(evaluateAttentionRules).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      "enrollment evaluation",
+      async () => {
+        const { evaluateAttentionRulesAction } = await import(
+          "@/features/attention/actions/evaluate-attention-rules-action"
+        );
+        return evaluateAttentionRulesAction({ organizationId: ORG_ID });
+      },
+      "evaluateAttentionRules",
+    ],
+    [
+      "project evaluation",
+      async () => {
+        const { evaluateProjectAttentionRulesAction } = await import(
+          "@/features/attention/actions/evaluate-project-attention-rules-action"
+        );
+        return evaluateProjectAttentionRulesAction({ organizationId: ORG_ID });
+      },
+      "evaluateProjectAttentionRules",
+    ],
+  ] as const)("denies %s before its RPC when Attention is hidden", async (
+    _name,
+    run,
+    adapterName,
+  ) => {
+    const { resolveOrganizationContext } = await import(
+      "@/features/organizations/server/resolve-organization-context"
+    );
+    const { createSupabaseServerClient } = await import("@/lib/supabase/server");
+    const adapters = await import("@/features/attention/server/attention-rpc-adapters");
+
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({} as never);
+    vi.mocked(resolveOrganizationContext).mockResolvedValue({
+      ok: true,
+      context: { organizationId: ORG_ID, role: "owner" },
+    } as never);
+    vi.mocked(evaluateAttentionModuleAccess).mockResolvedValue({
+      allowed: false,
+      error: {
+        code: "PERMISSION_DENIED",
+        message: "This area is not available for your organization.",
+        retryable: false,
+        category: "permission",
+      },
+    });
+
+    const result = await run();
+
+    expect(result).toMatchObject({
+      ok: false,
+      committed: false,
+      error: { code: "PERMISSION_DENIED" },
+    });
+    expect(adapters[adapterName]).not.toHaveBeenCalled();
   });
 });
 

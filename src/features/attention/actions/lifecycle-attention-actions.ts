@@ -33,6 +33,7 @@ import {
   listAttentionLifecycleRevalidationPaths,
   resolveAttentionLifecycleReturnPath,
 } from "@/features/attention/ui/attention-lifecycle-return";
+import { evaluateAttentionModuleAccess } from "@/features/attention/server/enforce-attention-module-access";
 import { resolveOrganizationContext } from "@/features/organizations/server/resolve-organization-context";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -111,6 +112,17 @@ async function runAttentionLifecycleMutation(params: {
         action: params.action,
         committed: false,
         error: mapOrganizationContextError(org.error),
+        returnPath: fallbackReturnPath,
+      };
+    }
+
+    const access = await evaluateAttentionModuleAccess(org.context.organizationId);
+    if (!access.allowed) {
+      return {
+        ok: false,
+        action: params.action,
+        committed: false,
+        error: access.error,
         returnPath: fallbackReturnPath,
       };
     }

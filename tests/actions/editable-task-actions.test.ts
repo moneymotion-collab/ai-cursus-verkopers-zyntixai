@@ -5,6 +5,7 @@ import type { TaskMutationResult } from "@/features/tasks/domain/types";
 import type { Database } from "@/types/database";
 import * as editableTaskActions from "@/features/tasks/actions/editable-task-actions";
 import * as taskMutations from "@/features/tasks/server/task-mutations";
+import { evaluateTaskModuleAccess } from "@/features/tasks/server/enforce-task-module-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const createRefreshHints = { task: true as const, taskLists: true as const, taskHistory: true };
@@ -90,7 +91,12 @@ vi.mock("@/features/tasks/server/task-mutations", () => ({
   rescheduleTaskMutation: vi.fn(),
 }));
 
+vi.mock("@/features/tasks/server/enforce-task-module-access", () => ({
+  evaluateTaskModuleAccess: vi.fn(),
+}));
+
 const serverClientMock = vi.mocked(createSupabaseServerClient);
+const moduleAccessMock = vi.mocked(evaluateTaskModuleAccess);
 const mutationMocks = {
   createTaskMutation: vi.mocked(taskMutations.createTaskMutation),
   updateTaskMutation: vi.mocked(taskMutations.updateTaskMutation),
@@ -101,6 +107,7 @@ const mutationMocks = {
 beforeEach(() => {
   vi.clearAllMocks();
   serverClientMock.mockResolvedValue(mockSupabase);
+  moduleAccessMock.mockResolvedValue({ allowed: true });
   mutationMocks.createTaskMutation.mockResolvedValue(successResult);
   mutationMocks.updateTaskMutation.mockResolvedValue(successResult);
   mutationMocks.reassignTaskMutation.mockResolvedValue(successResult);
@@ -429,6 +436,31 @@ describe("editable task action client wiring", () => {
   it.each(actionCases)("invokes service exactly once for $name", async ({ run, service }) => {
     await run();
     expect(service).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(actionCases)("denies $name before its mutation when Tasks is hidden", async ({ run, service }) => {
+    moduleAccessMock.mockResolvedValue({
+      allowed: false,
+      failure: {
+        ok: false,
+        committed: false,
+        error: {
+          code: "PERMISSION_DENIED",
+          message: "This area is not available for your organization.",
+          retryable: false,
+          category: "permission",
+        },
+      },
+    });
+
+    const result = await run();
+
+    expect(result).toMatchObject({
+      ok: false,
+      committed: false,
+      error: { code: "PERMISSION_DENIED" },
+    });
+    expect(service).not.toHaveBeenCalled();
   });
 });
 
