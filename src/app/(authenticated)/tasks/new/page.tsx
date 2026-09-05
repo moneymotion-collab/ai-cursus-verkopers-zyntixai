@@ -102,6 +102,7 @@ export default async function TaskCreatePage({ searchParams }: TaskCreatePagePro
           listState={result.listState}
           options={result.options}
           cancelHref={buildBackToTasksHref(result.listState)}
+          initialContext={result.initialContext}
         />
       </section>
     </AppShell>

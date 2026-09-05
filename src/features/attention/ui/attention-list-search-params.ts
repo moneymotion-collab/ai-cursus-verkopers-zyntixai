@@ -54,6 +54,7 @@ export type AttentionListUrlState = {
   enrollmentId?: string;
   customerId?: string;
   programId?: string;
+  projectId?: string;
   sort: AttentionSortField;
   direction: AttentionSortDirection;
   page: number;
@@ -198,6 +199,13 @@ export function parseAttentionListSearchParams(
     warnings.push("invalid_program_id");
   }
 
+  const projectIdRaw = firstValue(raw.projectId);
+  const projectId =
+    projectIdRaw && UUID_PATTERN.test(projectIdRaw) ? projectIdRaw : undefined;
+  if (projectIdRaw && !projectId) {
+    warnings.push("invalid_project_id");
+  }
+
   const sortRaw = firstValue(raw.sort);
   const sort = parseSortField(sortRaw);
   if (sortRaw && sortRaw !== sort) {
@@ -231,6 +239,7 @@ export function parseAttentionListSearchParams(
     enrollmentId,
     customerId,
     programId,
+    projectId,
     sort,
     direction,
     page,
@@ -262,6 +271,9 @@ export function parseAttentionListSearchParams(
   }
   if (programId) {
     filters.programId = programId;
+  }
+  if (projectId) {
+    filters.projectId = projectId;
   }
 
   return {
@@ -308,6 +320,9 @@ export function buildAttentionListQueryString(
   if (state.programId) {
     params.set("programId", state.programId);
   }
+  if (state.projectId) {
+    params.set("projectId", state.projectId);
+  }
   if (state.sort !== ATTENTION_LIST_DEFAULT_SORT_FIELD) {
     params.set("sort", state.sort);
   }
@@ -350,7 +365,8 @@ export function hasAttentionListActiveFilters(
       state.includeArchived ||
       state.enrollmentId ||
       state.customerId ||
-      state.programId,
+      state.programId ||
+      state.projectId,
   );
 }
 
@@ -366,7 +382,9 @@ export function hasAttentionListNonDefaultSort(
 export function hasAttentionRelationshipContext(
   state: AttentionListUrlState,
 ): boolean {
-  return Boolean(state.enrollmentId || state.customerId || state.programId);
+  return Boolean(
+    state.enrollmentId || state.customerId || state.programId || state.projectId,
+  );
 }
 
 export function buildAttentionListResetHref(

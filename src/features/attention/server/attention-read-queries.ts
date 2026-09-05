@@ -25,7 +25,9 @@ import {
   ATTENTION_ITEM_DETAIL_SELECT_COLUMNS,
   ATTENTION_ITEM_LIST_SELECT_COLUMNS,
   ATTENTION_PROGRAM_SUMMARY_SELECT_COLUMNS,
+  ATTENTION_PROJECT_SUMMARY_SELECT_COLUMNS,
   ATTENTION_SIGNAL_SELECT_COLUMNS,
+  ATTENTION_TASK_SUMMARY_SELECT_COLUMNS,
 } from "@/features/attention/server/attention-query-columns";
 import {
   mapAttentionCustomerSummary,
@@ -34,14 +36,18 @@ import {
   mapAttentionItemDetail,
   mapAttentionItemListItem,
   mapAttentionProgramSummary,
+  mapAttentionProjectSummary,
   mapAttentionSignal,
+  mapAttentionTaskSummary,
   type AttentionCustomerSummaryRow,
   type AttentionEnrollmentSummaryRow,
   type AttentionEventRow,
   type AttentionItemDetailRow,
   type AttentionItemListRow,
   type AttentionProgramSummaryRow,
+  type AttentionProjectSummaryRow,
   type AttentionSignalRow,
+  type AttentionTaskSummaryRow,
 } from "@/features/attention/server/map-attention-read-model";
 import {
   attentionItemUnavailableError,
@@ -149,6 +155,10 @@ function applyListFilters(
     nextQuery = nextQuery.eq("program_id", filters.programId);
   }
 
+  if (filters.projectId) {
+    nextQuery = nextQuery.eq("project_id", filters.projectId);
+  }
+
   if (filters.acknowledged === true) {
     nextQuery = nextQuery.not("acknowledged_at", "is", null);
   } else if (filters.acknowledged === false) {
@@ -247,6 +257,29 @@ async function loadProgramLabels(
     .in("id", programIds);
 
   for (const row of (data ?? []) as AttentionProgramSummaryRow[]) {
+    labels[row.id] = row.name;
+  }
+
+  return labels;
+}
+
+async function loadProjectLabels(
+  supabase: SupabaseClient<Database>,
+  organizationId: string,
+  projectIds: string[],
+): Promise<Record<string, string>> {
+  const labels: Record<string, string> = {};
+  if (projectIds.length === 0) {
+    return labels;
+  }
+
+  const { data } = await supabase
+    .from("projects")
+    .select(ATTENTION_PROJECT_SUMMARY_SELECT_COLUMNS)
+    .eq("organization_id", organizationId)
+    .in("id", projectIds);
+
+  for (const row of (data ?? []) as AttentionProjectSummaryRow[]) {
     labels[row.id] = row.name;
   }
 
@@ -371,9 +404,13 @@ export async function listAttentionItems(
   const programIds = [
     ...new Set(rows.map((row) => row.program_id).filter((id): id is string => Boolean(id))),
   ];
-  const [customerLabels, programLabels] = await Promise.all([
+  const projectIds = [
+    ...new Set(rows.map((row) => row.project_id).filter((id): id is string => Boolean(id))),
+  ];
+  const [customerLabels, programLabels, projectLabels] = await Promise.all([
     loadCustomerLabels(params.supabase, params.organizationId, customerIds),
     loadProgramLabels(params.supabase, params.organizationId, programIds),
+    loadProjectLabels(params.supabase, params.organizationId, projectIds),
   ]);
 
   const items = [];
@@ -383,6 +420,7 @@ export async function listAttentionItems(
         ? customerLabels[row.customer_id] ?? null
         : null,
       programName: row.program_id ? programLabels[row.program_id] ?? null : null,
+      projectName: row.project_id ? projectLabels[row.project_id] ?? null : null,
       evaluatedAt: params.evaluatedAt,
     });
     if (!mapped.ok) {
@@ -414,8 +452,15 @@ export async function getAttentionItemById(
 
   const row = gate.row;
 
-  const [enrollmentResult, customerResult, programResult, signalsResult, eventsResult] =
-    await Promise.all([
+  const [
+    enrollmentResult,
+    customerResult,
+    programResult,
+    projectResult,
+    taskResult,
+    signalsResult,
+    eventsResult,
+  ] = await Promise.all([
       row.enrollment_id
         ? params.supabase
             .from("enrollments")
@@ -438,6 +483,22 @@ export async function getAttentionItemById(
             .select(ATTENTION_PROGRAM_SUMMARY_SELECT_COLUMNS)
             .eq("organization_id", params.organizationId)
             .eq("id", row.program_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      row.project_id
+        ? params.supabase
+            .from("projects")
+            .select(ATTENTION_PROJECT_SUMMARY_SELECT_COLUMNS)
+            .eq("organization_id", params.organizationId)
+            .eq("id", row.project_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      row.task_id
+        ? params.supabase
+            .from("tasks")
+            .select(ATTENTION_TASK_SUMMARY_SELECT_COLUMNS)
+            .eq("organization_id", params.organizationId)
+            .eq("id", row.task_id)
             .maybeSingle()
         : Promise.resolve({ data: null, error: null }),
       params.supabase
@@ -496,6 +557,14 @@ export async function getAttentionItemById(
       ? mapAttentionProgramSummary(
           programResult.data as AttentionProgramSummaryRow,
         )
+      : null,
+    project: projectResult.data
+      ? mapAttentionProjectSummary(
+          projectResult.data as AttentionProjectSummaryRow,
+        )
+      : null,
+    task: taskResult.data
+      ? mapAttentionTaskSummary(taskResult.data as AttentionTaskSummaryRow)
       : null,
     signals,
     events,

@@ -20,6 +20,7 @@ type ProjectFormProps = {
   options: ProjectFormOptions;
   terminology: ProductTerminology;
   project?: ProjectRecord;
+  initialCustomerId?: string;
 };
 
 export function ProjectForm({
@@ -27,13 +28,14 @@ export function ProjectForm({
   options,
   terminology,
   project,
+  initialCustomerId,
 }: ProjectFormProps) {
   const router = useRouter();
   const singular = terminology.project.singular;
   const customer = terminology.customer.singular;
   const [pending, setPending] = useState(false);
   const [result, setResult] = useState<ProjectActionResult | null>(null);
-  const [customerId, setCustomerId] = useState(project?.customerId ?? "");
+  const [customerId, setCustomerId] = useState(project?.customerId ?? initialCustomerId ?? "");
   const [name, setName] = useState(project?.name ?? "");
   const [summary, setSummary] = useState(project?.summary ?? "");
   const [ownerMemberId, setOwnerMemberId] = useState(project?.ownerMemberId ?? "");

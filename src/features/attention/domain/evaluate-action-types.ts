@@ -33,6 +33,38 @@ export type AttentionEvaluateRulesMutationResult =
   | AttentionEvaluateRulesMutationSuccess
   | AttentionEvaluateRulesMutationFailure;
 
+/**
+ * TG2-AGENCY-SLICE evaluate-rules action identifier for project-sourced signals.
+ * Distinct action id from the enrollment evaluate action; same Owner/Admin RPC gate.
+ */
+export const ATTENTION_EVALUATE_PROJECT_RULES_ACTION = "evaluate_project_rules" as const;
+
+export type AttentionEvaluateProjectRulesAction =
+  typeof ATTENTION_EVALUATE_PROJECT_RULES_ACTION;
+
+export type AttentionEvaluateProjectRulesMutationSuccess = {
+  ok: true;
+  action: AttentionEvaluateProjectRulesAction;
+  committed: true;
+  refreshRequired: false;
+  returnPath: string;
+  result: AttentionEvaluateRulesResult;
+  scope: "organization" | "project";
+  projectId: string | null;
+};
+
+export type AttentionEvaluateProjectRulesMutationFailure = {
+  ok: false;
+  action: AttentionEvaluateProjectRulesAction;
+  committed: false;
+  error: AttentionApplicationError;
+  returnPath: string;
+};
+
+export type AttentionEvaluateProjectRulesMutationResult =
+  | AttentionEvaluateProjectRulesMutationSuccess
+  | AttentionEvaluateProjectRulesMutationFailure;
+
 export function summarizeAttentionEvaluateRulesResult(
   result: AttentionEvaluateRulesResult,
 ): string {

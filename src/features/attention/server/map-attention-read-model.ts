@@ -24,7 +24,9 @@ import type {
   AttentionItemDerivedFlags,
   AttentionItemListItemReadModel,
   AttentionProgramSummary,
+  AttentionProjectSummary,
   AttentionSignalReadModel,
+  AttentionTaskSummary,
 } from "@/features/attention/domain/read-types";
 import type {
   AttentionApplicationError,
@@ -41,6 +43,8 @@ export type AttentionItemListRow = Pick<
   | "enrollment_id"
   | "customer_id"
   | "program_id"
+  | "project_id"
+  | "task_id"
   | "title"
   | "summary"
   | "status"
@@ -68,6 +72,8 @@ export type AttentionItemDetailRow = Pick<
   | "enrollment_id"
   | "customer_id"
   | "program_id"
+  | "project_id"
+  | "task_id"
   | "title"
   | "summary"
   | "status"
@@ -147,6 +153,20 @@ export type AttentionProgramSummaryRow = {
   name: string;
   status: string;
   archived_at: string | null;
+};
+
+export type AttentionProjectSummaryRow = {
+  id: string;
+  name: string;
+  status: string;
+  archived_at: string | null;
+};
+
+export type AttentionTaskSummaryRow = {
+  id: string;
+  title: string;
+  status: string;
+  due_at: string | null;
 };
 
 export type AttentionMapResult<T> =
@@ -247,13 +267,13 @@ function resolveAttentionSource(row: {
   source_type?: string | null;
   source_entity_id?: string | null;
   enrollment_id: string | null;
-}): { sourceType: "enrollment" | "social_publication" | "social_connection"; sourceEntityId: string } {
+}): { sourceType: "enrollment" | "social_publication" | "social_connection" | "project"; sourceEntityId: string } {
   const sourceType = isAttentionSourceType(row.source_type ?? "")
     ? row.source_type
     : ATTENTION_PRIMARY_SOURCE_TYPE;
   const sourceEntityId = row.source_entity_id ?? row.enrollment_id;
   return {
-    sourceType: sourceType as "enrollment" | "social_publication" | "social_connection",
+    sourceType: sourceType as "enrollment" | "social_publication" | "social_connection" | "project",
     sourceEntityId: sourceEntityId ?? "",
   };
 }
@@ -292,11 +312,34 @@ export function mapAttentionProgramSummary(
   };
 }
 
+export function mapAttentionProjectSummary(
+  row: AttentionProjectSummaryRow,
+): AttentionProjectSummary {
+  return {
+    id: row.id,
+    name: row.name,
+    status: row.status,
+    archivedAt: row.archived_at,
+  };
+}
+
+export function mapAttentionTaskSummary(
+  row: AttentionTaskSummaryRow,
+): AttentionTaskSummary {
+  return {
+    id: row.id,
+    title: row.title,
+    status: row.status,
+    dueAt: row.due_at,
+  };
+}
+
 export function mapAttentionItemListItem(
   row: AttentionItemListRow,
   options?: {
     customerDisplayName?: string | null;
     programName?: string | null;
+    projectName?: string | null;
     assigneeDisplayName?: string | null;
     primarySignalOrigin?: AttentionItemListItemReadModel["primarySignalOrigin"];
     primaryRuleKey?: AttentionItemListItemReadModel["primaryRuleKey"];
@@ -324,6 +367,8 @@ export function mapAttentionItemListItem(
       enrollmentId: row.enrollment_id,
       customerId: row.customer_id,
       programId: row.program_id,
+      projectId: row.project_id,
+      taskId: row.task_id,
       title: row.title,
       summary: row.summary,
       status: status.data,
@@ -346,6 +391,7 @@ export function mapAttentionItemListItem(
       ),
       customerDisplayName: options?.customerDisplayName ?? null,
       programName: options?.programName ?? null,
+      projectName: options?.projectName ?? null,
       assigneeDisplayName: options?.assigneeDisplayName ?? null,
       primarySignalOrigin: options?.primarySignalOrigin ?? null,
       primaryRuleKey: options?.primaryRuleKey ?? null,
@@ -556,6 +602,8 @@ export function mapAttentionItemDetail(
     enrollment?: AttentionEnrollmentSummary | null;
     customer?: AttentionCustomerSummary | null;
     program?: AttentionProgramSummary | null;
+    project?: AttentionProjectSummary | null;
+    task?: AttentionTaskSummary | null;
     signals?: AttentionSignalReadModel[];
     events?: AttentionEventReadModel[];
     evaluatedAt?: string | null;
@@ -582,6 +630,8 @@ export function mapAttentionItemDetail(
       enrollmentId: row.enrollment_id,
       customerId: row.customer_id,
       programId: row.program_id,
+      projectId: row.project_id,
+      taskId: row.task_id,
       socialActionHref: null,
       title: row.title,
       summary: row.summary,
@@ -611,6 +661,8 @@ export function mapAttentionItemDetail(
       enrollment: related?.enrollment ?? null,
       customer: related?.customer ?? null,
       program: related?.program ?? null,
+      project: related?.project ?? null,
+      task: related?.task ?? null,
       signals: related?.signals ?? [],
       events: related?.events ?? [],
       derived: buildDerivedFlags({

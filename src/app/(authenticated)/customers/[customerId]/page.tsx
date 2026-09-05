@@ -17,6 +17,8 @@ import {
 } from "@/features/enrollments/ui/enrollment-navigation";
 import { canShowCreateEnrollmentWorkflow } from "@/features/enrollments/ui/enrollment-workflow-visibility";
 import { isCustomerEligibleForEnrollmentCreate } from "@/features/enrollments/domain/contextual-enrollment";
+import { buildProjectCreateHrefForCustomer } from "@/features/projects/domain/projects-navigation";
+import { projectPermissions, type ProjectRole } from "@/features/projects/domain/types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
 
@@ -124,6 +126,17 @@ export default async function CustomerDetailPage({
         : undefined,
   };
 
+  const projectLinks =
+    result.moduleAccess.navVisibility.projects &&
+    projectPermissions(result.role as ProjectRole).canCreate
+      ? {
+          createProjectHref: buildProjectCreateHrefForCustomer(
+            customerId,
+            result.selectedOrganizationId,
+          ),
+        }
+      : undefined;
+
   return (
     <AppShell
       moduleNavVisibility={result.moduleAccess.navVisibility}
@@ -139,6 +152,7 @@ export default async function CustomerDetailPage({
           reloadHref={reloadHref}
           workflowLinks={workflowLinks}
           enrollmentLinks={enrollmentLinks}
+          projectLinks={projectLinks}
           terminology={result.moduleAccess.terminology}
         />
       </section>

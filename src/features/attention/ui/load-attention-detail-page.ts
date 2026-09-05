@@ -50,6 +50,8 @@ export type AttentionDetailViewModel = {
   customerHref: string | null;
   programHref: string | null;
   enrollmentHref: string | null;
+  projectHref: string | null;
+  taskHref: string | null;
   socialHref?: string | null;
   backHref: string;
   organizationTimezone: string;
@@ -279,6 +281,12 @@ export async function loadAttentionDetailPage(
         : null,
       enrollmentHref: item.enrollment
         ? `/enrollments/${item.enrollment.id}?org=${encodeURIComponent(orgResult.organizationId)}`
+        : null,
+      projectHref: item.project
+        ? `/projects/${item.project.id}?org=${encodeURIComponent(orgResult.organizationId)}`
+        : null,
+      taskHref: item.task
+        ? `/tasks/${item.task.id}?org=${encodeURIComponent(orgResult.organizationId)}`
         : null,
       socialHref:
         item.sourceType === "social_connection"

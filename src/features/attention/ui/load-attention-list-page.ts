@@ -101,11 +101,21 @@ function resolveAttentionTypeLabel(
     if (item.primaryRuleKey === "scheduled_publication_failed") {
       return "Scheduled publication failed";
     }
+    if (item.primaryRuleKey === "project_overdue_active") {
+      return "Project overdue";
+    }
+    if (item.primaryRuleKey === "project_task_overdue") {
+      return "Task overdue";
+    }
+    if (item.primaryRuleKey === "project_no_owner") {
+      return "No project owner";
+    }
     return item.primaryRuleKey;
   }
   if (item.primarySignalOrigin && isAttentionSignalOrigin(item.primarySignalOrigin)) {
     return item.primarySignalOrigin === "manual" ? "Manual signal" : "Rule signal";
   }
+  if (item.sourceType === "project") return "Project";
   return item.sourceType === "enrollment" ? "Enrollment" : "Attention";
 }
 

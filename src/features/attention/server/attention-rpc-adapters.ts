@@ -25,6 +25,7 @@ import {
   validateCreateManualAttentionItemAdapterInput,
   validateDismissAttentionItemAdapterInput,
   validateEvaluateAttentionRulesAdapterInput,
+  validateEvaluateProjectAttentionRulesAdapterInput,
   validateRecordAttentionSignalAdapterInput,
   validateResolveAttentionItemAdapterInput,
   validateUpdateAttentionSeverityAdapterInput,
@@ -34,6 +35,7 @@ import {
   type CreateManualAttentionItemAdapterInput,
   type DismissAttentionItemAdapterInput,
   type EvaluateAttentionRulesAdapterInput,
+  type EvaluateProjectAttentionRulesAdapterInput,
   type RecordAttentionSignalAdapterInput,
   type ResolveAttentionItemAdapterInput,
   type UpdateAttentionSeverityAdapterInput,
@@ -56,6 +58,7 @@ export const ATTENTION_RPC_NAMES = {
   dismiss: "dismiss_attention_item",
   archive: "archive_attention_item",
   evaluateRules: "evaluate_attention_rules",
+  evaluateProjectRules: "evaluate_project_attention_rules",
 } as const;
 
 export type AttentionEvaluateRulesResult = {
@@ -486,6 +489,41 @@ export async function evaluateAttentionRules(
     p_organization_id: org.context.organizationId,
     p_enrollment_id: parsed.data.enrollmentId ?? undefined,
   });
+
+  if (error) {
+    return { ok: false, error: normalizeAttentionError(error) };
+  }
+
+  return mapEvaluateRulesResult(data);
+}
+
+export async function evaluateProjectAttentionRules(
+  params: AdapterContext & { input: EvaluateProjectAttentionRulesAdapterInput },
+): Promise<AttentionRpcAdapterResult<AttentionEvaluateRulesResult>> {
+  const org = await requireOrganizationContext(params);
+  if (!org.ok) {
+    return org.error;
+  }
+
+  if (!ensureMutationPermission(org.role, "canEvaluateRules")) {
+    return { ok: false, error: permissionDeniedError() };
+  }
+
+  const parsed = validateEvaluateProjectAttentionRulesAdapterInput(params.input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: validationErrorFromZod(zodErrorToFieldMap(parsed.error)),
+    };
+  }
+
+  const { data, error } = await params.supabase.rpc(
+    ATTENTION_RPC_NAMES.evaluateProjectRules,
+    {
+      p_organization_id: org.context.organizationId,
+      p_project_id: parsed.data.projectId ?? undefined,
+    },
+  );
 
   if (error) {
     return { ok: false, error: normalizeAttentionError(error) };

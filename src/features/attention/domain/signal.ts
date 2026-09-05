@@ -15,6 +15,9 @@ export const ATTENTION_RULE_KEYS = [
   "social_account_reauthorization_required",
   "provider_permission_missing",
   "scheduled_publication_failed",
+  "project_overdue_active",
+  "project_task_overdue",
+  "project_no_owner",
 ] as const satisfies readonly AttentionRuleKey[];
 
 export const ENROLLMENT_NO_RECENT_PROGRESS_RULE_KEY =

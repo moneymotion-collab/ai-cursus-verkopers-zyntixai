@@ -67,6 +67,11 @@ async function resolveWorkflowOrganization(
   };
 }
 
+export type TaskCreateInitialContext = {
+  contextType: "project";
+  contextEntityId: string;
+};
+
 export type TaskCreatePageResult =
   | WorkflowOrgFailure
   | { kind: "action_unavailable"; listState: TaskListUrlState }
@@ -80,6 +85,7 @@ export type TaskCreatePageResult =
       listState: TaskListUrlState;
       options: TaskFormOptions;
       moduleAccess: ProductModuleAccessState;
+      initialContext: TaskCreateInitialContext | null;
     };
 
 export async function loadTaskCreatePage(
@@ -97,7 +103,10 @@ export async function loadTaskCreatePage(
 
   const options = await loadTaskFormOptions(supabase, org.organizationId);
   const hasContext =
-    options.leads.length > 0 || options.customers.length > 0 || options.enrollments.length > 0;
+    options.leads.length > 0 ||
+    options.customers.length > 0 ||
+    options.enrollments.length > 0 ||
+    options.projects.length > 0;
 
   if (!hasContext) {
     return {
@@ -109,6 +118,14 @@ export async function loadTaskCreatePage(
     };
   }
 
+  const projectIdParam = Array.isArray(rawSearchParams.projectId)
+    ? rawSearchParams.projectId[0]
+    : rawSearchParams.projectId;
+  const initialContext: TaskCreateInitialContext | null =
+    projectIdParam && options.projects.some((project) => project.value === projectIdParam)
+      ? { contextType: "project", contextEntityId: projectIdParam }
+      : null;
+
   return {
     kind: "ready",
     organizationId: org.organizationId,
@@ -118,6 +135,7 @@ export async function loadTaskCreatePage(
     listState: org.listState,
     options,
     moduleAccess: org.moduleAccess,
+    initialContext,
   };
 }
 

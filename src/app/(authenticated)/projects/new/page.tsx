@@ -48,6 +48,7 @@ export default async function ProjectCreatePage({ searchParams }: ProjectCreateP
         organizationId={result.context.organizationId}
         options={result.options}
         terminology={result.context.terminology}
+        initialCustomerId={result.initialCustomerId}
       />
     </ProjectShell>
   );

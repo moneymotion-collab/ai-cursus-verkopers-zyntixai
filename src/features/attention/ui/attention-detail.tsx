@@ -74,6 +74,8 @@ export function AttentionDetail({
     customerHref,
     programHref,
     enrollmentHref,
+    projectHref,
+    taskHref,
     socialHref,
     backHref,
     organizationTimezone,
@@ -234,6 +236,23 @@ export function AttentionDetail({
                   <a href={socialHref}>{detail.customerLabel}</a>
                 </dd>
               </div>
+            </dl>
+          ) : projectHref ? (
+            <dl className={styles.metaGrid}>
+              <div>
+                <dt>Project</dt>
+                <dd>
+                  <a href={projectHref}>{detail.customerLabel}</a>
+                </dd>
+              </div>
+              {taskHref ? (
+                <div>
+                  <dt>Task</dt>
+                  <dd>
+                    <a href={taskHref}>Open related task</a>
+                  </dd>
+                </div>
+              ) : null}
             </dl>
           ) : (
           <dl className={styles.metaGrid}>

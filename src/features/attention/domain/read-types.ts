@@ -33,6 +33,20 @@ export type AttentionProgramSummary = {
   archivedAt: string | null;
 };
 
+export type AttentionProjectSummary = {
+  id: string;
+  name: string;
+  status: string;
+  archivedAt: string | null;
+};
+
+export type AttentionTaskSummary = {
+  id: string;
+  title: string;
+  status: string;
+  dueAt: string | null;
+};
+
 export type AttentionItemDerivedFlags = {
   isAcknowledged: boolean;
   isArchived: boolean;
@@ -50,6 +64,8 @@ export type AttentionItemListItemReadModel = {
   enrollmentId: string | null;
   customerId: string | null;
   programId: string | null;
+  projectId: string | null;
+  taskId: string | null;
   title: string;
   summary: string | null;
   status: AttentionItemStatus;
@@ -70,6 +86,7 @@ export type AttentionItemListItemReadModel = {
   ageCalendarDays?: number | null;
   customerDisplayName: string | null;
   programName: string | null;
+  projectName: string | null;
   assigneeDisplayName: string | null;
   primarySignalOrigin: AttentionSignalOrigin | null;
   primaryRuleKey: AttentionRuleKey | null;
@@ -117,6 +134,8 @@ export type AttentionItemDetailReadModel = {
   enrollmentId: string | null;
   customerId: string | null;
   programId: string | null;
+  projectId: string | null;
+  taskId: string | null;
   socialActionHref?: string | null;
   title: string;
   summary: string | null;
@@ -143,6 +162,8 @@ export type AttentionItemDetailReadModel = {
   enrollment: AttentionEnrollmentSummary | null;
   customer: AttentionCustomerSummary | null;
   program: AttentionProgramSummary | null;
+  project: AttentionProjectSummary | null;
+  task: AttentionTaskSummary | null;
   signals: AttentionSignalReadModel[];
   events: AttentionEventReadModel[];
   derived: AttentionItemDerivedFlags;
@@ -155,6 +176,7 @@ export type AttentionListFilters = {
   enrollmentId?: string;
   customerId?: string;
   programId?: string;
+  projectId?: string;
   acknowledged?: boolean;
   includeArchived?: boolean;
   createdFrom?: string;

@@ -22,6 +22,8 @@ function baseItem(
     enrollmentId: ENROLLMENT_ID,
     customerId: CUSTOMER_ID,
     programId: PROGRAM_ID,
+    projectId: null,
+    taskId: null,
     title: "No recent progress",
     summary: "Enrollment went quiet",
     status: "open",
@@ -62,6 +64,8 @@ function baseItem(
       status: "active",
       archivedAt: null,
     },
+    project: null,
+    task: null,
     signals: [],
     events: [],
     derived: {

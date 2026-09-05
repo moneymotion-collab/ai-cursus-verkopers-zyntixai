@@ -114,6 +114,28 @@ export async function listProjects(
   };
 }
 
+export async function listProjectsForCustomer(
+  supabase: SupabaseClient<Database>,
+  organizationId: string,
+  customerId: string,
+  options: { limit?: number } = {},
+): Promise<{ data: ProjectRecord[]; error: string | null }> {
+  const { data, error } = await supabase
+    .from("projects")
+    .select(PROJECT_COLUMNS)
+    .eq("organization_id", organizationId)
+    .eq("customer_id", customerId)
+    .is("archived_at", null)
+    .order("updated_at", { ascending: false })
+    .limit(options.limit ?? 10);
+  if (error) return { data: [], error: "Related projects could not be loaded." };
+
+  return {
+    data: await hydrateProjects(supabase, organizationId, (data ?? []) as ProjectRow[]),
+    error: null,
+  };
+}
+
 export async function getProject(
   supabase: SupabaseClient<Database>,
   organizationId: string,

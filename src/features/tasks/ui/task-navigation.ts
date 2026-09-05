@@ -25,6 +25,13 @@ export function buildTaskCreateHref(listState: TaskListUrlState): string {
   return `/tasks/new${buildTaskListQueryString(listState)}`;
 }
 
+export function buildTaskCreateHrefForProject(
+  projectId: string,
+  organizationId: string,
+): string {
+  return `/tasks/new?org=${encodeURIComponent(organizationId)}&projectId=${encodeURIComponent(projectId)}`;
+}
+
 export function buildTaskEditHref(taskId: string, listState: TaskListUrlState): string {
   return `/tasks/${taskId}/edit${buildTaskListQueryString(listState)}`;
 }

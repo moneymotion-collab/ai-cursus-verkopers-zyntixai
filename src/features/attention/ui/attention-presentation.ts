@@ -77,6 +77,13 @@ export function resolveAttentionProgramLabel(
   return trimmed && trimmed.length > 0 ? trimmed : "Unknown program";
 }
 
+export function resolveAttentionProjectLabel(
+  name: string | null | undefined,
+): string {
+  const trimmed = name?.trim();
+  return trimmed && trimmed.length > 0 ? trimmed : "Unknown project";
+}
+
 export function resolveAttentionAssigneeLabel(
   displayName: string | null | undefined,
   assigneeMemberId: string | null | undefined,
@@ -151,11 +158,15 @@ export function toAttentionListItemPresentation(
     customerLabel:
       item.sourceType === "enrollment"
         ? resolveAttentionCustomerLabel(item.customerDisplayName)
-        : resolveSocialAttentionSourceLabel(item.sourceType),
+        : item.sourceType === "project"
+          ? resolveAttentionProjectLabel(item.projectName)
+          : resolveSocialAttentionSourceLabel(item.sourceType),
     programLabel:
       item.sourceType === "enrollment"
         ? resolveAttentionProgramLabel(item.programName)
-        : "Social",
+        : item.sourceType === "project"
+          ? "Project"
+          : "Social",
     assigneeLabel: resolveAttentionAssigneeLabel(
       item.assigneeDisplayName,
       item.assigneeMemberId,
@@ -222,6 +233,15 @@ export function resolveAttentionTypeLabelFromDetail(
   if (primarySignal?.ruleKey === "scheduled_publication_failed") {
     return "Scheduled publication failed";
   }
+  if (primarySignal?.ruleKey === "project_overdue_active") {
+    return "Project overdue";
+  }
+  if (primarySignal?.ruleKey === "project_task_overdue") {
+    return "Task overdue";
+  }
+  if (primarySignal?.ruleKey === "project_no_owner") {
+    return "No project owner";
+  }
   if (primarySignal?.signalOrigin === "manual") {
     return "Manual signal";
   }
@@ -230,6 +250,7 @@ export function resolveAttentionTypeLabelFromDetail(
   }
   if (item.sourceType === "social_publication") return "Instagram publication";
   if (item.sourceType === "social_connection") return "Instagram account";
+  if (item.sourceType === "project") return "Project";
   return item.sourceType === "enrollment" ? "Enrollment" : "Attention";
 }
 
@@ -242,6 +263,7 @@ export function toAttentionDetailPresentation(
 ): AttentionDetailPresentation {
   const customerName = item.customer?.displayName ?? null;
   const programName = item.program?.name ?? null;
+  const projectName = item.project?.name ?? null;
   const enrollmentStatus = item.enrollment?.status ?? null;
 
   return {
@@ -254,11 +276,15 @@ export function toAttentionDetailPresentation(
     customerLabel:
       item.sourceType === "enrollment"
         ? resolveAttentionCustomerLabel(customerName)
-        : resolveSocialAttentionSourceLabel(item.sourceType),
+        : item.sourceType === "project"
+          ? resolveAttentionProjectLabel(projectName)
+          : resolveSocialAttentionSourceLabel(item.sourceType),
     programLabel:
       item.sourceType === "enrollment"
         ? resolveAttentionProgramLabel(programName)
-        : "Social",
+        : item.sourceType === "project"
+          ? "Project"
+          : "Social",
     enrollmentStatusLabel: enrollmentStatus
       ? enrollmentStatus.charAt(0).toUpperCase() + enrollmentStatus.slice(1)
       : null,

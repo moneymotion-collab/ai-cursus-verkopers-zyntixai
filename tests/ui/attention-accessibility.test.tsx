@@ -83,6 +83,8 @@ const detailViewModel: AttentionDetailViewModel = {
   customerHref: null,
   programHref: null,
   enrollmentHref: null,
+  projectHref: null,
+  taskHref: null,
   backHref: `/attention?org=${ORG_ID}`,
   organizationTimezone: "UTC",
   assigneeMemberId: null,

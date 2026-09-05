@@ -114,6 +114,13 @@ export const evaluateAttentionRulesInputSchema = z
   })
   .strict();
 
+export const evaluateProjectAttentionRulesInputSchema = z
+  .object({
+    organizationId: uuidSchema,
+    projectId: uuidSchema.optional().nullable(),
+  })
+  .strict();
+
 export type CreateManualAttentionItemAdapterInput = z.infer<
   typeof createManualAttentionItemInputSchema
 >;
@@ -140,6 +147,9 @@ export type ArchiveAttentionItemAdapterInput = z.infer<
 >;
 export type EvaluateAttentionRulesAdapterInput = z.infer<
   typeof evaluateAttentionRulesInputSchema
+>;
+export type EvaluateProjectAttentionRulesAdapterInput = z.infer<
+  typeof evaluateProjectAttentionRulesInputSchema
 >;
 
 export function validateCreateManualAttentionItemAdapterInput(input: unknown) {
@@ -176,4 +186,8 @@ export function validateArchiveAttentionItemAdapterInput(input: unknown) {
 
 export function validateEvaluateAttentionRulesAdapterInput(input: unknown) {
   return evaluateAttentionRulesInputSchema.safeParse(input);
+}
+
+export function validateEvaluateProjectAttentionRulesAdapterInput(input: unknown) {
+  return evaluateProjectAttentionRulesInputSchema.safeParse(input);
 }

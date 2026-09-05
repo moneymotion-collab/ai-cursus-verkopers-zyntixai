@@ -41,6 +41,8 @@ function buildViewModel(
     enrollmentState: { kind: "hidden" },
     relatedTasks: [],
     relatedTasksState: { kind: "hidden" },
+    projects: [],
+    projectsState: { kind: "hidden" },
     organizationTimezone: "UTC",
     backHref: "/customers",
     panelErrors: {},

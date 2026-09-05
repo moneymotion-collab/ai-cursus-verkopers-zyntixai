@@ -12,6 +12,9 @@ function isEvaluateReturnPathname(pathname: string): boolean {
   if (pathname === "/enrollments" || pathname.startsWith("/enrollments/")) {
     return true;
   }
+  if (pathname === "/projects" || pathname.startsWith("/projects/")) {
+    return true;
+  }
   return false;
 }
 
@@ -45,6 +48,24 @@ export function listAttentionEvaluateRevalidationPaths(
     paths.push(
       `/enrollments/${encodeURIComponent(enrollmentId)}`,
       `/enrollments/${encodeURIComponent(enrollmentId)}?org=${encodeURIComponent(organizationId)}`,
+    );
+  }
+  return paths;
+}
+
+export function listProjectAttentionEvaluateRevalidationPaths(
+  organizationId: string,
+  projectId?: string | null,
+): string[] {
+  const paths = [
+    ATTENTION_ROUTE,
+    "/home",
+    `/home?org=${encodeURIComponent(organizationId)}`,
+  ];
+  if (projectId) {
+    paths.push(
+      `/projects/${encodeURIComponent(projectId)}`,
+      `/projects/${encodeURIComponent(projectId)}?org=${encodeURIComponent(organizationId)}`,
     );
   }
   return paths;

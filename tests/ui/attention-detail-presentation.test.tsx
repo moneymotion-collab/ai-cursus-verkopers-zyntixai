@@ -104,6 +104,8 @@ const viewModel: AttentionDetailViewModel = {
   customerHref: `/customers/${CUSTOMER_ID}?org=${ORG_ID}`,
   programHref: `/programs/${PROGRAM_ID}?org=${ORG_ID}`,
   enrollmentHref: `/enrollments/${ENROLLMENT_ID}?org=${ORG_ID}`,
+  projectHref: null,
+  taskHref: null,
   backHref: `/attention?org=${ORG_ID}&status=open&page=2`,
   organizationTimezone: "UTC",
   assigneeMemberId: null,

@@ -48,6 +48,7 @@ export const attentionListFiltersSchema = z
     enrollmentId: uuidSchema.optional(),
     customerId: uuidSchema.optional(),
     programId: uuidSchema.optional(),
+    projectId: uuidSchema.optional(),
     acknowledged: z.boolean().optional(),
     includeArchived: z.boolean().default(false),
     createdFrom: isoDateTimeSchema.optional(),

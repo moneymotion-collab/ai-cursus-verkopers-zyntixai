@@ -113,6 +113,8 @@ describe("BETA1-4TG-TERMINOLOGY — Service Customers UI renders Client/Clients"
       enrollmentState: { kind: "hidden" },
       relatedTasks: [],
       relatedTasksState: { kind: "hidden" },
+      projects: [],
+      projectsState: { kind: "hidden" },
       organizationTimezone: "UTC",
       backHref: "/customers",
       panelErrors: {},

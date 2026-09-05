@@ -10,6 +10,7 @@ import {
   createManualAttentionItem,
   dismissAttentionItem,
   evaluateAttentionRules,
+  evaluateProjectAttentionRules,
   recordAttentionSignal,
   resolveAttentionItem,
   updateAttentionSeverity,
@@ -20,6 +21,7 @@ import {
   ENROLLMENT_ID,
   MEMBER_ID,
   ORG_ID,
+  PROJECT_ID,
   SIGNAL_ID,
   USER_ID,
 } from "../helpers/attention-test-fixtures";
@@ -210,6 +212,65 @@ describe("attention RPC adapters", () => {
         evaluatedAt: "2026-08-05T10:00:00.000Z",
       });
     }
+  });
+
+  it("uses exact project evaluate RPC name and args, and maps jsonb result", async () => {
+    expect(ATTENTION_RPC_NAMES.evaluateProjectRules).toBe(
+      "evaluate_project_attention_rules",
+    );
+
+    const rpc = vi.fn().mockResolvedValue({
+      data: {
+        created: 2,
+        updated: 1,
+        expired: 1,
+        evaluatedAt: "2026-09-05T10:00:00.000Z",
+      },
+      error: null,
+    });
+    const result = await evaluateProjectAttentionRules({
+      supabase: createRpcSupabase(rpc),
+      organizationId: ORG_ID,
+      input: { organizationId: ORG_ID, projectId: PROJECT_ID },
+    });
+
+    expect(rpc).toHaveBeenCalledWith(ATTENTION_RPC_NAMES.evaluateProjectRules, {
+      p_organization_id: ORG_ID,
+      p_project_id: PROJECT_ID,
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data).toEqual({
+        created: 2,
+        updated: 1,
+        expired: 1,
+        evaluatedAt: "2026-09-05T10:00:00.000Z",
+      });
+    }
+  });
+
+  it("denies staff/viewer project evaluate before RPC", async () => {
+    const rpc = vi.fn();
+
+    mockRole("viewer");
+    const viewerResult = await evaluateProjectAttentionRules({
+      supabase: createRpcSupabase(rpc),
+      organizationId: ORG_ID,
+      input: { organizationId: ORG_ID },
+    });
+    expect(viewerResult.ok).toBe(false);
+    if (!viewerResult.ok) {
+      expect(viewerResult.error.code).toBe("PERMISSION_DENIED");
+    }
+
+    mockRole("staff");
+    const staffResult = await evaluateProjectAttentionRules({
+      supabase: createRpcSupabase(rpc),
+      organizationId: ORG_ID,
+      input: { organizationId: ORG_ID },
+    });
+    expect(staffResult.ok).toBe(false);
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   it("denies viewer mutations and staff archive/evaluate before RPC", async () => {

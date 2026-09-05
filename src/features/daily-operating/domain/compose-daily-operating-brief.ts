@@ -56,9 +56,11 @@ export function canSeeOrganizationAttention(role: OrganizationRole): boolean {
 }
 
 function attentionContextLabel(item: AttentionItemListItemReadModel): string | null {
-  const parts = [item.customerDisplayName, item.programName].filter(
-    (value): value is string => Boolean(value && value.trim()),
-  );
+  const parts = [
+    item.customerDisplayName,
+    item.programName,
+    item.projectName,
+  ].filter((value): value is string => Boolean(value && value.trim()));
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 

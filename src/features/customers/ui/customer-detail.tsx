@@ -10,6 +10,10 @@ import { CustomerHistorySection } from "@/features/customers/ui/customer-history
 import { CustomerEnrollmentSection } from "@/features/customers/ui/customer-enrollments";
 import { CustomerRelatedTasksSection } from "@/features/customers/ui/customer-related-tasks";
 import {
+  CustomerProjectsSection,
+  type CustomerProjectLinks,
+} from "@/features/customers/ui/customer-projects";
+import {
   DEFAULT_PRODUCT_TERMINOLOGY,
   type ProductTerminology,
 } from "@/features/product-access/domain/terminology";
@@ -20,6 +24,7 @@ type CustomerDetailProps = {
   reloadHref?: string;
   workflowLinks?: CustomerWorkflowLinks;
   enrollmentLinks?: CustomerEnrollmentLinks;
+  projectLinks?: CustomerProjectLinks;
   terminology?: ProductTerminology;
 };
 
@@ -67,10 +72,22 @@ export function CustomerDetail({
   reloadHref,
   workflowLinks,
   enrollmentLinks,
+  projectLinks,
   terminology = DEFAULT_PRODUCT_TERMINOLOGY,
 }: CustomerDetailProps) {
-  const { customer, history, historyState, enrollments, enrollmentState, relatedTasks, relatedTasksState, organizationTimezone, backHref } =
-    viewModel;
+  const {
+    customer,
+    history,
+    historyState,
+    enrollments,
+    enrollmentState,
+    relatedTasks,
+    relatedTasksState,
+    projects,
+    projectsState,
+    organizationTimezone,
+    backHref,
+  } = viewModel;
 
   const fullName = formatCustomerName(customer.firstName, customer.lastName);
   const singular = terminology.customer.singular;
@@ -174,6 +191,14 @@ export function CustomerDetail({
         </section>
 
         <div className={styles.panels}>
+          <CustomerProjectsSection
+            projects={projects}
+            projectsState={projectsState}
+            organizationId={customer.organizationId}
+            reloadHref={reloadHref}
+            projectLinks={projectLinks}
+            projectTermPlural={terminology.project.plural}
+          />
           <CustomerHistorySection
             history={history}
             historyState={historyState}

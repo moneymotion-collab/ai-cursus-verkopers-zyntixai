@@ -125,6 +125,7 @@ export type ProjectFormPageResult =
       context: ProjectPageContext;
       options: ProjectFormOptions;
       project?: ProjectRecord;
+      initialCustomerId?: string;
     };
 
 export async function loadProjectCreatePage(
@@ -141,7 +142,13 @@ export async function loadProjectCreatePage(
     };
   }
   const options = await loadProjectFormOptions(supabase, resolved.context.organizationId);
-  return { kind: "ready", context: resolved.context, options };
+  const requestedCustomerId = first(searchParams.customerId);
+  const initialCustomerId =
+    requestedCustomerId &&
+    options.customers.some((option) => option.value === requestedCustomerId)
+      ? requestedCustomerId
+      : undefined;
+  return { kind: "ready", context: resolved.context, options, initialCustomerId };
 }
 
 export async function loadProjectEditPage(

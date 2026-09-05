@@ -194,6 +194,35 @@ describe("LeadDetail presentation", () => {
   });
 });
 
+describe("LeadDetail Service terminology (TG2-AGENCY-SLICE)", () => {
+  it("shows Client wording for the converted entity and convert workflow link under Service terminology", () => {
+    const html = renderToStaticMarkup(
+      <LeadDetail
+        viewModel={buildViewModel()}
+        workflowLinks={{ convert: `/leads/${LEAD_ID}/convert` }}
+        terminology={{
+          customer: { singular: "Client", plural: "Clients" },
+          project: { singular: "Project", plural: "Projects" },
+        }}
+      />,
+    );
+
+    expect(html).toContain("Converted client");
+    expect(html).toContain('aria-label="Open converted client Prospect Co Customer"');
+    expect(html).toContain("Client archived");
+    expect(html).toContain("Convert to client");
+    expect(html).not.toContain("Converted customer");
+    expect(html).not.toContain("Customer archived");
+  });
+
+  it("defaults to Customer wording when no terminology is provided (backward compatible)", () => {
+    const html = renderToStaticMarkup(<LeadDetail viewModel={buildViewModel()} />);
+
+    expect(html).toContain("Converted customer");
+    expect(html).toContain("Customer archived");
+  });
+});
+
 describe("Lead history source display", () => {
   it("humanizes known and unknown history sources without changing stored values", () => {
     expect(formatLeadHistorySourceLabel("manual")).toBe("Manual");

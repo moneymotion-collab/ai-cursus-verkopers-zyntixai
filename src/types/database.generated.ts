@@ -148,6 +148,7 @@ export type Database = {
           last_detected_at: string
           organization_id: string
           program_id: string | null
+          project_id: string | null
           resolution_reason: string | null
           resolved_at: string | null
           severity: string
@@ -157,6 +158,7 @@ export type Database = {
           source_type: string
           status: string
           summary: string | null
+          task_id: string | null
           title: string
           updated_at: string
           updated_by_member_id: string | null
@@ -179,6 +181,7 @@ export type Database = {
           last_detected_at?: string
           organization_id: string
           program_id?: string | null
+          project_id?: string | null
           resolution_reason?: string | null
           resolved_at?: string | null
           severity?: string
@@ -188,6 +191,7 @@ export type Database = {
           source_type?: string
           status?: string
           summary?: string | null
+          task_id?: string | null
           title: string
           updated_at?: string
           updated_by_member_id?: string | null
@@ -210,6 +214,7 @@ export type Database = {
           last_detected_at?: string
           organization_id?: string
           program_id?: string | null
+          project_id?: string | null
           resolution_reason?: string | null
           resolved_at?: string | null
           severity?: string
@@ -219,6 +224,7 @@ export type Database = {
           source_type?: string
           status?: string
           summary?: string | null
+          task_id?: string | null
           title?: string
           updated_at?: string
           updated_by_member_id?: string | null
@@ -263,6 +269,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "attention_items_project_fk"
+            columns: ["organization_id", "project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
             foreignKeyName: "attention_items_social_connection_fk"
             columns: ["organization_id", "social_connection_id"]
             isOneToOne: false
@@ -274,6 +287,13 @@ export type Database = {
             columns: ["organization_id", "social_publication_id"]
             isOneToOne: false
             referencedRelation: "social_publications"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "attention_items_task_fk"
+            columns: ["organization_id", "task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["organization_id", "id"]
           },
           {
@@ -7648,6 +7668,10 @@ export type Database = {
       }
       evaluate_attention_rules: {
         Args: { p_enrollment_id?: string; p_organization_id: string }
+        Returns: Json
+      }
+      evaluate_project_attention_rules: {
+        Args: { p_organization_id: string; p_project_id?: string }
         Returns: Json
       }
       evaluate_social_provider_write_gates: {

@@ -54,6 +54,8 @@ const customerViewModel: CustomerDetailViewModel = {
   enrollmentState: { kind: "empty" },
   relatedTasks: [],
   relatedTasksState: { kind: "hidden" },
+  projects: [],
+  projectsState: { kind: "hidden" },
   organizationTimezone: "UTC",
   backHref: "/customers",
   panelErrors: {},

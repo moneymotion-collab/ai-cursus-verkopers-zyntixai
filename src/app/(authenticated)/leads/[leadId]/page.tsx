@@ -126,7 +126,12 @@ export default async function LeadDetailPage({ params, searchParams }: LeadDetai
       organizationSelectorAction={`/leads/${leadId}`}
     >
       <section className={styles.page}>
-        <LeadDetail viewModel={result.data} reloadHref={reloadHref} workflowLinks={workflowLinks} />
+        <LeadDetail
+          viewModel={result.data}
+          reloadHref={reloadHref}
+          workflowLinks={workflowLinks}
+          terminology={result.moduleAccess.terminology}
+        />
       </section>
     </AppShell>
   );

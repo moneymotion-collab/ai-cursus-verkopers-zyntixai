@@ -9,6 +9,7 @@ import {
   formatCustomerHistorySourceLabel,
 } from "@/features/customers/ui/customer-presentation";
 import { CustomerHistorySection } from "@/features/customers/ui/customer-history";
+import type { ProjectRecord } from "@/features/projects/domain/types";
 
 const viewModel: CustomerDetailViewModel = {
   customer: {
@@ -70,6 +71,8 @@ const viewModel: CustomerDetailViewModel = {
     },
   ],
   relatedTasksState: { kind: "ready" },
+  projects: [],
+  projectsState: { kind: "hidden" },
   organizationTimezone: "UTC",
   backHref: "/customers",
   panelErrors: {},
@@ -192,6 +195,87 @@ describe("Customer detail contextual Enrollment links and summary links (B1.5.9)
     const html = renderToStaticMarkup(<CustomerDetail viewModel={viewModel} />);
     expect(html).not.toContain('aria-label="Enrollment actions"');
     expect(html).not.toContain("View enrollments");
+  });
+});
+
+describe("Customer detail Projects continuity (TG2-AGENCY-SLICE)", () => {
+  const sampleProject: ProjectRecord = {
+    id: "44444444-4444-4444-8444-444444444444",
+    organizationId: "22222222-2222-4222-8222-222222222222",
+    customerId: "11111111-1111-4111-8111-111111111111",
+    customerLabel: "Acme Corp",
+    name: "Website revamp",
+    summary: null,
+    status: "active",
+    ownerMemberId: "33333333-3333-4333-8333-333333333333",
+    ownerLabel: "Taylor Owner",
+    plannedStart: "2026-08-01",
+    plannedEnd: "2026-09-01",
+    archivedAt: null,
+    createdAt: "2026-07-14T10:00:00.000Z",
+    updatedAt: "2026-07-14T10:00:00.000Z",
+  };
+
+  it("renders related Projects with status and a New project link when discoverable", () => {
+    const html = renderToStaticMarkup(
+      <CustomerDetail
+        viewModel={{
+          ...viewModel,
+          projects: [sampleProject],
+          projectsState: { kind: "ready" },
+        }}
+        projectLinks={{
+          createProjectHref:
+            "/projects/new?org=22222222-2222-4222-8222-222222222222&customerId=11111111-1111-4111-8111-111111111111",
+        }}
+      />,
+    );
+
+    expect(html).toContain("Projects");
+    expect(html).toContain("Website revamp");
+    expect(html).toContain(
+      `href="/projects/${sampleProject.id}?org=22222222-2222-4222-8222-222222222222"`,
+    );
+    expect(html).toContain("New project");
+    expect(html).toContain(
+      'href="/projects/new?org=22222222-2222-4222-8222-222222222222&amp;customerId=11111111-1111-4111-8111-111111111111"',
+    );
+  });
+
+  it("renders a useful empty state when no Projects are linked yet", () => {
+    const html = renderToStaticMarkup(
+      <CustomerDetail
+        viewModel={{ ...viewModel, projects: [], projectsState: { kind: "empty" } }}
+      />,
+    );
+
+    expect(html).toContain("No projects are linked to this customer yet.");
+  });
+
+  it("omits the Projects section entirely when hidden (module not visible in this context)", () => {
+    const html = renderToStaticMarkup(
+      <CustomerDetail
+        viewModel={{ ...viewModel, projects: [], projectsState: { kind: "hidden" } }}
+      />,
+    );
+
+    expect(html).not.toContain("customer-projects-title");
+  });
+
+  it("surfaces a reload affordance when Projects fail to load without hiding the rest of the page", () => {
+    const html = renderToStaticMarkup(
+      <CustomerDetail
+        viewModel={{
+          ...viewModel,
+          projects: [],
+          projectsState: { kind: "error", message: "Related projects could not be loaded." },
+        }}
+        reloadHref="/customers/11111111-1111-4111-8111-111111111111"
+      />,
+    );
+
+    expect(html).toContain("Related projects could not be loaded.");
+    expect(html).toContain("Acme Corp");
   });
 });
 

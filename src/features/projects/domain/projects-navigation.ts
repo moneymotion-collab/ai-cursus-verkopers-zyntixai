@@ -9,6 +9,13 @@ export function buildProjectCreateHref(organizationId: string): string {
   return `${PROJECTS_ROUTE}/new?org=${encodeURIComponent(organizationId)}`;
 }
 
+export function buildProjectCreateHrefForCustomer(
+  customerId: string,
+  organizationId: string,
+): string {
+  return `${PROJECTS_ROUTE}/new?org=${encodeURIComponent(organizationId)}&customerId=${encodeURIComponent(customerId)}`;
+}
+
 export function buildProjectDetailHref(
   projectId: string,
   organizationId: string,

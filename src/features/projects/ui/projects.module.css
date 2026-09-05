@@ -18,6 +18,13 @@
   gap: 1rem;
 }
 
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
 .page h1,
 .form h1,
 .page h2,
@@ -260,6 +267,7 @@
 @media (max-width: 48rem) {
   .pageHeader,
   .detailHeader,
+  .panelHeader,
   .taskList li {
     flex-direction: column;
   }

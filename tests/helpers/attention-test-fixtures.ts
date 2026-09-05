@@ -7,6 +7,8 @@ export const MEMBER_ID = "33333333-3333-4333-8333-333333333333";
 export const USER_ID = "44444444-4444-4444-8444-444444444444";
 export const SIGNAL_ID = "77777777-7777-4777-8777-777777777777";
 export const EVENT_ID = "88888888-8888-4888-8888-888888888888";
+export const PROJECT_ID = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+export const TASK_ID = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 
 export const sampleAttentionItemListRow = {
   id: ATTENTION_ITEM_ID,
@@ -14,6 +16,8 @@ export const sampleAttentionItemListRow = {
   enrollment_id: ENROLLMENT_ID,
   customer_id: CUSTOMER_ID,
   program_id: PROGRAM_ID,
+  project_id: null,
+  task_id: null,
   title: "No recent progress",
   summary: "Enrollment went quiet",
   status: "open",

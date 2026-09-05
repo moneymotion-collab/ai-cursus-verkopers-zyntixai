@@ -14,6 +14,8 @@ import {
 } from "@/features/projects/domain/types";
 import { buildProjectDetailHref } from "@/features/projects/domain/projects-navigation";
 import { ProjectActions } from "@/features/projects/ui/project-actions";
+import { buildTaskCreateHrefForProject } from "@/features/tasks/ui/task-navigation";
+import { AttentionEvaluateProjectRulesActions } from "@/features/attention/ui/attention-evaluate-project-rules-actions";
 import styles from "./projects.module.css";
 
 export function ProjectShell({
@@ -205,6 +207,17 @@ export function ProjectList({
   );
 }
 
+function taskStatusVariant(status: string): "neutral" | "success" | "warning" | "danger" | "info" {
+  if (status === "completed") return "success";
+  if (status === "cancelled") return "neutral";
+  return "info";
+}
+
+function isTaskOverdue(task: ProjectTask): boolean {
+  if (task.status !== "open" || !task.dueAt) return false;
+  return new Date(task.dueAt).getTime() < Date.now();
+}
+
 export function ProjectDetail({
   context,
   project,
@@ -219,6 +232,13 @@ export function ProjectDetail({
   const term = context.terminology.project.singular;
   const permissions = projectPermissions(context.role, Boolean(project.archivedAt));
   const org = encodeURIComponent(context.organizationId);
+  const outstandingCount = tasks.filter((task) => task.status === "open").length;
+  const completedCount = tasks.filter((task) => task.status === "completed").length;
+  const overdueCount = tasks.filter(isTaskOverdue).length;
+  const canCreateTask = permissions.canUpdate;
+  const canEvaluateAttention =
+    (context.role === "owner" || context.role === "admin") &&
+    context.moduleAccess.navVisibility.attention;
   return (
     <article className={styles.page}>
       <a className={styles.backLink} href={`/projects?org=${org}`}>Back to {context.terminology.project.plural.toLowerCase()}</a>
@@ -251,19 +271,50 @@ export function ProjectDetail({
           singular={term}
         />
       </div>
+      {canEvaluateAttention ? (
+        <AttentionEvaluateProjectRulesActions
+          organizationId={context.organizationId}
+          projectId={project.id}
+          returnPath={buildProjectDetailHref(project.id, context.organizationId)}
+          heading={`Refresh ${term.toLowerCase()} Attention`}
+          buttonLabel={`Evaluate ${term.toLowerCase()} Attention`}
+        />
+      ) : null}
       <section className={styles.panel}>
-        <h2>Related tasks</h2>
+        <header className={styles.panelHeader}>
+          <h2>Related tasks</h2>
+          {canCreateTask ? (
+            <a
+              className={styles.secondaryButton}
+              href={buildTaskCreateHrefForProject(project.id, context.organizationId)}
+            >
+              New task
+            </a>
+          ) : null}
+        </header>
         {tasksWarning ? <p className={styles.warning} role="alert">{tasksWarning}</p> : null}
-        {!tasksWarning && tasks.length === 0 ? <p className={styles.muted}>No tasks are linked to this {term.toLowerCase()}.</p> : null}
+        {!tasksWarning && tasks.length === 0 ? (
+          <p className={styles.muted}>No tasks are linked to this {term.toLowerCase()}.</p>
+        ) : null}
         {tasks.length ? (
-          <ul className={styles.taskList}>
-            {tasks.map((task) => (
-              <li key={task.id}>
-                <a href={`/tasks/${task.id}?org=${org}`}>{task.title}</a>
-                <span>{task.status}{task.dueAt ? ` · Due ${new Date(task.dueAt).toLocaleDateString()}` : ""}</span>
-              </li>
-            ))}
-          </ul>
+          <>
+            <p className={styles.muted} data-testid="project-task-summary">
+              {outstandingCount} outstanding · {completedCount} completed
+              {overdueCount > 0 ? ` · ${overdueCount} overdue` : ""}
+            </p>
+            <ul className={styles.taskList}>
+              {tasks.map((task) => (
+                <li key={task.id}>
+                  <a href={`/tasks/${task.id}?org=${org}`}>{task.title}</a>
+                  <span>
+                    <Badge variant={taskStatusVariant(task.status)}>{task.status}</Badge>
+                    {task.dueAt ? ` · Due ${new Date(task.dueAt).toLocaleDateString()}` : ""}
+                    {isTaskOverdue(task) ? " · Overdue" : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </>
         ) : null}
       </section>
     </article>

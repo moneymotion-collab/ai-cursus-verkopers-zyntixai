@@ -10,7 +10,8 @@ export type AttentionSeverity = "low" | "medium" | "high" | "critical";
 export type AttentionSourceType =
   | "enrollment"
   | "social_publication"
-  | "social_connection";
+  | "social_connection"
+  | "project";
 
 export type AttentionSignalOrigin = "manual" | "rule";
 
@@ -20,7 +21,10 @@ export type AttentionRuleKey =
   | "publication_result_unknown"
   | "social_account_reauthorization_required"
   | "provider_permission_missing"
-  | "scheduled_publication_failed";
+  | "scheduled_publication_failed"
+  | "project_overdue_active"
+  | "project_task_overdue"
+  | "project_no_owner";
 
 export type AttentionEventType =
   | "created"

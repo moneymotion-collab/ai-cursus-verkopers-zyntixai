@@ -13,6 +13,8 @@ import {
 } from "@/features/customers/server/customer-read-queries";
 import { resolveCustomerPageOrganization } from "@/features/customers/server/resolve-customer-page-organization";
 import { listTasksForCustomer } from "@/features/tasks/server/task-read-queries";
+import { listProjectsForCustomer } from "@/features/projects/server/project-queries";
+import type { ProjectRecord } from "@/features/projects/domain/types";
 import type { TaskListItemReadModel } from "@/features/tasks/domain/read-types";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
 import {
@@ -66,6 +68,7 @@ export type CustomerDetailPanelErrors = {
   history?: string;
   enrollments?: string;
   relatedTasks?: string;
+  projects?: string;
 };
 
 export type CustomerDetailViewModel = {
@@ -77,6 +80,8 @@ export type CustomerDetailViewModel = {
   enrollmentState: { kind: "ready" } | { kind: "empty" } | { kind: "error"; message: string } | { kind: "hidden" };
   relatedTasks: CustomerRelatedTaskRow[];
   relatedTasksState: { kind: "ready" } | { kind: "empty" } | { kind: "error"; message: string } | { kind: "hidden" };
+  projects: ProjectRecord[];
+  projectsState: { kind: "ready" } | { kind: "empty" } | { kind: "error"; message: string } | { kind: "hidden" };
   organizationTimezone: string;
   backHref: string;
   panelErrors: CustomerDetailPanelErrors;
@@ -252,6 +257,8 @@ export async function loadCustomerDetailPage(
   let enrollmentState: CustomerDetailViewModel["enrollmentState"] = { kind: "hidden" };
   let relatedTasks: CustomerRelatedTaskRow[] = [];
   let relatedTasksState: CustomerDetailViewModel["relatedTasksState"] = { kind: "hidden" };
+  let projects: ProjectRecord[] = [];
+  let projectsState: CustomerDetailViewModel["projectsState"] = { kind: "hidden" };
 
   if (permissions.canViewStatusHistory) {
     const historyResult = await listCustomerStatusHistory({
@@ -334,6 +341,24 @@ export async function loadCustomerDetailPage(
     }
   }
 
+  if (orgResult.moduleAccess.navVisibility.projects) {
+    const projectsResult = await listProjectsForCustomer(
+      supabase,
+      orgResult.organizationId,
+      customerId,
+    );
+
+    if (projectsResult.error) {
+      projectsState = { kind: "error", message: projectsResult.error };
+      panelErrors.projects = projectsResult.error;
+    } else if (projectsResult.data.length === 0) {
+      projectsState = { kind: "empty" };
+    } else {
+      projects = projectsResult.data;
+      projectsState = { kind: "ready" };
+    }
+  }
+
   return {
     kind: "ready",
     selectedOrganizationId: orgResult.organizationId,
@@ -349,6 +374,8 @@ export async function loadCustomerDetailPage(
       enrollmentState,
       relatedTasks,
       relatedTasksState,
+      projects,
+      projectsState,
       organizationTimezone: orgResult.timezone,
       backHref,
       panelErrors,

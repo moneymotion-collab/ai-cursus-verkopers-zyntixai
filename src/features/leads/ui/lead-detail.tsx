@@ -10,6 +10,10 @@ import { getLeadSourceTypeDisplayLabel } from "@/features/leads/ui/lead-source-t
 import { LeadStatusHistorySection } from "@/features/leads/ui/lead-status-history";
 import { LeadStageHistorySection } from "@/features/leads/ui/lead-stage-history";
 import { LeadRelatedTasksSection } from "@/features/leads/ui/lead-related-tasks";
+import {
+  DEFAULT_PRODUCT_TERMINOLOGY,
+  type ProductTerminology,
+} from "@/features/product-access/domain/terminology";
 import styles from "./lead-detail.module.css";
 
 export type LeadWorkflowLinks = {
@@ -25,6 +29,7 @@ type LeadDetailProps = {
   viewModel: LeadDetailViewModel;
   reloadHref?: string;
   workflowLinks?: LeadWorkflowLinks;
+  terminology?: ProductTerminology;
 };
 
 function badgeVariantForStatus(label: string): "neutral" | "success" | "warning" | "danger" | "info" {
@@ -46,7 +51,13 @@ export function LeadUnavailableDetail({ backHref }: { backHref: string }) {
   );
 }
 
-export function LeadDetail({ viewModel, reloadHref, workflowLinks }: LeadDetailProps) {
+export function LeadDetail({
+  viewModel,
+  reloadHref,
+  workflowLinks,
+  terminology = DEFAULT_PRODUCT_TERMINOLOGY,
+}: LeadDetailProps) {
+  const customerSingular = terminology.customer.singular;
   const {
     lead,
     statusHistory,
@@ -83,7 +94,9 @@ export function LeadDetail({ viewModel, reloadHref, workflowLinks }: LeadDetailP
             {workflowLinks.edit ? <a href={workflowLinks.edit}>Edit lead</a> : null}
             {workflowLinks.stage ? <a href={workflowLinks.stage}>Change pipeline stage</a> : null}
             {workflowLinks.status ? <a href={workflowLinks.status}>Change lead status</a> : null}
-            {workflowLinks.convert ? <a href={workflowLinks.convert}>Convert to customer</a> : null}
+            {workflowLinks.convert ? (
+              <a href={workflowLinks.convert}>Convert to {customerSingular.toLowerCase()}</a>
+            ) : null}
             {workflowLinks.archive ? <a href={workflowLinks.archive}>Archive lead</a> : null}
             {workflowLinks.restore ? <a href={workflowLinks.restore}>Restore lead</a> : null}
           </nav>
@@ -175,12 +188,12 @@ export function LeadDetail({ viewModel, reloadHref, workflowLinks }: LeadDetailP
         <div className={styles.panels}>
           {lead.convertedCustomer ? (
             <section className={styles.convertedSection} aria-labelledby="lead-converted-title">
-              <h2 id="lead-converted-title">Converted customer</h2>
+              <h2 id="lead-converted-title">Converted {customerSingular.toLowerCase()}</h2>
               <p>
                 {convertedCustomerHref ? (
                   <a
                     href={convertedCustomerHref}
-                    aria-label={`Open converted customer ${lead.convertedCustomer.displayLabel}`}
+                    aria-label={`Open converted ${customerSingular.toLowerCase()} ${lead.convertedCustomer.displayLabel}`}
                   >
                     {lead.convertedCustomer.displayLabel}
                   </a>
@@ -194,7 +207,7 @@ export function LeadDetail({ viewModel, reloadHref, workflowLinks }: LeadDetailP
                 {lead.convertedCustomer.isArchived ? (
                   <>
                     {" · "}
-                    <Badge variant="info">Customer archived</Badge>
+                    <Badge variant="info">{`${customerSingular} archived`}</Badge>
                   </>
                 ) : null}
               </p>

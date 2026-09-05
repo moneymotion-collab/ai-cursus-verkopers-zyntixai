@@ -26,6 +26,7 @@ type TaskCreateFormProps = {
   listState: TaskListUrlState;
   options: TaskFormOptions;
   cancelHref: string;
+  initialContext?: { contextType: "project"; contextEntityId: string } | null;
 };
 
 const TYPE_LABELS: Record<(typeof TASK_TYPES)[number], string> = {
@@ -41,21 +42,24 @@ export function TaskCreateForm({
   listState,
   options,
   cancelHref,
+  initialContext,
 }: TaskCreateFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
   const projectOptions = options.projects ?? [];
   const [uiState, setUiState] = useState<TaskFormUiState>({ kind: "idle" });
   const [contextType, setContextType] = useState<ContextType>(
-    options.leads.length > 0
-      ? "lead"
-      : options.customers.length > 0
-        ? "customer"
-        : options.enrollments.length > 0
-          ? "enrollment"
-          : projectOptions.length > 0
-            ? "project"
-            : "enrollment",
+    initialContext
+      ? initialContext.contextType
+      : options.leads.length > 0
+        ? "lead"
+        : options.customers.length > 0
+          ? "customer"
+          : options.enrollments.length > 0
+            ? "enrollment"
+            : projectOptions.length > 0
+              ? "project"
+              : "enrollment",
   );
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -64,7 +68,9 @@ export function TaskCreateForm({
   const [taskType, setTaskType] = useState<(typeof TASK_TYPES)[number]>("general");
   const [priority, setPriority] = useState<(typeof TASK_PRIORITIES)[number]>("normal");
   const [assigneeMemberId, setAssigneeMemberId] = useState("");
-  const [contextEntityId, setContextEntityId] = useState("");
+  const [contextEntityId, setContextEntityId] = useState(
+    initialContext ? initialContext.contextEntityId : "",
+  );
 
   const fieldErrors = uiState.kind === "field_error" ? uiState.fieldErrors : undefined;
   const locked = formIsLocked(uiState);
