@@ -3,6 +3,7 @@ import { resolveEffectiveContext } from "@/features/context-resolver/domain/cont
 import type { EffectiveCapability } from "@/features/context-resolver/domain/types";
 import {
   buildModuleNavVisibility,
+  buildResolvedProductModuleAccess,
   buildUnresolvedProductModuleAccess,
   canAccessModule,
   FAIL_CLOSED_MODULE_NAV_VISIBILITY,
@@ -44,10 +45,22 @@ function capabilitiesFromKeys(
   );
 }
 
+function expectProjectsAccess(
+  capabilities: readonly EffectiveCapability[],
+  allowed: boolean,
+): void {
+  const access = buildResolvedProductModuleAccess(capabilities);
+  expect(access.navVisibility.projects).toBe(allowed);
+  expect(
+    evaluateProductModuleRouteAccess({ moduleId: "projects", access }).allowed,
+  ).toBe(allowed);
+  expect(canAccessModule({ moduleId: "projects", access })).toBe(allowed);
+}
+
 describe("BETA1-4TG AppShell module access", () => {
-  it("does not register unimplemented future capability modules", () => {
+  it("registers shared Projects without registering unimplemented future modules", () => {
     const moduleKeys = PRODUCT_MODULE_DEFINITIONS.map((row) => row.id);
-    expect(moduleKeys).not.toContain("projects");
+    expect(moduleKeys).toContain("projects");
     expect(moduleKeys).not.toContain("products");
     expect(moduleKeys).not.toContain("orders");
     expect(moduleKeys).not.toContain("work-orders");
@@ -59,6 +72,11 @@ describe("BETA1-4TG AppShell module access", () => {
     expect(unresolved.navVisibility.programs).toBe(false);
     expect(unresolved.navVisibility.leads).toBe(false);
     expect(unresolved.navVisibility.customers).toBe(false);
+    expect(unresolved.navVisibility.projects).toBe(false);
+    expect(
+      evaluateProductModuleRouteAccess({ moduleId: "projects", access: unresolved }).allowed,
+    ).toBe(false);
+    expect(canAccessModule({ moduleId: "projects", access: unresolved })).toBe(false);
   });
 
   describe("TG1 / Knowledge OCB", () => {
@@ -78,11 +96,12 @@ describe("BETA1-4TG AppShell module access", () => {
       expect(nav.tasks).toBe(true);
       expect(nav.attention).toBe(true);
       expect(nav.members).toBe(true);
+      expectProjectsAccess(resolved.value.relevantCapabilities, false);
     });
   });
 
   describe("TG2 / Service", () => {
-    it("hides Knowledge-only modules and future Projects nav", () => {
+    it("shows and allows shared Projects while hiding Knowledge-only modules", () => {
       const capabilities = capabilitiesFromKeys([
         ...CORE_KEYS.map((key) => [key, "required"] as const),
         ["shared.crm.customers", "required"],
@@ -98,11 +117,12 @@ describe("BETA1-4TG AppShell module access", () => {
       expect(nav.programs).toBe(false);
       expect(nav.enrollments).toBe(false);
       expect(nav.progress).toBe(false);
+      expectProjectsAccess(capabilities, true);
     });
   });
 
   describe("TG3 / Field", () => {
-    it("hides Knowledge and product modules without fake field links", () => {
+    it("shows and allows shared Projects while hiding Knowledge modules", () => {
       const capabilities = capabilitiesFromKeys([
         ...CORE_KEYS.map((key) => [key, "required"] as const),
         ["shared.crm.customers", "required"],
@@ -118,11 +138,12 @@ describe("BETA1-4TG AppShell module access", () => {
       expect(nav.programs).toBe(false);
       expect(nav.enrollments).toBe(false);
       expect(nav.progress).toBe(false);
+      expectProjectsAccess(capabilities, true);
     });
   });
 
   describe("TG4 / Product", () => {
-    it("hides Knowledge modules and Projects", () => {
+    it("hides and denies Projects and Knowledge modules", () => {
       const capabilities = capabilitiesFromKeys([
         ...CORE_KEYS.map((key) => [key, "required"] as const),
         ["shared.crm.customers", "required"],
@@ -137,6 +158,7 @@ describe("BETA1-4TG AppShell module access", () => {
       expect(nav.programs).toBe(false);
       expect(nav.enrollments).toBe(false);
       expect(nav.progress).toBe(false);
+      expectProjectsAccess(capabilities, false);
     });
   });
 

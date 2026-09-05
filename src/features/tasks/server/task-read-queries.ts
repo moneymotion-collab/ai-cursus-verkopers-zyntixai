@@ -13,11 +13,11 @@ import type {
   TaskReadQueryResult,
   TaskSortInput,
 } from "@/features/tasks/domain/read-types";
-import type { TaskRow } from "@/features/tasks/domain/types";
 import {
   mapTaskDetail,
   mapTaskHistoryEntry,
   mapTaskListItem,
+  type TaskDetailRow,
   type TaskListRow,
 } from "@/features/tasks/server/map-task-read-model";
 import {
@@ -54,7 +54,10 @@ type TaskByIdParams = {
 };
 
 type ContextualListParams = Omit<ListTasksParams, "filters"> & {
-  filters?: Omit<TaskListFilters, "leadId" | "customerId" | "enrollmentId" | "assigneeMemberId">;
+  filters?: Omit<
+    TaskListFilters,
+    "leadId" | "customerId" | "enrollmentId" | "projectId" | "assigneeMemberId"
+  >;
 };
 
 function escapeIlikePattern(value: string): string {
@@ -120,6 +123,10 @@ function applyListFilters(
 
   if (filters.programId) {
     nextQuery = nextQuery.eq("program_id", filters.programId);
+  }
+
+  if (filters.projectId) {
+    nextQuery = nextQuery.eq("project_id", filters.projectId);
   }
 
   if (filters.source) {
@@ -234,7 +241,7 @@ export async function listTasks(
     return { ok: false, error: normalizeTaskError(error) };
   }
 
-  const rows = (data ?? []) as TaskListRow[];
+  const rows = (data ?? []) as unknown as TaskListRow[];
   const totalCount = count ?? rows.length;
 
   return {
@@ -283,7 +290,7 @@ export async function getTaskById(
 
   return {
     ok: true,
-    data: mapTaskDetail(data as TaskRow, access.timeZone, now),
+    data: mapTaskDetail(data as unknown as TaskDetailRow, access.timeZone, now),
   };
 }
 
@@ -311,6 +318,15 @@ export async function listTasksForEnrollment(
   return listTasks({
     ...params,
     filters: { ...params.filters, enrollmentId: params.enrollmentId },
+  });
+}
+
+export async function listTasksForProject(
+  params: ContextualListParams & { projectId: string },
+): Promise<TaskReadQueryResult<TaskListReadResult>> {
+  return listTasks({
+    ...params,
+    filters: { ...params.filters, projectId: params.projectId },
   });
 }
 

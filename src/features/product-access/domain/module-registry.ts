@@ -3,6 +3,7 @@ import { ENROLLMENTS_NAV_LABEL, ENROLLMENTS_ROUTE } from "@/features/enrollments
 import { MEMBERS_NAV_LABEL, MEMBERS_ROUTE } from "@/features/invitations/domain/members-navigation";
 import { PROGRESS_NAV_LABEL, PROGRESS_ROUTE } from "@/features/progress/domain/progress-navigation";
 import { PROGRAMS_NAV_LABEL, PROGRAMS_ROUTE } from "@/features/programs/domain/programs-navigation";
+import { PROJECTS_NAV_LABEL, PROJECTS_ROUTE } from "@/features/projects/domain/projects-navigation";
 import type { ContextRelevance } from "@/features/control-plane/domain/types";
 import type { ProductModuleId } from "@/features/product-access/domain/types";
 
@@ -44,6 +45,16 @@ export const PRODUCT_MODULE_DEFINITIONS: readonly ProductModuleDefinition[] = [
     implemented: true,
     capabilityRequirement: {
       capabilityKey: "shared.crm.customers",
+      minRelevance: "required",
+    },
+  },
+  {
+    id: "projects",
+    route: PROJECTS_ROUTE,
+    label: PROJECTS_NAV_LABEL,
+    implemented: true,
+    capabilityRequirement: {
+      capabilityKey: "shared.projects",
       minRelevance: "required",
     },
   },

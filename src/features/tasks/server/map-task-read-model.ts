@@ -27,9 +27,12 @@ export type TaskListRow = Pick<
   | "customer_id"
   | "enrollment_id"
   | "program_id"
+  | "project_id"
   | "archived_at"
   | "created_at"
 >;
+
+export type TaskDetailRow = TaskRow;
 
 function isTaskStatus(value: string): value is TaskStatus {
   return value === "open" || value === "completed" || value === "cancelled";
@@ -42,7 +45,11 @@ function isTaskSourceType(value: string): value is TaskSourceType {
 export function mapLinkedContext(row: Pick<
   TaskRow,
   "lead_id" | "customer_id" | "enrollment_id" | "program_id"
->): TaskLinkedContext {
+> & { project_id?: string | null }): TaskLinkedContext {
+  if (row.project_id) {
+    return { kind: "project", projectId: row.project_id };
+  }
+
   if (row.lead_id) {
     return { kind: "lead", leadId: row.lead_id };
   }
@@ -95,7 +102,7 @@ export function mapTaskListItem(
 }
 
 export function mapTaskDetail(
-  row: TaskRow,
+  row: TaskDetailRow,
   timeZone: string,
   now?: Date,
 ): TaskReadModel {

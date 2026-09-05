@@ -17,6 +17,7 @@ export const linkedContextRefinement = (
     customerId?: string | null;
     enrollmentId?: string | null;
     programId?: string | null;
+    projectId?: string | null;
   },
   ctx: z.RefinementCtx,
 ) => {
@@ -24,11 +25,19 @@ export const linkedContextRefinement = (
   const hasCustomer = Boolean(data.customerId);
   const hasEnrollment = Boolean(data.enrollmentId);
   const hasProgram = Boolean(data.programId);
+  const hasProject = Boolean(data.projectId);
+  const hasStandaloneCustomer = hasCustomer && !hasEnrollment;
+  const contextCount = [
+    hasLead,
+    hasStandaloneCustomer,
+    hasEnrollment,
+    hasProject,
+  ].filter(Boolean).length;
 
-  if (!hasLead && !hasCustomer && !hasEnrollment) {
+  if (contextCount !== 1) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "A linked lead, customer, or enrollment is required",
+      message: "Exactly one linked lead, customer, enrollment, or project is required",
       path: ["leadId"],
     });
   }
@@ -46,6 +55,14 @@ export const linkedContextRefinement = (
       code: z.ZodIssueCode.custom,
       message: "Lead and enrollment cannot both be set",
       path: ["enrollmentId"],
+    });
+  }
+
+  if (hasProject && (hasLead || hasCustomer || hasEnrollment || hasProgram)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Project cannot be combined with another linked context",
+      path: ["projectId"],
     });
   }
 
@@ -86,6 +103,7 @@ export const taskCreateInputSchema = z
     customerId: uuidSchema.optional().nullable(),
     enrollmentId: uuidSchema.optional().nullable(),
     programId: uuidSchema.optional().nullable(),
+    projectId: uuidSchema.optional().nullable(),
     predecessorTaskId: uuidSchema.optional().nullable(),
     idempotencyKey: z.string().trim().min(1).max(200).optional().nullable(),
     metadata: z.record(z.unknown()).optional(),

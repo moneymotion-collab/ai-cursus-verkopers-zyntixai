@@ -30,22 +30,30 @@ export type EnrollmentTaskContextOption = {
   programId: string;
 };
 
+export type ProjectTaskContextOption = {
+  value: string;
+  label: string;
+};
+
 export type TaskFormOptions = {
   members: TaskMemberOption[];
   leads: LeadTaskContextOption[];
   customers: CustomerTaskContextOption[];
   enrollments: EnrollmentTaskContextOption[];
+  projects: ProjectTaskContextOption[];
   capped: {
     members: boolean;
     leads: boolean;
     customers: boolean;
     enrollments: boolean;
+    projects: boolean;
   };
 };
 
 const LEAD_FALLBACK = "Linked lead";
 const CUSTOMER_FALLBACK = "Linked customer";
 const PROGRAM_FALLBACK = "Linked program";
+const PROJECT_FALLBACK = "Linked project";
 
 function normalizeLabel(value: string | null | undefined, fallback: string): string {
   const trimmed = value?.trim();
@@ -62,11 +70,13 @@ export function emptyTaskFormOptions(): TaskFormOptions {
     leads: [],
     customers: [],
     enrollments: [],
+    projects: [],
     capped: {
       members: false,
       leads: false,
       customers: false,
       enrollments: false,
+      projects: false,
     },
   };
 }
@@ -185,16 +195,33 @@ export async function loadTaskFormOptions(
     };
   });
 
+  const { data: rawProjectRows } = await supabase
+    .from("projects")
+    .select("id, name")
+    .eq("organization_id", organizationId)
+    .is("archived_at", null)
+    .order("name", { ascending: true })
+    .limit(MAX_TASK_FORM_OPTIONS + 1);
+  const projectRows = rawProjectRows ?? [];
+  const projectOptions: ProjectTaskContextOption[] = projectRows
+    .slice(0, MAX_TASK_FORM_OPTIONS)
+    .map((row) => ({
+      value: row.id,
+      label: normalizeLabel(row.name, PROJECT_FALLBACK),
+    }));
+
   return {
     members: memberOptions,
     leads: leadOptions,
     customers: customerOptions,
     enrollments: enrollmentOptions,
+    projects: projectOptions,
     capped: {
       members: memberRows.length > MAX_TASK_FORM_OPTIONS,
       leads: (leadRows ?? []).length > MAX_TASK_FORM_OPTIONS,
       customers: (customerRows ?? []).length > MAX_TASK_FORM_OPTIONS,
       enrollments: (enrollmentRows ?? []).length > MAX_TASK_FORM_OPTIONS,
+      projects: projectRows.length > MAX_TASK_FORM_OPTIONS,
     },
   };
 }

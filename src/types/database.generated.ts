@@ -3244,6 +3244,137 @@ export type Database = {
         }
         Relationships: []
       }
+      project_status_history: {
+        Row: {
+          changed_by_member_id: string
+          created_at: string
+          from_status: string | null
+          id: string
+          organization_id: string
+          project_id: string
+          reason: string | null
+          source: string
+          to_status: string
+        }
+        Insert: {
+          changed_by_member_id: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          organization_id: string
+          project_id: string
+          reason?: string | null
+          source?: string
+          to_status: string
+        }
+        Update: {
+          changed_by_member_id?: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          organization_id?: string
+          project_id?: string
+          reason?: string | null
+          source?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_status_history_member_fk"
+            columns: ["organization_id", "changed_by_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "project_status_history_project_fk"
+            columns: ["organization_id", "project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by_member_id: string
+          customer_id: string
+          id: string
+          metadata: Json
+          name: string
+          organization_id: string
+          owner_member_id: string | null
+          planned_end: string | null
+          planned_start: string | null
+          status: string
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by_member_id: string
+          customer_id: string
+          id?: string
+          metadata?: Json
+          name: string
+          organization_id: string
+          owner_member_id?: string | null
+          planned_end?: string | null
+          planned_start?: string | null
+          status?: string
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by_member_id?: string
+          customer_id?: string
+          id?: string
+          metadata?: Json
+          name?: string
+          organization_id?: string
+          owner_member_id?: string | null
+          planned_end?: string | null
+          planned_start?: string | null
+          status?: string
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_created_by_member_fk"
+            columns: ["organization_id", "created_by_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "projects_customer_fk"
+            columns: ["organization_id", "customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "projects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_owner_member_fk"
+            columns: ["organization_id", "owner_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
       program_status_history: {
         Row: {
           changed_at: string
@@ -6151,6 +6282,7 @@ export type Database = {
           organization_id: string
           predecessor_task_id: string | null
           priority: string
+          project_id: string | null
           program_id: string | null
           source: string
           status: string
@@ -6180,6 +6312,7 @@ export type Database = {
           organization_id: string
           predecessor_task_id?: string | null
           priority?: string
+          project_id?: string | null
           program_id?: string | null
           source?: string
           status?: string
@@ -6209,6 +6342,7 @@ export type Database = {
           organization_id?: string
           predecessor_task_id?: string | null
           priority?: string
+          project_id?: string | null
           program_id?: string | null
           source?: string
           status?: string
@@ -6288,6 +6422,13 @@ export type Database = {
             columns: ["organization_id", "predecessor_task_id"]
             isOneToOne: false
             referencedRelation: "tasks"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "tasks_project_fk"
+            columns: ["organization_id", "project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["organization_id", "id"]
           },
         ]
@@ -6907,6 +7048,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      archive_project: {
+        Args: { p_organization_id: string; p_project_id: string }
+        Returns: undefined
+      }
       archive_program: {
         Args: { p_organization_id: string; p_program_id: string }
         Returns: undefined
@@ -7206,6 +7351,33 @@ export type Database = {
           p_organization_id: string
           p_position?: number
           p_stage_category: string
+        }
+        Returns: string
+      }
+      create_project: {
+        Args: {
+          p_customer_id: string
+          p_name: string
+          p_organization_id: string
+          p_owner_member_id?: string
+          p_planned_end?: string
+          p_planned_start?: string
+          p_summary?: string
+        }
+        Returns: string
+      }
+      create_project_task: {
+        Args: {
+          p_assignee_member_id?: string
+          p_description?: string
+          p_due_at: string
+          p_metadata?: Json
+          p_organization_id: string
+          p_predecessor_task_id?: string
+          p_priority?: string
+          p_project_id: string
+          p_task_type?: string
+          p_title: string
         }
         Returns: string
       }
@@ -8012,6 +8184,10 @@ export type Database = {
         Args: { p_organization_id: string; p_stage_id: string }
         Returns: undefined
       }
+      restore_project: {
+        Args: { p_organization_id: string; p_project_id: string }
+        Returns: undefined
+      }
       restore_program: {
         Args: { p_organization_id: string; p_program_id: string }
         Returns: undefined
@@ -8245,6 +8421,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      transition_project_status: {
+        Args: {
+          p_organization_id: string
+          p_project_id: string
+          p_reason?: string
+          p_to_status: string
+        }
+        Returns: undefined
+      }
       transition_program_status: {
         Args: {
           p_organization_id: string
@@ -8269,6 +8454,19 @@ export type Database = {
           p_organization_id: string
           p_stage_category: string
           p_stage_id: string
+        }
+        Returns: undefined
+      }
+      update_project: {
+        Args: {
+          p_customer_id: string
+          p_name: string
+          p_organization_id: string
+          p_owner_member_id?: string
+          p_planned_end?: string
+          p_planned_start?: string
+          p_project_id: string
+          p_summary?: string
         }
         Returns: undefined
       }

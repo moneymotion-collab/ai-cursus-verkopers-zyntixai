@@ -90,23 +90,36 @@ export async function createTaskRpc(
 
   const input = parsed.data;
 
-  const { data, error } = await params.supabase.rpc("create_task", {
-    p_organization_id: org.context.organizationId,
-    p_title: input.title,
-    p_due_at: input.dueAt,
-    p_description: optionalString(input.description),
-    p_task_type: input.taskType,
-    p_priority: input.priority,
-    p_source: input.source,
-    p_assignee_member_id: input.assigneeMemberId ?? undefined,
-    p_lead_id: input.leadId ?? undefined,
-    p_customer_id: input.customerId ?? undefined,
-    p_enrollment_id: input.enrollmentId ?? undefined,
-    p_program_id: input.programId ?? undefined,
-    p_predecessor_task_id: input.predecessorTaskId ?? undefined,
-    p_idempotency_key: input.idempotencyKey ?? undefined,
-    p_metadata: metadataObject(input.metadata as Json | undefined),
-  });
+  const { data, error } = input.projectId
+    ? await params.supabase.rpc("create_project_task", {
+        p_organization_id: org.context.organizationId,
+        p_project_id: input.projectId,
+        p_title: input.title,
+        p_due_at: input.dueAt,
+        p_description: optionalString(input.description),
+        p_task_type: input.taskType,
+        p_priority: input.priority,
+        p_assignee_member_id: input.assigneeMemberId ?? undefined,
+        p_predecessor_task_id: input.predecessorTaskId ?? undefined,
+        p_metadata: metadataObject(input.metadata as Json | undefined),
+      })
+    : await params.supabase.rpc("create_task", {
+        p_organization_id: org.context.organizationId,
+        p_title: input.title,
+        p_due_at: input.dueAt,
+        p_description: optionalString(input.description),
+        p_task_type: input.taskType,
+        p_priority: input.priority,
+        p_source: input.source,
+        p_assignee_member_id: input.assigneeMemberId ?? undefined,
+        p_lead_id: input.leadId ?? undefined,
+        p_customer_id: input.customerId ?? undefined,
+        p_enrollment_id: input.enrollmentId ?? undefined,
+        p_program_id: input.programId ?? undefined,
+        p_predecessor_task_id: input.predecessorTaskId ?? undefined,
+        p_idempotency_key: input.idempotencyKey ?? undefined,
+        p_metadata: metadataObject(input.metadata as Json | undefined),
+      });
 
   if (error) {
     return { ok: false, error: normalizeTaskError(error) };
@@ -115,7 +128,9 @@ export async function createTaskRpc(
   if (!data) {
     return {
       ok: false,
-      error: normalizeTaskError(new Error("create_task returned no task id")),
+      error: normalizeTaskError(
+        new Error(`${input.projectId ? "create_project_task" : "create_task"} returned no task id`),
+      ),
     };
   }
 

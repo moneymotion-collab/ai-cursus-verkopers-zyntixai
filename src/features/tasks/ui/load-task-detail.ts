@@ -17,6 +17,7 @@ import {
   resolveLeadLabel,
   resolveLinkedContextLabel,
   resolveMemberLabel,
+  resolveProjectLabel,
   resolveProgramLabel,
   resolveTaskDisplayLabels,
   type TaskDisplayLabelBundle,
@@ -54,6 +55,7 @@ export type TaskDetailLabels = {
   customer?: string;
   enrollment?: string;
   program?: string;
+  project?: string;
 };
 
 export type TaskDetailViewModel = {
@@ -106,7 +108,9 @@ function buildDetailLabels(
       ? "Lead"
       : task.linkedContext.kind === "customer"
         ? "Customer"
-        : "Enrollment";
+        : task.linkedContext.kind === "enrollment"
+          ? "Enrollment"
+          : "Project";
 
   const labels: TaskDetailLabels = {
     assignee: resolveMemberLabel(task.assigneeMemberId, labelBundle),
@@ -122,10 +126,12 @@ function buildDetailLabels(
     labels.lead = resolveLeadLabel(task.linkedContext.leadId, labelBundle);
   } else if (task.linkedContext.kind === "customer") {
     labels.customer = resolveCustomerLabel(task.linkedContext.customerId, labelBundle);
-  } else {
+  } else if (task.linkedContext.kind === "enrollment") {
     labels.enrollment = resolveLinkedContextLabel(task.linkedContext, labelBundle);
     labels.customer = resolveCustomerLabel(task.linkedContext.customerId, labelBundle);
     labels.program = resolveProgramLabel(task.linkedContext.programId, labelBundle);
+  } else {
+    labels.project = resolveProjectLabel(task.linkedContext.projectId, labelBundle);
   }
 
   return labels;

@@ -18,6 +18,10 @@ const TASK_ID = "22222222-2222-4222-8222-222222222222";
 const LEAD_ID = "33333333-3333-4333-8333-333333333333";
 const MEMBER_ID = "44444444-4444-4444-8444-444444444444";
 const USER_ID = "55555555-5555-4555-8555-555555555555";
+const CUSTOMER_ID = "66666666-6666-4666-8666-666666666666";
+const ENROLLMENT_ID = "77777777-7777-4777-8777-777777777777";
+const PROGRAM_ID = "88888888-8888-4888-8888-888888888888";
+const PROJECT_ID = "99999999-9999-4999-8999-999999999999";
 
 function mockSupabaseForRpc(rpcResult: { data?: unknown; error?: { message: string } | null }) {
   const rpc = vi.fn().mockResolvedValue(rpcResult);
@@ -99,6 +103,74 @@ describe("task RPC adapters", () => {
       p_idempotency_key: undefined,
       p_metadata: {},
     });
+  });
+
+  it.each([
+    [
+      "customer",
+      { customerId: CUSTOMER_ID },
+      { p_customer_id: CUSTOMER_ID, p_lead_id: undefined, p_enrollment_id: undefined, p_program_id: undefined },
+    ],
+    [
+      "enrollment",
+      { customerId: CUSTOMER_ID, enrollmentId: ENROLLMENT_ID, programId: PROGRAM_ID },
+      {
+        p_customer_id: CUSTOMER_ID,
+        p_lead_id: undefined,
+        p_enrollment_id: ENROLLMENT_ID,
+        p_program_id: PROGRAM_ID,
+      },
+    ],
+  ])("preserves the legacy create_task path for %s context", async (_name, linkedContext, expected) => {
+    const { supabase, rpc } = mockSupabaseForRpc({ data: TASK_ID, error: null });
+
+    const result = await createTaskRpc({
+      supabase,
+      organizationId: ORG_ID,
+      input: {
+        title: "Follow up",
+        dueAt: "2026-07-15T10:00:00.000Z",
+        ...linkedContext,
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(rpc).toHaveBeenCalledWith("create_task", expect.objectContaining(expected));
+    expect(rpc).not.toHaveBeenCalledWith("create_project_task", expect.anything());
+  });
+
+  it("uses create_project_task with only organization and project context IDs", async () => {
+    const { supabase, rpc } = mockSupabaseForRpc({ data: TASK_ID, error: null });
+
+    const result = await createTaskRpc({
+      supabase,
+      organizationId: ORG_ID,
+      input: {
+        title: "Prepare project review",
+        dueAt: "2026-07-15T10:00:00.000Z",
+        projectId: PROJECT_ID,
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(rpc).toHaveBeenCalledWith("create_project_task", {
+      p_organization_id: ORG_ID,
+      p_project_id: PROJECT_ID,
+      p_title: "Prepare project review",
+      p_due_at: "2026-07-15T10:00:00.000Z",
+      p_description: undefined,
+      p_task_type: "general",
+      p_priority: "normal",
+      p_assignee_member_id: undefined,
+      p_predecessor_task_id: undefined,
+      p_metadata: {},
+    });
+    const [, args] = rpc.mock.calls[0];
+    expect(args).not.toHaveProperty("p_customer_id");
+    expect(args).not.toHaveProperty("p_lead_id");
+    expect(args).not.toHaveProperty("p_enrollment_id");
+    expect(args).not.toHaveProperty("p_program_id");
+    expect(rpc).not.toHaveBeenCalledWith("create_task", expect.anything());
   });
 
   it("maps void RPC adapters", async () => {

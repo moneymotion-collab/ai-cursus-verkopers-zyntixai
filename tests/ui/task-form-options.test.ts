@@ -11,6 +11,7 @@ const ORG_ID = "11111111-1111-4111-8111-111111111111";
 function createOptionsSupabase(
   responses: Record<string, { data: unknown[]; error: null }>,
   rpcRows: Array<{ membership_id: string; display_label: string }> = [],
+  observations: Array<[string, string, unknown]> = [],
 ) {
   const from = vi.fn((table: string) => {
     const response = responses[table];
@@ -19,13 +20,19 @@ function createOptionsSupabase(
     }
     const chain: Record<string, unknown> = {};
     chain.select = vi.fn(() => chain);
-    chain.eq = vi.fn(() => chain);
-    chain.is = vi.fn(() => chain);
+    chain.eq = vi.fn((column: string, value: unknown) => {
+      observations.push([table, column, value]);
+      return chain;
+    });
+    chain.is = vi.fn((column: string, value: unknown) => {
+      observations.push([table, column, value]);
+      return chain;
+    });
     chain.order = vi.fn(() => chain);
     chain.limit = vi.fn(() => chain);
     chain.in = vi.fn().mockResolvedValue(response);
     chain.then = undefined;
-    if (table === "organization_members" || table === "leads" || table === "customers" || table === "enrollments") {
+    if (table === "organization_members" || table === "leads" || table === "customers" || table === "enrollments" || table === "projects") {
       chain.limit = vi.fn().mockResolvedValue(response);
     }
     return chain;
@@ -37,6 +44,7 @@ function createOptionsSupabase(
 
 describe("loadTaskFormOptions", () => {
   it("loads bounded member and linked-context options with explicit columns", async () => {
+    const observations: Array<[string, string, unknown]> = [];
     const supabase = createOptionsSupabase({
       organization_members: {
         data: [{ id: "member-1", user_id: "user-1" }],
@@ -58,7 +66,11 @@ describe("loadTaskFormOptions", () => {
         data: [{ id: "program-1", name: "Sales Program" }],
         error: null,
       },
-    }, [{ membership_id: "member-1", display_label: "Alex Morgan" }]);
+      projects: {
+        data: [{ id: "project-1", name: "Laptop rollout" }],
+        error: null,
+      },
+    }, [{ membership_id: "member-1", display_label: "Alex Morgan" }], observations);
 
     const options = await loadTaskFormOptions(supabase, ORG_ID);
     expect(options.members[0]).toEqual({ value: "member-1", label: "Alex Morgan" });
@@ -71,6 +83,9 @@ describe("loadTaskFormOptions", () => {
       programId: "program-1",
       label: "Acme Customer · Sales Program",
     });
+    expect(options.projects).toEqual([{ value: "project-1", label: "Laptop rollout" }]);
+    expect(observations).toContainEqual(["projects", "organization_id", ORG_ID]);
+    expect(observations).toContainEqual(["projects", "archived_at", null]);
     expect(supabase.from).toHaveBeenCalled();
   });
 
@@ -84,6 +99,7 @@ describe("loadTaskFormOptions", () => {
       leads: { data: rows, error: null },
       customers: { data: [], error: null },
       enrollments: { data: [], error: null },
+      projects: { data: [], error: null },
     });
 
     const options = await loadTaskFormOptions(supabase, ORG_ID);
@@ -108,6 +124,7 @@ describe("loadTaskFormOptions", () => {
         leads: { data: [], error: null },
         customers: { data: [], error: null },
         enrollments: { data: [], error: null },
+        projects: { data: [], error: null },
       },
       [
         { membership_id: named, display_label: "Jan Jansen" },

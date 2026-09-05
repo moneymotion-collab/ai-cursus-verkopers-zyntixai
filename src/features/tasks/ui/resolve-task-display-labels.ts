@@ -16,6 +16,7 @@ export type TaskDisplayLabelBundle = {
   leads: Record<string, string>;
   customers: Record<string, string>;
   programs: Record<string, string>;
+  projects?: Record<string, string>;
 };
 
 export type TaskLabelReferences = {
@@ -23,12 +24,14 @@ export type TaskLabelReferences = {
   leadIds: string[];
   customerIds: string[];
   programIds: string[];
+  projectIds?: string[];
 };
 
 const LEAD_FALLBACK = "Linked lead";
 const CUSTOMER_FALLBACK = "Linked customer";
 const PROGRAM_FALLBACK = "Linked program";
 const ENROLLMENT_FALLBACK = "Enrollment";
+const PROJECT_FALLBACK = "Linked project";
 
 function uniqueIds(ids: Array<string | null | undefined>): string[] {
   return [...new Set(ids.filter((id): id is string => Boolean(id)))];
@@ -46,6 +49,7 @@ export function collectLabelReferencesFromListItems(
   const leadIds: string[] = [];
   const customerIds: string[] = [];
   const programIds: string[] = [];
+  const projectIds: string[] = [];
 
   for (const task of tasks) {
     if (task.assigneeMemberId) {
@@ -59,6 +63,8 @@ export function collectLabelReferencesFromListItems(
     } else if (task.linkedContext.kind === "enrollment") {
       customerIds.push(task.linkedContext.customerId);
       programIds.push(task.linkedContext.programId);
+    } else if (task.linkedContext.kind === "project") {
+      projectIds.push(task.linkedContext.projectId);
     }
   }
 
@@ -67,6 +73,7 @@ export function collectLabelReferencesFromListItems(
     leadIds: uniqueIds(leadIds),
     customerIds: uniqueIds(customerIds),
     programIds: uniqueIds(programIds),
+    projectIds: uniqueIds(projectIds),
   };
 }
 
@@ -83,6 +90,7 @@ export function collectLabelReferencesFromTaskDetail(
   const leadIds: string[] = [];
   const customerIds: string[] = [];
   const programIds: string[] = [];
+  const projectIds: string[] = [];
 
   if (task.linkedContext.kind === "lead") {
     leadIds.push(task.linkedContext.leadId);
@@ -91,6 +99,8 @@ export function collectLabelReferencesFromTaskDetail(
   } else if (task.linkedContext.kind === "enrollment") {
     customerIds.push(task.linkedContext.customerId);
     programIds.push(task.linkedContext.programId);
+  } else if (task.linkedContext.kind === "project") {
+    projectIds.push(task.linkedContext.projectId);
   }
 
   return {
@@ -98,11 +108,12 @@ export function collectLabelReferencesFromTaskDetail(
     leadIds: uniqueIds(leadIds),
     customerIds: uniqueIds(customerIds),
     programIds: uniqueIds(programIds),
+    projectIds: uniqueIds(projectIds),
   };
 }
 
 export function emptyLabelBundle(): TaskDisplayLabelBundle {
-  return { members: {}, leads: {}, customers: {}, programs: {} };
+  return { members: {}, leads: {}, customers: {}, programs: {}, projects: {} };
 }
 
 export async function resolveTaskDisplayLabels(
@@ -161,6 +172,21 @@ export async function resolveTaskDisplayLabels(
     }
   }
 
+  const projectIds = references.projectIds ?? [];
+  if (projectIds.length > 0) {
+    const { data: projects } = await supabase
+      .from("projects")
+      .select("id, name")
+      .eq("organization_id", organizationId)
+      .in("id", projectIds);
+
+    for (const project of projects ?? []) {
+      if (bundle.projects) {
+        bundle.projects[project.id] = normalizeLabel(project.name, PROJECT_FALLBACK);
+      }
+    }
+  }
+
   return bundle;
 }
 
@@ -183,6 +209,9 @@ export function resolveLinkedContextLabel(
   }
   if (linkedContext.kind === "customer") {
     return labels.customers[linkedContext.customerId] ?? CUSTOMER_FALLBACK;
+  }
+  if (linkedContext.kind === "project") {
+    return labels.projects?.[linkedContext.projectId] ?? PROJECT_FALLBACK;
   }
 
   const customer = labels.customers[linkedContext.customerId] ?? CUSTOMER_FALLBACK;
@@ -212,4 +241,12 @@ export function resolveProgramLabel(
 ): string | undefined {
   if (!programId) return undefined;
   return labels.programs[programId] ?? PROGRAM_FALLBACK;
+}
+
+export function resolveProjectLabel(
+  projectId: string | undefined,
+  labels: TaskDisplayLabelBundle,
+): string | undefined {
+  if (!projectId) return undefined;
+  return labels.projects?.[projectId] ?? PROJECT_FALLBACK;
 }

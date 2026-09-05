@@ -178,6 +178,12 @@ export function TaskDetail({ viewModel, reloadHref, workflowLinks }: TaskDetailP
                 <dd>{labels.program}</dd>
               </div>
             ) : null}
+            {labels.project ? (
+              <div>
+                <dt>Project</dt>
+                <dd>{labels.project}</dd>
+              </div>
+            ) : null}
             {task.predecessorTaskId ? (
               <div>
                 <dt>Predecessor task</dt>

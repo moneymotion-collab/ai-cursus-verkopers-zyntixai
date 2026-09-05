@@ -10,6 +10,12 @@ const LEAD_ID = "22222222-2222-4222-8222-222222222222";
 const CUSTOMER_ID = "33333333-3333-4333-8333-333333333333";
 const PROGRAM_ID = "44444444-4444-4444-8444-444444444444";
 const ENROLLMENT_ID = "55555555-5555-4555-8555-555555555555";
+const PROJECT_ID = "66666666-6666-4666-8666-666666666666";
+
+const baseTask = {
+  title: "Follow up",
+  dueAt: "2026-07-15T10:00:00.000Z",
+};
 
 describe("taskCreateInputSchema", () => {
   it("accepts valid lead-only manual task", () => {
@@ -73,6 +79,53 @@ describe("taskCreateInputSchema", () => {
     });
 
     expect(result.success).toBe(true);
+  });
+
+  it.each([
+    ["lead", { leadId: LEAD_ID }],
+    ["customer", { customerId: CUSTOMER_ID }],
+    [
+      "enrollment",
+      {
+        enrollmentId: ENROLLMENT_ID,
+        customerId: CUSTOMER_ID,
+        programId: PROGRAM_ID,
+      },
+    ],
+    ["project", { projectId: PROJECT_ID }],
+  ])("accepts exactly one %s context", (_name, linkedContext) => {
+    expect(taskCreateInputSchema.safeParse({ ...baseTask, ...linkedContext }).success).toBe(true);
+  });
+
+  it("rejects a task without a linked context", () => {
+    expect(taskCreateInputSchema.safeParse(baseTask).success).toBe(false);
+  });
+
+  it.each([
+    ["lead", { leadId: LEAD_ID }],
+    ["customer", { customerId: CUSTOMER_ID }],
+    [
+      "enrollment",
+      {
+        enrollmentId: ENROLLMENT_ID,
+        customerId: CUSTOMER_ID,
+        programId: PROGRAM_ID,
+      },
+    ],
+    ["program", { programId: PROGRAM_ID }],
+  ])("rejects project combined with %s context", (_name, otherContext) => {
+    const result = taskCreateInputSchema.safeParse({
+      ...baseTask,
+      projectId: PROJECT_ID,
+      ...otherContext,
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.flatten().fieldErrors.projectId).toContain(
+        "Project cannot be combined with another linked context",
+      );
+    }
   });
 
   it("rejects invalid timestamp", () => {

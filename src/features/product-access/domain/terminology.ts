@@ -12,9 +12,14 @@ export type ProductTerminology = {
     singular: string;
     plural: string;
   };
+  project: {
+    singular: string;
+    plural: string;
+  };
 };
 
 const CUSTOMER_TERM_KEY = "customer";
+const PROJECT_TERM_KEY = "project";
 
 /**
  * System/default generic wording. Used when context is unresolved or a
@@ -24,6 +29,7 @@ const CUSTOMER_TERM_KEY = "customer";
  */
 export const DEFAULT_PRODUCT_TERMINOLOGY: ProductTerminology = {
   customer: { singular: "Customer", plural: "Customers" },
+  project: { singular: "Project", plural: "Projects" },
 };
 
 /**
@@ -36,13 +42,20 @@ export function projectProductTerminology(
   terms: readonly EffectiveTerminology[] | null,
 ): ProductTerminology {
   const customerTerm = terms?.find((term) => term.termKey === CUSTOMER_TERM_KEY);
-  if (!customerTerm) {
-    return DEFAULT_PRODUCT_TERMINOLOGY;
-  }
+  const projectTerm = terms?.find((term) => term.termKey === PROJECT_TERM_KEY);
+
   return {
-    customer: {
-      singular: customerTerm.singularLabel,
-      plural: customerTerm.pluralLabel,
-    },
+    customer: customerTerm
+      ? {
+          singular: customerTerm.singularLabel,
+          plural: customerTerm.pluralLabel,
+        }
+      : DEFAULT_PRODUCT_TERMINOLOGY.customer,
+    project: projectTerm
+      ? {
+          singular: projectTerm.singularLabel,
+          plural: projectTerm.pluralLabel,
+        }
+      : DEFAULT_PRODUCT_TERMINOLOGY.project,
   };
 }

@@ -75,6 +75,7 @@ export type TaskListFilters = {
   customerId?: string;
   enrollmentId?: string;
   programId?: string;
+  projectId?: string;
   source?: TaskSourceType;
   dueState?: TaskDueState;
   search?: string;

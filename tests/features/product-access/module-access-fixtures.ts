@@ -6,6 +6,7 @@ export const KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY: ModuleNavVisibility = {
   home: true,
   leads: true,
   customers: true,
+  projects: false,
   programs: true,
   enrollments: true,
   progress: true,
@@ -19,6 +20,7 @@ export const SERVICE_MODULE_NAV_VISIBILITY: ModuleNavVisibility = {
   home: true,
   leads: true,
   customers: true,
+  projects: true,
   programs: false,
   enrollments: false,
   progress: false,
@@ -30,6 +32,18 @@ export const SERVICE_MODULE_NAV_VISIBILITY: ModuleNavVisibility = {
 /** Service foundation seeded terminology: Client(s) for the shared Customer concept. */
 export const SERVICE_PRODUCT_TERMINOLOGY: ProductTerminology = {
   customer: { singular: "Client", plural: "Clients" },
+  project: { singular: "Project", plural: "Projects" },
+};
+
+/** Field foundation lawful shared baseline, including shared Projects. */
+export const FIELD_MODULE_NAV_VISIBILITY: ModuleNavVisibility = {
+  ...SERVICE_MODULE_NAV_VISIBILITY,
+};
+
+/** Field foundation seeded terminology uses Job(s) for the shared Project concept. */
+export const FIELD_PRODUCT_TERMINOLOGY: ProductTerminology = {
+  customer: { singular: "Customer", plural: "Customers" },
+  project: { singular: "Job", plural: "Jobs" },
 };
 
 export function mockKnowledgeProductModuleAccess(): Extract<

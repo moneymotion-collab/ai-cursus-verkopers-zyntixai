@@ -23,6 +23,7 @@ export const createTaskActionInputSchema = organizationContextSchema
     customerId: uuidSchema.optional().nullable(),
     enrollmentId: uuidSchema.optional().nullable(),
     programId: uuidSchema.optional().nullable(),
+    projectId: uuidSchema.optional().nullable(),
     predecessorTaskId: uuidSchema.optional().nullable(),
     metadata: z.record(z.unknown()).optional(),
   })

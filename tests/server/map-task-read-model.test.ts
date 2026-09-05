@@ -15,6 +15,7 @@ const CUSTOMER_ID = "44444444-4444-4444-8444-444444444444";
 const ENROLLMENT_ID = "55555555-5555-4555-8555-555555555555";
 const PROGRAM_ID = "66666666-6666-4666-8666-666666666666";
 const MEMBER_ID = "77777777-7777-4777-8777-777777777777";
+const PROJECT_ID = "88888888-8888-4888-8888-888888888888";
 
 function baseListRow(overrides: Partial<TaskListRow> = {}): TaskListRow {
   return {
@@ -31,6 +32,7 @@ function baseListRow(overrides: Partial<TaskListRow> = {}): TaskListRow {
     customer_id: null,
     enrollment_id: null,
     program_id: null,
+    project_id: null,
     archived_at: null,
     created_at: "2026-07-01T10:00:00.000Z",
     ...overrides,
@@ -91,6 +93,21 @@ describe("mapLinkedContext", () => {
       enrollmentId: ENROLLMENT_ID,
       customerId: CUSTOMER_ID,
       programId: PROGRAM_ID,
+    });
+  });
+
+  it("maps project-only context", () => {
+    expect(
+      mapLinkedContext({
+        lead_id: null,
+        customer_id: null,
+        enrollment_id: null,
+        program_id: null,
+        project_id: PROJECT_ID,
+      }),
+    ).toEqual({
+      kind: "project",
+      projectId: PROJECT_ID,
     });
   });
 });

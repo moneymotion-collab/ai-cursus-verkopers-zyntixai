@@ -12,6 +12,7 @@ export type TaskType = "follow_up" | "call_prep" | "onboarding" | "general";
 export type TaskLinkedContext =
   | { kind: "lead"; leadId: string }
   | { kind: "customer"; customerId: string }
+  | { kind: "project"; projectId: string }
   | {
       kind: "enrollment";
       enrollmentId: string;
@@ -129,6 +130,7 @@ export type TaskCreateInput = {
   customerId?: string | null;
   enrollmentId?: string | null;
   programId?: string | null;
+  projectId?: string | null;
   predecessorTaskId?: string | null;
   idempotencyKey?: string | null;
   metadata?: Json;

@@ -9,6 +9,7 @@ import {
   getTaskStatusHistory,
   listTasks,
   listTasksForLead,
+  listTasksForProject,
 } from "@/features/tasks/server/task-read-queries";
 
 const ORG_ID = "11111111-1111-4111-8111-111111111111";
@@ -16,6 +17,7 @@ const TASK_ID = "22222222-2222-4222-8222-222222222222";
 const LEAD_ID = "33333333-3333-4333-8333-333333333333";
 const MEMBER_ID = "44444444-4444-4444-8444-444444444444";
 const USER_ID = "55555555-5555-4555-8555-555555555555";
+const PROJECT_ID = "66666666-6666-4666-8666-666666666666";
 
 type QueryResult = {
   data?: unknown;
@@ -169,6 +171,7 @@ const sampleListRow: TaskListRow = {
   customer_id: null,
   enrollment_id: null,
   program_id: null,
+  project_id: null,
   archived_at: null,
   created_at: "2026-07-01T10:00:00.000Z",
 };
@@ -268,6 +271,41 @@ describe("task read queries", () => {
     if (result.ok) {
       expect(result.data.items[0].linkedContext).toEqual({ kind: "lead", leadId: LEAD_ID });
     }
+  });
+
+  it("filters and maps tasks for a project context", async () => {
+    const supabase = createReadMockSupabase({
+      user: { id: USER_ID },
+      tasksList: {
+        data: [{ ...sampleListRow, lead_id: null, project_id: PROJECT_ID }],
+        count: 1,
+        error: null,
+      },
+    });
+
+    const result = await listTasksForProject({
+      supabase,
+      organizationId: ORG_ID,
+      projectId: PROJECT_ID,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.items[0].linkedContext).toEqual({
+        kind: "project",
+        projectId: PROJECT_ID,
+      });
+    }
+
+    const fromMock = vi.mocked(supabase.from);
+    const taskCallIndex = fromMock.mock.calls.findIndex(([table]) => table === "tasks");
+    const taskTable = fromMock.mock.results[taskCallIndex]?.value as {
+      select: ReturnType<typeof vi.fn>;
+    };
+    const query = taskTable.select.mock.results[0]?.value as {
+      eq: ReturnType<typeof vi.fn>;
+    };
+    expect(query.eq).toHaveBeenCalledWith("project_id", PROJECT_ID);
   });
 
   it("returns safe not-found for missing task", async () => {

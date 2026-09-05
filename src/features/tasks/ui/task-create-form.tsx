@@ -18,7 +18,7 @@ import {
 import type { TaskListUrlState } from "@/features/tasks/ui/task-list-search-params";
 import styles from "./task-form.module.css";
 
-type ContextType = "lead" | "customer" | "enrollment";
+type ContextType = "lead" | "customer" | "enrollment" | "project";
 
 type TaskCreateFormProps = {
   organizationId: string;
@@ -44,9 +44,18 @@ export function TaskCreateForm({
 }: TaskCreateFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
+  const projectOptions = options.projects ?? [];
   const [uiState, setUiState] = useState<TaskFormUiState>({ kind: "idle" });
   const [contextType, setContextType] = useState<ContextType>(
-    options.leads.length > 0 ? "lead" : options.customers.length > 0 ? "customer" : "enrollment",
+    options.leads.length > 0
+      ? "lead"
+      : options.customers.length > 0
+        ? "customer"
+        : options.enrollments.length > 0
+          ? "enrollment"
+          : projectOptions.length > 0
+            ? "project"
+            : "enrollment",
   );
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -60,7 +69,11 @@ export function TaskCreateForm({
   const fieldErrors = uiState.kind === "field_error" ? uiState.fieldErrors : undefined;
   const locked = formIsLocked(uiState);
   const showCapNotice =
-    options.capped.leads || options.capped.customers || options.capped.enrollments || options.capped.members;
+    options.capped.leads ||
+    options.capped.customers ||
+    options.capped.enrollments ||
+    Boolean(options.capped.projects) ||
+    options.capped.members;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -86,13 +99,15 @@ export function TaskCreateForm({
       payload.leadId = contextEntityId;
     } else if (contextType === "customer") {
       payload.customerId = contextEntityId;
-    } else {
+    } else if (contextType === "enrollment") {
       const enrollment = options.enrollments.find((item) => item.value === contextEntityId);
       if (enrollment) {
         payload.enrollmentId = enrollment.value;
         payload.customerId = enrollment.customerId;
         payload.programId = enrollment.programId;
       }
+    } else {
+      payload.projectId = contextEntityId;
     }
 
     const result = await createTaskAction(payload);
@@ -116,7 +131,9 @@ export function TaskCreateForm({
       ? options.leads
       : contextType === "customer"
         ? options.customers
-        : options.enrollments;
+        : contextType === "enrollment"
+          ? options.enrollments
+          : projectOptions;
 
   return (
     <form className={styles.taskForm} onSubmit={handleSubmit} aria-busy={uiState.kind === "pending"} noValidate>
@@ -272,11 +289,20 @@ export function TaskCreateForm({
             <option value="enrollment" disabled={options.enrollments.length === 0}>
               Enrollment
             </option>
+            <option value="project" disabled={projectOptions.length === 0}>
+              Project
+            </option>
           </select>
         </div>
         <div className={styles.field}>
           <label htmlFor="create-context-entity">
-            {contextType === "lead" ? "Lead" : contextType === "customer" ? "Customer" : "Enrollment"}
+            {contextType === "lead"
+              ? "Lead"
+              : contextType === "customer"
+                ? "Customer"
+                : contextType === "enrollment"
+                  ? "Enrollment"
+                  : "Project"}
           </label>
           <select
             id="create-context-entity"

@@ -86,6 +86,13 @@ const MESSAGE_RULES: Array<{
     category: "validation",
   },
   {
+    pattern: /^linked project not found or archived$/i,
+    code: "LINKED_ENTITY_ARCHIVED",
+    message: "Linked record is invalid or unavailable.",
+    retryable: false,
+    category: "validation",
+  },
+  {
     pattern: /^linked lead is archived$/i,
     code: "LINKED_ENTITY_ARCHIVED",
     message: "Linked record is archived.",

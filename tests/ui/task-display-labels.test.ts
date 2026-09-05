@@ -14,6 +14,7 @@ const MEMBER_B = "33333333-3333-4333-8333-333333333333";
 const LEAD_ID = "44444444-4444-4444-8444-444444444444";
 const CUSTOMER_ID = "55555555-5555-4555-8555-555555555555";
 const PROGRAM_ID = "66666666-6666-4666-8666-666666666666";
+const PROJECT_ID = "77777777-7777-4777-8777-777777777777";
 
 function createLabelSupabase(
   responses: Record<string, QueryResult>,
@@ -112,12 +113,35 @@ describe("resolveTaskDisplayLabels", () => {
           dueState: "upcoming",
         },
       },
+      {
+        id: "t4",
+        organizationId: ORG_ID,
+        title: "D",
+        status: "open",
+        taskType: "general",
+        priority: "normal",
+        source: "manual",
+        dueAt: "2026-07-18T09:00:00.000Z",
+        assigneeMemberId: null,
+        linkedContext: { kind: "project", projectId: PROJECT_ID },
+        archivedAt: null,
+        createdAt: "2026-07-10T08:00:00.000Z",
+        derived: {
+          terminal: false,
+          archived: false,
+          overdue: false,
+          dueToday: false,
+          upcoming: true,
+          dueState: "upcoming",
+        },
+      },
     ]);
 
     expect(refs.memberIds).toEqual([MEMBER_A, MEMBER_B]);
     expect(refs.leadIds).toEqual([LEAD_ID]);
     expect(refs.customerIds).toEqual([CUSTOMER_ID]);
     expect(refs.programIds).toEqual([PROGRAM_ID]);
+    expect(refs.projectIds).toEqual([PROJECT_ID]);
   });
 
   it("uses org-scoped member labels without reading colleague profiles directly", async () => {
@@ -200,6 +224,25 @@ describe("resolveTaskDisplayLabels", () => {
     );
 
     expect(enrollmentLabel).toBe("Acme Customer · Sales Program");
+  });
+
+  it("resolves project context labels from org-scoped project names", async () => {
+    const supabase = createLabelSupabase({
+      projects: { data: [{ id: PROJECT_ID, name: "Laptop rollout" }], error: null },
+    });
+
+    const labels = await resolveTaskDisplayLabels(supabase, ORG_ID, {
+      memberIds: [],
+      leadIds: [],
+      customerIds: [],
+      programIds: [],
+      projectIds: [PROJECT_ID],
+    });
+
+    expect(labels.projects?.[PROJECT_ID]).toBe("Laptop rollout");
+    expect(resolveLinkedContextLabel({ kind: "project", projectId: PROJECT_ID }, labels)).toBe(
+      "Laptop rollout",
+    );
   });
 
   it("falls back safely when member-label RPC fails", async () => {

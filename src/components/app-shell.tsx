@@ -41,6 +41,7 @@ export type AppShellActiveNav =
   | "home"
   | "leads"
   | "customers"
+  | "projects"
   | "programs"
   | "enrollments"
   | "progress"
@@ -128,6 +129,15 @@ function PrimaryNavFallback({
           aria-current={activeNav === "customers" ? "page" : undefined}
         >
           {terminology.customer.plural}
+        </Link>
+      ) : null}
+      {moduleNavVisibility.projects ? (
+        <Link
+          className={styles.navLink}
+          href={withOrg("/projects")}
+          aria-current={activeNav === "projects" ? "page" : undefined}
+        >
+          {terminology.project.plural}
         </Link>
       ) : null}
       {moduleNavVisibility.programs ? (
@@ -238,6 +248,16 @@ function PrimaryNav({
           aria-current={activeNav === "customers" ? "page" : undefined}
         >
           {terminology.customer.plural}
+        </OrgAwareLink>
+      ) : null}
+      {moduleNavVisibility.projects ? (
+        <OrgAwareLink
+          className={styles.navLink}
+          href="/projects"
+          organizationId={selectedOrganizationId}
+          aria-current={activeNav === "projects" ? "page" : undefined}
+        >
+          {terminology.project.plural}
         </OrgAwareLink>
       ) : null}
       {moduleNavVisibility.programs ? (

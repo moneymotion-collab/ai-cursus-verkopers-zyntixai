@@ -1,0 +1,292 @@
+.page,
+.form {
+  display: grid;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 72rem;
+}
+
+.form {
+  max-width: 48rem;
+}
+
+.pageHeader,
+.detailHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.page h1,
+.form h1,
+.page h2,
+.form h2,
+.statePanel h1 {
+  margin: 0;
+}
+
+.muted {
+  color: var(--muted-text);
+  margin: 0.35rem 0 0;
+}
+
+.backLink {
+  width: fit-content;
+}
+
+.filters,
+.inlineForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.filters label,
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.filters input,
+.filters select,
+.inlineForm select,
+.field input,
+.field select,
+.field textarea {
+  min-height: 2.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  background: var(--surface-color);
+  color: inherit;
+  font: inherit;
+}
+
+.field textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.filters .checkbox {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
+.filters .checkbox input {
+  min-height: auto;
+}
+
+.primaryButton,
+.secondaryButton,
+.dangerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.primaryButton {
+  color: #fff;
+  background: #2563eb;
+  border: 1px solid #1d4ed8;
+}
+
+.secondaryButton {
+  color: inherit;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+}
+
+.dangerButton {
+  width: fit-content;
+  color: #991b1b;
+  background: #fff;
+  border: 1px solid #fca5a5;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.dangerButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.panel,
+.card,
+.statePanel,
+.empty {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1.1rem 1.25rem;
+  background: var(--surface-color);
+}
+
+.statePanel {
+  max-width: 40rem;
+}
+
+.panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.dateRow,
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface-color);
+}
+
+.table th,
+.table td {
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  background: #f1f5f9;
+  font-size: 0.875rem;
+}
+
+.cards {
+  display: none;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 0.75rem;
+}
+
+.card {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.card dl,
+.definitionList {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.card dl div,
+.definitionList div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.card dt,
+.definitionList dt {
+  color: var(--muted-text);
+  font-size: 0.85rem;
+}
+
+.card dd,
+.definitionList dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.taskList {
+  display: grid;
+  gap: 0.7rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.taskList li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.taskList span {
+  color: var(--muted-text);
+}
+
+.warning,
+.error,
+.fieldError {
+  margin: 0;
+  border-radius: 0.5rem;
+  padding: 0.7rem 0.9rem;
+}
+
+.warning {
+  color: #854d0e;
+  background: #fefce8;
+  border: 1px solid #fde68a;
+}
+
+.error,
+.fieldError {
+  color: #991b1b;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.fieldError {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.875rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+@media (max-width: 48rem) {
+  .pageHeader,
+  .detailHeader,
+  .taskList li {
+    flex-direction: column;
+  }
+
+  .dateRow,
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tableWrap {
+    display: none;
+  }
+
+  .cards {
+    display: grid;
+  }
+
+  .filters,
+  .inlineForm,
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .primaryButton,
+  .secondaryButton,
+  .dangerButton {
+    width: 100%;
+  }
+}

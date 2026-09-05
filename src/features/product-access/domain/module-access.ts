@@ -21,6 +21,7 @@ export const FAIL_CLOSED_MODULE_NAV_VISIBILITY: ModuleNavVisibility = {
   home: true,
   leads: false,
   customers: false,
+  projects: false,
   programs: false,
   enrollments: false,
   progress: false,

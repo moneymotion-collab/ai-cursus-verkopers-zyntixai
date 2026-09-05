@@ -5,12 +5,14 @@ import { AppShell } from "@/components/app-shell";
 import { MEMBERS_NAV_LABEL } from "@/features/invitations/domain/members-navigation";
 import { DEFAULT_PRODUCT_TERMINOLOGY } from "@/features/product-access/domain/terminology";
 import {
+  FIELD_MODULE_NAV_VISIBILITY,
+  FIELD_PRODUCT_TERMINOLOGY,
   KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY,
   SERVICE_MODULE_NAV_VISIBILITY,
   SERVICE_PRODUCT_TERMINOLOGY,
 } from "../features/product-access/module-access-fixtures";
 
-describe("AppShell Customers nav label terminology (BETA1-4TG-TERMINOLOGY)", () => {
+describe("AppShell shared nav terminology (BETA1-4TG-TERMINOLOGY)", () => {
   it("renders generic Customers label for Knowledge/OCB (TG1 unchanged) when terminology is omitted", () => {
     const html = renderToStaticMarkup(
       <AppShell
@@ -52,6 +54,53 @@ describe("AppShell Customers nav label terminology (BETA1-4TG-TERMINOLOGY)", () 
     );
     expect(html).toContain(">Clients<");
     expect(html).not.toContain(">Customers<");
+  });
+
+  it("renders Projects for Service and Jobs for Field", () => {
+    const serviceHtml = renderToStaticMarkup(
+      <AppShell
+        activeNav="projects"
+        membersNavVisible={false}
+        moduleNavVisibility={SERVICE_MODULE_NAV_VISIBILITY}
+        terminology={SERVICE_PRODUCT_TERMINOLOGY}
+      >
+        <p>content</p>
+      </AppShell>,
+    );
+    const fieldHtml = renderToStaticMarkup(
+      <AppShell
+        activeNav="projects"
+        membersNavVisible={false}
+        moduleNavVisibility={FIELD_MODULE_NAV_VISIBILITY}
+        terminology={FIELD_PRODUCT_TERMINOLOGY}
+      >
+        <p>content</p>
+      </AppShell>,
+    );
+
+    expect(serviceHtml).toContain('href="/projects"');
+    expect(serviceHtml).toContain(">Projects<");
+    expect(serviceHtml).not.toContain(">Jobs<");
+    expect(fieldHtml).toContain('href="/projects"');
+    expect(fieldHtml).toContain(">Jobs<");
+    expect(fieldHtml).not.toContain(">Projects<");
+  });
+
+  it("does not let project terminology grant Projects access", () => {
+    const html = renderToStaticMarkup(
+      <AppShell
+        activeNav="home"
+        membersNavVisible={false}
+        moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
+        terminology={FIELD_PRODUCT_TERMINOLOGY}
+      >
+        <p>content</p>
+      </AppShell>,
+    );
+
+    expect(KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY.projects).toBe(false);
+    expect(html).not.toContain('href="/projects"');
+    expect(html).not.toContain(">Jobs<");
   });
 
   it("does not let terminology influence module visibility (Programs stays hidden for Service)", () => {

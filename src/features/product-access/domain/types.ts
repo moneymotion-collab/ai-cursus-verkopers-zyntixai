@@ -5,6 +5,7 @@ export type ProductModuleId =
   | "home"
   | "leads"
   | "customers"
+  | "projects"
   | "programs"
   | "enrollments"
   | "progress"

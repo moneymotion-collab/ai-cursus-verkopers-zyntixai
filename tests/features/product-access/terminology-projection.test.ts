@@ -25,8 +25,14 @@ import {
  * (see tests/security/beta1-4tg-context-packs-seed-contract.test.ts and
  * supabase/migrations/20260901100010_seed_context_pack_registry_4tg_ctx2.sql).
  */
-const SERVICE_TERMS = [["customer", "Client", "Clients"]] as const;
-const FIELD_TERMS = [["customer", "Customer", "Customers"]] as const;
+const SERVICE_TERMS = [
+  ["customer", "Client", "Clients"],
+  ["project", "Project", "Projects"],
+] as const;
+const FIELD_TERMS = [
+  ["customer", "Customer", "Customers"],
+  ["project", "Job", "Jobs"],
+] as const;
 const PRODUCT_TERMS = [["customer", "Customer", "Customers"]] as const;
 
 function pack(packKey: string, foundationKey: string, packId: string): ResolverContextPack {
@@ -129,7 +135,7 @@ describe("projectProductTerminology", () => {
     expect(projectProductTerminology([])).toEqual(DEFAULT_PRODUCT_TERMINOLOGY);
   });
 
-  it("falls back to the generic default when the customer term key is absent", () => {
+  it("falls back to generic defaults when product term keys are absent", () => {
     const result = resolveEffectiveContext(
       foundationInput({
         foundationKey: "no-terms",
@@ -153,10 +159,11 @@ describe("projectProductTerminology", () => {
     if (!result.ok) return;
     expect(projectProductTerminology(result.value.terminology)).toEqual({
       customer: { singular: "Customer", plural: "Customers" },
+      project: { singular: "Project", plural: "Projects" },
     });
   });
 
-  it("projects Service terminology as Client/Clients", () => {
+  it("projects Service terminology as Client/Clients and Project/Projects", () => {
     const result = resolveEffectiveContext(
       foundationInput({
         foundationKey: "service",
@@ -171,10 +178,11 @@ describe("projectProductTerminology", () => {
     if (!result.ok) return;
     expect(projectProductTerminology(result.value.terminology)).toEqual({
       customer: { singular: "Client", plural: "Clients" },
+      project: { singular: "Project", plural: "Projects" },
     });
   });
 
-  it("projects Field-operations terminology as Customer/Customers", () => {
+  it("projects Field terminology as Customer/Customers and Job/Jobs", () => {
     const result = resolveEffectiveContext(
       foundationInput({
         foundationKey: "field-operations",
@@ -189,10 +197,11 @@ describe("projectProductTerminology", () => {
     if (!result.ok) return;
     expect(projectProductTerminology(result.value.terminology)).toEqual({
       customer: { singular: "Customer", plural: "Customers" },
+      project: { singular: "Job", plural: "Jobs" },
     });
   });
 
-  it("projects Product-operations terminology as Customer/Customers", () => {
+  it("preserves Product customer terms and falls back to generic Projects", () => {
     const result = resolveEffectiveContext(
       foundationInput({
         foundationKey: "product-operations",
@@ -207,6 +216,7 @@ describe("projectProductTerminology", () => {
     if (!result.ok) return;
     expect(projectProductTerminology(result.value.terminology)).toEqual({
       customer: { singular: "Customer", plural: "Customers" },
+      project: { singular: "Project", plural: "Projects" },
     });
   });
 });

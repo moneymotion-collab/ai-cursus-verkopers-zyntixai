@@ -38,6 +38,7 @@ export const taskListFiltersSchema = z
     customerId: uuidSchema.optional(),
     enrollmentId: uuidSchema.optional(),
     programId: uuidSchema.optional(),
+    projectId: uuidSchema.optional(),
     source: z.enum(TASK_SOURCES).optional(),
     dueState: z.enum(["overdue", "due_today", "upcoming", "none"]).optional(),
     search: z.string().trim().min(1).max(200).optional(),
@@ -49,6 +50,7 @@ export const taskListFiltersSchema = z
       value.customerId,
       value.enrollmentId,
       value.programId,
+      value.projectId,
     ].filter(Boolean);
 
     if (contextFilters.length > 1) {
