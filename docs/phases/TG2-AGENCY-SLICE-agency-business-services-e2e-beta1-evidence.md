@@ -34,13 +34,13 @@ capacity or automation were introduced.
 | Worktree | `D:\project ai cursus verkopers.worktrees\parallel__laptop-product-track-20260707-1` |
 | Branch | `core/platform-readiness-20260707` |
 | Start HEAD | `a960f6798f9707544b06517dacf19b57b0909f51` |
-| Final implementation HEAD | recorded in the follow-up evidence alignment |
-| Implementation commit | `feat(beta1): complete agency service slice` |
+| Final implementation HEAD | `8e670732c5ed7d715ab97381f97f7c8f1843dae7` |
+| Implementation commit | `8e670732c5ed7d715ab97381f97f7c8f1843dae7` — `feat(beta1): complete agency service slice` |
 | Evidence commit | follow-up closure-HEAD record containing implementation SHA alignment |
 | Upstream | `origin/core/platform-readiness-20260707` |
 | Start divergence | `0 0` |
-| Final divergence | verified after normal push |
-| Worktree | clean before implementation; clean required after push |
+| Final divergence | `0 0` |
+| Worktree | clean before implementation and clean after push |
 
 ## Investigation
 
@@ -394,6 +394,37 @@ profitability/margin/timesheets, a full Agency problem catalog, Social as an
 Agency product, and any new Agency-specific `agency_clients`/`agency_projects`
 schema. `foundation.service` remains `context_ready`; no `beta_supported`
 promotion occurred.
+
+## Changed files
+
+The implementation commit contains 59 files with 2,674 additions and 54
+deletions:
+
+- `supabase/migrations/20260905140000_tg2_agency_slice.sql` (new);
+- `src/types/database.generated.ts` (manually synchronized, no `db push`);
+- `src/features/attention/**` (new source/rule keys, read models, RPC
+  adapter, new evaluate-project action/schema/UI, cross-links, filters);
+- `src/features/customers/ui/customer-projects.{tsx,module.css}` (new),
+  `src/features/customers/ui/load-customer-detail.ts`,
+  `src/features/customers/ui/customer-detail.tsx`;
+- `src/features/projects/**` (query helper, navigation helper, form/loader
+  prefill, detail task summary/new-task/evaluate-attention wiring);
+- `src/features/tasks/ui/{load-task-workflow-page,task-create-form,
+  task-navigation}.ts` (initial-context prefill from `projectId`);
+- `src/features/leads/ui/lead-detail.tsx` (terminology-aware converted-entity
+  panel);
+- `src/features/daily-operating/domain/compose-daily-operating-brief.ts`
+  (project context-label fallback);
+- route wiring in `src/app/(authenticated)/{attention,customers,leads,
+  projects,tasks}/**`;
+- new `tests/security/tg2-agency-slice-migration-security.test.ts` and
+  targeted updates across `tests/ui/**`, `tests/server/**`,
+  `tests/domain/**`, `tests/features/**`, `tests/helpers/**`;
+- `docs/phases/TG2-AGENCY-SLICE-agency-business-services-e2e-beta1-evidence.md`
+  (this document).
+
+No CAP/CTX seed, onboarding, readiness, BQA, Social, Program, Enrollment, or
+Progress implementation file was modified.
 
 ## Tests / quality
 
