@@ -12,9 +12,12 @@
 
 `DEFERRED AGENCY SCOPE REMAINS OUTSIDE BETA-1`
 
-Final verification found no frozen-contract blocker. No application, database,
-test, readiness, or production change was required. This phase adds evidence
-only.
+Independent review found three frozen-contract UX blockers after the initial
+evidence commit: Service Lead conversion copy still used Customer, Service
+Client detail could expose Knowledge Enrollment links to a forbidden route,
+and the Service Project empty state still said customer. The focused
+correction and four regression tests close those blockers. No database,
+readiness, or production change was required.
 
 ## Repository
 
@@ -23,10 +26,11 @@ only.
 | Worktree | `D:\project ai cursus verkopers.worktrees\parallel__laptop-product-track-20260707-1` |
 | Branch | `core/platform-readiness-20260707` |
 | Start HEAD | `f4d3dbc85ad726f7719377b0ed1020a33a7381f7` |
-| Verified implementation HEAD | `f4d3dbc85ad726f7719377b0ed1020a33a7381f7` |
-| Verification/fix commits | none; `BLOCKERS FOUND = 0` |
-| Evidence commit | evidence-only commit containing this document; exact SHA is reported in the final handoff because a Git commit cannot contain its own SHA |
-| Final HEAD | evidence-only commit containing this document; exact SHA is reported in the final handoff |
+| Initially verified implementation HEAD | `f4d3dbc85ad726f7719377b0ed1020a33a7381f7` |
+| Initial evidence commit | `7ac68c9bc46ca69426cf0706c1a0f128af111ffe` — superseded by the independent-review correction recorded below |
+| Verification/fix commit | `ff5d2c42b69e5c4bba6c8787da040175f590a935` — `fix(beta1): close agency verification UX blockers` |
+| Evidence alignment commit | follow-up commit containing this corrected closure record; exact SHA is reported in the final handoff because a Git commit cannot contain its own SHA |
+| Final HEAD | evidence-alignment commit containing this corrected closure record; exact SHA is reported in the final handoff |
 | Upstream | `origin/core/platform-readiness-20260707` |
 | Start divergence | `0 0` |
 | Final divergence | `0 0` after normal push |
@@ -80,7 +84,10 @@ Tasks, assignment, Project Attention SQL/read/actions/UI, Home composition,
 product-access registry and guards, RBAC, organization isolation, generated
 types, migration security contracts, and current cross-target/full-suite
 baseline. Verification used the current repository state rather than treating
-prior closure as proof by itself.
+prior closure as proof by itself. Independent workflow and UX review completed
+after the initial evidence commit found the three blockers documented below;
+the first PASS assertion is therefore superseded by the fix and this corrected
+alignment record rather than being treated as authoritative.
 
 ## End-to-end acceptance scenario
 
@@ -284,10 +291,22 @@ non-mutating evidence.
 
 ## Blockers found and fixes
 
-`BLOCKERS FOUND = 0`
+`BLOCKERS FOUND = 3`
 
-No repair, refactor, regression test, database migration, or generated-type
-change was needed.
+1. `/leads/[leadId]/convert` and related status guidance hardcoded Customer
+   instead of consuming Service Client terminology. The forms now receive
+   resolved `ProductTerminology` and project Client through all operator copy.
+2. Service Client detail loaded Enrollment summaries and emitted Enrollment
+   links even though `enrollments` is capability-denied. Both the loader query
+   and page links now require `navVisibility.enrollments`.
+3. The Client Projects empty state hardcoded customer. It now consumes the
+   resolved Customer/Client singular term.
+
+Four regression cases cover Service conversion copy, Service status guidance,
+Service Client Project-empty copy, and absence of Enrollment query/data in
+Service context. The smallest correction touched only the relevant shared
+forms/detail composition and tests. No migration or generated-type change was
+needed.
 
 ## Deferred scope verification
 
@@ -303,7 +322,8 @@ Targeted TG2/cross-target verification:
 
 - primary governed run: `25 test files / 183 tests — all passed`;
 - Service onboarding/readiness supplement: `3 test files / 20 tests — all passed`;
-- aggregate targeted evidence: `28 test files / 203 tests — all passed`.
+- pre-repair aggregate targeted evidence: `28 test files / 203 tests — all passed`;
+- post-repair blocker regression run: `5 test files / 33 tests — all passed`.
 
 The targeted scope covered Leads, conversion, Clients, Projects, Tasks,
 assignment, Attention, Home, terminology, access/direct routes, RBAC,
@@ -314,7 +334,7 @@ Full Vitest:
 
 `498 test files: 496 passed / 2 failed`
 
-`3550 passed / 2 failed / 3552 total`
+`3554 passed / 2 failed / 3556 total`
 
 The two failures are exactly the accepted historical baseline:
 
@@ -374,9 +394,20 @@ promotion.
 
 ## Scope compliance
 
-The final diff contains this FV evidence document only. There is no code fix,
-new migration, production action, target-pack change, deferred feature, or
-unrelated cleanup.
+The final phase diff contains the evidence document plus the minimum three
+blocker corrections and four regression cases across Lead conversion/status
+forms and Client detail composition. There is no new migration, production
+action, target-pack change, deferred feature, or unrelated cleanup.
+
+Changed files:
+
+- `src/app/(authenticated)/customers/[customerId]/page.tsx`;
+- `src/app/(authenticated)/leads/[leadId]/{convert,status}/page.tsx`;
+- `src/features/customers/ui/{customer-detail,customer-projects}.tsx`;
+- `src/features/customers/ui/load-customer-detail.ts`;
+- `src/features/leads/ui/{lead-convert-form,lead-status-form}.tsx`;
+- `tests/ui/{customer-detail-loader,customer-detail-presentation,lead-convert-workflow,lead-status-workflow}.test.*`;
+- this evidence document.
 
 ## Final verdict
 
