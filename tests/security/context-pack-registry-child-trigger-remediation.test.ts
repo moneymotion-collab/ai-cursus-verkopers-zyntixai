@@ -3,6 +3,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const SCHEMA_MIGRATION = "20260824190000_create_context_pack_registry.sql";
+const PRESEED_MIGRATION =
+  "20260824190005_prepare_context_pack_registry_ctx1.sql";
 const SEED_MIGRATION = "20260824190010_seed_context_pack_registry_ctx1.sql";
 const KEY_FIX_MIGRATION = "20260824200500_fix_context_pack_key_format_check.sql";
 const CHILD_FIX_MIGRATION =
@@ -160,12 +162,13 @@ describe("CTX-1FV-R1C context pack child-protection trigger remediation", () => 
     expect(childFixMigration).not.toContain("context_packs_key_format_check");
   });
 
-  it("registers the child-trigger repair after schema, seed, and key-format repair", () => {
+  it("registers the prerequisite before seed and retains the later repair", () => {
     const context = readdirSync(join(process.cwd(), "supabase/migrations"))
       .filter((name) => name.includes("context_pack") || name.includes("context-pack"))
       .sort();
-    expect(context.slice(0, 4)).toEqual([
+    expect(context.slice(0, 5)).toEqual([
       SCHEMA_MIGRATION,
+      PRESEED_MIGRATION,
       SEED_MIGRATION,
       KEY_FIX_MIGRATION,
       CHILD_FIX_MIGRATION,

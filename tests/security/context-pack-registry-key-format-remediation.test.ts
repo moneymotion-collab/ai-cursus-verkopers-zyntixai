@@ -3,6 +3,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const SCHEMA_MIGRATION = "20260824190000_create_context_pack_registry.sql";
+const PRESEED_MIGRATION =
+  "20260824190005_prepare_context_pack_registry_ctx1.sql";
 const SEED_MIGRATION = "20260824190010_seed_context_pack_registry_ctx1.sql";
 const FIX_MIGRATION = "20260824200500_fix_context_pack_key_format_check.sql";
 
@@ -95,13 +97,14 @@ describe("CTX-1FV-R1A context pack key format remediation", () => {
     expect(fixMigration).not.toContain("insert into public.context_packs");
   });
 
-  it("registers the forward-fix after the frozen CTX-1B pair", () => {
+  it("registers the forward-fix after the pre-seed prerequisite and seed", () => {
     const context = readdirSync(join(process.cwd(), "supabase/migrations"))
       .filter((name) => name.includes("context_pack") || name.includes("context-pack"))
       .sort();
     expect(context[0]).toBe(SCHEMA_MIGRATION);
-    expect(context[1]).toBe(SEED_MIGRATION);
-    expect(context[2]).toBe(FIX_MIGRATION);
+    expect(context[1]).toBe(PRESEED_MIGRATION);
+    expect(context[2]).toBe(SEED_MIGRATION);
+    expect(context[3]).toBe(FIX_MIGRATION);
   });
 
   it("does not add a runtime Context consumer or Organization assignment", () => {

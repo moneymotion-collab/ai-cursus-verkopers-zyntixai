@@ -3,6 +3,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const SCHEMA_MIGRATION = "20260824190000_create_context_pack_registry.sql";
+const PRESEED_MIGRATION =
+  "20260824190005_prepare_context_pack_registry_ctx1.sql";
 const SEED_MIGRATION = "20260824190010_seed_context_pack_registry_ctx1.sql";
 const FOUR_TG_SEED_MIGRATION = "20260901100010_seed_context_pack_registry_4tg_ctx2.sql";
 
@@ -246,14 +248,16 @@ describe("CTX-1B context pack registry security contract", () => {
 });
 
 describe("CTX-1B context pack migration inventory", () => {
-  it("keeps the two original CTX-1B migrations first and ordered", () => {
+  it("keeps the frozen CTX-1B pair ordered around its prerequisite", () => {
     const context = readdirSync(join(process.cwd(), "supabase/migrations"))
       .filter((name) => name.includes("context_pack") || name.includes("context-pack"))
       .sort();
     expect(context[0]).toBe(SCHEMA_MIGRATION);
-    expect(context[1]).toBe(SEED_MIGRATION);
+    expect(context[1]).toBe(PRESEED_MIGRATION);
+    expect(context[2]).toBe(SEED_MIGRATION);
     expect(context.at(-1)).toBe(FOUR_TG_SEED_MIGRATION);
-    expect(SEED_MIGRATION > SCHEMA_MIGRATION).toBe(true);
+    expect(PRESEED_MIGRATION > SCHEMA_MIGRATION).toBe(true);
+    expect(SEED_MIGRATION > PRESEED_MIGRATION).toBe(true);
     expect(FOUR_TG_SEED_MIGRATION > SEED_MIGRATION).toBe(true);
   });
 });

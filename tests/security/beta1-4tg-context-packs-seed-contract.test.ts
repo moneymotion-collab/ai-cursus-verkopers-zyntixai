@@ -250,7 +250,10 @@ describe("BETA1-4TG CTX additive seed contract", () => {
       .filter((name) => name.includes("context_pack") || name.includes("context-pack"))
       .sort();
     expect(context[0]).toBe("20260824190000_create_context_pack_registry.sql");
-    expect(context[1]).toBe(CTX1_SEED);
+    expect(context[1]).toBe(
+      "20260824190005_prepare_context_pack_registry_ctx1.sql",
+    );
+    expect(context[2]).toBe(CTX1_SEED);
     expect(context.at(-1)).toBe(CTX4TG_SEED);
     expect(ctx1Seed).toContain("n_packs <> 2");
     expect(ctx4tgSeed).toContain("expected 5 context_packs");
