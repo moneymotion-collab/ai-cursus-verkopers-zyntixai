@@ -3193,6 +3193,8 @@ export type Database = {
           locale: string | null
           name: string
           onboarding_completed_at: string | null
+          onboarding_flow_version: number | null
+          onboarding_setup_ready_at: string | null
           primary_audience: string | null
           primary_goal: string | null
           primary_offering: string | null
@@ -3212,6 +3214,8 @@ export type Database = {
           locale?: string | null
           name: string
           onboarding_completed_at?: string | null
+          onboarding_flow_version?: number | null
+          onboarding_setup_ready_at?: string | null
           primary_audience?: string | null
           primary_goal?: string | null
           primary_offering?: string | null
@@ -3231,6 +3235,8 @@ export type Database = {
           locale?: string | null
           name?: string
           onboarding_completed_at?: string | null
+          onboarding_flow_version?: number | null
+          onboarding_setup_ready_at?: string | null
           primary_audience?: string | null
           primary_goal?: string | null
           primary_offering?: string | null
