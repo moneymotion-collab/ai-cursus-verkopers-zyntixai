@@ -53,7 +53,7 @@ describe("onboarding UI", () => {
       <OnboardingWizard context={ownerContext()} initialStep={1} />,
     );
 
-    expect(html).toContain("Step 1 of 3");
+    expect(html).toContain("Step 1 of 5: You &amp; Company");
     expect(html).toContain("Tell us about your business");
     expect(html).toContain("Ada Lovelace");
     expect(html).toContain("Analytical Engines");
@@ -72,7 +72,7 @@ describe("onboarding UI", () => {
       />,
     );
 
-    expect(html).toContain("Step 2 of 3");
+    expect(html).toContain("Step 2 of 5: Business");
     expect(html).toContain("Online course");
     expect(html).toContain("Beginners");
     expect(html).toContain("Back");
@@ -90,7 +90,7 @@ describe("onboarding UI", () => {
       />,
     );
 
-    expect(html).toContain("Step 3 of 3");
+    expect(html).toContain("Step 3 of 5: Workspace");
     expect(html).toContain("Complete setup");
     expect(html).toContain("Organize leads and follow-ups");
     expect(html).toContain("Just me");

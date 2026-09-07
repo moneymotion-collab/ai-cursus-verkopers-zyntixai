@@ -11,6 +11,7 @@ import {
   buildOnboardingPath,
   buildProductDestination,
 } from "@/features/onboarding/domain/onboarding-steps";
+import { OnboardingShell } from "./onboarding-shell";
 import styles from "./operating-model-selector.module.css";
 
 export function OperatingModelSelector({
@@ -61,20 +62,23 @@ export function OperatingModelSelector({
   }
 
   return (
-    <form
-      className={styles.form}
-      onSubmit={handleSubmit}
-      aria-busy={pending}
-      noValidate
-    >
-      <header className={styles.header}>
-        <p className={styles.eyebrow}>Workspace setup</p>
-        <h1 id="operating-model-title">How does your business operate?</h1>
-        <p>
-          Choose the model that best describes your primary business. This
-          configures the workspace language and available areas.
-        </p>
-      </header>
+    <OnboardingShell currentStep="business" headingId="operating-model-title">
+      <form
+        className={styles.form}
+        onSubmit={handleSubmit}
+        aria-busy={pending}
+        noValidate
+      >
+        <header className={styles.header}>
+          <p className={styles.eyebrow}>Workspace setup</p>
+          <h1 id="operating-model-title" tabIndex={-1}>
+            How does your business operate?
+          </h1>
+          <p>
+            Choose the model that best describes your primary business. This
+            configures the workspace language and available areas.
+          </p>
+        </header>
 
       {error ? (
         <div
@@ -116,15 +120,16 @@ export function OperatingModelSelector({
         ))}
       </fieldset>
 
-      <div className={styles.footer}>
-        <p>
-          Your organization can’t switch operating models casually after this
-          choice.
-        </p>
-        <button type="submit" disabled={pending || !selected}>
-          {pending ? "Configuring workspace…" : "Continue"}
-        </button>
-      </div>
-    </form>
+        <div className={styles.footer}>
+          <p>
+            Your organization can’t switch operating models casually after this
+            choice.
+          </p>
+          <button type="submit" disabled={pending || !selected}>
+            {pending ? "Configuring workspace…" : "Continue"}
+          </button>
+        </div>
+      </form>
+    </OnboardingShell>
   );
 }

@@ -13,7 +13,6 @@ import {
   isCourseSellerContextPack,
   resolveOperatingModelSetupStatus,
 } from "@/features/onboarding/server/operating-model-status";
-import styles from "./page.module.css";
 
 /** Always read live onboarding draft — never serve a cached Step 2 snapshot. */
 export const dynamic = "force-dynamic";
@@ -66,56 +65,44 @@ export default async function OnboardingPage({
 
     if (result.code === "membership_required") {
       return (
-        <main className={styles.page} aria-labelledby="onboarding-status-title">
-          <p className={styles.brand}>ZyntixAI</p>
-          <OnboardingStatusPanel
-            title="Organization setup required"
-            message={onboardingMessage("membership_required")}
-            primaryHref="/register/complete"
-            primaryLabel="Continue setup"
-          />
-        </main>
+        <OnboardingStatusPanel
+          title="Organization setup required"
+          message={onboardingMessage("membership_required")}
+          primaryHref="/register/complete"
+          primaryLabel="Continue setup"
+        />
       );
     }
 
     if (result.code === "organization_ambiguous") {
       return (
-        <main className={styles.page} aria-labelledby="onboarding-status-title">
-          <p className={styles.brand}>ZyntixAI</p>
-          <OnboardingStatusPanel
-            title="Choose an organization"
-            message={onboardingMessage("organization_ambiguous")}
-            primaryHref="/leads"
-            primaryLabel="Open organization list"
-          />
-        </main>
+        <OnboardingStatusPanel
+          title="Choose an organization"
+          message={onboardingMessage("organization_ambiguous")}
+          primaryHref="/leads"
+          primaryLabel="Open organization list"
+        />
       );
     }
 
     if (result.code === "organization_not_found") {
       return (
-        <main className={styles.page} aria-labelledby="onboarding-status-title">
-          <p className={styles.brand}>ZyntixAI</p>
-          <OnboardingStatusPanel
-            title="Organization unavailable"
-            message={onboardingMessage("organization_not_found")}
-            primaryHref="/leads"
-            primaryLabel="Back to ZyntixAI"
-          />
-        </main>
+        <OnboardingStatusPanel
+          title="Organization unavailable"
+          message={onboardingMessage("organization_not_found")}
+          primaryHref="/leads"
+          primaryLabel="Back to ZyntixAI"
+        />
       );
     }
 
     return (
-      <main className={styles.page} aria-labelledby="onboarding-status-title">
-        <p className={styles.brand}>ZyntixAI</p>
-        <OnboardingStatusPanel
-          title="Unable to load setup"
-          message={result.message}
-          primaryHref="/onboarding"
-          primaryLabel="Try again"
-        />
-      </main>
+      <OnboardingStatusPanel
+        title="Unable to load setup"
+        message={result.message}
+        primaryHref="/onboarding"
+        primaryLabel="Try again"
+      />
     );
   }
 
@@ -139,35 +126,29 @@ export default async function OnboardingPage({
 
   if (!result.context.isOwner) {
     return (
-      <main className={styles.page} aria-labelledby="onboarding-status-title">
-        <p className={styles.brand}>ZyntixAI</p>
-        <OnboardingStatusPanel
-          title="Owner setup required"
-          message="Your organization setup still needs to be completed by an owner."
-          primaryHref="/leads"
-          primaryLabel="Continue to workspace"
-        />
-      </main>
+      <OnboardingStatusPanel
+        title="Owner setup required"
+        message="Your organization setup still needs to be completed by an owner."
+        primaryHref="/leads"
+        primaryLabel="Continue to workspace"
+      />
     );
   }
 
   return (
-    <main className={styles.page} aria-labelledby="onboarding-title">
-      <p className={styles.brand}>ZyntixAI</p>
-      <OnboardingWizard
-        key={[
-          result.context.organizationId,
-          result.context.businessType ?? "",
-          result.context.primaryOffering ?? "",
-          result.context.primaryAudience ?? "",
-          result.context.primaryGoal ?? "",
-          result.context.teamSizeBand ?? "",
-          result.context.displayName ?? "",
-          result.context.organizationName,
-        ].join(":")}
-        context={result.context}
-        initialStep={initialStep}
-      />
-    </main>
+    <OnboardingWizard
+      key={[
+        result.context.organizationId,
+        result.context.businessType ?? "",
+        result.context.primaryOffering ?? "",
+        result.context.primaryAudience ?? "",
+        result.context.primaryGoal ?? "",
+        result.context.teamSizeBand ?? "",
+        result.context.displayName ?? "",
+        result.context.organizationName,
+      ].join(":")}
+      context={result.context}
+      initialStep={initialStep}
+    />
   );
 }

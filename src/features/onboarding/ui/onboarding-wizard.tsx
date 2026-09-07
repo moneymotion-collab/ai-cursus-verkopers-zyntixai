@@ -22,6 +22,7 @@ import {
   type OnboardingFormValues,
   type OnboardingStepNumber,
 } from "@/features/onboarding/domain/onboarding-steps";
+import { OnboardingShell } from "./onboarding-shell";
 import styles from "./onboarding-wizard.module.css";
 
 type OnboardingWizardProps = {
@@ -59,6 +60,8 @@ export function OnboardingWizard({ context, initialStep }: OnboardingWizardProps
   const fieldErrors = uiState.kind === "error" ? uiState.fieldErrors : undefined;
   const formError = uiState.kind === "error" ? uiState.message : undefined;
   const stepMeta = ONBOARDING_STEPS[step - 1]!;
+  const shellStep =
+    step === 1 ? "you-company" : step === 2 ? "business" : "workspace";
   const review = reviewLabels(values);
 
   useEffect(() => {
@@ -184,38 +187,20 @@ export function OnboardingWizard({ context, initialStep }: OnboardingWizardProps
   }
 
   return (
-    <form
-      className={styles.form}
-      method="post"
-      onSubmit={handleSubmit}
-      aria-busy={isPending}
-      noValidate
-    >
-      <div className={styles.header}>
-        <p className={styles.progress} aria-current="step">
-          {stepMeta.progressLabel}
-        </p>
-        <ol className={styles.progressTrack} aria-label="Onboarding progress">
-          {ONBOARDING_STEPS.map((item) => (
-            <li
-              key={item.step}
-              className={
-                item.step < step
-                  ? styles.progressDone
-                  : item.step === step
-                    ? styles.progressCurrent
-                    : styles.progressTodo
-              }
-              aria-current={item.step === step ? "step" : undefined}
-            >
-              <span className={styles.srOnly}>{item.progressLabel}</span>
-              <span aria-hidden="true">{item.step}</span>
-            </li>
-          ))}
-        </ol>
-        <h1 id="onboarding-title">{stepMeta.title}</h1>
-        <p className={styles.subtitle}>{stepMeta.supportingCopy}</p>
-      </div>
+    <OnboardingShell currentStep={shellStep} headingId="onboarding-title">
+      <form
+        className={styles.form}
+        method="post"
+        onSubmit={handleSubmit}
+        aria-busy={isPending}
+        noValidate
+      >
+        <div className={styles.header}>
+          <h1 id="onboarding-title" tabIndex={-1}>
+            {stepMeta.title}
+          </h1>
+          <p className={styles.subtitle}>{stepMeta.supportingCopy}</p>
+        </div>
 
       {formError ? (
         <div
@@ -484,29 +469,30 @@ export function OnboardingWizard({ context, initialStep }: OnboardingWizardProps
         </div>
       ) : null}
 
-      <div className={styles.actions}>
-        {step > 1 ? (
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={handleBack}
-            disabled={isPending}
-          >
-            Back
+        <div className={styles.actions}>
+          {step > 1 ? (
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={handleBack}
+              disabled={isPending}
+            >
+              Back
+            </button>
+          ) : (
+            <span />
+          )}
+          <button type="submit" className={styles.submit} disabled={isPending}>
+            {isPending
+              ? uiState.kind === "pending" && uiState.action === "complete"
+                ? "Completing setup…"
+                : "Saving…"
+              : step === 3
+                ? "Complete setup"
+                : "Save and continue"}
           </button>
-        ) : (
-          <span />
-        )}
-        <button type="submit" className={styles.submit} disabled={isPending}>
-          {isPending
-            ? uiState.kind === "pending" && uiState.action === "complete"
-              ? "Completing setup…"
-              : "Saving…"
-            : step === 3
-              ? "Complete setup"
-              : "Save and continue"}
-        </button>
-      </div>
-    </form>
+        </div>
+      </form>
+    </OnboardingShell>
   );
 }

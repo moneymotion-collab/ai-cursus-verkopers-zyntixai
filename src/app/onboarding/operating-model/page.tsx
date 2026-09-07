@@ -11,7 +11,6 @@ import {
   isCourseSellerContextPack,
   resolveOperatingModelSetupStatus,
 } from "@/features/onboarding/server/operating-model-status";
-import styles from "../page.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -55,27 +54,24 @@ export default async function OperatingModelOnboardingPage({
     const ambiguous = actor.code === "organization_ambiguous";
     const missing = actor.code === "membership_required";
     return (
-      <main className={styles.page} aria-labelledby="onboarding-status-title">
-        <p className={styles.brand}>ZyntixAI</p>
-        <OnboardingStatusPanel
-          title={
-            ambiguous
-              ? "Choose an organization"
-              : missing
-                ? "Organization setup required"
-                : "Organization unavailable"
-          }
-          message={
-            ambiguous
-              ? "Choose the organization you want to configure."
-              : missing
-                ? "Complete organization setup before choosing an operating model."
-                : "This organization is unavailable or you no longer have access."
-          }
-          primaryHref={missing ? "/register/complete" : "/home"}
-          primaryLabel={missing ? "Continue setup" : "Back to ZyntixAI"}
-        />
-      </main>
+      <OnboardingStatusPanel
+        title={
+          ambiguous
+            ? "Choose an organization"
+            : missing
+              ? "Organization setup required"
+              : "Organization unavailable"
+        }
+        message={
+          ambiguous
+            ? "Choose the organization you want to configure."
+            : missing
+              ? "Complete organization setup before choosing an operating model."
+              : "This organization is unavailable or you no longer have access."
+        }
+        primaryHref={missing ? "/register/complete" : "/home"}
+        primaryLabel={missing ? "Continue setup" : "Back to ZyntixAI"}
+      />
     );
   }
 
@@ -95,36 +91,25 @@ export default async function OperatingModelOnboardingPage({
 
   if (status.kind === "configuration_review_required") {
     return (
-      <main className={styles.page} aria-labelledby="onboarding-status-title">
-        <p className={styles.brand}>ZyntixAI</p>
-        <OnboardingStatusPanel
-          title="Workspace configuration needs attention"
-          message="This workspace already contains configuration that cannot be replaced automatically. Ask an administrator to review it."
-          primaryHref={buildProductDestination(actor.organizationId)}
-          primaryLabel="Back to workspace"
-        />
-      </main>
+      <OnboardingStatusPanel
+        title="Workspace configuration needs attention"
+        message="This workspace already contains configuration that cannot be replaced automatically. Ask an administrator to review it."
+        primaryHref={buildProductDestination(actor.organizationId)}
+        primaryLabel="Back to workspace"
+      />
     );
   }
 
   if (!status.canAssign) {
     return (
-      <main className={styles.page} aria-labelledby="onboarding-status-title">
-        <p className={styles.brand}>ZyntixAI</p>
-        <OnboardingStatusPanel
-          title="Administrator setup required"
-          message="Your workspace still needs to be configured by an owner or administrator."
-          primaryHref={buildProductDestination(actor.organizationId)}
-          primaryLabel="Back to workspace"
-        />
-      </main>
+      <OnboardingStatusPanel
+        title="Administrator setup required"
+        message="Your workspace still needs to be configured by an owner or administrator."
+        primaryHref={buildProductDestination(actor.organizationId)}
+        primaryLabel="Back to workspace"
+      />
     );
   }
 
-  return (
-    <main className={styles.page} aria-labelledby="operating-model-title">
-      <p className={styles.brand}>ZyntixAI</p>
-      <OperatingModelSelector organizationId={actor.organizationId} />
-    </main>
-  );
+  return <OperatingModelSelector organizationId={actor.organizationId} />;
 }
