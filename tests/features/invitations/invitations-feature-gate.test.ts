@@ -343,6 +343,12 @@ describe("invitations feature gate OFF", () => {
     }
 
     const supabase = {
+      auth: {
+        getUser: vi.fn(async () => ({
+          data: { user: { id: USER_A } },
+          error: null,
+        })),
+      },
       from() {
         return {
           select() {
@@ -350,7 +356,11 @@ describe("invitations feature gate OFF", () => {
               eq() {
                 return {
                   maybeSingle: async () => ({
-                    data: { onboarding_completed_at: "2026-01-01T00:00:00.000Z" },
+                    data: {
+                      onboarding_flow_version: null,
+                      onboarding_setup_ready_at: null,
+                      onboarding_completed_at: "2026-01-01T00:00:00.000Z",
+                    },
                     error: null,
                   }),
                 };

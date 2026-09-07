@@ -265,6 +265,7 @@ describe("apply onboarding writes", () => {
   it("complete mode calls RPC with complete mode", async () => {
     const completedAt = "2026-07-20T10:00:00.000Z";
     const supabase = createSupabaseMock({
+      org: { onboarding_flow_version: 1 },
       rpcData: {
         organization_id: orgId,
         name: "QA Org",
@@ -300,5 +301,26 @@ describe("apply onboarding writes", () => {
       "apply_organization_onboarding",
       expect.objectContaining({ p_mode: "complete" }),
     );
+  });
+
+  it("never calls the legacy completion RPC for a V2 organization", async () => {
+    const supabase = createSupabaseMock({
+      org: { onboarding_flow_version: 2 },
+    });
+    wireListMemberships(supabase);
+
+    const result = await completeOnboarding(supabase as never, {
+      organizationId: orgId,
+      displayName: "Ada",
+      organizationName: "QA Org",
+      businessType: "course_seller",
+      primaryAudience: "beginners",
+      primaryOffering: "online_course",
+      primaryGoal: "organize_leads",
+      teamSizeBand: "solo",
+    });
+
+    expect(result).toMatchObject({ ok: false, code: "validation_error" });
+    expect(supabase.rpc).not.toHaveBeenCalled();
   });
 });

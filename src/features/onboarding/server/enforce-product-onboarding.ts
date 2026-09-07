@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { isOnboardingComplete } from "@/features/onboarding/domain/onboarding-types";
 import { buildOnboardingPath } from "@/features/onboarding/domain/onboarding-steps";
 import { buildOperatingModelOnboardingPath } from "@/features/onboarding/domain/operating-model";
+import { resolveOrganizationOnboardingLifecycle } from "@/features/onboarding/server/resolve-onboarding-lifecycle";
 import {
   isCourseSellerContextPack,
   resolveOperatingModelSetupStatus,
@@ -19,6 +20,27 @@ export async function redirectIfOrganizationOnboardingIncomplete(
   organizationId: string,
   membershipRole: string,
 ): Promise<void> {
+  const lifecycle = await resolveOrganizationOnboardingLifecycle(
+    supabase,
+    organizationId,
+  );
+  if (!lifecycle.ok) {
+    redirect(buildOnboardingPath(organizationId));
+  }
+
+  if (lifecycle.state.kind === "v2_completed") {
+    return;
+  }
+  if (lifecycle.state.kind === "v2_context_required") {
+    redirect(buildOperatingModelOnboardingPath(organizationId));
+  }
+  if (lifecycle.state.kind.startsWith("v2_")) {
+    redirect(buildOnboardingPath(organizationId));
+  }
+  if (lifecycle.state.kind === "invalid") {
+    redirect(buildOnboardingPath(organizationId));
+  }
+
   const operatingModel = await resolveOperatingModelSetupStatus({
     supabase,
     organizationId,
@@ -27,6 +49,10 @@ export async function redirectIfOrganizationOnboardingIncomplete(
 
   if (operatingModel.kind !== "configured") {
     redirect(buildOperatingModelOnboardingPath(organizationId));
+  }
+
+  if (lifecycle.state.kind === "grandfathered") {
+    return;
   }
 
   if (!isCourseSellerContextPack(operatingModel.packKey)) {

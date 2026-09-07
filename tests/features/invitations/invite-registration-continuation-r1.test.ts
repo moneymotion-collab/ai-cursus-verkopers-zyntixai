@@ -24,6 +24,12 @@ vi.mock("@/features/organizations/server/resolve-organization-context", () => ({
 
 function fakeSupabase() {
   return {
+    auth: {
+      getUser: vi.fn(async () => ({
+        data: { user: { id: USER_A } },
+        error: null,
+      })),
+    },
     from() {
       return {
         select() {
@@ -31,7 +37,11 @@ function fakeSupabase() {
             eq() {
               return {
                 maybeSingle: async () => ({
-                  data: { onboarding_completed_at: "2026-07-01T00:00:00.000Z" },
+                  data: {
+                    onboarding_flow_version: null,
+                    onboarding_setup_ready_at: null,
+                    onboarding_completed_at: "2026-07-01T00:00:00.000Z",
+                  },
                   error: null,
                 }),
               };

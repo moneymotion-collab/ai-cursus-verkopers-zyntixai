@@ -51,8 +51,30 @@ async function applyOrganizationOnboarding(
     };
   }
 
+  if (args.mode === "complete") {
+    const { data: lifecycle, error: lifecycleError } = await supabase
+      .from("organizations")
+      .select("onboarding_flow_version")
+      .eq("id", resolved.organizationId)
+      .maybeSingle();
+    if (lifecycleError || !lifecycle) {
+      return {
+        ok: false,
+        code: "unexpected_error",
+        message: onboardingMessage("unexpected_error"),
+      };
+    }
+    if (lifecycle.onboarding_flow_version === 2) {
+      return {
+        ok: false,
+        code: "validation_error",
+        message: onboardingMessage("validation_error"),
+      };
+    }
+  }
+
   const { data, error } = await supabase.rpc("apply_organization_onboarding", {
-    p_organization_id: args.organizationId,
+    p_organization_id: resolved.organizationId,
     p_mode: args.mode,
     p_organization_name: args.organizationName ?? undefined,
     p_display_name: args.displayName ?? undefined,

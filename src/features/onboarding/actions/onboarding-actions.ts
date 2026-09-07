@@ -9,6 +9,10 @@ import {
   type OperatingModelAssignmentResult,
 } from "@/features/onboarding/domain/operating-model";
 import {
+  v2OnboardingTransitionMessage,
+  type V2OnboardingTransitionResult,
+} from "@/features/onboarding/domain/onboarding-lifecycle";
+import {
   parseOnboardingCompleteInput,
   parseOnboardingDraftInput,
 } from "@/features/onboarding/domain/onboarding-schema";
@@ -28,8 +32,12 @@ import {
 } from "@/features/onboarding/server/dismiss-first-value-checklist";
 import { readOnboardingContext } from "@/features/onboarding/server/read-onboarding-context";
 import { assignOrganizationOperatingModel } from "@/features/onboarding/server/assign-operating-model";
+import {
+  completeV2Onboarding,
+  markV2OnboardingSetupReady,
+} from "@/features/onboarding/server/transition-v2-onboarding";
 
-const dismissChecklistInputSchema = z
+const organizationIdInputSchema = z
   .object({
     organizationId: z.string().uuid("Organization is required."),
   })
@@ -112,6 +120,64 @@ export async function completeOnboardingAction(
   }
 }
 
+export async function markV2OnboardingSetupReadyAction(
+  input: unknown,
+): Promise<V2OnboardingTransitionResult> {
+  const parsed = organizationIdInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      code: "invalid_state",
+      message: v2OnboardingTransitionMessage("invalid_state"),
+    };
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    return await markV2OnboardingSetupReady(
+      supabase,
+      parsed.data.organizationId,
+    );
+  } catch {
+    return {
+      ok: false,
+      code: "retryable_error",
+      message: v2OnboardingTransitionMessage("retryable_error"),
+    };
+  }
+}
+
+export async function completeV2OnboardingAction(
+  input: unknown,
+): Promise<V2OnboardingTransitionResult> {
+  const parsed = organizationIdInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      code: "invalid_state",
+      message: v2OnboardingTransitionMessage("invalid_state"),
+    };
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const result = await completeV2Onboarding(
+      supabase,
+      parsed.data.organizationId,
+    );
+    if (result.ok) {
+      revalidatePath("/home");
+    }
+    return result;
+  } catch {
+    return {
+      ok: false,
+      code: "retryable_error",
+      message: v2OnboardingTransitionMessage("retryable_error"),
+    };
+  }
+}
+
 export async function assignOperatingModelAction(
   input: unknown,
 ): Promise<OperatingModelAssignmentResult> {
@@ -147,7 +213,7 @@ export async function assignOperatingModelAction(
 export async function dismissFirstValueChecklistAction(
   input: unknown,
 ): Promise<ChecklistDismissResult> {
-  const parsed = dismissChecklistInputSchema.safeParse(input);
+  const parsed = organizationIdInputSchema.safeParse(input);
   if (!parsed.success) {
     return {
       ok: false,

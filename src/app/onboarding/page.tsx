@@ -13,6 +13,7 @@ import {
   isCourseSellerContextPack,
   resolveOperatingModelSetupStatus,
 } from "@/features/onboarding/server/operating-model-status";
+import { resolveOrganizationOnboardingLifecycle } from "@/features/onboarding/server/resolve-onboarding-lifecycle";
 
 /** Always read live onboarding draft — never serve a cached Step 2 snapshot. */
 export const dynamic = "force-dynamic";
@@ -106,6 +107,58 @@ export default async function OnboardingPage({
     );
   }
 
+  const lifecycle = await resolveOrganizationOnboardingLifecycle(
+    supabase,
+    result.context.organizationId,
+  );
+  if (!lifecycle.ok) {
+    return (
+      <OnboardingStatusPanel
+        title="Unable to load setup"
+        message="We could not confirm your current setup progress. Refresh to try again."
+        primaryHref="/onboarding"
+        primaryLabel="Try again"
+      />
+    );
+  }
+
+  if (lifecycle.state.kind === "v2_completed") {
+    redirect(buildProductDestination(result.context.organizationId));
+  }
+  if (lifecycle.state.kind === "v2_context_required") {
+    redirect(
+      buildOperatingModelOnboardingPath(result.context.organizationId),
+    );
+  }
+  if (lifecycle.state.kind === "v2_owner_required") {
+    return (
+      <OnboardingStatusPanel
+        title="Owner setup required"
+        message="Your organization setup still needs to be completed by an owner."
+        primaryHref="/leads"
+        primaryLabel="Continue to workspace"
+      />
+    );
+  }
+  if (lifecycle.state.kind.startsWith("v2_")) {
+    return (
+      <OnboardingStatusPanel
+        title="Setup progress saved"
+        message="Your server-verified setup progress is preserved. The next setup screen will continue from this point when it is available."
+      />
+    );
+  }
+  if (lifecycle.state.kind === "invalid") {
+    return (
+      <OnboardingStatusPanel
+        title="Setup needs attention"
+        message="We could not safely determine the next setup step. Refresh or contact support."
+        primaryHref="/onboarding"
+        primaryLabel="Try again"
+      />
+    );
+  }
+
   const operatingModel = await resolveOperatingModelSetupStatus({
     supabase,
     organizationId: result.context.organizationId,
@@ -117,6 +170,10 @@ export default async function OnboardingPage({
     );
   }
   if (!isCourseSellerContextPack(operatingModel.packKey)) {
+    redirect(buildProductDestination(result.context.organizationId));
+  }
+
+  if (lifecycle.state.kind === "grandfathered") {
     redirect(buildProductDestination(result.context.organizationId));
   }
 

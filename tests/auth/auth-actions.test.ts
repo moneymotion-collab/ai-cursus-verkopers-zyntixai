@@ -53,7 +53,11 @@ describe("loginAction", () => {
               eq() {
                 return {
                   maybeSingle: async () => ({
-                    data: { onboarding_completed_at: "2026-07-01T00:00:00.000Z" },
+                    data: {
+                      onboarding_flow_version: null,
+                      onboarding_setup_ready_at: null,
+                      onboarding_completed_at: "2026-07-01T00:00:00.000Z",
+                    },
                     error: null,
                   }),
                 };

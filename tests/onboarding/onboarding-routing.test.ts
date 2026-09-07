@@ -37,6 +37,20 @@ const middleware = readFileSync(
   join(process.cwd(), "src/lib/supabase/middleware.ts"),
   "utf8",
 );
+const enforcement = readFileSync(
+  join(
+    process.cwd(),
+    "src/features/onboarding/server/enforce-product-onboarding.ts",
+  ),
+  "utf8",
+);
+const lifecycleResolver = readFileSync(
+  join(
+    process.cwd(),
+    "src/features/onboarding/server/resolve-onboarding-lifecycle.ts",
+  ),
+  "utf8",
+);
 
 describe("B1.3 onboarding routing contract", () => {
   it("adds a protected /onboarding route with completed-owner redirect", () => {
@@ -56,7 +70,7 @@ describe("B1.3 onboarding routing contract", () => {
 
   it("routes incomplete owners into onboarding from landing and product resolvers", () => {
     expect(landing).toContain("buildOnboardingPath");
-    expect(landing).toContain('membership.role === "owner"');
+    expect(landing).toContain('membershipRole === "owner"');
     expect(leadOrg).toContain("redirectIfOrganizationOnboardingIncomplete");
     expect(customerOrg).toContain("redirectIfOrganizationOnboardingIncomplete");
     expect(taskOrg).toContain("redirectIfOrganizationOnboardingIncomplete");
@@ -70,5 +84,26 @@ describe("B1.3 onboarding routing contract", () => {
     expect(middleware).toContain("isPasswordRecoveryPath");
     expect(middleware).toContain("isProtectedApplicationPath");
     expect(middleware).not.toContain("onboarding_completed_at");
+  });
+
+  it("uses one lifecycle authority for landing, onboarding entry, and product access", () => {
+    expect(landing).toContain("resolveOrganizationOnboardingLifecycle");
+    expect(onboardingPage).toContain(
+      "resolveOrganizationOnboardingLifecycle",
+    );
+    expect(enforcement).toContain(
+      "resolveOrganizationOnboardingLifecycle",
+    );
+    expect(lifecycleResolver).toContain(
+      "resolveOnboardingLifecycle",
+    );
+  });
+
+  it("does not invent deferred workspace, team, or ready routes", () => {
+    for (const source of [landing, onboardingPage, enforcement]) {
+      expect(source).not.toMatch(/["'`]\/onboarding\/workspace/);
+      expect(source).not.toMatch(/["'`]\/onboarding\/team/);
+      expect(source).not.toMatch(/["'`]\/onboarding\/ready/);
+    }
   });
 });

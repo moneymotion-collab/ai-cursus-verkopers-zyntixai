@@ -112,7 +112,8 @@ function createSupabaseMock(options: {
       },
       error: null,
     })),
-    __org: options.org ?? null,
+    __org:
+      "org" in options ? options.org : { onboarding_flow_version: 1 },
     __memberships: memberships,
   };
 

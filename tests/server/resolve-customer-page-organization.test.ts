@@ -108,6 +108,10 @@ function createOrgResolverSupabase(options: {
             eq: vi.fn().mockReturnValue({
               maybeSingle: vi.fn().mockResolvedValue({
                 data: {
+                  name: "Org Alpha",
+                  team_size_band: null,
+                  onboarding_flow_version: null,
+                  onboarding_setup_ready_at: null,
                   timezone: options.timezone ?? "UTC",
                   onboarding_completed_at:
                     options.onboardingCompletedAt ?? "2026-07-01T00:00:00.000Z",

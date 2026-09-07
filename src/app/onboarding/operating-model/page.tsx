@@ -11,6 +11,7 @@ import {
   isCourseSellerContextPack,
   resolveOperatingModelSetupStatus,
 } from "@/features/onboarding/server/operating-model-status";
+import { resolveOrganizationOnboardingLifecycle } from "@/features/onboarding/server/resolve-onboarding-lifecycle";
 
 export const dynamic = "force-dynamic";
 
@@ -82,6 +83,29 @@ export default async function OperatingModelOnboardingPage({
   });
 
   if (status.kind === "configured") {
+    const lifecycle = await resolveOrganizationOnboardingLifecycle(
+      supabase,
+      actor.organizationId,
+    );
+    if (!lifecycle.ok || lifecycle.state.kind === "invalid") {
+      return (
+        <OnboardingStatusPanel
+          title="Setup needs attention"
+          message="We could not safely determine the next setup step. Refresh or contact support."
+          primaryHref="/onboarding/operating-model"
+          primaryLabel="Try again"
+        />
+      );
+    }
+    if (
+      lifecycle.state.kind === "grandfathered" ||
+      lifecycle.state.kind === "v2_completed"
+    ) {
+      redirect(buildProductDestination(actor.organizationId));
+    }
+    if (lifecycle.state.kind.startsWith("v2_")) {
+      redirect(buildOnboardingPath(actor.organizationId));
+    }
     redirect(
       isCourseSellerContextPack(status.packKey)
         ? buildOnboardingPath(actor.organizationId)

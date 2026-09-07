@@ -5,11 +5,13 @@ import {
   DEFAULT_RETURN_PATH,
   resolveSafeReturnPath,
 } from "@/features/auth/server/safe-return-path";
-import { isOnboardingComplete } from "@/features/onboarding/domain/onboarding-types";
+import { resolveOnboardingLifecycleDestination } from "@/features/onboarding/domain/onboarding-lifecycle";
 import {
   buildOnboardingPath,
   buildProductDestination,
 } from "@/features/onboarding/domain/onboarding-steps";
+import { buildOperatingModelOnboardingPath } from "@/features/onboarding/domain/operating-model";
+import { resolveOrganizationOnboardingLifecycle } from "@/features/onboarding/server/resolve-onboarding-lifecycle";
 import { shouldResumeInvitationAdmissionBeforeOwnerCompletion } from "@/features/invitations/server/invitations-feature";
 import {
   hasTrustedInvitationAuthContext,
@@ -17,21 +19,32 @@ import {
   resolveInvitationAuthState,
 } from "@/features/invitations/server/resolve-invitation-auth-state";
 
-async function isOrganizationOnboardingComplete(
+async function resolveOrganizationLanding(
   supabase: SupabaseClient<Database>,
   organizationId: string,
-): Promise<boolean> {
-  const { data, error } = await supabase
-    .from("organizations")
-    .select("onboarding_completed_at")
-    .eq("id", organizationId)
-    .maybeSingle();
-
-  if (error || !data) {
-    return false;
+  membershipRole: string,
+): Promise<string> {
+  const lifecycle = await resolveOrganizationOnboardingLifecycle(
+    supabase,
+    organizationId,
+  );
+  if (!lifecycle.ok) {
+    return membershipRole === "owner"
+      ? buildOnboardingPath(organizationId)
+      : buildProductDestination(organizationId);
   }
 
-  return isOnboardingComplete(data.onboarding_completed_at);
+  const destination = resolveOnboardingLifecycleDestination(
+    lifecycle.state,
+    lifecycle.membershipRole,
+  );
+  if (destination.availableRoute === "operating_model") {
+    return buildOperatingModelOnboardingPath(organizationId);
+  }
+  if (destination.availableRoute === "onboarding") {
+    return buildOnboardingPath(organizationId);
+  }
+  return buildProductDestination(organizationId);
 }
 
 /**
@@ -52,15 +65,11 @@ export async function resolveAuthenticatedLanding(
 
   if (membershipsResult.memberships.length === 1) {
     const membership = membershipsResult.memberships[0]!;
-    const organizationId = membership.organizationId;
-    const complete = await isOrganizationOnboardingComplete(
+    return resolveOrganizationLanding(
       supabase,
-      organizationId,
+      membership.organizationId,
+      membership.role,
     );
-    if (!complete && membership.role === "owner") {
-      return buildOnboardingPath(organizationId);
-    }
-    return buildProductDestination(organizationId);
   }
 
   return "/home";
@@ -111,13 +120,6 @@ export async function resolvePostLoginDestination(
     return resolveAuthenticatedLanding(supabase);
   }
 
-  if (
-    pathname === "/onboarding" ||
-    pathname === "/onboarding/operating-model"
-  ) {
-    return safeNext;
-  }
-
   let orgFromNext: string | undefined;
   try {
     const parsed = new URL(safeNext, "http://zyntix.local");
@@ -128,25 +130,34 @@ export async function resolvePostLoginDestination(
 
   if (membershipsResult.memberships.length === 1) {
     const membership = membershipsResult.memberships[0]!;
-    const organizationId = membership.organizationId;
-    const complete = await isOrganizationOnboardingComplete(
+    const lifecycleDestination = await resolveOrganizationLanding(
       supabase,
-      organizationId,
+      membership.organizationId,
+      membership.role,
     );
-    if (!complete && membership.role === "owner") {
-      return buildOnboardingPath(organizationId);
+    if (
+      pathname === "/onboarding" ||
+      pathname === "/onboarding/operating-model" ||
+      lifecycleDestination.includes("/onboarding")
+    ) {
+      return lifecycleDestination;
     }
   } else if (orgFromNext) {
     const match = membershipsResult.memberships.find(
       (membership) => membership.organizationId === orgFromNext,
     );
-    if (match && match.role === "owner") {
-      const complete = await isOrganizationOnboardingComplete(
+    if (match) {
+      const lifecycleDestination = await resolveOrganizationLanding(
         supabase,
         match.organizationId,
+        match.role,
       );
-      if (!complete) {
-        return buildOnboardingPath(match.organizationId);
+      if (
+        pathname === "/onboarding" ||
+        pathname === "/onboarding/operating-model" ||
+        lifecycleDestination.includes("/onboarding")
+      ) {
+        return lifecycleDestination;
       }
     }
   }
