@@ -11,6 +11,7 @@ import {
   isCourseSellerContextPack,
   resolveOperatingModelSetupStatus,
 } from "@/features/onboarding/server/operating-model-status";
+import { resolveOnboardingLifecycleDestination } from "@/features/onboarding/domain/onboarding-lifecycle";
 import { resolveOrganizationOnboardingLifecycle } from "@/features/onboarding/server/resolve-onboarding-lifecycle";
 
 export const dynamic = "force-dynamic";
@@ -76,6 +77,33 @@ export default async function OperatingModelOnboardingPage({
     );
   }
 
+  const lifecycle = await resolveOrganizationOnboardingLifecycle(
+    supabase,
+    actor.organizationId,
+  );
+  if (!lifecycle.ok || lifecycle.state.kind === "invalid") {
+    return (
+      <OnboardingStatusPanel
+        title="Setup needs attention"
+        message="We could not safely determine the next setup step. Refresh or contact support."
+        primaryHref="/onboarding/operating-model"
+        primaryLabel="Try again"
+      />
+    );
+  }
+  if (lifecycle.state.kind !== "legacy") {
+    const destination = resolveOnboardingLifecycleDestination(
+      lifecycle.state,
+      actor.role,
+    );
+    if (destination.availableRoute === "home") {
+      redirect(buildProductDestination(actor.organizationId));
+    }
+    if (destination.availableRoute === "onboarding") {
+      redirect(buildOnboardingPath(actor.organizationId));
+    }
+  }
+
   const status = await resolveOperatingModelSetupStatus({
     supabase,
     organizationId: actor.organizationId,
@@ -83,26 +111,6 @@ export default async function OperatingModelOnboardingPage({
   });
 
   if (status.kind === "configured") {
-    const lifecycle = await resolveOrganizationOnboardingLifecycle(
-      supabase,
-      actor.organizationId,
-    );
-    if (!lifecycle.ok || lifecycle.state.kind === "invalid") {
-      return (
-        <OnboardingStatusPanel
-          title="Setup needs attention"
-          message="We could not safely determine the next setup step. Refresh or contact support."
-          primaryHref="/onboarding/operating-model"
-          primaryLabel="Try again"
-        />
-      );
-    }
-    if (
-      lifecycle.state.kind === "grandfathered" ||
-      lifecycle.state.kind === "v2_completed"
-    ) {
-      redirect(buildProductDestination(actor.organizationId));
-    }
     if (lifecycle.state.kind.startsWith("v2_")) {
       redirect(buildOnboardingPath(actor.organizationId));
     }
@@ -135,5 +143,10 @@ export default async function OperatingModelOnboardingPage({
     );
   }
 
-  return <OperatingModelSelector organizationId={actor.organizationId} />;
+  return (
+    <OperatingModelSelector
+      organizationId={actor.organizationId}
+      flow={lifecycle.state.kind === "legacy" ? "legacy" : "v2"}
+    />
+  );
 }

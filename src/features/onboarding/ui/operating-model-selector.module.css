@@ -1,12 +1,11 @@
-.form {
-  display: grid;
-  gap: 1.5rem;
+.surface {
   width: min(100%, 46rem);
   padding: 2rem;
-  border: 1px solid var(--border-color);
-  border-radius: 1rem;
-  background: var(--surface-color);
-  box-shadow: 0 1.25rem 3rem rgb(15 23 42 / 8%);
+}
+
+.form {
+  display: grid;
+  gap: 1.75rem;
 }
 
 .header {
@@ -15,8 +14,7 @@
 }
 
 .header h1,
-.header p,
-.eyebrow {
+.header p {
   margin: 0;
 }
 
@@ -26,17 +24,8 @@
 }
 
 .header > p:last-child,
-.footer p,
 .optionCopy span {
   color: var(--muted-text);
-}
-
-.eyebrow {
-  color: #1d4ed8;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .options {
@@ -49,7 +38,10 @@
 }
 
 .option {
-  display: flex;
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
   gap: 0.75rem;
   min-height: 8rem;
   padding: 1rem;
@@ -58,9 +50,9 @@
   background: #fff;
   cursor: pointer;
   transition:
-    border-color 120ms ease,
-    box-shadow 120ms ease,
-    background 120ms ease;
+    border-color var(--motion-duration-micro) ease,
+    box-shadow var(--motion-duration-micro) ease,
+    background var(--motion-duration-micro) ease;
 }
 
 .option:hover {
@@ -68,7 +60,7 @@
 }
 
 .option:focus-within {
-  outline: 3px solid rgb(37 99 235 / 24%);
+  outline: 3px solid color-mix(in srgb, var(--focus-color) 24%, transparent);
   outline-offset: 2px;
 }
 
@@ -76,6 +68,10 @@
   border-color: #2563eb;
   background: #eff6ff;
   box-shadow: inset 0 0 0 1px #2563eb;
+}
+
+.optionSelected:not(:focus-within) {
+  outline: none;
 }
 
 .option input {
@@ -100,6 +96,19 @@
   line-height: 1.45;
 }
 
+.selectedIndicator {
+  display: none;
+  grid-column: 2;
+  width: fit-content;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.optionSelected .selectedIndicator {
+  display: inline;
+}
+
 .error {
   padding: 0.75rem 1rem;
   border: 1px solid #fecaca;
@@ -111,34 +120,12 @@
 .footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  justify-content: flex-end;
 }
 
-.footer p {
-  max-width: 28rem;
-  margin: 0;
-  font-size: 0.875rem;
+.mobileCta {
+  display: none;
 }
-
-.footer button {
-  min-width: 8rem;
-  min-height: 2.75rem;
-  padding: 0.55rem 1.1rem;
-  border: 1px solid #1d4ed8;
-  border-radius: 0.5rem;
-  color: #fff;
-  background: #2563eb;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.footer button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
 .srOnly {
   position: absolute;
   width: 1px;
@@ -157,8 +144,8 @@
   }
 }
 
-@media (max-width: 640px) {
-  .form {
+@media (max-width: 767px) {
+  .surface {
     padding: 1.25rem;
     border-right: 0;
     border-left: 0;
@@ -170,11 +157,23 @@
   }
 
   .option {
-    min-height: auto;
+    min-height: 7rem;
   }
 
   .footer {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .footer button {
+    width: 100%;
+  }
+
+  .desktopCta {
+    display: none;
+  }
+
+  .mobileCta {
+    display: inline;
   }
 }

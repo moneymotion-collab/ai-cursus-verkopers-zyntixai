@@ -44,6 +44,40 @@ function resolvedContext(packKey: string) {
 }
 
 describe("assignOrganizationOperatingModel", () => {
+  it("confirms every approved model against its authoritative context", async () => {
+    const cases = [
+      ["course_seller", "niche.online-course-business"],
+      ["service", "foundation.service"],
+      ["field_operations", "foundation.field-operations"],
+      ["product_operations", "foundation.product-operations"],
+    ] as const;
+
+    for (const [operatingModel, packKey] of cases) {
+      const result = await assignOrganizationOperatingModel(
+        authenticatedClient({}) as never,
+        { organizationId: ORG, operatingModel },
+        {
+          mutationClient: {
+            rpc: vi.fn(async () => ({
+              data: {
+                ok: true,
+                idempotent: false,
+                resolved_pack: packKey,
+              },
+              error: null,
+            })),
+          },
+          resolveContext: resolvedContext(packKey) as never,
+        },
+      );
+      expect(result).toMatchObject({
+        ok: true,
+        operatingModel,
+        packKey,
+      });
+    }
+  });
+
   it("submits only the approved model and verifies Service through the resolver", async () => {
     const mutationClient = {
       rpc: vi.fn(async () => ({
@@ -160,6 +194,30 @@ describe("assignOrganizationOperatingModel", () => {
       {
         mutationClient,
         resolveContext: resolvedContext("foundation.service") as never,
+      },
+    );
+
+    expect(result).toMatchObject({ ok: false, code: "assignment_failed" });
+  });
+
+  it("fails closed when RPC and resolver agree on the wrong model pack", async () => {
+    const result = await assignOrganizationOperatingModel(
+      authenticatedClient({}) as never,
+      { organizationId: ORG, operatingModel: "service" },
+      {
+        mutationClient: {
+          rpc: vi.fn(async () => ({
+            data: {
+              ok: true,
+              idempotent: false,
+              resolved_pack: "foundation.product-operations",
+            },
+            error: null,
+          })),
+        },
+        resolveContext: resolvedContext(
+          "foundation.product-operations",
+        ) as never,
       },
     );
 

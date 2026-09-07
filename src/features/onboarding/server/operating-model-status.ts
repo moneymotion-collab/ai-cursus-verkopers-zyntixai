@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   canAssignOperatingModel,
+  operatingModelMatchesPack,
   type OperatingModelSetupStatus,
 } from "@/features/onboarding/domain/operating-model";
 import {
@@ -68,8 +69,5 @@ export async function resolveOperatingModelSetupStatus(input: {
 }
 
 export function isCourseSellerContextPack(packKey: string): boolean {
-  return (
-    packKey === "foundation.knowledge" ||
-    packKey === "niche.online-course-business"
-  );
+  return operatingModelMatchesPack("course_seller", packKey);
 }

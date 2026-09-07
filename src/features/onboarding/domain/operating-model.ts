@@ -17,6 +17,19 @@ export type OperatingModelOption = {
   description: string;
 };
 
+export const OPERATING_MODEL_CONTEXT_PACK_KEYS: Record<
+  OperatingModelId,
+  readonly string[]
+> = {
+  course_seller: [
+    "foundation.knowledge",
+    "niche.online-course-business",
+  ],
+  service: ["foundation.service"],
+  field_operations: ["foundation.field-operations"],
+  product_operations: ["foundation.product-operations"],
+};
+
 /**
  * Product-facing choices only. Internal TAX/CTX mapping is owned by the
  * service-role assignment RPC and is never accepted from browser input.
@@ -36,13 +49,13 @@ export const OPERATING_MODEL_OPTIONS: readonly OperatingModelOption[] = [
   },
   {
     id: "field_operations",
-    title: "Construction & Field Service",
+    title: "Construction & Field Operations",
     description:
       "For installation, construction, maintenance and field-based operational teams.",
   },
   {
     id: "product_operations",
-    title: "E-commerce & Product Operations",
+    title: "Product Operations",
     description:
       "For businesses centered on physical products and fulfillment operations.",
   },
@@ -102,6 +115,30 @@ export type OperatingModelSetupStatus =
       role: string;
       canAssign: false;
     };
+
+export function operatingModelOption(
+  model: OperatingModelId,
+): OperatingModelOption {
+  return OPERATING_MODEL_OPTIONS.find((option) => option.id === model)!;
+}
+
+export function operatingModelFromPackKey(
+  packKey: string,
+): OperatingModelId | null {
+  for (const model of OPERATING_MODEL_IDS) {
+    if (OPERATING_MODEL_CONTEXT_PACK_KEYS[model].includes(packKey)) {
+      return model;
+    }
+  }
+  return null;
+}
+
+export function operatingModelMatchesPack(
+  model: OperatingModelId,
+  packKey: string,
+): boolean {
+  return OPERATING_MODEL_CONTEXT_PACK_KEYS[model].includes(packKey);
+}
 
 export function canAssignOperatingModel(role: string): boolean {
   return role === "owner" || role === "admin";

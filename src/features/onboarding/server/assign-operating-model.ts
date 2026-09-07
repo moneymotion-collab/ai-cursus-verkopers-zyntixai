@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   canAssignOperatingModel,
+  operatingModelMatchesPack,
   operatingModelMessage,
   type OperatingModelAssignmentInput,
   type OperatingModelAssignmentResult,
@@ -129,7 +130,11 @@ export async function assignOrganizationOperatingModel(
     organizationId: actor.organizationId,
     authenticatedClient,
   });
-  if (!resolved.ok || resolved.packKey !== packKey) {
+  if (
+    !resolved.ok ||
+    resolved.packKey !== packKey ||
+    !operatingModelMatchesPack(input.operatingModel, resolved.packKey)
+  ) {
     return {
       ok: false,
       code: "assignment_failed",

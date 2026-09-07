@@ -2,9 +2,12 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Surface } from "@/components/ui/surface";
 import { assignOperatingModelAction } from "@/features/onboarding/actions/onboarding-actions";
 import {
   OPERATING_MODEL_OPTIONS,
+  operatingModelOption,
   type OperatingModelId,
 } from "@/features/onboarding/domain/operating-model";
 import {
@@ -12,23 +15,29 @@ import {
   buildProductDestination,
 } from "@/features/onboarding/domain/onboarding-steps";
 import { OnboardingShell } from "./onboarding-shell";
+import { OperatingModelSubmission } from "./operating-model-submission";
 import styles from "./operating-model-selector.module.css";
 
 export function OperatingModelSelector({
   organizationId,
+  initialSelection = null,
+  flow = "v2",
 }: {
   organizationId: string;
+  initialSelection?: OperatingModelId | null;
+  flow?: "legacy" | "v2";
 }) {
   const router = useRouter();
-  const pendingRef = useRef(false);
+  const submissionRef = useRef(new OperatingModelSubmission());
   const errorRef = useRef<HTMLDivElement | null>(null);
-  const [selected, setSelected] = useState<OperatingModelId | null>(null);
+  const [selected, setSelected] =
+    useState<OperatingModelId | null>(initialSelection);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (pendingRef.current) {
+    if (submissionRef.current.isActive) {
       return;
     }
     if (!selected) {
@@ -37,99 +46,131 @@ export function OperatingModelSelector({
       return;
     }
 
-    pendingRef.current = true;
     setPending(true);
     setError(null);
-    const result = await assignOperatingModelAction({
-      organizationId,
-      operatingModel: selected,
-    });
+    const outcome = await submissionRef.current.submit(selected, (model) =>
+      assignOperatingModelAction({
+        organizationId,
+        operatingModel: model,
+      }),
+    );
 
-    if (!result.ok) {
-      pendingRef.current = false;
-      setPending(false);
-      setError(result.message);
-      queueMicrotask(() => errorRef.current?.focus());
+    if (outcome.kind === "confirmed") {
+      const destination =
+        flow === "legacy" && outcome.model !== "course_seller"
+          ? buildProductDestination(organizationId)
+          : buildOnboardingPath(organizationId);
+      router.replace(destination);
+      router.refresh();
       return;
     }
 
-    const destination =
-      selected === "course_seller"
-        ? buildOnboardingPath(organizationId)
-        : buildProductDestination(organizationId);
-    router.replace(destination);
-    router.refresh();
+    setPending(false);
+    if (outcome.kind === "busy") {
+      return;
+    }
+    const permissionLost =
+      outcome.kind === "failed" &&
+      (outcome.result?.code === "not_authenticated" ||
+        outcome.result?.code === "not_authorized");
+    setError(
+      permissionLost
+        ? "You no longer have permission to complete this action."
+        : outcome.kind === "failed" && outcome.result
+          ? outcome.result.message
+          : "We could not confirm the operating model. Please try again.",
+    );
+    queueMicrotask(() => errorRef.current?.focus());
   }
+
+  const selectedOption = selected ? operatingModelOption(selected) : null;
 
   return (
     <OnboardingShell currentStep="business" headingId="operating-model-title">
-      <form
-        className={styles.form}
-        onSubmit={handleSubmit}
-        aria-busy={pending}
-        noValidate
-      >
-        <header className={styles.header}>
-          <p className={styles.eyebrow}>Workspace setup</p>
-          <h1 id="operating-model-title" tabIndex={-1}>
-            How does your business operate?
-          </h1>
-          <p>
-            Choose the model that best describes your primary business. This
-            configures the workspace language and available areas.
-          </p>
-        </header>
-
-      {error ? (
-        <div
-          ref={errorRef}
-          className={styles.error}
-          role="alert"
-          tabIndex={-1}
+      <Surface className={styles.surface}>
+        <form
+          className={styles.form}
+          onSubmit={handleSubmit}
+          aria-busy={pending}
+          noValidate
         >
-          {error}
-        </div>
-      ) : null}
+          <header className={styles.header}>
+            <h1 id="operating-model-title" tabIndex={-1}>
+              How does your business operate?
+            </h1>
+            <p>Choose the option that best matches how your company works.</p>
+          </header>
 
-      <fieldset className={styles.options} disabled={pending}>
-        <legend className={styles.srOnly}>Choose an operating model</legend>
-        {OPERATING_MODEL_OPTIONS.map((option) => (
-          <label
-            key={option.id}
-            className={
-              selected === option.id
-                ? `${styles.option} ${styles.optionSelected}`
-                : styles.option
-            }
-          >
-            <input
-              type="radio"
-              name="operatingModel"
-              value={option.id}
-              checked={selected === option.id}
-              onChange={() => {
-                setSelected(option.id);
-                setError(null);
-              }}
-            />
-            <span className={styles.optionCopy}>
-              <strong>{option.title}</strong>
-              <span>{option.description}</span>
-            </span>
-          </label>
-        ))}
-      </fieldset>
+          {error ? (
+            <div
+              ref={errorRef}
+              className={styles.error}
+              role="alert"
+              tabIndex={-1}
+            >
+              {error}
+            </div>
+          ) : null}
 
-        <div className={styles.footer}>
-          <p>
-            Your organization can’t switch operating models casually after this
-            choice.
-          </p>
-          <button type="submit" disabled={pending || !selected}>
-            {pending ? "Configuring workspace…" : "Continue"}
-          </button>
-        </div>
-      </form>
+          <fieldset className={styles.options} disabled={pending}>
+            <legend className={styles.srOnly}>Choose an operating model</legend>
+            {OPERATING_MODEL_OPTIONS.map((option) => (
+              <label
+                key={option.id}
+                className={
+                  selected === option.id
+                    ? `${styles.option} ${styles.optionSelected}`
+                    : styles.option
+                }
+              >
+                <input
+                  type="radio"
+                  name="operatingModel"
+                  value={option.id}
+                  checked={selected === option.id}
+                  onChange={() => {
+                    if (submissionRef.current.isActive) {
+                      return;
+                    }
+                    setSelected(option.id);
+                    setError(null);
+                  }}
+                />
+                <span className={styles.optionCopy}>
+                  <strong>{option.title}</strong>
+                  <span>{option.description}</span>
+                </span>
+                <span className={styles.selectedIndicator} aria-hidden="true">
+                  Selected
+                </span>
+              </label>
+            ))}
+          </fieldset>
+
+          <div className={styles.footer}>
+            <Button
+              type="submit"
+              size="action"
+              disabled={pending || !selected}
+              aria-disabled={pending || !selected}
+              aria-busy={pending}
+            >
+              {pending ? (
+                "Confirming…"
+              ) : selectedOption ? (
+                <>
+                  <span className={styles.desktopCta}>
+                    Continue with {selectedOption.title}
+                  </span>
+                  <span className={styles.mobileCta}>Continue</span>
+                </>
+              ) : (
+                "Continue"
+              )}
+            </Button>
+          </div>
+        </form>
+      </Surface>
     </OnboardingShell>
   );
 }
