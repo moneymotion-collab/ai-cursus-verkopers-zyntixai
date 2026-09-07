@@ -14,6 +14,7 @@ import {
   resolveOperatingModelSetupStatus,
 } from "@/features/onboarding/server/operating-model-status";
 import { resolveOrganizationOnboardingLifecycle } from "@/features/onboarding/server/resolve-onboarding-lifecycle";
+import { V2YouCompanyForm } from "@/features/onboarding/ui/v2-you-company-form";
 
 /** Always read live onboarding draft — never serve a cached Step 2 snapshot. */
 export const dynamic = "force-dynamic";
@@ -137,6 +138,18 @@ export default async function OnboardingPage({
         message="Your organization setup still needs to be completed by an owner."
         primaryHref="/leads"
         primaryLabel="Continue to workspace"
+      />
+    );
+  }
+  if (lifecycle.state.kind === "v2_core_incomplete") {
+    return (
+      <V2YouCompanyForm
+        organizationId={result.context.organizationId}
+        initialValues={{
+          displayName: result.context.displayName ?? "",
+          organizationName: result.context.organizationName,
+          teamSizeBand: result.context.teamSizeBand ?? "",
+        }}
       />
     );
   }

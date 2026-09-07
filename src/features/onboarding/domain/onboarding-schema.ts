@@ -72,6 +72,19 @@ export const onboardingDraftInputSchema = z
 
 export type OnboardingDraftInput = z.infer<typeof onboardingDraftInputSchema>;
 
+export const v2CoreDraftInputSchema = z
+  .object({
+    organizationId: z.string().uuid("Organization is required."),
+    displayName: displayNameSchema,
+    organizationName: organizationNameSchema,
+    teamSizeBand: z.enum(TEAM_SIZE_BANDS, {
+      message: "Team size is required.",
+    }),
+  })
+  .strict();
+
+export type V2CoreDraftInput = z.infer<typeof v2CoreDraftInputSchema>;
+
 export const onboardingCompleteInputSchema = z
   .object({
     organizationId: z.string().uuid("Organization is required."),
@@ -101,6 +114,10 @@ export type OnboardingCompleteInput = z.infer<
 
 export function parseOnboardingDraftInput(input: unknown) {
   return onboardingDraftInputSchema.safeParse(input);
+}
+
+export function parseV2CoreDraftInput(input: unknown) {
+  return v2CoreDraftInputSchema.safeParse(input);
 }
 
 export function parseOnboardingCompleteInput(input: unknown) {

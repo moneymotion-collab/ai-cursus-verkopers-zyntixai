@@ -15,6 +15,7 @@ import {
 import {
   parseOnboardingCompleteInput,
   parseOnboardingDraftInput,
+  parseV2CoreDraftInput,
 } from "@/features/onboarding/domain/onboarding-schema";
 import type {
   OnboardingReadResult,
@@ -36,6 +37,7 @@ import {
   completeV2Onboarding,
   markV2OnboardingSetupReady,
 } from "@/features/onboarding/server/transition-v2-onboarding";
+import { saveV2CoreDraft } from "@/features/onboarding/server/save-v2-core-draft";
 
 const organizationIdInputSchema = z
   .object({
@@ -86,6 +88,31 @@ export async function saveOnboardingDraftAction(
   try {
     const supabase = await createSupabaseServerClient();
     return await saveOnboardingDraft(supabase, parsed.data);
+  } catch {
+    return {
+      ok: false,
+      code: "unexpected_error",
+      message: onboardingMessage("unexpected_error"),
+    };
+  }
+}
+
+export async function saveV2CoreDraftAction(
+  input: unknown,
+): Promise<OnboardingWriteResult> {
+  const parsed = parseV2CoreDraftInput(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      code: "validation_error",
+      message: onboardingMessage("validation_error"),
+      fieldErrors: zodFieldErrors(parsed.error),
+    };
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    return await saveV2CoreDraft(supabase, parsed.data);
   } catch {
     return {
       ok: false,
