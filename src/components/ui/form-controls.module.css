@@ -1,0 +1,43 @@
+.control {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: var(--control-min-height, 2.75rem);
+  border: 1px solid var(--control-border-color, #64748b);
+  border-radius: var(--control-radius, 0.5rem);
+  padding: 0.5rem 0.75rem;
+  background: var(--surface-color, #fff);
+  color: var(--text-color, #0f172a);
+  font: inherit;
+  line-height: 1.5;
+  transition:
+    border-color var(--motion-duration-micro, 120ms) ease,
+    background-color var(--motion-duration-micro, 120ms) ease;
+}
+
+.control:focus-visible {
+  outline: 2px solid var(--focus-color, #2563eb);
+  outline-offset: 2px;
+}
+
+.control[aria-invalid="true"] {
+  border-color: #b91c1c;
+}
+
+.control:disabled {
+  background: #f1f5f9;
+  color: var(--muted-text, #475569);
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.control:read-only {
+  background: #f8fafc;
+  color: var(--muted-text, #475569);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .control {
+    transition: none;
+  }
+}

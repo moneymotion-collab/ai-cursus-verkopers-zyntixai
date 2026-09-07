@@ -1,0 +1,65 @@
+.button {
+  min-width: var(--control-min-height, 2.75rem);
+  min-height: var(--control-min-height, 2.75rem);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--control-radius, 0.5rem);
+  padding: 0.5rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-duration-micro, 120ms) ease,
+    border-color var(--motion-duration-micro, 120ms) ease,
+    color var(--motion-duration-micro, 120ms) ease;
+}
+
+.default {
+  min-height: var(--control-min-height, 2.75rem);
+}
+
+.action {
+  min-height: var(--action-control-min-height, 3rem);
+}
+
+.primary {
+  border-color: var(--link-color, #1d4ed8);
+  background: var(--focus-color, #2563eb);
+  color: #fff;
+}
+
+.secondary {
+  border-color: var(--control-border-color, #64748b);
+  background: var(--surface-color, #fff);
+  color: var(--text-color, #0f172a);
+}
+
+.ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--link-color, #1d4ed8);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--focus-color, #2563eb);
+  outline-offset: 2px;
+}
+
+.primary:focus-visible {
+  outline-color: var(--text-color, #0f172a);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}

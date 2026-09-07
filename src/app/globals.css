@@ -4,8 +4,14 @@
   --muted-text: #475569;
   --surface-color: #ffffff;
   --border-color: #cbd5e1;
+  --control-border-color: #64748b;
   --link-color: #1d4ed8;
   --focus-color: #2563eb;
+  --control-min-height: 2.75rem;
+  --action-control-min-height: 3rem;
+  --control-radius: 0.5rem;
+  --surface-radius: 0.75rem;
+  --motion-duration-micro: 120ms;
   font-family:
     system-ui,
     -apple-system,
