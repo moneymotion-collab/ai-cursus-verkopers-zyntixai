@@ -14,6 +14,7 @@ import {
   buildOnboardingPath,
   buildProductDestination,
 } from "@/features/onboarding/domain/onboarding-steps";
+import { buildWorkspaceConfirmationOnboardingPath } from "@/features/onboarding/domain/onboarding-routes";
 import { OnboardingShell } from "./onboarding-shell";
 import { OperatingModelSubmission } from "./operating-model-submission";
 import styles from "./operating-model-selector.module.css";
@@ -21,17 +22,21 @@ import styles from "./operating-model-selector.module.css";
 export function OperatingModelSelector({
   organizationId,
   initialSelection = null,
+  confirmedSelection,
   flow = "v2",
 }: {
   organizationId: string;
   initialSelection?: OperatingModelId | null;
+  confirmedSelection?: OperatingModelId;
   flow?: "legacy" | "v2";
 }) {
   const router = useRouter();
   const submissionRef = useRef(new OperatingModelSubmission());
   const errorRef = useRef<HTMLDivElement | null>(null);
   const [selected, setSelected] =
-    useState<OperatingModelId | null>(initialSelection);
+    useState<OperatingModelId | null>(
+      confirmedSelection ?? initialSelection,
+    );
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,6 +48,13 @@ export function OperatingModelSelector({
     if (!selected) {
       setError("Choose the operating model that best fits your business.");
       queueMicrotask(() => errorRef.current?.focus());
+      return;
+    }
+    if (confirmedSelection) {
+      router.replace(
+        buildWorkspaceConfirmationOnboardingPath(organizationId),
+      );
+      router.refresh();
       return;
     }
 
@@ -59,7 +71,9 @@ export function OperatingModelSelector({
       const destination =
         flow === "legacy" && outcome.model !== "course_seller"
           ? buildProductDestination(organizationId)
-          : buildOnboardingPath(organizationId);
+          : flow === "legacy"
+            ? buildOnboardingPath(organizationId)
+            : buildWorkspaceConfirmationOnboardingPath(organizationId);
       router.replace(destination);
       router.refresh();
       return;
@@ -112,7 +126,10 @@ export function OperatingModelSelector({
             </div>
           ) : null}
 
-          <fieldset className={styles.options} disabled={pending}>
+          <fieldset
+            className={styles.options}
+            disabled={pending || Boolean(confirmedSelection)}
+          >
             <legend className={styles.srOnly}>Choose an operating model</legend>
             {OPERATING_MODEL_OPTIONS.map((option) => (
               <label

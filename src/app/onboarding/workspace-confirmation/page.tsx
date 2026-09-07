@@ -8,12 +8,15 @@ import { buildOperatingModelOnboardingPath } from "@/features/onboarding/domain/
 import {
   buildTeamOnboardingPath,
   buildWorkspaceConfirmationOnboardingPath,
+  WORKSPACE_CONFIRMATION_ONBOARDING_PATH,
 } from "@/features/onboarding/domain/onboarding-routes";
 import { resolveOnboardingLifecycleDestination } from "@/features/onboarding/domain/onboarding-lifecycle";
+import { resolveWorkspacePresentation } from "@/features/onboarding/domain/workspace-presentation";
 import { resolveOnboardingOrganizationId } from "@/features/onboarding/server/read-onboarding-context";
 import { resolveOrganizationOnboardingLifecycle } from "@/features/onboarding/server/resolve-onboarding-lifecycle";
 import { OnboardingStatusPanel } from "@/features/onboarding/ui/onboarding-status-panel";
-import { TeamFoundation } from "@/features/onboarding/ui/team-foundation";
+import { WorkspaceConfirmation } from "@/features/onboarding/ui/workspace-confirmation";
+import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +34,9 @@ function isUuid(value: string): boolean {
   );
 }
 
-export default async function TeamOnboardingPage({ searchParams }: PageProps) {
+export default async function WorkspaceConfirmationOnboardingPage({
+  searchParams,
+}: PageProps) {
   const params = await searchParams;
   const rawOrganizationId = firstParam(params.org);
   const organizationId =
@@ -46,7 +51,9 @@ export default async function TeamOnboardingPage({ searchParams }: PageProps) {
 
   if (!actor.ok) {
     if (actor.code === "not_authenticated") {
-      const next = buildTeamOnboardingPath(organizationId);
+      const next = organizationId
+        ? buildWorkspaceConfirmationOnboardingPath(organizationId)
+        : WORKSPACE_CONFIRMATION_ONBOARDING_PATH;
       redirect(`/login?next=${encodeURIComponent(next)}`);
     }
 
@@ -63,7 +70,7 @@ export default async function TeamOnboardingPage({ searchParams }: PageProps) {
           actor.code === "organization_ambiguous"
             ? "Choose the organization you want to configure."
             : actor.code === "membership_required"
-              ? "Complete organization setup before reviewing your team."
+              ? "Complete organization setup before reviewing your workspace."
               : "This organization is unavailable or you no longer have access."
         }
       />
@@ -101,12 +108,25 @@ export default async function TeamOnboardingPage({ searchParams }: PageProps) {
     redirect(buildOnboardingPath(actor.organizationId));
   }
 
+  const moduleAccess = await loadProductModuleAccess(actor.organizationId);
+  const presentation = resolveWorkspacePresentation(
+    lifecycle.state.packKey,
+    moduleAccess,
+  );
+  if (!presentation) {
+    return (
+      <OnboardingStatusPanel
+        title="Workspace configuration needs attention"
+        message="We could not safely confirm this workspace configuration. Refresh or contact support."
+      />
+    );
+  }
+
   return (
-    <TeamFoundation
-      membershipRole="owner"
-      backHref={buildWorkspaceConfirmationOnboardingPath(
-        actor.organizationId,
-      )}
+    <WorkspaceConfirmation
+      presentation={presentation}
+      backHref={buildOperatingModelOnboardingPath(actor.organizationId)}
+      continueHref={buildTeamOnboardingPath(actor.organizationId)}
     />
   );
 }

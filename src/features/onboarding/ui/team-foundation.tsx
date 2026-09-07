@@ -1,16 +1,29 @@
+import Link from "next/link";
 import { Surface } from "@/components/ui/surface";
 import { OnboardingShell } from "./onboarding-shell";
 import styles from "./team-foundation.module.css";
 
 type TeamFoundationProps = {
   membershipRole: "owner";
+  backHref: string;
 };
 
-export function TeamFoundation({ membershipRole }: TeamFoundationProps) {
+export function TeamFoundation({
+  membershipRole,
+  backHref,
+}: TeamFoundationProps) {
   const roleLabel = membershipRole === "owner" ? "Owner" : "";
 
   return (
-    <OnboardingShell currentStep="team" headingId="team-onboarding-title">
+    <OnboardingShell
+      currentStep="team"
+      headingId="team-onboarding-title"
+      actions={
+        <Link className={styles.backAction} href={backHref}>
+          Back
+        </Link>
+      }
+    >
       <Surface className={styles.surface}>
         <div className={styles.content}>
           <header className={styles.header}>

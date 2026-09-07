@@ -70,10 +70,20 @@ describe("resolveSafeReturnPath", () => {
     );
     expect(
       resolveSafeReturnPath(
+        "/onboarding/workspace-confirmation?org=11111111-1111-4111-8111-111111111111",
+      ),
+    ).toBe(
+      "/onboarding/workspace-confirmation?org=11111111-1111-4111-8111-111111111111",
+    );
+    expect(
+      resolveSafeReturnPath(
         "/onboarding/team?org=11111111-1111-4111-8111-111111111111",
       ),
     ).toBe(
       "/onboarding/team?org=11111111-1111-4111-8111-111111111111",
+    );
+    expect(resolveSafeReturnPath("/onboarding/workspace-confirmation-evil")).toBe(
+      "/",
     );
     expect(resolveSafeReturnPath("/onboarding/team-evil")).toBe("/");
   });
@@ -232,6 +242,10 @@ describe("isProtectedApplicationPath", () => {
     expect(isProtectedApplicationPath("/settings/members")).toBe(true);
     expect(isProtectedApplicationPath("/settings/members-evil")).toBe(false);
     expect(isProtectedApplicationPath("/onboarding")).toBe(true);
+    expect(
+      isProtectedApplicationPath("/onboarding/workspace-confirmation"),
+    ).toBe(true);
+    expect(isProtectedApplicationPath("/onboarding/team")).toBe(true);
     expect(isProtectedApplicationPath("/")).toBe(false);
     expect(isProtectedApplicationPath("/login")).toBe(false);
     expect(isProtectedApplicationPath("/register")).toBe(false);

@@ -93,6 +93,27 @@
   line-height: 1.25;
 }
 
+.backAction {
+  min-width: 7rem;
+  min-height: 3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--control-border-color, #64748b);
+  border-radius: 0.5rem;
+  padding: 0.625rem 1rem;
+  color: var(--text-color, #0f172a);
+  background: var(--surface-color, #fff);
+  font-weight: 650;
+  line-height: 1.25;
+  text-decoration: none;
+}
+
+.backAction:focus-visible {
+  outline: 2px solid var(--focus-color, #2563eb);
+  outline-offset: 2px;
+}
+
 @media (max-width: 767px) {
   .surface {
     border-right: 0;
@@ -107,6 +128,10 @@
 
   .member {
     align-items: flex-start;
+  }
+
+  .backAction {
+    width: 100%;
   }
 }
 

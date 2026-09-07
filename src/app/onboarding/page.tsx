@@ -15,6 +15,7 @@ import {
 } from "@/features/onboarding/server/operating-model-status";
 import { resolveOrganizationOnboardingLifecycle } from "@/features/onboarding/server/resolve-onboarding-lifecycle";
 import { V2YouCompanyForm } from "@/features/onboarding/ui/v2-you-company-form";
+import { buildWorkspaceConfirmationOnboardingPath } from "@/features/onboarding/domain/onboarding-routes";
 
 /** Always read live onboarding draft — never serve a cached Step 2 snapshot. */
 export const dynamic = "force-dynamic";
@@ -129,6 +130,13 @@ export default async function OnboardingPage({
   if (lifecycle.state.kind === "v2_context_required") {
     redirect(
       buildOperatingModelOnboardingPath(result.context.organizationId),
+    );
+  }
+  if (lifecycle.state.kind === "v2_configured") {
+    redirect(
+      buildWorkspaceConfirmationOnboardingPath(
+        result.context.organizationId,
+      ),
     );
   }
   if (lifecycle.state.kind === "v2_owner_required") {

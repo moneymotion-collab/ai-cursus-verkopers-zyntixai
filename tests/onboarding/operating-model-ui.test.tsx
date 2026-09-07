@@ -120,7 +120,9 @@ describe("operating-model onboarding UI", () => {
     expect(componentSource).toContain("submissionRef.current.isActive");
     expect(componentSource).toContain('aria-busy={pending}');
     expect(componentSource).toContain("<fieldset");
-    expect(componentSource).toContain("disabled={pending}");
+    expect(componentSource).toContain(
+      "disabled={pending || Boolean(confirmedSelection)}",
+    );
     expect(componentSource).toContain('aria-busy={pending}');
     expect(componentSource).toContain("aria-disabled={pending || !selected}");
     expect(componentSource).toContain("Confirming…");
@@ -168,6 +170,10 @@ describe("operating-model onboarding UI", () => {
     );
     expect(componentSource).toContain("buildOnboardingPath(organizationId)");
     expect(componentSource).toContain("buildProductDestination(organizationId)");
+    expect(componentSource).toContain(
+      "buildWorkspaceConfirmationOnboardingPath(organizationId)",
+    );
+    expect(pageSource).toContain("confirmedSelection={confirmedSelection}");
     expect(pageSource).toContain(
       'flow={lifecycle.state.kind === "legacy" ? "legacy" : "v2"}',
     );

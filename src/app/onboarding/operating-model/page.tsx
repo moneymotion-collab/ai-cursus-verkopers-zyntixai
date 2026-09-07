@@ -13,6 +13,7 @@ import {
 } from "@/features/onboarding/server/operating-model-status";
 import { resolveOnboardingLifecycleDestination } from "@/features/onboarding/domain/onboarding-lifecycle";
 import { resolveOrganizationOnboardingLifecycle } from "@/features/onboarding/server/resolve-onboarding-lifecycle";
+import { operatingModelFromPackKey } from "@/features/onboarding/domain/operating-model";
 
 export const dynamic = "force-dynamic";
 
@@ -91,7 +92,10 @@ export default async function OperatingModelOnboardingPage({
       />
     );
   }
-  if (lifecycle.state.kind !== "legacy") {
+  if (
+    lifecycle.state.kind !== "legacy" &&
+    lifecycle.state.kind !== "v2_configured"
+  ) {
     const destination = resolveOnboardingLifecycleDestination(
       lifecycle.state,
       actor.role,
@@ -111,6 +115,25 @@ export default async function OperatingModelOnboardingPage({
   });
 
   if (status.kind === "configured") {
+    if (lifecycle.state.kind === "v2_configured") {
+      const confirmedSelection = operatingModelFromPackKey(status.packKey);
+      if (!confirmedSelection) {
+        return (
+          <OnboardingStatusPanel
+            title="Workspace configuration needs attention"
+            message="We could not safely confirm this workspace configuration. Refresh or contact support."
+          />
+        );
+      }
+      return (
+        <OperatingModelSelector
+          organizationId={actor.organizationId}
+          initialSelection={confirmedSelection}
+          confirmedSelection={confirmedSelection}
+          flow="v2"
+        />
+      );
+    }
     if (lifecycle.state.kind.startsWith("v2_")) {
       redirect(buildOnboardingPath(actor.organizationId));
     }

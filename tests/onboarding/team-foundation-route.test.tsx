@@ -90,7 +90,7 @@ describe("V2 Team onboarding foundation", () => {
     });
   });
 
-  it("defines one canonical Team destination and a non-implemented Workspace contract", () => {
+  it("defines canonical Team and Workspace destinations", () => {
     expect(TEAM_ONBOARDING_PATH).toBe("/onboarding/team");
     expect(buildTeamOnboardingPath(ORG)).toBe(
       `/onboarding/team?org=${ORG}`,
@@ -116,8 +116,15 @@ describe("V2 Team onboarding foundation", () => {
     expect(html).toContain("Owner");
     expect(html).toContain('aria-current="step"');
     expect(html).toContain("Step 4 of 5: Team");
+    expect(html).toContain(
+      `href="/onboarding/workspace-confirmation?org=${ORG}"`,
+    );
+    expect(html).toContain(">Back</a>");
     expect(html).not.toContain("<button");
-    expect(html).not.toContain("<a ");
+    expect(html.match(/<a /g)).toHaveLength(1);
+    expect(html).not.toContain(">Continue<");
+    expect(html).not.toContain("Send invites");
+    expect(html).not.toContain("Skip");
     expect(html).not.toContain("Admin");
     expect(html).not.toContain("Staff");
     expect(html).not.toContain("Viewer");
@@ -196,7 +203,10 @@ describe("V2 Team onboarding foundation", () => {
 
   it("uses the established progress, responsive, and semantic contracts", () => {
     const html = renderToStaticMarkup(
-      <TeamFoundation membershipRole="owner" />,
+      <TeamFoundation
+        membershipRole="owner"
+        backHref={buildWorkspaceConfirmationOnboardingPath(ORG)}
+      />,
     );
 
     expect(html).toContain("<main");
