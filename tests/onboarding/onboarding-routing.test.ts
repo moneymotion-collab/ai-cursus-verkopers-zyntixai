@@ -6,6 +6,10 @@ const onboardingPage = readFileSync(
   join(process.cwd(), "src/app/onboarding/page.tsx"),
   "utf8",
 );
+const teamPage = readFileSync(
+  join(process.cwd(), "src/app/onboarding/team/page.tsx"),
+  "utf8",
+);
 const landing = readFileSync(
   join(process.cwd(), "src/features/auth/server/resolve-authenticated-landing.ts"),
   "utf8",
@@ -99,10 +103,13 @@ describe("B1.3 onboarding routing contract", () => {
     );
   });
 
-  it("does not invent deferred workspace, team, or ready routes", () => {
+  it("adds only the governed Team foundation and does not invent deferred workspace or ready routes", () => {
+    expect(teamPage).toContain("TeamFoundation");
+    expect(teamPage).toContain('lifecycle.state.kind !== "v2_configured"');
+    expect(teamPage).not.toContain("markV2OnboardingSetupReadyAction");
+    expect(teamPage).not.toContain("completeV2OnboardingAction");
     for (const source of [landing, onboardingPage, enforcement]) {
       expect(source).not.toMatch(/["'`]\/onboarding\/workspace/);
-      expect(source).not.toMatch(/["'`]\/onboarding\/team/);
       expect(source).not.toMatch(/["'`]\/onboarding\/ready/);
     }
   });

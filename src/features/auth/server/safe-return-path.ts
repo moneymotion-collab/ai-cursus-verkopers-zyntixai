@@ -5,6 +5,7 @@ import { isR1InstagramConnectPathname } from "@/features/social-media/domain/r1-
 import { isSocialPathname } from "@/features/social-media/domain/social-navigation";
 import { isSocialClosedBetaOperatorPathname } from "@/features/social-media/domain/platform-operator-navigation";
 import { isDailyOperatingHomePathname } from "@/features/daily-operating/domain/compose-daily-operating-brief";
+import { TEAM_ONBOARDING_PATH } from "@/features/onboarding/domain/onboarding-routes";
 
 const DEFAULT_RETURN_PATH = "/";
 
@@ -79,7 +80,8 @@ function isAllowlistedPathname(pathname: string): boolean {
 
   if (
     pathname === "/onboarding" ||
-    pathname === "/onboarding/operating-model"
+    pathname === "/onboarding/operating-model" ||
+    pathname === TEAM_ONBOARDING_PATH
   ) {
     return true;
   }
@@ -203,7 +205,8 @@ export function isProtectedApplicationPath(pathname: string): boolean {
     isR1InstagramConnectPathname(pathname) ||
     isB18InstagramPublishPathname(pathname) ||
     pathname === "/onboarding" ||
-    pathname === "/onboarding/operating-model"
+    pathname === "/onboarding/operating-model" ||
+    pathname === TEAM_ONBOARDING_PATH
   );
 }
 

@@ -68,6 +68,14 @@ describe("resolveSafeReturnPath", () => {
     ).toBe(
       "/onboarding/operating-model?org=11111111-1111-4111-8111-111111111111",
     );
+    expect(
+      resolveSafeReturnPath(
+        "/onboarding/team?org=11111111-1111-4111-8111-111111111111",
+      ),
+    ).toBe(
+      "/onboarding/team?org=11111111-1111-4111-8111-111111111111",
+    );
+    expect(resolveSafeReturnPath("/onboarding/team-evil")).toBe("/");
   });
 
   it("accepts exact Invitation continuation path and rejects /invite wildcards", () => {
