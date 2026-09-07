@@ -91,8 +91,8 @@ on conflict (pack_key) do nothing;
 do $$
 declare
   pack record;
-  pack_id uuid;
-  version_id uuid;
+  v_pack_id uuid;
+  v_version_id uuid;
   version_status text;
 begin
   for pack in
@@ -123,7 +123,7 @@ begin
     ) as v(pack_key, foundation_key, definition_summary, intended_operator, primary_exchange)
   loop
     select p.id
-      into pack_id
+      into v_pack_id
     from public.context_packs as p
     inner join public.taxonomy_foundations as f
       on f.id = p.foundation_id
@@ -136,7 +136,7 @@ begin
       and p.specialization_id is null
       and p.deep_specialization_id is null;
 
-    if pack_id is null then
+    if v_pack_id is null then
       raise exception 'CTX-4TG seed: % missing or taxonomy target conflict', pack.pack_key;
     end if;
 
@@ -153,7 +153,7 @@ begin
       primary_exchange
     )
     values (
-      pack_id,
+      v_pack_id,
       1,
       'draft',
       'full',
@@ -167,12 +167,12 @@ begin
     on conflict (pack_id, version_number) do nothing;
 
     select v.id, v.publication_status
-      into version_id, version_status
+      into v_version_id, version_status
     from public.context_pack_versions as v
-    where v.pack_id = pack_id
+    where v.pack_id = v_pack_id
       and v.version_number = 1;
 
-    if version_id is null then
+    if v_version_id is null then
       raise exception 'CTX-4TG seed: % v1 missing', pack.pack_key;
     end if;
 
@@ -192,7 +192,7 @@ begin
           relevance
         )
         select
-          version_id,
+          v_version_id,
           c.id,
           'set',
           v.relevance
@@ -214,7 +214,7 @@ begin
           plural_label
         )
         select
-          version_id,
+          v_version_id,
           'en',
           v.term_key,
           v.singular_label,
@@ -233,7 +233,7 @@ begin
           relevance
         )
         select
-          version_id,
+          v_version_id,
           c.id,
           'set',
           v.relevance
@@ -258,7 +258,7 @@ begin
           plural_label
         )
         select
-          version_id,
+          v_version_id,
           'en',
           v.term_key,
           v.singular_label,
@@ -280,7 +280,7 @@ begin
           relevance
         )
         select
-          version_id,
+          v_version_id,
           c.id,
           'set',
           v.relevance
@@ -304,7 +304,7 @@ begin
           plural_label
         )
         select
-          version_id,
+          v_version_id,
           'en',
           v.term_key,
           v.singular_label,
@@ -324,7 +324,7 @@ begin
 
       update public.context_pack_versions
       set publication_status = 'published'
-      where id = version_id
+      where id = v_version_id
         and publication_status = 'draft';
     end if;
 
@@ -336,7 +336,7 @@ begin
       verified_at
     )
     values (
-      version_id,
+      v_version_id,
       'context_ready',
       '{"journey": "four-target-group-beta1", "runtime": "catalog-only", "resolver": true}'::jsonb,
       'BETA1-4TG-CONTEXT-PACKS',

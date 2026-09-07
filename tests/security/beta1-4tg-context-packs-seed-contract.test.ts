@@ -245,6 +245,27 @@ describe("BETA1-4TG CAP additive seed contract", () => {
 });
 
 describe("BETA1-4TG CTX additive seed contract", () => {
+  it("disambiguates PL/pgSQL variables without changing SQL conflict columns", () => {
+    expect(ctx4tgSeed).toMatch(/\bv_pack_id uuid;/);
+    expect(ctx4tgSeed).toMatch(/\bv_version_id uuid;/);
+    expect(ctx4tgSeed).not.toMatch(/^\s*pack_id uuid;/m);
+    expect(ctx4tgSeed).not.toMatch(/^\s*version_id uuid;/m);
+
+    expect(ctx4tgSeed).toMatch(/values \(\r?\n\s+v_pack_id,/);
+    expect(ctx4tgSeed).toContain("where v.pack_id = v_pack_id");
+    expect(ctx4tgSeed).toContain("into v_version_id, version_status");
+    expect(ctx4tgSeed).toContain("where id = v_version_id");
+
+    expect(ctx4tgSeed).toContain("on conflict (pack_id, version_number) do nothing");
+    expect(ctx4tgSeed.match(/on conflict \(version_id,/g)).toHaveLength(6);
+    expect(ctx4tgSeed).toContain("on conflict (version_id) do nothing");
+
+    expect(ctx4tgSeed).not.toMatch(/#variable_conflict/i);
+    expect(ctx4tgSeed).not.toMatch(
+      /\b(?:set|alter\s+(?:system|database|role))\s+plpgsql\.variable_conflict\b/i,
+    );
+  });
+
   it("registers the additive migration after frozen CTX-1 without rewriting CTX-1", () => {
     const context = readdirSync(join(process.cwd(), "supabase/migrations"))
       .filter((name) => name.includes("context_pack") || name.includes("context-pack"))
