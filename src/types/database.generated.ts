@@ -7695,6 +7695,10 @@ export type Database = {
           status: string
         }[]
       }
+      complete_organization_v2_onboarding: {
+        Args: { p_organization_id: string }
+        Returns: Json
+      }
       complete_owner_self_registration: {
         Args: {
           p_locale?: string
@@ -8274,6 +8278,10 @@ export type Database = {
           provider: string
           result_code: string
         }[]
+      }
+      mark_organization_onboarding_setup_ready: {
+        Args: { p_organization_id: string }
+        Returns: Json
       }
       mark_social_connection_reauthorization_required: {
         Args: { p_connection_id: string }
