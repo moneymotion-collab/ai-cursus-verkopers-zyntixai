@@ -12,9 +12,16 @@ const redirectMock = vi.hoisted(() =>
 );
 const actorMock = vi.hoisted(() => vi.fn());
 const lifecycleMock = vi.hoisted(() => vi.fn());
+const teamIntentsMock = vi.hoisted(() => vi.fn());
 const createServerClientMock = vi.hoisted(() => vi.fn());
 
-vi.mock("next/navigation", () => ({ redirect: redirectMock }));
+vi.mock("next/navigation", () => ({
+  redirect: redirectMock,
+  useRouter: () => ({
+    refresh: vi.fn(),
+    replace: vi.fn(),
+  }),
+}));
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServerClient: createServerClientMock,
 }));
@@ -23,6 +30,15 @@ vi.mock("@/features/onboarding/server/read-onboarding-context", () => ({
 }));
 vi.mock("@/features/onboarding/server/resolve-onboarding-lifecycle", () => ({
   resolveOrganizationOnboardingLifecycle: lifecycleMock,
+}));
+vi.mock("@/features/onboarding/server/team-invite-intents", () => ({
+  listOrganizationTeamInviteIntents: teamIntentsMock,
+}));
+vi.mock("@/features/onboarding/actions/team-invite-intent-actions", () => ({
+  createTeamInviteIntentAction: vi.fn(),
+  deleteTeamInviteIntentAction: vi.fn(),
+  listTeamInviteIntentsAction: vi.fn(),
+  updateTeamInviteIntentAction: vi.fn(),
 }));
 
 import TeamOnboardingPage from "@/app/onboarding/team/page";
@@ -88,6 +104,7 @@ describe("V2 Team onboarding foundation", () => {
       packKey: "foundation.service",
       setupReadyEligible: true,
     });
+    teamIntentsMock.mockResolvedValue({ ok: true, intents: [] });
   });
 
   it("defines canonical Team and Workspace destinations", () => {
@@ -103,7 +120,7 @@ describe("V2 Team onboarding foundation", () => {
     );
   });
 
-  it("renders the real read-only Team page only for V2 configured owners", async () => {
+  it("renders Team configuration only for V2 configured owners", async () => {
     const html = await renderPage();
 
     expect(html).toContain("Bring your team with you");
@@ -120,14 +137,65 @@ describe("V2 Team onboarding foundation", () => {
       `href="/onboarding/workspace-confirmation?org=${ORG}"`,
     );
     expect(html).toContain(">Back</a>");
-    expect(html).not.toContain("<button");
-    expect(html.match(/<a /g)).toHaveLength(1);
+    expect(html).toContain(">Review team setup</button>");
+    expect(html).toContain(">Add teammate</button>");
     expect(html).not.toContain(">Continue<");
     expect(html).not.toContain("Send invites");
     expect(html).not.toContain("Skip");
-    expect(html).not.toContain("Admin");
-    expect(html).not.toContain("Staff");
-    expect(html).not.toContain("Viewer");
+    expect(html).toContain(">Admin</option>");
+    expect(html).toContain(">Staff</option>");
+    expect(html).toContain(">Viewer</option>");
+    expect(html).not.toContain(">Owner</option>");
+    expect(teamIntentsMock).toHaveBeenCalledWith(client, ORG);
+  });
+
+  it("renders the complete authoritative persisted intent list", async () => {
+    teamIntentsMock.mockResolvedValue({
+      ok: true,
+      intents: [
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          organizationId: ORG,
+          emailNormalized: "admin@example.test",
+          role: "admin",
+          revision: 3,
+          createdAt: "2026-09-08T00:00:00Z",
+          updatedAt: "2026-09-08T00:01:00Z",
+        },
+        {
+          id: "44444444-4444-4444-8444-444444444444",
+          organizationId: ORG,
+          emailNormalized: "viewer@example.test",
+          role: "viewer",
+          revision: 1,
+          createdAt: "2026-09-08T00:02:00Z",
+          updatedAt: "2026-09-08T00:02:00Z",
+        },
+      ],
+    });
+
+    const html = await renderPage();
+
+    expect(html).toContain("admin@example.test");
+    expect(html).toContain("viewer@example.test");
+    expect(html).toContain(">Admin<");
+    expect(html).toContain(">Viewer<");
+  });
+
+  it("fails closed when the governed intent list cannot be confirmed", async () => {
+    teamIntentsMock.mockResolvedValue({
+      ok: false,
+      code: "NOT_AUTHORIZED",
+      message: "You no longer have permission to update this team setup.",
+    });
+
+    const html = await renderPage();
+
+    expect(html).toContain("Team setup needs attention");
+    expect(html).toContain(
+      "You no longer have permission to update this team setup.",
+    );
+    expect(html).not.toContain("Add teammate");
   });
 
   it("redirects anonymous users to login with the exact Team return path", async () => {
@@ -137,6 +205,18 @@ describe("V2 Team onboarding foundation", () => {
       `REDIRECT:/login?next=${encodeURIComponent(`/onboarding/team?org=${ORG}`)}`,
     );
     expect(lifecycleMock).not.toHaveBeenCalled();
+  });
+
+  it("fails closed for a foreign organization before listing intents", async () => {
+    actorMock.mockResolvedValue({
+      ok: false,
+      code: "organization_not_found",
+    });
+
+    const html = await renderPage();
+
+    expect(html).toContain("Organization unavailable");
+    expect(teamIntentsMock).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -184,11 +264,12 @@ describe("V2 Team onboarding foundation", () => {
     await expect(renderPage()).rejects.toThrow(`REDIRECT:${target}`);
   });
 
-  it("performs no write or invitation operation while rendering", async () => {
+  it("loads only governed intents and performs no write or invitation operation while rendering", async () => {
     await renderPage();
 
     expect(client.from).not.toHaveBeenCalled();
     expect(client.rpc).not.toHaveBeenCalled();
+    expect(teamIntentsMock).toHaveBeenCalledTimes(1);
     for (const forbidden of [
       "assignOperatingModelAction",
       "createInvitation",
@@ -205,6 +286,8 @@ describe("V2 Team onboarding foundation", () => {
     const html = renderToStaticMarkup(
       <TeamFoundation
         membershipRole="owner"
+        organizationId={ORG}
+        initialIntents={[]}
         backHref={buildWorkspaceConfirmationOnboardingPath(ORG)}
       />,
     );
@@ -217,6 +300,7 @@ describe("V2 Team onboarding foundation", () => {
     expect(componentSource).toContain('currentStep="team"');
     expect(cssSource).toContain("@media (max-width: 767px)");
     expect(cssSource).toContain("@media (min-width: 768px)");
+    expect(cssSource).toContain("max-width: 1151px");
     expect(cssSource).not.toContain("overflow-x");
     expect(cssSource).not.toContain("transform: scale");
   });

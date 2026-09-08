@@ -12,6 +12,7 @@ import {
 import { resolveOnboardingLifecycleDestination } from "@/features/onboarding/domain/onboarding-lifecycle";
 import { resolveOnboardingOrganizationId } from "@/features/onboarding/server/read-onboarding-context";
 import { resolveOrganizationOnboardingLifecycle } from "@/features/onboarding/server/resolve-onboarding-lifecycle";
+import { listOrganizationTeamInviteIntents } from "@/features/onboarding/server/team-invite-intents";
 import { OnboardingStatusPanel } from "@/features/onboarding/ui/onboarding-status-panel";
 import { TeamFoundation } from "@/features/onboarding/ui/team-foundation";
 
@@ -101,9 +102,24 @@ export default async function TeamOnboardingPage({ searchParams }: PageProps) {
     redirect(buildOnboardingPath(actor.organizationId));
   }
 
+  const teamIntents = await listOrganizationTeamInviteIntents(
+    supabase,
+    actor.organizationId,
+  );
+  if (!teamIntents.ok) {
+    return (
+      <OnboardingStatusPanel
+        title="Team setup needs attention"
+        message={teamIntents.message}
+      />
+    );
+  }
+
   return (
     <TeamFoundation
       membershipRole="owner"
+      organizationId={actor.organizationId}
+      initialIntents={teamIntents.intents}
       backHref={buildWorkspaceConfirmationOnboardingPath(
         actor.organizationId,
       )}
