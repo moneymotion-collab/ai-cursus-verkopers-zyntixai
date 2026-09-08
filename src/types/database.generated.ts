@@ -146,10 +146,10 @@ export type Database = {
           first_detected_at: string
           id: string
           last_detected_at: string
-          organization_id: string
           order_id: string | null
-          program_id: string | null
+          organization_id: string
           product_id: string | null
+          program_id: string | null
           project_id: string | null
           resolution_reason: string | null
           resolved_at: string | null
@@ -161,10 +161,10 @@ export type Database = {
           status: string
           summary: string | null
           task_id: string | null
-          work_order_id: string | null
           title: string
           updated_at: string
           updated_by_member_id: string | null
+          work_order_id: string | null
         }
         Insert: {
           acknowledged_at?: string | null
@@ -182,10 +182,10 @@ export type Database = {
           first_detected_at?: string
           id?: string
           last_detected_at?: string
-          organization_id: string
           order_id?: string | null
-          program_id?: string | null
+          organization_id: string
           product_id?: string | null
+          program_id?: string | null
           project_id?: string | null
           resolution_reason?: string | null
           resolved_at?: string | null
@@ -197,10 +197,10 @@ export type Database = {
           status?: string
           summary?: string | null
           task_id?: string | null
-          work_order_id?: string | null
           title: string
           updated_at?: string
           updated_by_member_id?: string | null
+          work_order_id?: string | null
         }
         Update: {
           acknowledged_at?: string | null
@@ -218,10 +218,10 @@ export type Database = {
           first_detected_at?: string
           id?: string
           last_detected_at?: string
-          organization_id?: string
           order_id?: string | null
-          program_id?: string | null
+          organization_id?: string
           product_id?: string | null
+          program_id?: string | null
           project_id?: string | null
           resolution_reason?: string | null
           resolved_at?: string | null
@@ -233,10 +233,10 @@ export type Database = {
           status?: string
           summary?: string | null
           task_id?: string | null
-          work_order_id?: string | null
           title?: string
           updated_at?: string
           updated_by_member_id?: string | null
+          work_order_id?: string | null
         }
         Relationships: [
           {
@@ -271,11 +271,25 @@ export type Database = {
             ]
           },
           {
+            foreignKeyName: "attention_items_order_fk"
+            columns: ["organization_id", "order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
             foreignKeyName: "attention_items_organization_fk"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attention_items_product_fk"
+            columns: ["organization_id", "product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["organization_id", "id"]
           },
           {
             foreignKeyName: "attention_items_project_fk"
@@ -306,17 +320,17 @@ export type Database = {
             referencedColumns: ["organization_id", "id"]
           },
           {
-            foreignKeyName: "attention_items_work_order_fk"
-            columns: ["organization_id", "work_order_id"]
-            isOneToOne: false
-            referencedRelation: "work_orders"
-            referencedColumns: ["organization_id", "id"]
-          },
-          {
             foreignKeyName: "attention_items_updated_by_member_fk"
             columns: ["organization_id", "updated_by_member_id"]
             isOneToOne: false
             referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "attention_items_work_order_fk"
+            columns: ["organization_id", "work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
             referencedColumns: ["organization_id", "id"]
           },
         ]
@@ -2488,6 +2502,99 @@ export type Database = {
           },
         ]
       }
+      inventory_balances: {
+        Row: {
+          on_hand: number
+          organization_id: string
+          product_id: string
+          updated_at: string
+        }
+        Insert: {
+          on_hand?: number
+          organization_id: string
+          product_id: string
+          updated_at?: string
+        }
+        Update: {
+          on_hand?: number
+          organization_id?: string
+          product_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_balances_product_fk"
+            columns: ["organization_id", "product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      inventory_movements: {
+        Row: {
+          created_at: string
+          created_by_member_id: string
+          id: string
+          idempotency_key: string
+          movement_type: string
+          order_id: string | null
+          organization_id: string
+          product_id: string
+          quantity_delta: number
+          reason: string
+          resulting_on_hand: number
+        }
+        Insert: {
+          created_at?: string
+          created_by_member_id: string
+          id?: string
+          idempotency_key: string
+          movement_type: string
+          order_id?: string | null
+          organization_id: string
+          product_id: string
+          quantity_delta: number
+          reason: string
+          resulting_on_hand: number
+        }
+        Update: {
+          created_at?: string
+          created_by_member_id?: string
+          id?: string
+          idempotency_key?: string
+          movement_type?: string
+          order_id?: string | null
+          organization_id?: string
+          product_id?: string
+          quantity_delta?: number
+          reason?: string
+          resulting_on_hand?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_movements_created_by_member_fk"
+            columns: ["organization_id", "created_by_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_order_fk"
+            columns: ["organization_id", "order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_product_fk"
+            columns: ["organization_id", "product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
       lead_pipeline_stages: {
         Row: {
           archived_at: string | null
@@ -2756,6 +2863,175 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "lead_pipeline_stages"
             referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          organization_id: string
+          product_id: string
+          product_name_snapshot: string
+          quantity: number
+          sku_snapshot: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          organization_id: string
+          product_id: string
+          product_name_snapshot: string
+          quantity: number
+          sku_snapshot: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          organization_id?: string
+          product_id?: string
+          product_name_snapshot?: string
+          quantity?: number
+          sku_snapshot?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_fk"
+            columns: ["organization_id", "order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "order_items_product_fk"
+            columns: ["organization_id", "product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      order_status_history: {
+        Row: {
+          changed_by_member_id: string
+          created_at: string
+          from_status: string | null
+          id: string
+          idempotency_key: string
+          order_id: string
+          organization_id: string
+          reason: string | null
+          to_status: string
+        }
+        Insert: {
+          changed_by_member_id: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          idempotency_key: string
+          order_id: string
+          organization_id: string
+          reason?: string | null
+          to_status: string
+        }
+        Update: {
+          changed_by_member_id?: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          idempotency_key?: string
+          order_id?: string
+          organization_id?: string
+          reason?: string | null
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_member_fk"
+            columns: ["organization_id", "changed_by_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "order_status_history_order_fk"
+            columns: ["organization_id", "order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          cancelled_at: string | null
+          completed_at: string | null
+          created_at: string
+          created_by_member_id: string
+          customer_id: string
+          fulfillment_status: string
+          id: string
+          idempotency_key: string
+          organization_id: string
+          reference: string
+          request_items: Json
+          status_changed_at: string
+          updated_at: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by_member_id: string
+          customer_id: string
+          fulfillment_status?: string
+          id?: string
+          idempotency_key: string
+          organization_id: string
+          reference: string
+          request_items: Json
+          status_changed_at?: string
+          updated_at?: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by_member_id?: string
+          customer_id?: string
+          fulfillment_status?: string
+          id?: string
+          idempotency_key?: string
+          organization_id?: string
+          reference?: string
+          request_items?: Json
+          status_changed_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_created_by_member_fk"
+            columns: ["organization_id", "created_by_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "orders_customer_fk"
+            columns: ["organization_id", "customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -3182,6 +3458,44 @@ export type Database = {
           },
         ]
       }
+      organization_onboarding_team_invite_intents: {
+        Row: {
+          created_at: string
+          email_normalized: string
+          id: string
+          organization_id: string
+          revision: number
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email_normalized: string
+          id?: string
+          organization_id: string
+          revision?: number
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email_normalized?: string
+          id?: string
+          organization_id?: string
+          revision?: number
+          role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_onboarding_team_invite_intent_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           archived_at: string | null
@@ -3256,216 +3570,6 @@ export type Database = {
           },
         ]
       }
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string
-          display_name: string | null
-          id: string
-          locale: string | null
-          timezone: string | null
-          updated_at: string
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string
-          display_name?: string | null
-          id: string
-          locale?: string | null
-          timezone?: string | null
-          updated_at?: string
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string
-          display_name?: string | null
-          id?: string
-          locale?: string | null
-          timezone?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      inventory_balances: {
-        Row: {
-          on_hand: number
-          organization_id: string
-          product_id: string
-          updated_at: string
-        }
-        Insert: {
-          on_hand?: number
-          organization_id: string
-          product_id: string
-          updated_at?: string
-        }
-        Update: {
-          on_hand?: number
-          organization_id?: string
-          product_id?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      inventory_movements: {
-        Row: {
-          created_at: string
-          created_by_member_id: string
-          id: string
-          idempotency_key: string
-          movement_type: string
-          order_id: string | null
-          organization_id: string
-          product_id: string
-          quantity_delta: number
-          reason: string
-          resulting_on_hand: number
-        }
-        Insert: {
-          created_at?: string
-          created_by_member_id: string
-          id?: string
-          idempotency_key: string
-          movement_type: string
-          order_id?: string | null
-          organization_id: string
-          product_id: string
-          quantity_delta: number
-          reason: string
-          resulting_on_hand: number
-        }
-        Update: {
-          created_at?: string
-          created_by_member_id?: string
-          id?: string
-          idempotency_key?: string
-          movement_type?: string
-          order_id?: string | null
-          organization_id?: string
-          product_id?: string
-          quantity_delta?: number
-          reason?: string
-          resulting_on_hand?: number
-        }
-        Relationships: []
-      }
-      order_items: {
-        Row: {
-          created_at: string
-          id: string
-          order_id: string
-          organization_id: string
-          product_id: string
-          product_name_snapshot: string
-          quantity: number
-          sku_snapshot: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          order_id: string
-          organization_id: string
-          product_id: string
-          product_name_snapshot: string
-          quantity: number
-          sku_snapshot: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          order_id?: string
-          organization_id?: string
-          product_id?: string
-          product_name_snapshot?: string
-          quantity?: number
-          sku_snapshot?: string
-        }
-        Relationships: []
-      }
-      order_status_history: {
-        Row: {
-          changed_by_member_id: string
-          created_at: string
-          from_status: string | null
-          id: string
-          idempotency_key: string
-          order_id: string
-          organization_id: string
-          reason: string | null
-          to_status: string
-        }
-        Insert: {
-          changed_by_member_id: string
-          created_at?: string
-          from_status?: string | null
-          id?: string
-          idempotency_key: string
-          order_id: string
-          organization_id: string
-          reason?: string | null
-          to_status: string
-        }
-        Update: {
-          changed_by_member_id?: string
-          created_at?: string
-          from_status?: string | null
-          id?: string
-          idempotency_key?: string
-          order_id?: string
-          organization_id?: string
-          reason?: string | null
-          to_status?: string
-        }
-        Relationships: []
-      }
-      orders: {
-        Row: {
-          cancelled_at: string | null
-          completed_at: string | null
-          created_at: string
-          created_by_member_id: string
-          customer_id: string
-          fulfillment_status: string
-          id: string
-          idempotency_key: string
-          organization_id: string
-          reference: string
-          request_items: Json
-          status_changed_at: string
-          updated_at: string
-        }
-        Insert: {
-          cancelled_at?: string | null
-          completed_at?: string | null
-          created_at?: string
-          created_by_member_id: string
-          customer_id: string
-          fulfillment_status?: string
-          id?: string
-          idempotency_key: string
-          organization_id: string
-          reference: string
-          request_items: Json
-          status_changed_at?: string
-          updated_at?: string
-        }
-        Update: {
-          cancelled_at?: string | null
-          completed_at?: string | null
-          created_at?: string
-          created_by_member_id?: string
-          customer_id?: string
-          fulfillment_status?: string
-          id?: string
-          idempotency_key?: string
-          organization_id?: string
-          reference?: string
-          request_items?: Json
-          status_changed_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       products: {
         Row: {
           archived_at: string | null
@@ -3500,206 +3604,161 @@ export type Database = {
           sku?: string
           updated_at?: string
         }
-        Relationships: []
-      }
-      sites: {
-        Row: {
-          address_line_1: string
-          address_line_2: string | null
-          archived_at: string | null
-          city: string
-          country: string
-          created_at: string
-          created_by_member_id: string
-          customer_id: string
-          id: string
-          name: string
-          operational_note: string | null
-          organization_id: string
-          postal_code: string
-          project_id: string
-          updated_at: string
-        }
-        Insert: {
-          address_line_1: string
-          address_line_2?: string | null
-          archived_at?: string | null
-          city: string
-          country: string
-          created_at?: string
-          created_by_member_id: string
-          customer_id: string
-          id?: string
-          name: string
-          operational_note?: string | null
-          organization_id: string
-          postal_code: string
-          project_id: string
-          updated_at?: string
-        }
-        Update: {
-          address_line_1?: string
-          address_line_2?: string | null
-          archived_at?: string | null
-          city?: string
-          country?: string
-          created_at?: string
-          created_by_member_id?: string
-          customer_id?: string
-          id?: string
-          name?: string
-          operational_note?: string | null
-          organization_id?: string
-          postal_code?: string
-          project_id?: string
-          updated_at?: string
-        }
         Relationships: [
           {
-            foreignKeyName: "sites_created_by_member_fk"
+            foreignKeyName: "products_created_by_member_fk"
             columns: ["organization_id", "created_by_member_id"]
             isOneToOne: false
             referencedRelation: "organization_members"
             referencedColumns: ["organization_id", "id"]
           },
           {
-            foreignKeyName: "sites_customer_fk"
-            columns: ["organization_id", "customer_id"]
+            foreignKeyName: "products_organization_id_fkey"
+            columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["organization_id", "id"]
-          },
-          {
-            foreignKeyName: "sites_project_fk"
-            columns: ["organization_id", "project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["organization_id", "id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
           },
         ]
       }
-      work_order_status_history: {
+      profiles: {
         Row: {
-          changed_by_member_id: string
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          locale: string | null
+          timezone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          locale?: string | null
+          timezone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          locale?: string | null
+          timezone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      program_status_history: {
+        Row: {
+          changed_at: string
+          changed_by_member_id: string | null
           created_at: string
           from_status: string | null
           id: string
           organization_id: string
+          program_id: string
           reason: string | null
+          source: string
           to_status: string
-          work_order_id: string
         }
         Insert: {
-          changed_by_member_id: string
+          changed_at?: string
+          changed_by_member_id?: string | null
           created_at?: string
           from_status?: string | null
           id?: string
           organization_id: string
+          program_id: string
           reason?: string | null
+          source: string
           to_status: string
-          work_order_id: string
         }
         Update: {
-          changed_by_member_id?: string
+          changed_at?: string
+          changed_by_member_id?: string | null
           created_at?: string
           from_status?: string | null
           id?: string
           organization_id?: string
+          program_id?: string
           reason?: string | null
+          source?: string
           to_status?: string
-          work_order_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "work_order_status_history_member_fk"
+            foreignKeyName: "program_status_history_changed_by_member_fk"
             columns: ["organization_id", "changed_by_member_id"]
             isOneToOne: false
             referencedRelation: "organization_members"
             referencedColumns: ["organization_id", "id"]
           },
           {
-            foreignKeyName: "work_order_status_history_work_order_fk"
-            columns: ["organization_id", "work_order_id"]
+            foreignKeyName: "program_status_history_program_fk"
+            columns: ["organization_id", "program_id"]
             isOneToOne: false
-            referencedRelation: "work_orders"
+            referencedRelation: "programs"
             referencedColumns: ["organization_id", "id"]
           },
         ]
       }
-      work_orders: {
+      programs: {
         Row: {
-          completed_at: string | null
+          archived_at: string | null
           created_at: string
           created_by_member_id: string
+          delivery_mode: string
+          description: string | null
           id: string
-          instructions: string | null
+          metadata: Json
+          name: string
           organization_id: string
-          project_id: string
-          scheduled_for: string | null
-          site_id: string
           status: string
-          technician_member_id: string | null
-          title: string
           updated_at: string
         }
         Insert: {
-          completed_at?: string | null
+          archived_at?: string | null
           created_at?: string
           created_by_member_id: string
+          delivery_mode: string
+          description?: string | null
           id?: string
-          instructions?: string | null
+          metadata?: Json
+          name: string
           organization_id: string
-          project_id: string
-          scheduled_for?: string | null
-          site_id: string
           status?: string
-          technician_member_id?: string | null
-          title: string
           updated_at?: string
         }
         Update: {
-          completed_at?: string | null
+          archived_at?: string | null
           created_at?: string
           created_by_member_id?: string
+          delivery_mode?: string
+          description?: string | null
           id?: string
-          instructions?: string | null
+          metadata?: Json
+          name?: string
           organization_id?: string
-          project_id?: string
-          scheduled_for?: string | null
-          site_id?: string
           status?: string
-          technician_member_id?: string | null
-          title?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "work_orders_created_by_member_fk"
+            foreignKeyName: "programs_created_by_member_fk"
             columns: ["organization_id", "created_by_member_id"]
             isOneToOne: false
             referencedRelation: "organization_members"
             referencedColumns: ["organization_id", "id"]
           },
           {
-            foreignKeyName: "work_orders_project_fk"
-            columns: ["organization_id", "project_id"]
+            foreignKeyName: "programs_organization_id_fkey"
+            columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["organization_id", "id"]
-          },
-          {
-            foreignKeyName: "work_orders_site_fk"
-            columns: ["organization_id", "site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["organization_id", "id"]
-          },
-          {
-            foreignKeyName: "work_orders_technician_member_fk"
-            columns: ["organization_id", "technician_member_id"]
-            isOneToOne: false
-            referencedRelation: "organization_members"
-            referencedColumns: ["organization_id", "id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -3834,117 +3893,6 @@ export type Database = {
           },
         ]
       }
-      program_status_history: {
-        Row: {
-          changed_at: string
-          changed_by_member_id: string | null
-          created_at: string
-          from_status: string | null
-          id: string
-          organization_id: string
-          program_id: string
-          reason: string | null
-          source: string
-          to_status: string
-        }
-        Insert: {
-          changed_at?: string
-          changed_by_member_id?: string | null
-          created_at?: string
-          from_status?: string | null
-          id?: string
-          organization_id: string
-          program_id: string
-          reason?: string | null
-          source: string
-          to_status: string
-        }
-        Update: {
-          changed_at?: string
-          changed_by_member_id?: string | null
-          created_at?: string
-          from_status?: string | null
-          id?: string
-          organization_id?: string
-          program_id?: string
-          reason?: string | null
-          source?: string
-          to_status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "program_status_history_changed_by_member_fk"
-            columns: ["organization_id", "changed_by_member_id"]
-            isOneToOne: false
-            referencedRelation: "organization_members"
-            referencedColumns: ["organization_id", "id"]
-          },
-          {
-            foreignKeyName: "program_status_history_program_fk"
-            columns: ["organization_id", "program_id"]
-            isOneToOne: false
-            referencedRelation: "programs"
-            referencedColumns: ["organization_id", "id"]
-          },
-        ]
-      }
-      programs: {
-        Row: {
-          archived_at: string | null
-          created_at: string
-          created_by_member_id: string
-          delivery_mode: string
-          description: string | null
-          id: string
-          metadata: Json
-          name: string
-          organization_id: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          archived_at?: string | null
-          created_at?: string
-          created_by_member_id: string
-          delivery_mode: string
-          description?: string | null
-          id?: string
-          metadata?: Json
-          name: string
-          organization_id: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          archived_at?: string | null
-          created_at?: string
-          created_by_member_id?: string
-          delivery_mode?: string
-          description?: string | null
-          id?: string
-          metadata?: Json
-          name?: string
-          organization_id?: string
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "programs_created_by_member_fk"
-            columns: ["organization_id", "created_by_member_id"]
-            isOneToOne: false
-            referencedRelation: "organization_members"
-            referencedColumns: ["organization_id", "id"]
-          },
-          {
-            foreignKeyName: "programs_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       registration_intents: {
         Row: {
           company_name: string
@@ -3993,6 +3941,89 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      sites: {
+        Row: {
+          address_line_1: string
+          address_line_2: string | null
+          archived_at: string | null
+          city: string
+          country: string
+          created_at: string
+          created_by_member_id: string
+          customer_id: string
+          id: string
+          name: string
+          operational_note: string | null
+          organization_id: string
+          postal_code: string
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          address_line_1: string
+          address_line_2?: string | null
+          archived_at?: string | null
+          city: string
+          country: string
+          created_at?: string
+          created_by_member_id: string
+          customer_id: string
+          id?: string
+          name: string
+          operational_note?: string | null
+          organization_id: string
+          postal_code: string
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          address_line_1?: string
+          address_line_2?: string | null
+          archived_at?: string | null
+          city?: string
+          country?: string
+          created_at?: string
+          created_by_member_id?: string
+          customer_id?: string
+          id?: string
+          name?: string
+          operational_note?: string | null
+          organization_id?: string
+          postal_code?: string
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sites_created_by_member_fk"
+            columns: ["organization_id", "created_by_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "sites_customer_fk"
+            columns: ["organization_id", "customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "sites_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sites_project_fk"
+            columns: ["organization_id", "project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["organization_id", "id"]
           },
         ]
       }
@@ -6741,8 +6772,8 @@ export type Database = {
           organization_id: string
           predecessor_task_id: string | null
           priority: string
-          project_id: string | null
           program_id: string | null
+          project_id: string | null
           source: string
           status: string
           task_type: string
@@ -6771,8 +6802,8 @@ export type Database = {
           organization_id: string
           predecessor_task_id?: string | null
           priority?: string
-          project_id?: string | null
           program_id?: string | null
+          project_id?: string | null
           source?: string
           status?: string
           task_type?: string
@@ -6801,8 +6832,8 @@ export type Database = {
           organization_id?: string
           predecessor_task_id?: string | null
           priority?: string
-          project_id?: string | null
           program_id?: string | null
+          project_id?: string | null
           source?: string
           status?: string
           task_type?: string
@@ -7292,6 +7323,138 @@ export type Database = {
           },
         ]
       }
+      work_order_status_history: {
+        Row: {
+          changed_by_member_id: string
+          created_at: string
+          from_status: string | null
+          id: string
+          organization_id: string
+          reason: string | null
+          to_status: string
+          work_order_id: string
+        }
+        Insert: {
+          changed_by_member_id: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          organization_id: string
+          reason?: string | null
+          to_status: string
+          work_order_id: string
+        }
+        Update: {
+          changed_by_member_id?: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          organization_id?: string
+          reason?: string | null
+          to_status?: string
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_order_status_history_member_fk"
+            columns: ["organization_id", "changed_by_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "work_order_status_history_work_order_fk"
+            columns: ["organization_id", "work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      work_orders: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by_member_id: string
+          id: string
+          instructions: string | null
+          organization_id: string
+          project_id: string
+          scheduled_for: string | null
+          site_id: string
+          status: string
+          technician_member_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by_member_id: string
+          id?: string
+          instructions?: string | null
+          organization_id: string
+          project_id: string
+          scheduled_for?: string | null
+          site_id: string
+          status?: string
+          technician_member_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by_member_id?: string
+          id?: string
+          instructions?: string | null
+          organization_id?: string
+          project_id?: string
+          scheduled_for?: string | null
+          site_id?: string
+          status?: string
+          technician_member_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_orders_created_by_member_fk"
+            columns: ["organization_id", "created_by_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "work_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_project_fk"
+            columns: ["organization_id", "project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "work_orders_site_fk"
+            columns: ["organization_id", "site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "work_orders_technician_member_fk"
+            columns: ["organization_id", "technician_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -7340,6 +7503,16 @@ export type Database = {
           comment_id: string
           result_code: string
         }[]
+      }
+      adjust_product_inventory: {
+        Args: {
+          p_idempotency_key: string
+          p_organization_id: string
+          p_product_id: string
+          p_quantity_delta: number
+          p_reason: string
+        }
+        Returns: number
       }
       apply_business_qualification_assignment_handoff: {
         Args: {
@@ -7392,6 +7565,26 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_data_intake_matching_mutation: {
+        Args: {
+          p_actor_member_id: string
+          p_actor_user_id: string
+          p_operation: string
+          p_organization_id: string
+          p_payload: Json
+        }
+        Returns: Json
+      }
+      apply_data_intake_planning_mutation: {
+        Args: {
+          p_actor_member_id: string
+          p_actor_user_id: string
+          p_operation: string
+          p_organization_id: string
+          p_payload: Json
+        }
+        Returns: Json
+      }
       apply_data_intake_source_object_mutation: {
         Args: {
           p_actor_member_id: string
@@ -7413,26 +7606,6 @@ export type Database = {
         Returns: Json
       }
       apply_data_intake_staging_mutation: {
-        Args: {
-          p_actor_member_id: string
-          p_actor_user_id: string
-          p_operation: string
-          p_organization_id: string
-          p_payload: Json
-        }
-        Returns: Json
-      }
-      apply_data_intake_matching_mutation: {
-        Args: {
-          p_actor_member_id: string
-          p_actor_user_id: string
-          p_operation: string
-          p_organization_id: string
-          p_payload: Json
-        }
-        Returns: Json
-      }
-      apply_data_intake_planning_mutation: {
         Args: {
           p_actor_member_id: string
           p_actor_user_id: string
@@ -7475,14 +7648,6 @@ export type Database = {
         }
         Returns: Json
       }
-      assign_organization_operating_model: {
-        Args: {
-          p_actor_user_id: string
-          p_operating_model: string
-          p_organization_id: string
-        }
-        Returns: Json
-      }
       archive_attention_item: {
         Args: { p_attention_item_id: string; p_organization_id: string }
         Returns: undefined
@@ -7507,16 +7672,20 @@ export type Database = {
         }
         Returns: undefined
       }
+      archive_product: {
+        Args: { p_organization_id: string; p_product_id: string }
+        Returns: undefined
+      }
+      archive_program: {
+        Args: { p_organization_id: string; p_program_id: string }
+        Returns: undefined
+      }
       archive_project: {
         Args: { p_organization_id: string; p_project_id: string }
         Returns: undefined
       }
       archive_site: {
         Args: { p_organization_id: string; p_site_id: string }
-        Returns: undefined
-      }
-      archive_program: {
-        Args: { p_organization_id: string; p_program_id: string }
         Returns: undefined
       }
       archive_social_audience: {
@@ -7602,6 +7771,14 @@ export type Database = {
           p_organization_id: string
         }
         Returns: undefined
+      }
+      assign_organization_operating_model: {
+        Args: {
+          p_actor_user_id: string
+          p_operating_model: string
+          p_organization_id: string
+        }
+        Returns: Json
       }
       b18_complete_controlled_publication_attempt: {
         Args: {
@@ -7738,70 +7915,6 @@ export type Database = {
         }
         Returns: string
       }
-      adjust_product_inventory: {
-        Args: {
-          p_idempotency_key: string
-          p_organization_id: string
-          p_product_id: string
-          p_quantity_delta: number
-          p_reason: string
-        }
-        Returns: number
-      }
-      archive_product: {
-        Args: { p_organization_id: string; p_product_id: string }
-        Returns: undefined
-      }
-      create_inventory_order: {
-        Args: {
-          p_customer_id: string
-          p_idempotency_key: string
-          p_items: Json
-          p_organization_id: string
-          p_reference: string
-        }
-        Returns: string
-      }
-      create_product: {
-        Args: {
-          p_description?: string
-          p_name: string
-          p_organization_id: string
-          p_sku: string
-        }
-        Returns: string
-      }
-      create_site: {
-        Args: {
-          p_address_line_1: string
-          p_address_line_2?: string
-          p_city: string
-          p_country: string
-          p_customer_id: string
-          p_name: string
-          p_operational_note?: string
-          p_organization_id: string
-          p_postal_code: string
-          p_project_id: string
-        }
-        Returns: string
-      }
-      create_work_order: {
-        Args: {
-          p_instructions?: string
-          p_organization_id: string
-          p_project_id: string
-          p_scheduled_for?: string
-          p_site_id: string
-          p_technician_member_id?: string
-          p_title: string
-        }
-        Returns: string
-      }
-      evaluate_product_attention_rules: {
-        Args: { p_organization_id: string }
-        Returns: Json
-      }
       create_customer: {
         Args: {
           p_display_name: string
@@ -7823,6 +7936,16 @@ export type Database = {
           p_owner_member_id?: string
           p_program_id: string
           p_source?: string
+        }
+        Returns: string
+      }
+      create_inventory_order: {
+        Args: {
+          p_customer_id: string
+          p_idempotency_key: string
+          p_items: Json
+          p_organization_id: string
+          p_reference: string
         }
         Returns: string
       }
@@ -7867,6 +7990,10 @@ export type Database = {
           result_code: string
         }[]
       }
+      create_organization_onboarding_team_invite_intent: {
+        Args: { p_email: string; p_organization_id: string; p_role: string }
+        Returns: Json
+      }
       create_organization_with_owner: {
         Args: {
           p_locale?: string
@@ -7882,6 +8009,25 @@ export type Database = {
           p_organization_id: string
           p_position?: number
           p_stage_category: string
+        }
+        Returns: string
+      }
+      create_product: {
+        Args: {
+          p_description?: string
+          p_name: string
+          p_organization_id: string
+          p_sku: string
+        }
+        Returns: string
+      }
+      create_program: {
+        Args: {
+          p_delivery_mode: string
+          p_description?: string
+          p_metadata?: Json
+          p_name: string
+          p_organization_id: string
         }
         Returns: string
       }
@@ -7912,13 +8058,18 @@ export type Database = {
         }
         Returns: string
       }
-      create_program: {
+      create_site: {
         Args: {
-          p_delivery_mode: string
-          p_description?: string
-          p_metadata?: Json
+          p_address_line_1: string
+          p_address_line_2?: string
+          p_city: string
+          p_country: string
+          p_customer_id: string
           p_name: string
+          p_operational_note?: string
           p_organization_id: string
+          p_postal_code: string
+          p_project_id: string
         }
         Returns: string
       }
@@ -8158,6 +8309,26 @@ export type Database = {
         }
         Returns: string
       }
+      create_work_order: {
+        Args: {
+          p_instructions?: string
+          p_organization_id: string
+          p_project_id: string
+          p_scheduled_for?: string
+          p_site_id: string
+          p_technician_member_id?: string
+          p_title: string
+        }
+        Returns: string
+      }
+      delete_organization_onboarding_team_invite_intent: {
+        Args: {
+          p_expected_revision: number
+          p_intent_id: string
+          p_organization_id: string
+        }
+        Returns: Json
+      }
       disconnect_social_connection: {
         Args: { p_connection_id: string }
         Returns: {
@@ -8181,12 +8352,12 @@ export type Database = {
         Args: { p_enrollment_id?: string; p_organization_id: string }
         Returns: Json
       }
-      evaluate_project_attention_rules: {
-        Args: { p_organization_id: string; p_project_id?: string }
+      evaluate_product_attention_rules: {
+        Args: { p_organization_id: string }
         Returns: Json
       }
-      evaluate_work_order_attention_rules: {
-        Args: { p_organization_id: string; p_work_order_id?: string }
+      evaluate_project_attention_rules: {
+        Args: { p_organization_id: string; p_project_id?: string }
         Returns: Json
       }
       evaluate_social_provider_write_gates: {
@@ -8208,6 +8379,10 @@ export type Database = {
           result_code: string
           workflow_ready: boolean
         }[]
+      }
+      evaluate_work_order_attention_rules: {
+        Args: { p_organization_id: string; p_work_order_id?: string }
+        Returns: Json
       }
       finalize_social_connection: {
         Args: {
@@ -8261,6 +8436,10 @@ export type Database = {
           display_label: string
           membership_id: string
         }[]
+      }
+      list_organization_onboarding_team_invite_intents: {
+        Args: { p_organization_id: string }
+        Returns: Json
       }
       load_social_provider_credential_envelope: {
         Args: { p_connection_id: string }
@@ -8727,20 +8906,20 @@ export type Database = {
         Args: { p_organization_id: string; p_stage_id: string }
         Returns: undefined
       }
-      restore_project: {
-        Args: { p_organization_id: string; p_project_id: string }
-        Returns: undefined
-      }
       restore_product: {
         Args: { p_organization_id: string; p_product_id: string }
         Returns: undefined
       }
-      restore_site: {
-        Args: { p_organization_id: string; p_site_id: string }
-        Returns: undefined
-      }
       restore_program: {
         Args: { p_organization_id: string; p_program_id: string }
+        Returns: undefined
+      }
+      restore_project: {
+        Args: { p_organization_id: string; p_project_id: string }
+        Returns: undefined
+      }
+      restore_site: {
+        Args: { p_organization_id: string; p_site_id: string }
         Returns: undefined
       }
       restore_task: {
@@ -8972,24 +9151,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      transition_project_status: {
-        Args: {
-          p_organization_id: string
-          p_project_id: string
-          p_reason?: string
-          p_to_status: string
-        }
-        Returns: undefined
-      }
-      transition_work_order_status: {
-        Args: {
-          p_organization_id: string
-          p_reason?: string
-          p_to_status: string
-          p_work_order_id: string
-        }
-        Returns: undefined
-      }
       transition_order_fulfillment: {
         Args: {
           p_idempotency_key: string
@@ -9010,6 +9171,24 @@ export type Database = {
         }
         Returns: undefined
       }
+      transition_project_status: {
+        Args: {
+          p_organization_id: string
+          p_project_id: string
+          p_reason?: string
+          p_to_status: string
+        }
+        Returns: undefined
+      }
+      transition_work_order_status: {
+        Args: {
+          p_organization_id: string
+          p_reason?: string
+          p_to_status: string
+          p_work_order_id: string
+        }
+        Returns: undefined
+      }
       update_attention_severity: {
         Args: {
           p_attention_item_id: string
@@ -9018,12 +9197,43 @@ export type Database = {
         }
         Returns: undefined
       }
+      update_organization_onboarding_team_invite_intent: {
+        Args: {
+          p_email: string
+          p_expected_revision: number
+          p_intent_id: string
+          p_organization_id: string
+          p_role: string
+        }
+        Returns: Json
+      }
       update_pipeline_stage: {
         Args: {
           p_name: string
           p_organization_id: string
           p_stage_category: string
           p_stage_id: string
+        }
+        Returns: undefined
+      }
+      update_product: {
+        Args: {
+          p_description?: string
+          p_name: string
+          p_organization_id: string
+          p_product_id: string
+          p_sku: string
+        }
+        Returns: undefined
+      }
+      update_program: {
+        Args: {
+          p_delivery_mode: string
+          p_description: string
+          p_metadata: Json
+          p_name: string
+          p_organization_id: string
+          p_program_id: string
         }
         Returns: undefined
       }
@@ -9053,40 +9263,6 @@ export type Database = {
           p_postal_code: string
           p_project_id: string
           p_site_id: string
-        }
-        Returns: undefined
-      }
-      update_product: {
-        Args: {
-          p_description?: string
-          p_name: string
-          p_organization_id: string
-          p_product_id: string
-          p_sku: string
-        }
-        Returns: undefined
-      }
-      update_work_order: {
-        Args: {
-          p_instructions?: string
-          p_organization_id: string
-          p_project_id: string
-          p_scheduled_for?: string
-          p_site_id: string
-          p_technician_member_id?: string
-          p_title: string
-          p_work_order_id: string
-        }
-        Returns: undefined
-      }
-      update_program: {
-        Args: {
-          p_delivery_mode: string
-          p_description: string
-          p_metadata: Json
-          p_name: string
-          p_organization_id: string
-          p_program_id: string
         }
         Returns: undefined
       }
@@ -9172,6 +9348,19 @@ export type Database = {
         }
         Returns: undefined
       }
+      update_work_order: {
+        Args: {
+          p_instructions?: string
+          p_organization_id: string
+          p_project_id: string
+          p_scheduled_for?: string
+          p_site_id: string
+          p_technician_member_id?: string
+          p_title: string
+          p_work_order_id: string
+        }
+        Returns: undefined
+      }
       upsert_registration_intent: {
         Args: { p_company_name: string; p_display_name: string }
         Returns: undefined
@@ -9251,12 +9440,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -9280,11 +9469,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -9305,11 +9494,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -9330,11 +9519,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -9347,11 +9536,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
