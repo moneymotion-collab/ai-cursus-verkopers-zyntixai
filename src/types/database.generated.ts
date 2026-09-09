@@ -3458,6 +3458,114 @@ export type Database = {
           },
         ]
       }
+      organization_onboarding_completion_runs: {
+        Row: {
+          completed_at: string | null
+          last_error_code: string | null
+          organization_id: string
+          ready_for_cutover_at: string | null
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          last_error_code?: string | null
+          organization_id: string
+          ready_for_cutover_at?: string | null
+          started_at?: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          last_error_code?: string | null
+          organization_id?: string
+          ready_for_cutover_at?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_onboarding_completion_runs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_onboarding_invitation_results: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          email_normalized: string
+          evidence_kind: string
+          id: string
+          idempotency_key: string
+          intent_id: string
+          invitation_id: string | null
+          last_attempt_at: string | null
+          organization_id: string
+          result_code: string
+          target_role: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          email_normalized: string
+          evidence_kind?: string
+          id?: string
+          idempotency_key: string
+          intent_id: string
+          invitation_id?: string | null
+          last_attempt_at?: string | null
+          organization_id: string
+          result_code?: string
+          target_role: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          email_normalized?: string
+          evidence_kind?: string
+          id?: string
+          idempotency_key?: string
+          intent_id?: string
+          invitation_id?: string | null
+          last_attempt_at?: string | null
+          organization_id?: string
+          result_code?: string
+          target_role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_onboarding_invitation_results_intent_fk"
+            columns: ["organization_id", "intent_id"]
+            isOneToOne: true
+            referencedRelation: "organization_onboarding_team_invite_intents"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "organization_onboarding_invitation_results_invitation_fk"
+            columns: ["organization_id", "invitation_id"]
+            isOneToOne: false
+            referencedRelation: "organization_invitations"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "organization_onboarding_invitation_results_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_onboarding_team_invite_intents: {
         Row: {
           created_at: string
@@ -8348,6 +8456,10 @@ export type Database = {
         Args: { p_organization_id: string }
         Returns: undefined
       }
+      ensure_organization_onboarding_completion_run: {
+        Args: { p_organization_id: string }
+        Returns: Json
+      }
       evaluate_attention_rules: {
         Args: { p_enrollment_id?: string; p_organization_id: string }
         Returns: Json
@@ -8382,6 +8494,10 @@ export type Database = {
       }
       evaluate_work_order_attention_rules: {
         Args: { p_organization_id: string; p_work_order_id?: string }
+        Returns: Json
+      }
+      execute_organization_onboarding_invite_intent: {
+        Args: { p_intent_id: string; p_organization_id: string }
         Returns: Json
       }
       finalize_social_connection: {
@@ -8436,6 +8552,14 @@ export type Database = {
           display_label: string
           membership_id: string
         }[]
+      }
+      list_organization_onboarding_frozen_team_invite_intents: {
+        Args: { p_organization_id: string }
+        Returns: Json
+      }
+      list_organization_onboarding_invitation_results: {
+        Args: { p_organization_id: string }
+        Returns: Json
       }
       list_organization_onboarding_team_invite_intents: {
         Args: { p_organization_id: string }
@@ -8750,6 +8874,10 @@ export type Database = {
           next_status: string
           result_code: string
         }[]
+      }
+      reconcile_organization_onboarding_invite_intent: {
+        Args: { p_intent_id: string; p_organization_id: string }
+        Returns: Json
       }
       record_attention_signal: {
         Args: {
