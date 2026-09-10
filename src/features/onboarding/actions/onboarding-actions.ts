@@ -13,6 +13,11 @@ import {
   type V2OnboardingTransitionResult,
 } from "@/features/onboarding/domain/onboarding-lifecycle";
 import {
+  ensureCompletionRunInputSchema,
+  onboardingCompletionRunMessage,
+  type OnboardingCompletionRunResult,
+} from "@/features/onboarding/domain/onboarding-completion-run";
+import {
   parseOnboardingCompleteInput,
   parseOnboardingDraftInput,
   parseV2CoreDraftInput,
@@ -38,6 +43,7 @@ import {
   markV2OnboardingSetupReady,
 } from "@/features/onboarding/server/transition-v2-onboarding";
 import { saveV2CoreDraft } from "@/features/onboarding/server/save-v2-core-draft";
+import { ensureOrganizationOnboardingCompletionRun } from "@/features/onboarding/server/onboarding-completion-run";
 
 const organizationIdInputSchema = z
   .object({
@@ -170,6 +176,33 @@ export async function markV2OnboardingSetupReadyAction(
       ok: false,
       code: "retryable_error",
       message: v2OnboardingTransitionMessage("retryable_error"),
+    };
+  }
+}
+
+export async function ensureOnboardingCompletionRunAction(
+  input: unknown,
+): Promise<OnboardingCompletionRunResult> {
+  const parsed = ensureCompletionRunInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      code: "INVALID_INPUT",
+      message: onboardingCompletionRunMessage("INVALID_INPUT"),
+    };
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    return await ensureOrganizationOnboardingCompletionRun(
+      supabase,
+      parsed.data.organizationId,
+    );
+  } catch {
+    return {
+      ok: false,
+      code: "TRANSPORT_ERROR",
+      message: onboardingCompletionRunMessage("TRANSPORT_ERROR"),
     };
   }
 }

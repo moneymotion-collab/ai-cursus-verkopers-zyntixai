@@ -402,7 +402,6 @@ describe("V2 Team configuration and embedded review", () => {
       "orchestrateInvitationDelivery",
       "resendInvitation",
       "revokeInvitation",
-      "markV2OnboardingSetupReadyAction",
       "completeV2OnboardingAction",
       "onboarding_setup_ready_at",
       "onboarding_completed_at",
@@ -410,6 +409,11 @@ describe("V2 Team configuration and embedded review", () => {
     ]) {
       expect(combined).not.toContain(forbidden);
     }
+
+    // ENG-ONB-1H-P1-A supersedes the pre-P1 assertion that Setup Ready is
+    // unwired: the transition is now reachable, but only through the governed
+    // server action, and never by writing a lifecycle column directly.
+    expect(componentSource).toContain("markV2OnboardingSetupReadyAction");
   });
 
   it("preserves Team to Workspace navigation and Team as step four", () => {

@@ -227,6 +227,26 @@
   line-height: 1.5;
 }
 
+.setupStatus {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 0.75rem;
+  background: var(--surface-color, #fff);
+}
+
+.setupStatus strong {
+  color: var(--text-color, #0f172a);
+  font-size: 0.875rem;
+}
+
+.setupStatus span {
+  color: var(--muted-text, #475569);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
 .reviewList {
   display: grid;
   gap: 0.625rem;

@@ -19,6 +19,11 @@ import {
   updateTeamInviteIntentAction,
 } from "@/features/onboarding/actions/team-invite-intent-actions";
 import {
+  ensureOnboardingCompletionRunAction,
+  markV2OnboardingSetupReadyAction,
+} from "@/features/onboarding/actions/onboarding-actions";
+import type { OnboardingCompletionRun } from "@/features/onboarding/domain/onboarding-completion-run";
+import {
   isValidTeamInviteIntentEmail,
   TEAM_INVITE_INTENT_ROLES,
   type TeamInviteIntent,
@@ -37,9 +42,14 @@ type TeamFoundationProps = {
 type PendingAction =
   | "create"
   | "review"
+  | "setup_ready"
   | `update:${string}`
   | `delete:${string}`
   | null;
+
+export type SetupReadyState =
+  | { kind: "idle" }
+  | { kind: "confirmed"; run: OnboardingCompletionRun };
 
 export type TeamEditorState = {
   editingId: string | null;
@@ -158,6 +168,34 @@ export async function reconcileStaleTeamEditor(
   return refreshed;
 }
 
+export type SetupReadyOutcome =
+  | { kind: "confirmed"; run: OnboardingCompletionRun }
+  | { kind: "error"; message: string };
+
+/**
+ * Orders the two governed calls of the P1-A transition: the completion run is
+ * only ensured once durable Setup Ready has actually succeeded, because the
+ * database actor gate refuses to ensure a run before Setup Ready is recorded.
+ * Neither call carries authoritative state from the browser.
+ */
+export async function runSetupReadyTransition(
+  organizationId: string,
+  markSetupReady: typeof markV2OnboardingSetupReadyAction,
+  ensureCompletionRun: typeof ensureOnboardingCompletionRunAction,
+): Promise<SetupReadyOutcome> {
+  const transition = await markSetupReady({ organizationId });
+  if (!transition.ok) {
+    return { kind: "error", message: transition.message };
+  }
+
+  const run = await ensureCompletionRun({ organizationId });
+  if (!run.ok) {
+    return { kind: "error", message: run.message };
+  }
+
+  return { kind: "confirmed", run: run.run };
+}
+
 function roleLabel(role: TeamInviteIntentRole): string {
   return `${role[0].toUpperCase()}${role.slice(1)}`;
 }
@@ -194,6 +232,9 @@ export function TeamFoundation({
   const [message, setMessage] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [roleError, setRoleError] = useState<string | null>(null);
+  const [setupReady, setSetupReady] = useState<SetupReadyState>({
+    kind: "idle",
+  });
 
   // Authority invariant: no older async result may replace a newer accepted
   // Team intent snapshot. An open editor is closed only when its own row is
@@ -475,16 +516,61 @@ export function TeamFoundation({
     }
   }
 
+  // Setup Ready is durable and server-authorized. The completion run is then
+  // ensured through the same governed authority, so a retry after a failed
+  // ensure replays safely instead of creating a second run.
+  async function handleSetupReady() {
+    if (isAuthorityBusy() || setupReady.kind === "confirmed") {
+      return;
+    }
+
+    const token = acquireMutation("setup_ready");
+    if (token === null) {
+      return;
+    }
+    setMessage(null);
+    try {
+      const outcome = await runSetupReadyTransition(
+        organizationId,
+        markV2OnboardingSetupReadyAction,
+        ensureOnboardingCompletionRunAction,
+      );
+      if (outcome.kind === "error") {
+        setMessage(outcome.message);
+        return;
+      }
+
+      setSetupReady({ kind: "confirmed", run: outcome.run });
+    } finally {
+      releaseMutation(token);
+    }
+  }
+
   const actions =
     mode === "review" ? (
-      <Button
-        type="button"
-        variant="secondary"
-        size="action"
-        onClick={() => setMode("edit")}
-      >
-        Back to edit
-      </Button>
+      <div className={styles.actions}>
+        <Button
+          type="button"
+          variant="secondary"
+          size="action"
+          disabled={pendingAction !== null}
+          onClick={() => setMode("edit")}
+        >
+          Back to edit
+        </Button>
+        {setupReady.kind === "confirmed" ? null : (
+          <Button
+            type="button"
+            size="action"
+            disabled={pendingAction !== null}
+            onClick={handleSetupReady}
+          >
+            {pendingAction === "setup_ready"
+              ? "Finishing setup…"
+              : "Finish setup"}
+          </Button>
+        )}
+      </div>
     ) : (
       <div className={styles.actions}>
         <Link className={styles.backAction} href={backHref}>
@@ -528,10 +614,13 @@ export function TeamFoundation({
           ) : null}
 
           {mode === "review" ? (
-            <TeamReview
-              membershipRole={membershipRole}
-              intents={intents}
-            />
+            <>
+              <TeamReview
+                membershipRole={membershipRole}
+                intents={intents}
+              />
+              <SetupReadyStatus state={setupReady} />
+            </>
           ) : (
             <>
               <section
@@ -746,6 +835,30 @@ export function TeamFoundation({
         </div>
       </Surface>
     </OnboardingShell>
+  );
+}
+
+export function SetupReadyStatus({ state }: { state: SetupReadyState }) {
+  return (
+    <div className={styles.setupStatus} role="status" aria-live="polite">
+      {state.kind === "confirmed" ? (
+        <>
+          <strong>Setup confirmed</strong>
+          <span>
+            Your workspace and team setup is saved. No invitations have been
+            sent yet.
+          </span>
+        </>
+      ) : (
+        <>
+          <strong>Finish setup</strong>
+          <span>
+            This saves your workspace and team setup for good. No invitations
+            are sent yet.
+          </span>
+        </>
+      )}
+    </div>
   );
 }
 

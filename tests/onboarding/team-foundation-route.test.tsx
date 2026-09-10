@@ -273,13 +273,18 @@ describe("V2 Team onboarding foundation", () => {
     for (const forbidden of [
       "assignOperatingModelAction",
       "createInvitation",
-      "markV2OnboardingSetupReadyAction",
       "completeV2OnboardingAction",
       "applyOrganizationOnboarding",
     ]) {
       expect(pageSource).not.toContain(forbidden);
       expect(componentSource).not.toContain(forbidden);
     }
+
+    // ENG-ONB-1H-P1-A hosts the durable Setup Ready transition in the Team
+    // review surface. The route itself still issues no lifecycle write while
+    // rendering, which the rpc/from assertions above already prove.
+    expect(pageSource).not.toContain("markV2OnboardingSetupReadyAction");
+    expect(componentSource).toContain("markV2OnboardingSetupReadyAction");
   });
 
   it("uses the established progress, responsive, and semantic contracts", () => {
