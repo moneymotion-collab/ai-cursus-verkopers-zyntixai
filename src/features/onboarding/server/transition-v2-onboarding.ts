@@ -44,6 +44,7 @@ function mapDatabaseCode(value: unknown): V2OnboardingTransitionErrorCode {
       return "invalid_flow";
     case "ALREADY_COMPLETED":
     case "SETUP_NOT_READY":
+    case "NOT_READY":
       return "invalid_state";
     case "DISPLAY_NAME_REQUIRED":
     case "ORGANIZATION_NAME_REQUIRED":

@@ -154,7 +154,7 @@ export const listFrozenTeamInviteIntentsRpcSchema = z.union([
   inviteExecutionFailureSchema,
 ]);
 
-const invitationResultRowSchema = z
+export const invitationResultRowSchema = z
   .object({
     id: z.string().uuid(),
     organization_id: z.string().uuid(),

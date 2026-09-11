@@ -98,6 +98,43 @@ describe("ORG-CONTEXT runtime isolation", () => {
     expect(collectHits(files)).toEqual([]);
   });
 
+  it("fails if the Ready loader reintroduces a direct organization-context table read", () => {
+    const readyPath = join(
+      process.cwd(),
+      "src/features/onboarding/server/onboarding-ready.ts",
+    );
+    const ready = readFileSync(readyPath, "utf8");
+    expect(ORG_CONTEXT_TOKEN.test(ready)).toBe(false);
+    expect(ready).not.toMatch(
+      /\.from\(["']organization_business_activities["']\)/,
+    );
+    expect(ready).not.toContain("createSupabaseServiceRoleClient");
+    expect(ready).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
+    const mutated = `${ready}\nvoid client.from("organization_business_activities");\n`;
+    expect(ORG_CONTEXT_TOKEN.test(mutated)).toBe(true);
+    expect(
+      isAuthorizedConsumer("src/features/onboarding/server/onboarding-ready.ts"),
+    ).toBe(false);
+    expect(
+      collectHits([readyPath]).filter((path) => !isAuthorizedConsumer(path)),
+    ).toEqual([]);
+  });
+
+  it("does not skip, focus, or exclude this isolation authority", () => {
+    const source = readFileSync(
+      join(
+        process.cwd(),
+        "tests/security/organization-context-assignment-runtime-isolation.test.ts",
+      ),
+      "utf8",
+    );
+    expect(source).not.toMatch(/\bit\.skip\(/);
+    expect(source).not.toMatch(/\bdescribe\.skip\(/);
+    expect(source).not.toMatch(/\bit\.only\(/);
+    expect(source).not.toMatch(/\bdescribe\.only\(/);
+    expect(PROTECTED_PATHS).toContain("src/features/onboarding");
+  });
+
   it("does not alter Social, onboarding RPCs, or organizations in ORG-CONTEXT migrations", () => {
     const migrationsDir = join(process.cwd(), "supabase/migrations");
     for (const name of readdirSync(migrationsDir)) {

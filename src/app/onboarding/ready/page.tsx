@@ -6,16 +6,16 @@ import {
 } from "@/features/onboarding/domain/onboarding-steps";
 import { buildOperatingModelOnboardingPath } from "@/features/onboarding/domain/operating-model";
 import {
-  buildReadyOnboardingPath,
+  buildCreatingOnboardingPath,
   buildTeamOnboardingPath,
 } from "@/features/onboarding/domain/onboarding-routes";
-import { shouldEnterReadySurface } from "@/features/onboarding/domain/onboarding-ready";
+import { isDatabaseProvenReadyRunStatus } from "@/features/onboarding/domain/onboarding-ready";
 import { resolveOnboardingLifecycleDestination } from "@/features/onboarding/domain/onboarding-lifecycle";
 import { resolveOnboardingOrganizationId } from "@/features/onboarding/server/read-onboarding-context";
 import { resolveOrganizationOnboardingLifecycle } from "@/features/onboarding/server/resolve-onboarding-lifecycle";
-import { loadOnboardingCreatingSnapshot } from "@/features/onboarding/server/onboarding-invite-execution";
+import { loadOnboardingReadySnapshot } from "@/features/onboarding/server/onboarding-ready";
 import { OnboardingStatusPanel } from "@/features/onboarding/ui/onboarding-status-panel";
-import { OnboardingCreating } from "@/features/onboarding/ui/onboarding-creating";
+import { OnboardingReady } from "@/features/onboarding/ui/onboarding-ready";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +33,7 @@ function isUuid(value: string): boolean {
   );
 }
 
-export default async function CreatingOnboardingPage({
+export default async function ReadyOnboardingPage({
   searchParams,
 }: PageProps) {
   const params = await searchParams;
@@ -67,7 +67,7 @@ export default async function CreatingOnboardingPage({
           actor.code === "organization_ambiguous"
             ? "Choose the organization you want to configure."
             : actor.code === "membership_required"
-              ? "Complete organization setup before creating invitations."
+              ? "Complete organization setup before finishing onboarding."
               : "This organization is unavailable or you no longer have access."
         }
       />
@@ -91,11 +91,10 @@ export default async function CreatingOnboardingPage({
     redirect(buildTeamOnboardingPath(actor.organizationId));
   }
 
-  if (lifecycle.state.kind === "v2_completed") {
-    redirect(buildReadyOnboardingPath(actor.organizationId));
-  }
-
-  if (lifecycle.state.kind !== "v2_ready") {
+  if (
+    lifecycle.state.kind !== "v2_ready" &&
+    lifecycle.state.kind !== "v2_completed"
+  ) {
     const destination = resolveOnboardingLifecycleDestination(
       lifecycle.state,
       actor.role,
@@ -113,29 +112,25 @@ export default async function CreatingOnboardingPage({
     redirect(buildOnboardingPath(actor.organizationId));
   }
 
-  const snapshot = await loadOnboardingCreatingSnapshot(
+  const snapshot = await loadOnboardingReadySnapshot(
     supabase,
     actor.organizationId,
   );
   if (!snapshot.ok) {
     return (
       <OnboardingStatusPanel
-        title="Invitation setup needs attention"
+        title="Ready setup needs attention"
         message={snapshot.message}
       />
     );
   }
 
-  if (shouldEnterReadySurface(snapshot.runStatus)) {
-    redirect(buildReadyOnboardingPath(actor.organizationId));
+  if (
+    lifecycle.state.kind === "v2_ready" &&
+    !isDatabaseProvenReadyRunStatus(snapshot.snapshot.runStatus)
+  ) {
+    redirect(buildCreatingOnboardingPath(actor.organizationId));
   }
 
-  return (
-    <OnboardingCreating
-      organizationId={actor.organizationId}
-      initialIntents={snapshot.intents}
-      initialOutcomes={snapshot.outcomes}
-      initialRunStatus={snapshot.runStatus}
-    />
-  );
+  return <OnboardingReady snapshot={snapshot.snapshot} />;
 }

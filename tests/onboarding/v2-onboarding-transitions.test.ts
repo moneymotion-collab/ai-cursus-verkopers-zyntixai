@@ -241,4 +241,23 @@ describe("V2 onboarding transition integration", () => {
     expect(source).toContain("mark_organization_onboarding_setup_ready");
     expect(source).toContain("complete_organization_v2_onboarding");
   });
+
+  it("maps a database NOT_READY refusal without completing or leaking SQL", async () => {
+    const supabase = client({
+      data: { ok: false, code: "NOT_READY" },
+      error: null,
+    });
+    const result = await completeV2Onboarding(supabase as never, ORG, {
+      resolveLifecycle: readyLifecycle as never,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.code).toBe("invalid_state");
+      expect(result.message).not.toMatch(/P0001|organization_onboarding|872004/);
+    }
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      "complete_organization_v2_onboarding",
+      { p_organization_id: ORG },
+    );
+  });
 });

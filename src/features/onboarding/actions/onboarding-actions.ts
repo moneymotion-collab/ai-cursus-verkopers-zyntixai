@@ -18,6 +18,12 @@ import {
   type OnboardingCompletionRunResult,
 } from "@/features/onboarding/domain/onboarding-completion-run";
 import {
+  completeReadyOnboardingInputSchema,
+  onboardingReadyMessage,
+  type OnboardingReadyCompletionResult,
+} from "@/features/onboarding/domain/onboarding-ready";
+import { READY_ONBOARDING_PATH } from "@/features/onboarding/domain/onboarding-routes";
+import {
   parseOnboardingCompleteInput,
   parseOnboardingDraftInput,
   parseV2CoreDraftInput,
@@ -38,12 +44,10 @@ import {
 } from "@/features/onboarding/server/dismiss-first-value-checklist";
 import { readOnboardingContext } from "@/features/onboarding/server/read-onboarding-context";
 import { assignOrganizationOperatingModel } from "@/features/onboarding/server/assign-operating-model";
-import {
-  completeV2Onboarding,
-  markV2OnboardingSetupReady,
-} from "@/features/onboarding/server/transition-v2-onboarding";
+import { markV2OnboardingSetupReady } from "@/features/onboarding/server/transition-v2-onboarding";
 import { saveV2CoreDraft } from "@/features/onboarding/server/save-v2-core-draft";
 import { ensureOrganizationOnboardingCompletionRun } from "@/features/onboarding/server/onboarding-completion-run";
+import { completeReadyOnboarding } from "@/features/onboarding/server/onboarding-ready";
 
 const organizationIdInputSchema = z
   .object({
@@ -209,31 +213,31 @@ export async function ensureOnboardingCompletionRunAction(
 
 export async function completeV2OnboardingAction(
   input: unknown,
-): Promise<V2OnboardingTransitionResult> {
-  const parsed = organizationIdInputSchema.safeParse(input);
+): Promise<OnboardingReadyCompletionResult> {
+  const parsed = completeReadyOnboardingInputSchema.safeParse(input);
   if (!parsed.success) {
     return {
       ok: false,
-      code: "invalid_state",
-      message: v2OnboardingTransitionMessage("invalid_state"),
+      code: "INVALID_INPUT",
+      message: onboardingReadyMessage("INVALID_INPUT"),
     };
   }
 
   try {
     const supabase = await createSupabaseServerClient();
-    const result = await completeV2Onboarding(
+    const result = await completeReadyOnboarding(
       supabase,
       parsed.data.organizationId,
     );
     if (result.ok) {
-      revalidatePath("/home");
+      revalidatePath(READY_ONBOARDING_PATH);
     }
     return result;
   } catch {
     return {
       ok: false,
-      code: "retryable_error",
-      message: v2OnboardingTransitionMessage("retryable_error"),
+      code: "TRANSPORT_ERROR",
+      message: onboardingReadyMessage("TRANSPORT_ERROR"),
     };
   }
 }

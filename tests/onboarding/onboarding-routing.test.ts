@@ -110,7 +110,7 @@ describe("B1.3 onboarding routing contract", () => {
     );
   });
 
-  it("adds governed Workspace and Team routes without inventing a Ready route", () => {
+  it("keeps Ready out of landing and product-enforcement destinations", () => {
     expect(workspacePage).toContain("WorkspaceConfirmation");
     expect(workspacePage).toContain(
       'lifecycle.state.kind !== "v2_configured"',
@@ -130,7 +130,7 @@ describe("B1.3 onboarding routing contract", () => {
     expect(workspacePage).not.toContain("completeV2OnboardingAction");
     expect(teamPage).not.toContain("markV2OnboardingSetupReadyAction");
     expect(teamPage).not.toContain("completeV2OnboardingAction");
-    for (const source of [landing, onboardingPage, enforcement]) {
+    for (const source of [landing, enforcement]) {
       expect(source).not.toMatch(/["'`]\/onboarding\/ready/);
     }
   });

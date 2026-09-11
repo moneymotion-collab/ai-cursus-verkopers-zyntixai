@@ -13,6 +13,7 @@ const actorMock = vi.hoisted(() => vi.fn());
 const lifecycleMock = vi.hoisted(() => vi.fn());
 const snapshotMock = vi.hoisted(() => vi.fn());
 const createServerClientMock = vi.hoisted(() => vi.fn());
+const completeActionMock = vi.hoisted(() => vi.fn());
 
 vi.mock("next/navigation", () => ({
   redirect: redirectMock,
@@ -31,31 +32,27 @@ vi.mock("@/features/onboarding/server/read-onboarding-context", () => ({
 vi.mock("@/features/onboarding/server/resolve-onboarding-lifecycle", () => ({
   resolveOrganizationOnboardingLifecycle: lifecycleMock,
 }));
-vi.mock("@/features/onboarding/server/onboarding-invite-execution", () => ({
-  loadOnboardingCreatingSnapshot: snapshotMock,
+vi.mock("@/features/onboarding/server/onboarding-ready", () => ({
+  loadOnboardingReadySnapshot: snapshotMock,
+  listOrganizationOnboardingInvitationResults: vi.fn(),
+  completeReadyOnboarding: vi.fn(),
 }));
-vi.mock(
-  "@/features/onboarding/actions/onboarding-invite-execution-actions",
-  () => ({
-    executeOnboardingInviteIntentAction: vi.fn(),
-    reconcileOnboardingInviteIntentAction: vi.fn(),
-    listFrozenOnboardingTeamInviteIntentsAction: vi.fn(),
-    recoverOnboardingCreatingStateAction: vi.fn(),
-  }),
-);
+vi.mock("@/features/onboarding/actions/onboarding-actions", () => ({
+  completeV2OnboardingAction: completeActionMock,
+}));
 
-import CreatingOnboardingPage from "@/app/onboarding/creating/page";
+import ReadyOnboardingPage from "@/app/onboarding/ready/page";
 import {
-  CREATING_ONBOARDING_PATH,
-  buildCreatingOnboardingPath,
+  READY_ONBOARDING_PATH,
+  buildReadyOnboardingPath,
 } from "@/features/onboarding/domain/onboarding-routes";
 
 const pageSource = readFileSync(
-  join(process.cwd(), "src/app/onboarding/creating/page.tsx"),
+  join(process.cwd(), "src/app/onboarding/ready/page.tsx"),
   "utf8",
 );
 const componentSource = readFileSync(
-  join(process.cwd(), "src/features/onboarding/ui/onboarding-creating.tsx"),
+  join(process.cwd(), "src/features/onboarding/ui/onboarding-ready.tsx"),
   "utf8",
 );
 
@@ -74,14 +71,30 @@ function lifecycle(state: Record<string, unknown>, role = "owner") {
   });
 }
 
+function readySnapshot(
+  overrides: Record<string, unknown> = {},
+) {
+  return {
+    organizationId: ORG,
+    workspaceName: "Northwind",
+    operatingModelLabel: "Agency & Business Services",
+    runStatus: "ready_for_cutover",
+    readyForCutoverAt: "2026-09-11T12:00:00.000Z",
+    runCompletedAt: null,
+    organizationCompletedAt: null,
+    results: [],
+    ...overrides,
+  };
+}
+
 async function renderPage() {
-  const page = await CreatingOnboardingPage({
+  const page = await ReadyOnboardingPage({
     searchParams: Promise.resolve({ org: ORG }),
   });
   return renderToStaticMarkup(page);
 }
 
-describe("V2 Creating onboarding route", () => {
+describe("V2 Ready onboarding route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     createServerClientMock.mockResolvedValue(client);
@@ -98,26 +111,30 @@ describe("V2 Creating onboarding route", () => {
     });
     snapshotMock.mockResolvedValue({
       ok: true,
-      intents: [],
-      outcomes: [],
-      runStatus: "setup_ready",
+      snapshot: readySnapshot(),
     });
   });
 
-  it("defines the canonical Creating destination", () => {
-    expect(CREATING_ONBOARDING_PATH).toBe("/onboarding/creating");
-    expect(buildCreatingOnboardingPath(ORG)).toBe(
-      `/onboarding/creating?org=${ORG}`,
+  it("defines the canonical Ready destination", () => {
+    expect(READY_ONBOARDING_PATH).toBe("/onboarding/ready");
+    expect(buildReadyOnboardingPath(ORG)).toBe(
+      `/onboarding/ready?org=${ORG}`,
     );
   });
 
-  it("renders Creating only for V2 Setup Ready owners", async () => {
+  it("renders Ready only from a database-proven ready_for_cutover snapshot", async () => {
     const html = await renderPage();
-    expect(html).toContain("Create invitations");
-    expect(html).toContain("No teammates were prepared to invite.");
-    expect(html).not.toContain("Enter ZyntixAI");
-    expect(html).not.toContain("Setup complete");
+    expect(html).toContain("Ready to enter ZyntixAI");
+    expect(html).toContain("Enter ZyntixAI");
+    expect(html).toContain("Northwind");
+    expect(html).toContain("Agency &amp; Business Services");
+    expect(html).toContain("Ready");
+    expect(html).toContain("does not confirm email delivery");
+    expect(html).not.toContain("invitation was sent");
     expect(snapshotMock).toHaveBeenCalledWith(client, ORG);
+    expect(completeActionMock).not.toHaveBeenCalled();
+    expect(client.from).not.toHaveBeenCalled();
+    expect(client.rpc).not.toHaveBeenCalled();
   });
 
   it("redirects anonymous users to login with the allowlisted onboarding return path", async () => {
@@ -128,7 +145,7 @@ describe("V2 Creating onboarding route", () => {
     expect(lifecycleMock).not.toHaveBeenCalled();
   });
 
-  it("fails closed for a foreign organization before loading Creating state", async () => {
+  it("fails closed for a foreign organization before loading Ready state", async () => {
     actorMock.mockResolvedValue({
       ok: false,
       code: "organization_not_found",
@@ -138,7 +155,7 @@ describe("V2 Creating onboarding route", () => {
     expect(snapshotMock).not.toHaveBeenCalled();
   });
 
-  it("sends a configured owner back to Team instead of executing invitations", async () => {
+  it("sends a configured owner back to Team instead of completing", async () => {
     lifecycle({
       kind: "v2_configured",
       logicalStage: "workspace",
@@ -151,21 +168,21 @@ describe("V2 Creating onboarding route", () => {
     expect(snapshotMock).not.toHaveBeenCalled();
   });
 
+  it("sends an earlier Creating run back to Creating", async () => {
+    snapshotMock.mockResolvedValue({
+      ok: true,
+      snapshot: readySnapshot({ runStatus: "invite_partial" }),
+    });
+    await expect(renderPage()).rejects.toThrow(
+      `REDIRECT:/onboarding/creating?org=${ORG}`,
+    );
+  });
+
   it.each([
     [
       "v2_core_incomplete",
       { kind: "v2_core_incomplete", logicalStage: "you_and_company" },
       `/onboarding?org=${ORG}`,
-    ],
-    [
-      "v2_completed",
-      {
-        kind: "v2_completed",
-        logicalStage: "completed",
-        setupReadyAt: "2026-09-07T12:00:00.000Z",
-        completedAt: "2026-09-07T12:01:00.000Z",
-      },
-      `/onboarding/ready?org=${ORG}`,
     ],
     [
       "legacy incomplete",
@@ -183,19 +200,7 @@ describe("V2 Creating onboarding route", () => {
     expect(snapshotMock).not.toHaveBeenCalled();
   });
 
-  it("sends a currently Ready owner to the Ready route instead of Creating", async () => {
-    snapshotMock.mockResolvedValue({
-      ok: true,
-      intents: [],
-      outcomes: [],
-      runStatus: "ready_for_cutover",
-    });
-    await expect(renderPage()).rejects.toThrow(
-      `REDIRECT:/onboarding/ready?org=${ORG}`,
-    );
-  });
-
-  it("does not leak Creating state to a non-Owner member", async () => {
+  it("does not leak Ready state to a non-Owner member", async () => {
     lifecycle(
       {
         kind: "v2_ready",
@@ -208,18 +213,36 @@ describe("V2 Creating onboarding route", () => {
     expect(snapshotMock).not.toHaveBeenCalled();
   });
 
-  it("loads only the governed snapshot while rendering", async () => {
+  it("reconstructs completed onboarding without offering Enter ZyntixAI or product entry", async () => {
+    lifecycle({
+      kind: "v2_completed",
+      logicalStage: "completed",
+      setupReadyAt: "2026-09-10T12:00:00.000Z",
+      completedAt: "2026-09-10T12:05:00.000Z",
+    });
+    snapshotMock.mockResolvedValue({
+      ok: true,
+      snapshot: readySnapshot({
+        organizationCompletedAt: "2026-09-10T12:05:00.000Z",
+      }),
+    });
+    const html = await renderPage();
+    expect(html).toContain("Setup is complete");
+    expect(html).not.toContain("Enter ZyntixAI");
+    expect(html).not.toContain("/home");
+    expect(html).not.toContain("Enter product");
+    expect(completeActionMock).not.toHaveBeenCalled();
+  });
+
+  it("does not complete on render, refresh reconstruction, or listing", async () => {
     await renderPage();
-    expect(client.from).not.toHaveBeenCalled();
-    expect(client.rpc).not.toHaveBeenCalled();
-    expect(snapshotMock).toHaveBeenCalledTimes(1);
-    for (const forbidden of [
-      "completeV2OnboardingAction",
-      "create_organization_invitation",
-      "list_organization_onboarding_invitation_results",
-    ]) {
-      expect(pageSource).not.toContain(forbidden);
-      expect(componentSource).not.toContain(forbidden);
-    }
+    expect(completeActionMock).not.toHaveBeenCalled();
+    expect(pageSource).not.toContain("completeReadyOnboarding(");
+    expect(pageSource).not.toContain("completeV2OnboardingAction");
+    expect(componentSource).toContain("completeV2OnboardingAction");
+    expect(componentSource).not.toContain("useEffect");
+    expect(componentSource).not.toContain("create_organization_invitation");
+    expect(componentSource).not.toContain("buildProductDestination");
+    expect(componentSource).not.toContain("router.push(\"/home");
   });
 });

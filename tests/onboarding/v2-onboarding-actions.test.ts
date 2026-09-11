@@ -4,7 +4,7 @@ const ORG = "11111111-1111-4111-8111-111111111111";
 const revalidatePathMock = vi.hoisted(() => vi.fn());
 const createServerClientMock = vi.hoisted(() => vi.fn());
 const markReadyMock = vi.hoisted(() => vi.fn());
-const completeMock = vi.hoisted(() => vi.fn());
+const completeReadyMock = vi.hoisted(() => vi.fn());
 
 vi.mock("next/cache", () => ({ revalidatePath: revalidatePathMock }));
 vi.mock("@/lib/supabase/server", () => ({
@@ -12,7 +12,9 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 vi.mock("@/features/onboarding/server/transition-v2-onboarding", () => ({
   markV2OnboardingSetupReady: markReadyMock,
-  completeV2Onboarding: completeMock,
+}));
+vi.mock("@/features/onboarding/server/onboarding-ready", () => ({
+  completeReadyOnboarding: completeReadyMock,
 }));
 
 import {
@@ -49,49 +51,53 @@ describe("V2 onboarding server actions", () => {
     expect(revalidatePathMock).not.toHaveBeenCalled();
   });
 
-  it("revalidates only Home after authoritative V2 completion", async () => {
-    completeMock.mockResolvedValue({
+  it("revalidates Ready after authoritative V2 completion", async () => {
+    completeReadyMock.mockResolvedValue({
       ok: true,
       organizationId: ORG,
       idempotent: false,
-      recovered: false,
-      state: {
-        kind: "v2_completed",
-        logicalStage: "completed",
-        setupReadyAt: "2026-09-07T12:00:00.000Z",
-        completedAt: "2026-09-07T12:01:00.000Z",
+      completedAt: "2026-09-07T12:01:00.000Z",
+      snapshot: {
+        organizationId: ORG,
+        workspaceName: "Northwind",
+        operatingModelLabel: "Agency & Business Services",
+        runStatus: "ready_for_cutover",
+        readyForCutoverAt: "2026-09-07T12:00:30.000Z",
+        runCompletedAt: null,
+        organizationCompletedAt: "2026-09-07T12:01:00.000Z",
+        results: [],
       },
     });
 
     await expect(
       completeV2OnboardingAction({ organizationId: ORG }),
     ).resolves.toMatchObject({ ok: true });
-    expect(completeMock).toHaveBeenCalledWith(
+    expect(completeReadyMock).toHaveBeenCalledWith(
       { kind: "session-client" },
       ORG,
     );
     expect(revalidatePathMock).toHaveBeenCalledTimes(1);
-    expect(revalidatePathMock).toHaveBeenCalledWith("/home");
+    expect(revalidatePathMock).toHaveBeenCalledWith("/onboarding/ready");
   });
 
   it("does not revalidate when completion is rejected", async () => {
-    completeMock.mockResolvedValue({
+    completeReadyMock.mockResolvedValue({
       ok: false,
-      code: "invalid_state",
-      message: "This setup cannot make that transition yet.",
+      code: "NOT_READY",
+      message: "This workspace is not ready to finish setup yet.",
     });
 
     await expect(
       completeV2OnboardingAction({ organizationId: ORG }),
-    ).resolves.toMatchObject({ ok: false, code: "invalid_state" });
+    ).resolves.toMatchObject({ ok: false, code: "NOT_READY" });
     expect(revalidatePathMock).not.toHaveBeenCalled();
   });
 
   it("rejects malformed action input before creating a server client", async () => {
     await expect(
       completeV2OnboardingAction({ organizationId: "not-an-id" }),
-    ).resolves.toMatchObject({ ok: false, code: "invalid_state" });
+    ).resolves.toMatchObject({ ok: false, code: "INVALID_INPUT" });
     expect(createServerClientMock).not.toHaveBeenCalled();
-    expect(completeMock).not.toHaveBeenCalled();
+    expect(completeReadyMock).not.toHaveBeenCalled();
   });
 });
