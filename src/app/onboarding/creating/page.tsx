@@ -6,16 +6,14 @@ import {
 } from "@/features/onboarding/domain/onboarding-steps";
 import { buildOperatingModelOnboardingPath } from "@/features/onboarding/domain/operating-model";
 import {
-  buildCreatingOnboardingPath,
   buildTeamOnboardingPath,
-  buildWorkspaceConfirmationOnboardingPath,
 } from "@/features/onboarding/domain/onboarding-routes";
 import { resolveOnboardingLifecycleDestination } from "@/features/onboarding/domain/onboarding-lifecycle";
 import { resolveOnboardingOrganizationId } from "@/features/onboarding/server/read-onboarding-context";
 import { resolveOrganizationOnboardingLifecycle } from "@/features/onboarding/server/resolve-onboarding-lifecycle";
-import { listOrganizationTeamInviteIntents } from "@/features/onboarding/server/team-invite-intents";
+import { loadOnboardingCreatingSnapshot } from "@/features/onboarding/server/onboarding-invite-execution";
 import { OnboardingStatusPanel } from "@/features/onboarding/ui/onboarding-status-panel";
-import { TeamFoundation } from "@/features/onboarding/ui/team-foundation";
+import { OnboardingCreating } from "@/features/onboarding/ui/onboarding-creating";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +31,9 @@ function isUuid(value: string): boolean {
   );
 }
 
-export default async function TeamOnboardingPage({ searchParams }: PageProps) {
+export default async function CreatingOnboardingPage({
+  searchParams,
+}: PageProps) {
   const params = await searchParams;
   const rawOrganizationId = firstParam(params.org);
   const organizationId =
@@ -48,7 +48,7 @@ export default async function TeamOnboardingPage({ searchParams }: PageProps) {
 
   if (!actor.ok) {
     if (actor.code === "not_authenticated") {
-      const next = buildTeamOnboardingPath(organizationId);
+      const next = buildOnboardingPath(organizationId);
       redirect(`/login?next=${encodeURIComponent(next)}`);
     }
 
@@ -65,7 +65,7 @@ export default async function TeamOnboardingPage({ searchParams }: PageProps) {
           actor.code === "organization_ambiguous"
             ? "Choose the organization you want to configure."
             : actor.code === "membership_required"
-              ? "Complete organization setup before reviewing your team."
+              ? "Complete organization setup before creating invitations."
               : "This organization is unavailable or you no longer have access."
         }
       />
@@ -85,14 +85,11 @@ export default async function TeamOnboardingPage({ searchParams }: PageProps) {
     );
   }
 
-  if (lifecycle.state.kind === "v2_ready") {
-    if (lifecycle.membershipRole === "owner") {
-      redirect(buildCreatingOnboardingPath(actor.organizationId));
-    }
-    redirect(buildOnboardingPath(actor.organizationId));
+  if (lifecycle.state.kind === "v2_configured") {
+    redirect(buildTeamOnboardingPath(actor.organizationId));
   }
 
-  if (lifecycle.state.kind !== "v2_configured") {
+  if (lifecycle.state.kind !== "v2_ready") {
     const destination = resolveOnboardingLifecycleDestination(
       lifecycle.state,
       actor.role,
@@ -110,27 +107,25 @@ export default async function TeamOnboardingPage({ searchParams }: PageProps) {
     redirect(buildOnboardingPath(actor.organizationId));
   }
 
-  const teamIntents = await listOrganizationTeamInviteIntents(
+  const snapshot = await loadOnboardingCreatingSnapshot(
     supabase,
     actor.organizationId,
   );
-  if (!teamIntents.ok) {
+  if (!snapshot.ok) {
     return (
       <OnboardingStatusPanel
-        title="Team setup needs attention"
-        message={teamIntents.message}
+        title="Invitation setup needs attention"
+        message={snapshot.message}
       />
     );
   }
 
   return (
-    <TeamFoundation
-      membershipRole="owner"
+    <OnboardingCreating
       organizationId={actor.organizationId}
-      initialIntents={teamIntents.intents}
-      backHref={buildWorkspaceConfirmationOnboardingPath(
-        actor.organizationId,
-      )}
+      initialIntents={snapshot.intents}
+      initialOutcomes={snapshot.outcomes}
+      initialRunStatus={snapshot.runStatus}
     />
   );
 }

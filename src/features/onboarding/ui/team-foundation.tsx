@@ -31,6 +31,7 @@ import {
 } from "@/features/onboarding/domain/team-invite-intents";
 import { OnboardingShell } from "./onboarding-shell";
 import styles from "./team-foundation.module.css";
+import { buildCreatingOnboardingPath } from "@/features/onboarding/domain/onboarding-routes";
 
 type TeamFoundationProps = {
   membershipRole: "owner";
@@ -541,6 +542,7 @@ export function TeamFoundation({
       }
 
       setSetupReady({ kind: "confirmed", run: outcome.run });
+      router.push(buildCreatingOnboardingPath(organizationId));
     } finally {
       releaseMutation(token);
     }

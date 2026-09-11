@@ -150,6 +150,7 @@ const createServerClientMock = vi.hoisted(() => vi.fn());
 const resolveOrganizationMock = vi.hoisted(() => vi.fn());
 const listIntentsMock = vi.hoisted(() => vi.fn());
 const routerRefreshMock = vi.hoisted(() => vi.fn());
+const routerPushMock = vi.hoisted(() => vi.fn());
 const markSetupReadyMock = vi.hoisted(() => vi.fn());
 const ensureRunActionMock = vi.hoisted(() => vi.fn());
 // The two P1-A server actions are spied rather than replaced: `beforeEach`
@@ -176,7 +177,11 @@ vi.mock("react", async (importOriginal) => {
 });
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ refresh: routerRefreshMock, replace: vi.fn() }),
+  useRouter: () => ({
+    refresh: routerRefreshMock,
+    replace: vi.fn(),
+    push: routerPushMock,
+  }),
 }));
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServerClient: createServerClientMock,
@@ -1026,7 +1031,9 @@ describe("ENG-ONB-1H-P1-A completion run integration", () => {
         "No invitations have been sent yet.",
       );
 
-      // The confirmed surface retires the action and opens no successor phase.
+      // The confirmed surface retires the action. P1-B receives the Owner
+      // through a route handoff; this review surface still renders no Creating
+      // or Ready UI of its own.
       expect(clickableLabels(review)).toEqual(["Back to edit"]);
       for (const forbidden of FORBIDDEN_SURFACE_MARKERS) {
         expect(reviewSurfaceText(review)).not.toContain(forbidden);
@@ -1034,6 +1041,10 @@ describe("ENG-ONB-1H-P1-A completion run integration", () => {
       expect(markSetupReadyMock).toHaveBeenCalledTimes(1);
       expect(ensureRunActionMock).toHaveBeenCalledTimes(1);
       expect(routerRefreshMock).not.toHaveBeenCalled();
+      expect(routerPushMock).toHaveBeenCalledTimes(1);
+      expect(routerPushMock).toHaveBeenCalledWith(
+        `/onboarding/creating?org=${ORG}`,
+      );
     });
 
     it("keeps the action available and creates no run when the ensure call fails", async () => {

@@ -123,6 +123,9 @@ describe("B1.3 onboarding routing contract", () => {
     expect(teamPage).toContain(
       "buildWorkspaceConfirmationOnboardingPath",
     );
+    expect(onboardingPage).toContain("buildCreatingOnboardingPath");
+    expect(onboardingPage).toContain('lifecycle.membershipRole === "owner"');
+    expect(teamPage).toContain('lifecycle.membershipRole === "owner"');
     expect(workspacePage).not.toContain("markV2OnboardingSetupReadyAction");
     expect(workspacePage).not.toContain("completeV2OnboardingAction");
     expect(teamPage).not.toContain("markV2OnboardingSetupReadyAction");

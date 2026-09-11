@@ -15,7 +15,10 @@ import {
 } from "@/features/onboarding/server/operating-model-status";
 import { resolveOrganizationOnboardingLifecycle } from "@/features/onboarding/server/resolve-onboarding-lifecycle";
 import { V2YouCompanyForm } from "@/features/onboarding/ui/v2-you-company-form";
-import { buildWorkspaceConfirmationOnboardingPath } from "@/features/onboarding/domain/onboarding-routes";
+import {
+  buildCreatingOnboardingPath,
+  buildWorkspaceConfirmationOnboardingPath,
+} from "@/features/onboarding/domain/onboarding-routes";
 
 /** Always read live onboarding draft — never serve a cached Step 2 snapshot. */
 export const dynamic = "force-dynamic";
@@ -158,6 +161,20 @@ export default async function OnboardingPage({
           organizationName: result.context.organizationName,
           teamSizeBand: result.context.teamSizeBand ?? "",
         }}
+      />
+    );
+  }
+  if (lifecycle.state.kind === "v2_ready") {
+    if (lifecycle.membershipRole === "owner") {
+      redirect(
+        buildCreatingOnboardingPath(result.context.organizationId),
+      );
+    }
+
+    return (
+      <OnboardingStatusPanel
+        title="Invitation setup in progress"
+        message="The organization owner is creating invitations. You will get access when setup is complete."
       />
     );
   }

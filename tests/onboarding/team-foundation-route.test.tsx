@@ -20,6 +20,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({
     refresh: vi.fn(),
     replace: vi.fn(),
+    push: vi.fn(),
   }),
 }));
 vi.mock("@/lib/supabase/server", () => ({
@@ -237,7 +238,7 @@ describe("V2 Team onboarding foundation", () => {
         logicalStage: "ready",
         setupReadyAt: "2026-09-07T12:00:00.000Z",
       },
-      `/onboarding?org=${ORG}`,
+      `/onboarding/creating?org=${ORG}`,
     ],
     [
       "v2_completed",
@@ -262,6 +263,19 @@ describe("V2 Team onboarding foundation", () => {
   ])("fails closed for %s lifecycle state", async (_name, state, target) => {
     lifecycle(state);
     await expect(renderPage()).rejects.toThrow(`REDIRECT:${target}`);
+  });
+
+  it("does not send a non-Owner v2_ready member into Creating", async () => {
+    lifecycle(
+      {
+        kind: "v2_ready",
+        logicalStage: "ready",
+        setupReadyAt: "2026-09-07T12:00:00.000Z",
+      },
+      "admin",
+    );
+    await expect(renderPage()).rejects.toThrow(`REDIRECT:/onboarding?org=${ORG}`);
+    expect(teamIntentsMock).not.toHaveBeenCalled();
   });
 
   it("loads only governed intents and performs no write or invitation operation while rendering", async () => {
