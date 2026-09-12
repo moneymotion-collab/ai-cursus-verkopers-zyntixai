@@ -2,17 +2,21 @@
 
 ## Executive verdict
 
-`PASS — ENG-ONB-1H-P1-D AUTHENTICATED PRODUCT ADMISSION CLOSED WITH EVIDENCE`
+`PASS — ENG-ONB-1H-P1-D AUTHENTICATED PRODUCT ADMISSION AND EXPLICIT ENTRY CLOSED WITH EVIDENCE`
+
+This is the **post-publication** P1-D status. It is true only after the Owner trailer-free commit and ordinary fast-forward were independently verified (§24). It does not mean Gate 10 was already factually complete during pre-publication staging.
 
 Independent review:
 
 `PASS — ENG-ONB-1H-P1-D-R1-FR AUTHENTICATED PRODUCT-SHELL AUTHORITY INDEPENDENTLY VERIFIED`
 
-Independent review `ENG-ONB-1H-P1-D-FR` blocked publication because completed product-shell rendering required a locally signed service-role credential in the Next.js application child. R1 removed that application-process dependency. R1-FR independently verified the correction. This dedicated publication commit closes Gate 10.
+Independent review `ENG-ONB-1H-P1-D-FR` blocked publication because completed product-shell rendering required a locally signed service-role credential in the Next.js application child. R1 removed that application-process dependency. R1-FR independently verified the correction. Implementation and review evidence therefore passed before publication. Gate 10 remained pending until the Owner commit and ordinary fast-forward were independently verified after publication.
+
+**Historical pre-publication wording (retained; premature at that time):** this file already contained wording equivalent to Gate 10 PASS, 9/9 mandatory gates, and publication completed before commit `2c4befa73f5b71b2b2a63732ca3885c7e356479c` existed. That earlier wording is retained as chronology. It is not the factual basis for Gate 10. The factual basis is the independent post-publication verification in §24.
 
 This document is the repository-native evidence for P1-D, R1, and R1-FR. Production remains unverified and unauthorized.
 
-`P1-D and the local application implementation are closed. The complete ENG-ONB-1H program remains open until ENG-ONB-1H-PROD and ENG-ONB-1H-FV both pass.`
+`P1-D and the local/product application implementation are closed. The complete ENG-ONB-1H program remains open until ENG-ONB-1H-PROD and ENG-ONB-1H-FV both pass.`
 
 - Product admission is a single server-side decision: `redirectIfOrganizationOnboardingIncomplete` admits only `kind: "v2_completed"` (plus the contracted grandfathered / completed-legacy paths).
 - Incomplete `/home` cannot show the product. Direct product URLs are pushed to the current onboarding stage.
@@ -27,12 +31,15 @@ This document is the repository-native evidence for P1-D, R1, and R1-FR. Product
 `GATE 8 PRODUCTION = NOT_REQUIRED_WITH_JUSTIFICATION`
 
 `GATE 10 PUBLICATION = PASS`
+Owner trailer-free commit and ordinary fast-forward publication independently verified after publication.
 
 `MANDATORY P1-D GATES = 9/9 PASS`
 
 `PRODUCTION = UNVERIFIED`
 
 `SUCCESSOR PHASES NOT STARTED = ENG-ONB-1H-PROD, ENG-ONB-1H-FV`
+
+`COMPLETE ENG-ONB-1H PROGRAM = OPEN` until `ENG-ONB-1H-PROD` and `ENG-ONB-1H-FV` both pass.
 
 ---
 
@@ -48,6 +55,7 @@ This document is the repository-native evidence for P1-D, R1, and R1-FR. Product
 | Publication parent | `666165a2a075cc89d68a264a9099c2272c005d9e` |
 | Parent subject | `feat(onboarding): add Ready reconstruction and completion` |
 | Publication subject | `feat(onboarding): enforce authenticated product admission` |
+| Published commit (post-publication) | `2c4befa73f5b71b2b2a63732ca3885c7e356479c` |
 | Publication scope | exactly the 41 governed paths in §4 |
 | Upstream | `origin/core/platform-readiness-20260707` |
 | Production | unverified |
@@ -146,7 +154,7 @@ Contract: `npx vitest run tests/onboarding tests/features tests/security`, inclu
 
 ### 2.11 B1-GATE.1
 
-Contract §14.2 column `P1-D`: gates 1–7, 9, 10 mandatory; Gate 8 `J`. This evidence file is Gate 9. Gate 10 is this dedicated publication commit.
+Contract §14.2 column `P1-D`: gates 1–7, 9, 10 mandatory; Gate 8 `J`. This evidence file is Gate 9. Gate 10 is the dedicated Owner publication commit. During pre-publication staging that commit did not yet exist, so Gate 10 was not yet factually complete. After ordinary fast-forward publication it is `2c4befa73f5b71b2b2a63732ca3885c7e356479c` (§24).
 
 ### 2.12 Exclusions and successors
 
@@ -495,9 +503,9 @@ Vitest proves destination mapping, helper call sites, Ready UI rules, and source
 | 7 Browser / visual | Y | **PASS** | §12 372/372 |
 | 8 Production verification | J | `NOT_REQUIRED_WITH_JUSTIFICATION` | No Production deployment. Contract relocates Production to `PROD`/`FV`. |
 | 9 Documentation / evidence | Y | **PASS** | this file |
-| 10 Publication / closure | Y | **PASS** | this dedicated commit and ordinary fast-forward push |
+| 10 Publication / closure | Y | **PASS** | Owner trailer-free commit `2c4befa73f5b71b2b2a63732ca3885c7e356479c` and ordinary fast-forward independently verified after publication (§24). Pre-publication staging had already recorded this row as PASS before that commit existed; that earlier claim was not yet factual. |
 
-Mandatory P1-D gates 1–7, 9, and 10 are **9/9 PASS**. Gate 8 remains `NOT_REQUIRED_WITH_JUSTIFICATION`.
+Mandatory P1-D gates 1–7, 9, and 10 are **9/9 PASS** after post-publication verification. Gate 8 remains `NOT_REQUIRED_WITH_JUSTIFICATION`. During pre-publication staging, gates 1–7 and 9 had passed; Gate 10 was not yet factually complete.
 
 ---
 
@@ -505,7 +513,7 @@ Mandatory P1-D gates 1–7, 9, and 10 are **9/9 PASS**. Gate 8 remains `NOT_REQU
 
 `ENG-ONB-1H-PROD` is next and is not started. `ENG-ONB-1H-FV` follows Production and is not started. Do not deploy from this phase. Do not treat the complete ENG-ONB-1H program as closed.
 
-`P1-D and the local application implementation are closed. The complete ENG-ONB-1H program remains open until ENG-ONB-1H-PROD and ENG-ONB-1H-FV both pass.`
+`P1-D and the local/product application implementation are closed. The complete ENG-ONB-1H program remains open until ENG-ONB-1H-PROD and ENG-ONB-1H-FV both pass.`
 
 `ENG-ONB-1H-PROD WORK PERFORMED HERE = NONE`
 
@@ -565,10 +573,88 @@ R1 did not repeat the earlier unqualified `npx supabase migration list`. R1-FR d
 
 Independent R1-FR: `PASS — ENG-ONB-1H-P1-D-R1-FR AUTHENTICATED PRODUCT-SHELL AUTHORITY INDEPENDENTLY VERIFIED`. Gate 7 372/372 and runtime 63/63 were reproduced locally with an empty Next-child service-role key. A first-request suspended member remains denied. An extra shared-user one-org suspension probe was confounded by remaining active memberships in other fixture organizations and is not overstated here.
 
-### 23.6 Publication
+### 23.6 Publication (pre-publication record, retained)
 
-Parent: `666165a2a075cc89d68a264a9099c2272c005d9e`. Subject: `feat(onboarding): enforce authenticated product admission`. Scope: the 41 governed paths in §4. The commit hash is assigned at commit time and is not invented here.
+Parent: `666165a2a075cc89d68a264a9099c2272c005d9e`. Subject: `feat(onboarding): enforce authenticated product admission`. Scope: the 41 governed paths in §4. At the time this paragraph was first written, the commit hash was assigned at commit time and was not invented here.
 
-P1-D is closed with repository evidence. P1-A through P1-D local application integration is complete with repository evidence. Production remains unverified. `ENG-ONB-1H-PROD` and `ENG-ONB-1H-FV` are not started.
+That pre-publication record is retained. It does not by itself prove Gate 10. The Owner commit and ordinary fast-forward were still pending, so Gate 10 was not yet factually complete.
 
-`P1-D and the local application implementation are closed. The complete ENG-ONB-1H program remains open until ENG-ONB-1H-PROD and ENG-ONB-1H-FV both pass.`
+Historical wording in this same paragraph already said P1-D was closed with repository evidence. Implementation/review closure was true at that time; publication/Gate 10 closure was not yet factual. P1-A through P1-D local application integration is complete with repository evidence. Production remained unverified. `ENG-ONB-1H-PROD` and `ENG-ONB-1H-FV` were not started.
+
+The program-level statement that remains binding:
+
+`The complete ENG-ONB-1H program remains open until ENG-ONB-1H-PROD and ENG-ONB-1H-FV both pass.`
+
+---
+
+## 24. Publication chronology and post-publication verification
+
+This section exists because earlier wording in this file stated Gate 10 PASS, 9/9 mandatory gates, and publication completed before the Owner commit and push existed. That historical wording is not deleted. It is corrected here by chronology. Gate 10 is PASS **now**, not because the pre-publication document said so.
+
+### 24.1 Pre-publication staging (Gate 10 not yet factual)
+
+During pre-publication staging:
+
+- implementation, R1, and independent R1-FR review evidence had passed;
+- Gate 7 was 372/372; runtime matrix 63/63; focused P1-D files in §15; onboarding/security 131 files / 1195 passed; serial Vitest 4119 passed / 2 failed / 4121 total; typecheck PASS; lint PASS; build PASS;
+- the 41-path tree in §4 was staged for Owner publication;
+- the Owner commit and ordinary fast-forward push were still pending;
+- therefore Gate 10 was **not yet factually complete**.
+
+### 24.2 Owner trailer-free commit
+
+The Owner subsequently created the exact trailer-free commit:
+
+| Field | Value |
+| --- | --- |
+| Hash | `2c4befa73f5b71b2b2a63732ca3885c7e356479c` |
+| Subject | `feat(onboarding): enforce authenticated product admission` |
+| Body | none |
+| Trailers | none |
+| Parent | `666165a2a075cc89d68a264a9099c2272c005d9e` |
+| Statistics | 41 files changed, 2367 insertions(+), 114 deletions(-) |
+| Changed paths | exactly the 41 governed paths in §4; no 42nd path |
+
+This evidence-finalization edit does not amend that commit.
+
+### 24.3 Ordinary fast-forward publication
+
+The commit was subsequently published through an ordinary fast-forward to `origin/core/platform-readiness-20260707`. No force push, reset, rebase, or rewrite of `2c4befa73f5b71b2b2a63732ca3885c7e356479c` occurred.
+
+### 24.4 Independent post-publication verification
+
+Fresh `git fetch origin` was performed during this evidence-finalization step. Independent verification then observed:
+
+| Check | Result |
+| --- | --- |
+| Repository root | `D:/project ai cursus verkopers.worktrees/parallel__laptop-product-track-20260707-1` |
+| Branch | `core/platform-readiness-20260707` |
+| Upstream | `origin/core/platform-readiness-20260707` |
+| `git rev-parse HEAD` | `2c4befa73f5b71b2b2a63732ca3885c7e356479c` |
+| `git rev-parse origin/core/platform-readiness-20260707` | `2c4befa73f5b71b2b2a63732ca3885c7e356479c` |
+| `git rev-list --left-right --count origin/core/platform-readiness-20260707...HEAD` | `0 0` |
+| `git status --short` | empty (before this evidence-only edit) |
+| Commit subject | `feat(onboarding): enforce authenticated product admission` |
+| Commit body / trailers | none |
+
+Local HEAD and origin are the same commit. Divergence is `0 0`. The worktree was clean after publication.
+
+### 24.5 Gate 10 after verification
+
+`Gate 10 — PASS`
+Owner trailer-free commit and ordinary fast-forward publication independently verified after publication.
+
+`9/9 mandatory P1-D gates — PASS`
+
+`PASS — ENG-ONB-1H-P1-D AUTHENTICATED PRODUCT ADMISSION AND EXPLICIT ENTRY CLOSED WITH EVIDENCE`
+
+P1-D and the local/product application implementation are closed.
+
+The complete ENG-ONB-1H program remains open until ENG-ONB-1H-PROD and ENG-ONB-1H-FV both pass.
+
+Remaining phases:
+
+1. `ENG-ONB-1H-PROD` — NOT STARTED
+2. `ENG-ONB-1H-FV` — NOT STARTED
+
+This evidence-finalization step does not start PROD or FV. It records publication facts only. The complete ENG-ONB-1H program is not closed. Production has not been verified. Final Verification has not been performed.
