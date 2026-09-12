@@ -167,7 +167,24 @@ export function isDatabaseProvenReadyRunStatus(
 export function shouldEnterReadySurface(
   status: OnboardingCompletionRunStatus | null,
 ): boolean {
-  return status === "ready_for_cutover" || status === "completed";
+  return isDatabaseProvenReadyRunStatus(status);
+}
+
+export function isCoherentCompletedReadySnapshot(
+  snapshot: OnboardingReadySnapshot,
+): boolean {
+  return (
+    snapshot.organizationCompletedAt !== null &&
+    snapshot.runCompletedAt !== null &&
+    snapshot.runStatus === "completed" &&
+    snapshot.organizationCompletedAt === snapshot.runCompletedAt
+  );
+}
+
+export function canOfferExplicitProductEntry(
+  snapshot: OnboardingReadySnapshot,
+): boolean {
+  return isCoherentCompletedReadySnapshot(snapshot);
 }
 
 export function canOfferExplicitCompletion(input: {

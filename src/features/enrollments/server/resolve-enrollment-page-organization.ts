@@ -111,7 +111,10 @@ export async function resolveEnrollmentPageOrganization(
     orgContext.context.role,
   );
 
-  const moduleAccess = await loadProductModuleAccess(selection.organizationId);
+  const moduleAccess = await loadProductModuleAccess(
+    selection.organizationId,
+    supabase,
+  );
 
   return {
     kind: "ready",

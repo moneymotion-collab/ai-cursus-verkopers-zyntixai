@@ -12,6 +12,7 @@ import {
   resolveOperatingModelSetupStatus,
 } from "@/features/onboarding/server/operating-model-status";
 import { resolveOnboardingLifecycleDestination } from "@/features/onboarding/domain/onboarding-lifecycle";
+import { buildOnboardingStagePath } from "@/features/onboarding/domain/onboarding-routes";
 import { resolveOrganizationOnboardingLifecycle } from "@/features/onboarding/server/resolve-onboarding-lifecycle";
 import { operatingModelFromPackKey } from "@/features/onboarding/domain/operating-model";
 
@@ -100,11 +101,10 @@ export default async function OperatingModelOnboardingPage({
       lifecycle.state,
       actor.role,
     );
-    if (destination.availableRoute === "home") {
-      redirect(buildProductDestination(actor.organizationId));
-    }
-    if (destination.availableRoute === "onboarding") {
-      redirect(buildOnboardingPath(actor.organizationId));
+    if (destination.stageRoute !== "operating_model") {
+      redirect(
+        buildOnboardingStagePath(destination.stageRoute, actor.organizationId),
+      );
     }
   }
 

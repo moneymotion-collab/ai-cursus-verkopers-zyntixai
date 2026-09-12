@@ -124,7 +124,10 @@ export async function resolveAttentionPageOrganization(
     orgContext.context.role,
   );
 
-  const moduleAccess = await loadProductModuleAccess(selection.organizationId);
+  const moduleAccess = await loadProductModuleAccess(
+    selection.organizationId,
+    supabase,
+  );
   const routeAccess = evaluateProductModuleRouteAccess({
     moduleId: "attention",
     access: moduleAccess,

@@ -165,7 +165,7 @@ describe("V2 Creating onboarding route", () => {
         setupReadyAt: "2026-09-07T12:00:00.000Z",
         completedAt: "2026-09-07T12:01:00.000Z",
       },
-      `/onboarding/ready?org=${ORG}`,
+      `/home?org=${ORG}`,
     ],
     [
       "legacy incomplete",

@@ -1162,15 +1162,62 @@ describe("ENG-ONB-1H-P1-C ready reconstruction and explicit completion", () => {
       expect((button?.props as { type?: string }).type).toBe("button");
       expect((button?.props as { disabled?: boolean }).disabled).toBe(false);
     });
+
+    it("offers Open ZyntixAI only after a coherent completed snapshot", () => {
+      const tree = renderReady(
+        readySnapshot({
+          runStatus: "completed",
+          runCompletedAt: "2026-09-11T12:10:00.000Z",
+          organizationCompletedAt: "2026-09-11T12:10:00.000Z",
+        }),
+      );
+      const html = renderToStaticMarkup(tree);
+      expect(clickableLabels(tree)).toContain("Open ZyntixAI");
+      expect(clickableLabels(tree)).not.toContain("Enter ZyntixAI");
+      expect(html).toContain("Open ZyntixAI");
+      expect(html).toContain("does not send email");
+    });
+
+    it("navigates to the governed product destination once per explicit click", async () => {
+      const tree = renderReady(
+        readySnapshot({
+          runStatus: "completed",
+          runCompletedAt: "2026-09-11T12:10:00.000Z",
+          organizationCompletedAt: "2026-09-11T12:10:00.000Z",
+        }),
+      );
+      const button = findClickable(tree, "Open ZyntixAI");
+      await clickAsync(button);
+      await clickAsync(button);
+      expect(routerPushMock).toHaveBeenCalledTimes(1);
+      expect(routerPushMock).toHaveBeenCalledWith(`/home?org=${ORG}`);
+      expect(completeActionMock).not.toHaveBeenCalled();
+    });
+
+    it("withholds product entry when organization and run completion disagree", () => {
+      const tree = renderReady(
+        readySnapshot({
+          runStatus: "ready_for_cutover",
+          runCompletedAt: null,
+          organizationCompletedAt: "2026-09-11T12:10:00.000Z",
+        }),
+      );
+      const html = renderToStaticMarkup(tree);
+      expect(clickableLabels(tree)).not.toContain("Open ZyntixAI");
+      expect(clickableLabels(tree)).not.toContain("Enter ZyntixAI");
+      expect(html).toContain("cannot be opened from this screen");
+    });
   });
 
   describe("P1-C boundary", () => {
-    it("does not add P1-D product admission or workspace entry", () => {
-      expect(componentSource).not.toContain("buildProductDestination");
+    it("keeps Enter ZyntixAI as completion and does not auto-enter the product", () => {
+      expect(componentSource).toContain("completeV2OnboardingAction");
+      expect(componentSource).toContain("Open ZyntixAI");
+      expect(componentSource).toContain("buildProductDestination");
       expect(componentSource).not.toContain("redirectIfOrganizationOnboardingIncomplete");
-      expect(pageSource).not.toContain("router.push(\"/home");
+      expect(pageSource).not.toContain("completeV2OnboardingAction");
+      expect(pageSource).not.toContain('router.push("/home');
       expect(enforcementSource).not.toContain("/onboarding/ready");
-      expect(enforcementSource).not.toContain("/onboarding/creating");
     });
 
     it("does not complete from page load, listing, or reconciliation", () => {

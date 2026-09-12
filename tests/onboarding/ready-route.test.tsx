@@ -213,7 +213,7 @@ describe("V2 Ready onboarding route", () => {
     expect(snapshotMock).not.toHaveBeenCalled();
   });
 
-  it("reconstructs completed onboarding without offering Enter ZyntixAI or product entry", async () => {
+  it("reconstructs completed onboarding with an explicit product-entry control", async () => {
     lifecycle({
       kind: "v2_completed",
       logicalStage: "completed",
@@ -223,18 +223,19 @@ describe("V2 Ready onboarding route", () => {
     snapshotMock.mockResolvedValue({
       ok: true,
       snapshot: readySnapshot({
+        runStatus: "completed",
+        runCompletedAt: "2026-09-10T12:05:00.000Z",
         organizationCompletedAt: "2026-09-10T12:05:00.000Z",
       }),
     });
     const html = await renderPage();
     expect(html).toContain("Setup is complete");
     expect(html).not.toContain("Enter ZyntixAI");
-    expect(html).not.toContain("/home");
-    expect(html).not.toContain("Enter product");
+    expect(html).toContain("Open ZyntixAI");
     expect(completeActionMock).not.toHaveBeenCalled();
   });
 
-  it("does not complete on render, refresh reconstruction, or listing", async () => {
+  it("does not complete from render, refresh reconstruction, or listing", async () => {
     await renderPage();
     expect(completeActionMock).not.toHaveBeenCalled();
     expect(pageSource).not.toContain("completeReadyOnboarding(");
@@ -242,7 +243,6 @@ describe("V2 Ready onboarding route", () => {
     expect(componentSource).toContain("completeV2OnboardingAction");
     expect(componentSource).not.toContain("useEffect");
     expect(componentSource).not.toContain("create_organization_invitation");
-    expect(componentSource).not.toContain("buildProductDestination");
-    expect(componentSource).not.toContain("router.push(\"/home");
+    expect(componentSource).not.toContain('router.push("/home');
   });
 });

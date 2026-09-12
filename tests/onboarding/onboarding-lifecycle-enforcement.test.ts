@@ -9,7 +9,10 @@ const redirectMock = vi.hoisted(() =>
 const lifecycleMock = vi.hoisted(() => vi.fn());
 const operatingModelMock = vi.hoisted(() => vi.fn());
 
-vi.mock("next/navigation", () => ({ redirect: redirectMock }));
+vi.mock("next/navigation", () => ({
+  redirect: redirectMock,
+  RedirectType: { push: "push", replace: "replace" },
+}));
 vi.mock("@/features/onboarding/server/resolve-onboarding-lifecycle", () => ({
   resolveOrganizationOnboardingLifecycle: lifecycleMock,
 }));
@@ -78,10 +81,10 @@ describe("lifecycle-aware product onboarding enforcement", () => {
   });
 
   it.each([
-    ["v2_core_incomplete", "you_and_company"],
-    ["v2_configured", "workspace"],
-    ["v2_ready", "ready"],
-  ])("keeps %s on the real onboarding route", async (kind, logicalStage) => {
+    ["v2_core_incomplete", "you_and_company", `/onboarding?org=${ORG}`],
+    ["v2_configured", "workspace", `/onboarding/workspace-confirmation?org=${ORG}`],
+    ["v2_ready", "ready", `/onboarding/creating?org=${ORG}`],
+  ])("keeps %s on the current onboarding stage", async (kind, logicalStage, target) => {
     lifecycle({ kind, logicalStage });
     await expect(
       redirectIfOrganizationOnboardingIncomplete(
@@ -89,7 +92,7 @@ describe("lifecycle-aware product onboarding enforcement", () => {
         ORG,
         "owner",
       ),
-    ).rejects.toThrow(`REDIRECT:/onboarding?org=${ORG}`);
+    ).rejects.toThrow(`REDIRECT:${target}`);
   });
 
   it("routes missing V2 context to the implemented operating-model route", async () => {

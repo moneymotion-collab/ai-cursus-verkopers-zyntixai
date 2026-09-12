@@ -94,7 +94,10 @@ export async function resolveCustomerPageOrganization(
     };
   }
 
-  const moduleAccess = await loadProductModuleAccess(selection.organizationId);
+  const moduleAccess = await loadProductModuleAccess(
+    selection.organizationId,
+    supabase,
+  );
   const routeAccess = evaluateProductModuleRouteAccess({
     moduleId: "customers",
     access: moduleAccess,

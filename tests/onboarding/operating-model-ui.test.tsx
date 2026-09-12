@@ -146,12 +146,8 @@ describe("operating-model onboarding UI", () => {
     expect(pageSource).toContain("resolveOrganizationOnboardingLifecycle");
     expect(pageSource).toContain("resolveOnboardingLifecycleDestination");
     expect(pageSource).toContain('lifecycle.state.kind !== "legacy"');
-    expect(pageSource).toContain(
-      'destination.availableRoute === "onboarding"',
-    );
-    expect(pageSource).toContain('destination.availableRoute === "home"');
-    expect(pageSource).toContain("buildOnboardingPath(actor.organizationId)");
-    expect(pageSource).toContain("buildProductDestination(actor.organizationId)");
+    expect(pageSource).toContain('destination.stageRoute !== "operating_model"');
+    expect(pageSource).toContain("buildOnboardingStagePath");
     expect(pageSource).toContain("Administrator setup required");
     expect(pageSource).toContain(
       "Your workspace still needs to be configured by an owner or administrator.",

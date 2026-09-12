@@ -1,32 +1,60 @@
 import "server-only";
 
-import { resolvePrimaryBusinessActivityContext } from "@/features/context-resolver/server/context-resolver";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { operatingModelFromTenantActivity } from "@/features/onboarding/domain/operating-model";
+import { resolveOrganizationContext } from "@/features/organizations/server/resolve-organization-context";
+import type { OrgContextQueryClient } from "@/features/org-context/server/org-context-query";
+import { OrganizationContextRepository } from "@/features/org-context/server/organization-context.repository";
 import {
-  buildResolvedProductModuleAccess,
-  buildUnresolvedProductModuleAccess,
-} from "@/features/product-access/domain/module-access";
-import { projectProductTerminology } from "@/features/product-access/domain/terminology";
+  buildOperatingModelProductModuleAccess,
+} from "@/features/product-access/domain/operating-model-module-access";
+import { buildUnresolvedProductModuleAccess } from "@/features/product-access/domain/module-access";
 import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
-import { PRODUCT_MODULE_ACCESS_RESOLUTION_MODE } from "@/features/product-access/server/product-module-access-mode";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/types/database";
+
+export type ProductModuleAccessClient = SupabaseClient<Database>;
 
 export async function loadProductModuleAccess(
   organizationId: string,
+  authenticatedClient?: ProductModuleAccessClient,
 ): Promise<ProductModuleAccessState> {
   if (!organizationId) {
     return buildUnresolvedProductModuleAccess();
   }
 
-  const resolved = await resolvePrimaryBusinessActivityContext({
+  const client = authenticatedClient ?? (await createSupabaseServerClient());
+  const membership = await resolveOrganizationContext({
+    supabase: client,
     organizationId,
-    mode: PRODUCT_MODULE_ACCESS_RESOLUTION_MODE,
   });
-
-  if (!resolved.ok) {
+  if (!membership.ok) {
+    return buildUnresolvedProductModuleAccess();
+  }
+  if (membership.context.organizationId !== organizationId) {
     return buildUnresolvedProductModuleAccess();
   }
 
-  return buildResolvedProductModuleAccess(
-    resolved.value.relevantCapabilities,
-    projectProductTerminology(resolved.value.terminology),
+  const repository = new OrganizationContextRepository(
+    client as unknown as OrgContextQueryClient,
   );
+  const primary = await repository.getPrimaryBusinessActivity(
+    membership.context.organizationId,
+  );
+  if (!primary.ok || !primary.value) {
+    return buildUnresolvedProductModuleAccess();
+  }
+  if (primary.value.organizationId !== membership.context.organizationId) {
+    return buildUnresolvedProductModuleAccess();
+  }
+
+  const model = operatingModelFromTenantActivity({
+    displayName: primary.value.displayName,
+    classificationKind: primary.value.classification?.kind,
+  });
+  if (!model) {
+    return buildUnresolvedProductModuleAccess();
+  }
+
+  return buildOperatingModelProductModuleAccess(model);
 }

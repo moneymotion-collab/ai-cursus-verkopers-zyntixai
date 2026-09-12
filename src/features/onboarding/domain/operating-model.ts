@@ -122,11 +122,50 @@ export function operatingModelOption(
   return OPERATING_MODEL_OPTIONS.find((option) => option.id === model)!;
 }
 
+/**
+ * Tenant-visible Business Activity labels written by the operating-model RPC
+ * and by local fixtures. They are presentation labels, not catalog pack keys.
+ */
+export const OPERATING_MODEL_TENANT_DISPLAY_NAMES: Record<
+  OperatingModelId,
+  readonly string[]
+> = {
+  course_seller: ["Courses & Coaching"],
+  service: ["Agency & Business Services"],
+  field_operations: [
+    "Construction & Field Operations",
+    "Construction & Field Service",
+  ],
+  product_operations: [
+    "Product Operations",
+    "E-commerce & Product Operations",
+  ],
+};
+
 export function operatingModelFromPackKey(
   packKey: string,
 ): OperatingModelId | null {
   for (const model of OPERATING_MODEL_IDS) {
     if (OPERATING_MODEL_CONTEXT_PACK_KEYS[model].includes(packKey)) {
+      return model;
+    }
+  }
+  return null;
+}
+
+export function operatingModelFromTenantActivity(input: {
+  displayName: string;
+  classificationKind?: string | null;
+}): OperatingModelId | null {
+  if (input.classificationKind === "niche") {
+    return "course_seller";
+  }
+  const normalized = input.displayName.trim();
+  if (!normalized) {
+    return null;
+  }
+  for (const model of OPERATING_MODEL_IDS) {
+    if (OPERATING_MODEL_TENANT_DISPLAY_NAMES[model].includes(normalized)) {
       return model;
     }
   }

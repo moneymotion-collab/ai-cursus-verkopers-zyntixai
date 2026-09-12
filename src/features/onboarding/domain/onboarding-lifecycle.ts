@@ -70,9 +70,22 @@ export type OnboardingLifecycleState =
         | "context_unavailable";
     };
 
+export type OnboardingAvailableRoute =
+  | "home"
+  | "onboarding"
+  | "operating_model";
+
+export type OnboardingStageRoute =
+  | "home"
+  | "onboarding"
+  | "operating_model"
+  | "workspace"
+  | "creating";
+
 export type OnboardingLifecycleDestination = {
   logicalStage: OnboardingLifecycleState["logicalStage"];
-  availableRoute: "home" | "onboarding" | "operating_model";
+  availableRoute: OnboardingAvailableRoute;
+  stageRoute: OnboardingStageRoute;
   productAccessAllowed: boolean;
 };
 
@@ -287,6 +300,7 @@ export function resolveOnboardingLifecycleDestination(
     return {
       logicalStage: state.logicalStage,
       availableRoute: "home",
+      stageRoute: "home",
       productAccessAllowed: true,
     };
   }
@@ -295,6 +309,25 @@ export function resolveOnboardingLifecycleDestination(
     return {
       logicalStage: state.logicalStage,
       availableRoute: "operating_model",
+      stageRoute: "operating_model",
+      productAccessAllowed: false,
+    };
+  }
+
+  if (state.kind === "v2_configured") {
+    return {
+      logicalStage: state.logicalStage,
+      availableRoute: "onboarding",
+      stageRoute: "workspace",
+      productAccessAllowed: false,
+    };
+  }
+
+  if (state.kind === "v2_ready" && membershipRole === "owner") {
+    return {
+      logicalStage: state.logicalStage,
+      availableRoute: "onboarding",
+      stageRoute: "creating",
       productAccessAllowed: false,
     };
   }
@@ -302,6 +335,15 @@ export function resolveOnboardingLifecycleDestination(
   return {
     logicalStage: state.logicalStage,
     availableRoute: "onboarding",
+    stageRoute: "onboarding",
     productAccessAllowed: false,
   };
+}
+
+export function isProductAdmissionAllowed(
+  state: OnboardingLifecycleState,
+  membershipRole: string,
+): boolean {
+  return resolveOnboardingLifecycleDestination(state, membershipRole)
+    .productAccessAllowed;
 }

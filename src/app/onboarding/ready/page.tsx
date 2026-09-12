@@ -4,9 +4,9 @@ import {
   buildOnboardingPath,
   buildProductDestination,
 } from "@/features/onboarding/domain/onboarding-steps";
-import { buildOperatingModelOnboardingPath } from "@/features/onboarding/domain/operating-model";
 import {
   buildCreatingOnboardingPath,
+  buildOnboardingStagePath,
   buildTeamOnboardingPath,
 } from "@/features/onboarding/domain/onboarding-routes";
 import { isDatabaseProvenReadyRunStatus } from "@/features/onboarding/domain/onboarding-ready";
@@ -99,16 +99,16 @@ export default async function ReadyOnboardingPage({
       lifecycle.state,
       actor.role,
     );
-    if (destination.availableRoute === "home") {
-      redirect(buildProductDestination(actor.organizationId));
-    }
-    if (destination.availableRoute === "operating_model") {
-      redirect(buildOperatingModelOnboardingPath(actor.organizationId));
-    }
-    redirect(buildOnboardingPath(actor.organizationId));
+    redirect(
+      buildOnboardingStagePath(destination.stageRoute, actor.organizationId),
+    );
   }
 
-  if (lifecycle.membershipRole !== "owner") {
+  if (lifecycle.state.kind === "v2_completed") {
+    if (lifecycle.membershipRole !== "owner") {
+      redirect(buildProductDestination(actor.organizationId));
+    }
+  } else if (lifecycle.membershipRole !== "owner") {
     redirect(buildOnboardingPath(actor.organizationId));
   }
 

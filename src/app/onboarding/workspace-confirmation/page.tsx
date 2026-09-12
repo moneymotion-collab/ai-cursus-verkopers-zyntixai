@@ -1,11 +1,9 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import {
-  buildOnboardingPath,
-  buildProductDestination,
-} from "@/features/onboarding/domain/onboarding-steps";
+import { buildOnboardingPath } from "@/features/onboarding/domain/onboarding-steps";
 import { buildOperatingModelOnboardingPath } from "@/features/onboarding/domain/operating-model";
 import {
+  buildOnboardingStagePath,
   buildTeamOnboardingPath,
   buildWorkspaceConfirmationOnboardingPath,
   WORKSPACE_CONFIRMATION_ONBOARDING_PATH,
@@ -95,20 +93,19 @@ export default async function WorkspaceConfirmationOnboardingPage({
       lifecycle.state,
       actor.role,
     );
-    if (destination.availableRoute === "home") {
-      redirect(buildProductDestination(actor.organizationId));
-    }
-    if (destination.availableRoute === "operating_model") {
-      redirect(buildOperatingModelOnboardingPath(actor.organizationId));
-    }
-    redirect(buildOnboardingPath(actor.organizationId));
+    redirect(
+      buildOnboardingStagePath(destination.stageRoute, actor.organizationId),
+    );
   }
 
   if (lifecycle.membershipRole !== "owner") {
     redirect(buildOnboardingPath(actor.organizationId));
   }
 
-  const moduleAccess = await loadProductModuleAccess(actor.organizationId);
+  const moduleAccess = await loadProductModuleAccess(
+    actor.organizationId,
+    supabase,
+  );
   const presentation = resolveWorkspacePresentation(
     lifecycle.state.packKey,
     moduleAccess,

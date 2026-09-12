@@ -4,10 +4,10 @@ import {
   buildOnboardingPath,
   buildProductDestination,
 } from "@/features/onboarding/domain/onboarding-steps";
-import { buildOperatingModelOnboardingPath } from "@/features/onboarding/domain/operating-model";
 import {
   buildReadyOnboardingPath,
   buildTeamOnboardingPath,
+  buildOnboardingStagePath,
 } from "@/features/onboarding/domain/onboarding-routes";
 import { shouldEnterReadySurface } from "@/features/onboarding/domain/onboarding-ready";
 import { resolveOnboardingLifecycleDestination } from "@/features/onboarding/domain/onboarding-lifecycle";
@@ -92,7 +92,7 @@ export default async function CreatingOnboardingPage({
   }
 
   if (lifecycle.state.kind === "v2_completed") {
-    redirect(buildReadyOnboardingPath(actor.organizationId));
+    redirect(buildProductDestination(actor.organizationId));
   }
 
   if (lifecycle.state.kind !== "v2_ready") {
@@ -100,13 +100,9 @@ export default async function CreatingOnboardingPage({
       lifecycle.state,
       actor.role,
     );
-    if (destination.availableRoute === "home") {
-      redirect(buildProductDestination(actor.organizationId));
-    }
-    if (destination.availableRoute === "operating_model") {
-      redirect(buildOperatingModelOnboardingPath(actor.organizationId));
-    }
-    redirect(buildOnboardingPath(actor.organizationId));
+    redirect(
+      buildOnboardingStagePath(destination.stageRoute, actor.organizationId),
+    );
   }
 
   if (lifecycle.membershipRole !== "owner") {
@@ -122,6 +118,15 @@ export default async function CreatingOnboardingPage({
       <OnboardingStatusPanel
         title="Invitation setup needs attention"
         message={snapshot.message}
+      />
+    );
+  }
+
+  if (snapshot.runStatus === "completed") {
+    return (
+      <OnboardingStatusPanel
+        title="Setup needs attention"
+        message="We could not safely determine the next setup step. Refresh or contact support."
       />
     );
   }

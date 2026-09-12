@@ -54,7 +54,10 @@ export async function resolveProductOperationsContext(
     selection.organizationId,
     organization.context.role,
   );
-  const moduleAccess = await loadProductModuleAccess(selection.organizationId);
+  const moduleAccess = await loadProductModuleAccess(
+    selection.organizationId,
+    supabase,
+  );
   const routeAccess = evaluateProductModuleRouteAccess({ moduleId, access: moduleAccess });
   if (!routeAccess.allowed) return { kind: "forbidden", message: routeAccess.message, moduleAccess };
   return {

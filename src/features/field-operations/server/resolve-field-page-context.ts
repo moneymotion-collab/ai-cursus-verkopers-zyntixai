@@ -55,7 +55,10 @@ export async function resolveFieldPageContext(
     organization.context.role,
   );
 
-  const moduleAccess = await loadProductModuleAccess(selection.organizationId);
+  const moduleAccess = await loadProductModuleAccess(
+    selection.organizationId,
+    supabase,
+  );
   const access = evaluateProductModuleRouteAccess({ moduleId, access: moduleAccess });
   if (!access.allowed) return { kind: "forbidden", message: access.message, moduleAccess };
 

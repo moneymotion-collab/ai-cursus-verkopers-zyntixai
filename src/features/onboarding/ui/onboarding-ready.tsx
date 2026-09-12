@@ -6,10 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { completeV2OnboardingAction } from "@/features/onboarding/actions/onboarding-actions";
 import { buildCreatingOnboardingPath } from "@/features/onboarding/domain/onboarding-routes";
+import { buildProductDestination } from "@/features/onboarding/domain/onboarding-steps";
 import {
   canOfferExplicitCompletion,
+  canOfferExplicitProductEntry,
   invitationEvidenceLabel,
   invitationResultLabel,
+  isCoherentCompletedReadySnapshot,
   isReadyCompletionBlockedCode,
   readyInvitationDetail,
   type OnboardingReadySnapshot,
@@ -30,12 +33,25 @@ export function ReadyStatusCopy({
   completing: boolean;
 }) {
   if (snapshot.organizationCompletedAt) {
+    if (!isCoherentCompletedReadySnapshot(snapshot)) {
+      return (
+        <>
+          <strong>Setup is complete</strong>
+          <span>
+            The workspace record is complete, but it cannot be opened from
+            this screen until the setup record is consistent. Refresh or contact
+            support.
+          </span>
+        </>
+      );
+    }
+
     return (
       <>
         <strong>Setup is complete</strong>
         <span>
-          Onboarding finished at the time recorded by the workspace. Product
-          access is not opened from this screen.
+          Onboarding is finished. Open ZyntixAI when you want to continue to
+          the workspace. This does not send email or change invitations.
         </span>
       </>
     );
@@ -106,6 +122,8 @@ export function OnboardingReady({ snapshot }: OnboardingReadyProps) {
     organizationCompletedAt: current.organizationCompletedAt,
     results: current.results,
   });
+  const offerProductEntry = canOfferExplicitProductEntry(current);
+  const productDestination = buildProductDestination(current.organizationId);
 
   function acquireMutation(): number | null {
     if (mutationOwnerRef.current !== null) {
@@ -159,11 +177,43 @@ export function OnboardingReady({ snapshot }: OnboardingReadyProps) {
     }
   }
 
+  function handleProductEntry() {
+    if (mutationOwnerRef.current !== null || !offerProductEntry) {
+      return;
+    }
+
+    const token = acquireMutation();
+    if (token === null) {
+      return;
+    }
+
+    setMessage(null);
+    try {
+      router.push(productDestination);
+    } catch {
+      setMessage("We could not open the workspace. Please try again.");
+      completeControlRef.current?.focus();
+      releaseMutation(token);
+    }
+  }
+
   const actions = (
     <div className={styles.actions}>
-      {current.organizationCompletedAt ? (
+      {offerProductEntry ? (
+        <Button
+          ref={completeControlRef}
+          type="button"
+          size="action"
+          disabled={completing}
+          aria-busy={completing}
+          onClick={handleProductEntry}
+        >
+          {completing ? "Opening workspace…" : "Open ZyntixAI"}
+        </Button>
+      ) : current.organizationCompletedAt ? (
         <p className={styles.actionNote}>
-          Setup is complete. Workspace access is not opened from this screen.
+          Setup is recorded as complete, but this workspace cannot be opened
+          from this screen until the record is consistent.
         </p>
       ) : offerCompletion ? (
         <Button

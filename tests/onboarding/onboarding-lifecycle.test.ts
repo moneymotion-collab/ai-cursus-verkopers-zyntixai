@@ -39,6 +39,7 @@ describe("onboarding lifecycle resolver", () => {
     expect(resolveOnboardingLifecycleDestination(state, "owner")).toEqual({
       logicalStage: "completed",
       availableRoute: "home",
+      stageRoute: "home",
       productAccessAllowed: true,
     });
   });
@@ -135,6 +136,119 @@ describe("onboarding lifecycle resolver", () => {
       kind: "v2_owner_required",
       logicalStage: "owner_required",
     });
+  });
+
+  it("maps every lifecycle kind to exactly one stage destination", () => {
+    const cases: Array<{
+      state: ReturnType<typeof resolve>;
+      role: string;
+      availableRoute: "home" | "onboarding" | "operating_model";
+      stageRoute: "home" | "onboarding" | "operating_model" | "workspace" | "creating";
+      productAccessAllowed: boolean;
+    }> = [
+      {
+        state: resolve({
+          flowVersion: null,
+          coreData: undefined,
+          context: { kind: "not_required" },
+        }),
+        role: "owner",
+        availableRoute: "home",
+        stageRoute: "home",
+        productAccessAllowed: true,
+      },
+      {
+        state: resolve({
+          flowVersion: 1,
+          completedAt: null,
+          coreData: undefined,
+          context: { kind: "not_required" },
+        }),
+        role: "owner",
+        availableRoute: "onboarding",
+        stageRoute: "onboarding",
+        productAccessAllowed: false,
+      },
+      {
+        state: resolve({ membershipRole: "staff" }),
+        role: "staff",
+        availableRoute: "onboarding",
+        stageRoute: "onboarding",
+        productAccessAllowed: false,
+      },
+      {
+        state: resolve({
+          coreData: {
+            displayName: " ",
+            organizationName: "",
+            teamSizeBand: "invalid",
+          },
+        }),
+        role: "owner",
+        availableRoute: "onboarding",
+        stageRoute: "onboarding",
+        productAccessAllowed: false,
+      },
+      {
+        state: resolve({ context: { kind: "not_configured" } }),
+        role: "owner",
+        availableRoute: "operating_model",
+        stageRoute: "operating_model",
+        productAccessAllowed: false,
+      },
+      {
+        state: resolve(),
+        role: "owner",
+        availableRoute: "onboarding",
+        stageRoute: "workspace",
+        productAccessAllowed: false,
+      },
+      {
+        state: resolve({ setupReadyAt: "2026-09-07T12:00:00.000Z" }),
+        role: "owner",
+        availableRoute: "onboarding",
+        stageRoute: "creating",
+        productAccessAllowed: false,
+      },
+      {
+        state: resolve({
+          setupReadyAt: "2026-09-07T12:00:00.000Z",
+          completedAt: "2026-09-07T12:01:00.000Z",
+        }),
+        role: "owner",
+        availableRoute: "home",
+        stageRoute: "home",
+        productAccessAllowed: true,
+      },
+      {
+        state: resolve({
+          setupReadyAt: "2026-09-07T12:00:00.000Z",
+          completedAt: "2026-09-07T12:01:00.000Z",
+        }),
+        role: "staff",
+        availableRoute: "home",
+        stageRoute: "home",
+        productAccessAllowed: true,
+      },
+      {
+        state: resolve({ flowVersion: 9 }),
+        role: "owner",
+        availableRoute: "onboarding",
+        stageRoute: "onboarding",
+        productAccessAllowed: false,
+      },
+    ];
+
+    for (const item of cases) {
+      expect(
+        resolveOnboardingLifecycleDestination(item.state, item.role),
+      ).toEqual({
+        logicalStage: item.state.logicalStage,
+        availableRoute: item.availableRoute,
+        stageRoute: item.stageRoute,
+        productAccessAllowed: item.productAccessAllowed,
+      });
+    }
   });
 
   it("is independent from all four legacy questionnaire fields", () => {

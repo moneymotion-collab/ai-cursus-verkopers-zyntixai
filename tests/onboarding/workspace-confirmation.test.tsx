@@ -288,7 +288,7 @@ describe("Workspace Confirmation route and components", () => {
     expect(html).toContain("Step 3 of 5: Workspace");
     expect(html).toContain(`href="/onboarding/operating-model?org=${ORG}"`);
     expect(html).toContain(`href="${buildTeamOnboardingPath(ORG)}"`);
-    expect(loadAccessMock).toHaveBeenCalledWith(ORG);
+    expect(loadAccessMock).toHaveBeenCalledWith(ORG, expect.anything());
   });
 
   it("redirects anonymous users to login with the exact safe return path", async () => {
@@ -326,7 +326,7 @@ describe("Workspace Confirmation route and components", () => {
         logicalStage: "ready",
         setupReadyAt: "2026-09-07T12:00:00.000Z",
       },
-      `/onboarding?org=${ORG}`,
+      `/onboarding/creating?org=${ORG}`,
     ],
     [
       {

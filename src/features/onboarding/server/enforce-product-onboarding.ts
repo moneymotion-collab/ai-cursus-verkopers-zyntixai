@@ -1,8 +1,12 @@
-import { redirect } from "next/navigation";
+import "server-only";
+
+import { redirect, RedirectType } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isOnboardingComplete } from "@/features/onboarding/domain/onboarding-types";
 import { buildOnboardingPath } from "@/features/onboarding/domain/onboarding-steps";
 import { buildOperatingModelOnboardingPath } from "@/features/onboarding/domain/operating-model";
+import { resolveOnboardingLifecycleDestination } from "@/features/onboarding/domain/onboarding-lifecycle";
+import { buildOnboardingStagePath } from "@/features/onboarding/domain/onboarding-routes";
 import { resolveOrganizationOnboardingLifecycle } from "@/features/onboarding/server/resolve-onboarding-lifecycle";
 import {
   isCourseSellerContextPack,
@@ -14,6 +18,9 @@ import type { Database } from "@/types/database";
  * Server-side product setup gate.
  * Missing or invalid context is handled before the closed TG1 first-run gate.
  * Non-Knowledge contexts do not enter the Course-Seller-specific wizard.
+ * Incomplete V2 organizations are sent to the current onboarding stage, never
+ * admitted. Only organization-lifecycle `v2_completed` (or contracted
+ * grandfathered/legacy-complete paths) may remain on a product route.
  */
 export async function redirectIfOrganizationOnboardingIncomplete(
   supabase: SupabaseClient<Database>,
@@ -25,20 +32,25 @@ export async function redirectIfOrganizationOnboardingIncomplete(
     organizationId,
   );
   if (!lifecycle.ok) {
-    redirect(buildOnboardingPath(organizationId));
+    return redirect(buildOnboardingPath(organizationId), RedirectType.push);
   }
 
   if (lifecycle.state.kind === "v2_completed") {
     return;
   }
-  if (lifecycle.state.kind === "v2_context_required") {
-    redirect(buildOperatingModelOnboardingPath(organizationId));
-  }
-  if (lifecycle.state.kind.startsWith("v2_")) {
-    redirect(buildOnboardingPath(organizationId));
-  }
-  if (lifecycle.state.kind === "invalid") {
-    redirect(buildOnboardingPath(organizationId));
+
+  if (
+    lifecycle.state.kind.startsWith("v2_") ||
+    lifecycle.state.kind === "invalid"
+  ) {
+    const destination = resolveOnboardingLifecycleDestination(
+      lifecycle.state,
+      membershipRole,
+    );
+    return redirect(
+      buildOnboardingStagePath(destination.stageRoute, organizationId),
+      RedirectType.push,
+    );
   }
 
   const operatingModel = await resolveOperatingModelSetupStatus({
@@ -48,7 +60,10 @@ export async function redirectIfOrganizationOnboardingIncomplete(
   });
 
   if (operatingModel.kind !== "configured") {
-    redirect(buildOperatingModelOnboardingPath(organizationId));
+    return redirect(
+      buildOperatingModelOnboardingPath(organizationId),
+      RedirectType.push,
+    );
   }
 
   if (lifecycle.state.kind === "grandfathered") {
@@ -70,10 +85,10 @@ export async function redirectIfOrganizationOnboardingIncomplete(
     .maybeSingle();
 
   if (error) {
-    redirect(buildOnboardingPath(organizationId));
+    return redirect(buildOnboardingPath(organizationId), RedirectType.push);
   }
 
   if (!isOnboardingComplete(data?.onboarding_completed_at ?? null)) {
-    redirect(buildOnboardingPath(organizationId));
+    return redirect(buildOnboardingPath(organizationId), RedirectType.push);
   }
 }

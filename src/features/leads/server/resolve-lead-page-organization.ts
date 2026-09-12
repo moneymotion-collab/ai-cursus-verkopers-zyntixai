@@ -94,7 +94,10 @@ export async function resolveLeadPageOrganization(
     };
   }
 
-  const moduleAccess = await loadProductModuleAccess(selection.organizationId);
+  const moduleAccess = await loadProductModuleAccess(
+    selection.organizationId,
+    supabase,
+  );
   const routeAccess = evaluateProductModuleRouteAccess({
     moduleId: "leads",
     access: moduleAccess,

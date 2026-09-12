@@ -61,7 +61,10 @@ export async function resolveProjectPageContext(
   );
 
   // Access and terminology are resolved before any project read.
-  const moduleAccess = await loadProductModuleAccess(selection.organizationId);
+  const moduleAccess = await loadProductModuleAccess(
+    selection.organizationId,
+    supabase,
+  );
   const routeAccess = evaluateProductModuleRouteAccess({
     moduleId: "projects",
     access: moduleAccess,
