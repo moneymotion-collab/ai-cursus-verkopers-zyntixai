@@ -1,5 +1,9 @@
 import { Alert } from "@/components/ui/alert";
 import { AppShell } from "@/components/app-shell";
+import {
+  DAILY_OPERATING_TODAY_SUBTITLE,
+  formatDailyOperatingRoleLabel,
+} from "@/features/daily-operating/domain/compose-daily-operating-brief";
 import { loadDailyOperatingPage } from "@/features/daily-operating/server/load-daily-operating-page";
 import { DailyOperatingBriefPanel } from "@/features/daily-operating/ui/daily-operating-brief";
 import { DailyOperatingOrganizationRequiredPanel } from "@/features/daily-operating/ui/daily-operating-organization-required-panel";
@@ -62,6 +66,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     );
   }
 
+  const selectedOrganization = result.organizationOptions.find(
+    (organization) =>
+      organization.organizationId === result.selectedOrganizationId,
+  );
+  const organizationDisplayName = selectedOrganization?.displayName ?? null;
+
   return (
     <AppShell
       moduleNavVisibility={result.moduleAccess.navVisibility}
@@ -74,14 +84,20 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       <div className={styles.page}>
         <header className={styles.pageHeader}>
           <h1>Today</h1>
-          <p className={styles.subtitle}>
-            What needs attention and what you need to do next.
-          </p>
+          {organizationDisplayName ? (
+            <p className={styles.subtitle}>
+              {organizationDisplayName}
+              {" · "}
+              {formatDailyOperatingRoleLabel(result.role)}
+            </p>
+          ) : null}
+          <p className={styles.subtitle}>{DAILY_OPERATING_TODAY_SUBTITLE}</p>
         </header>
         <DailyOperatingBriefPanel
           brief={result.brief}
           attentionQueryFailed={result.attentionQueryFailed}
           tasksQueryFailed={result.tasksQueryFailed}
+          moduleNavVisibility={result.moduleAccess.navVisibility}
         />
       </div>
     </AppShell>

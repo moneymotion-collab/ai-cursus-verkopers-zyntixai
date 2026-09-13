@@ -1,5 +1,14 @@
 import Link from "next/link";
-import type { DailyOperatingBrief } from "@/features/daily-operating/domain/compose-daily-operating-brief";
+import {
+  DAILY_OPERATING_CALM_SUPPORTING,
+  DAILY_OPERATING_CALM_TITLE,
+  buildDailyOperatingModuleHref,
+  isDailyOperatingCalmState,
+  resolveDailyOperatingCalmActions,
+  type DailyOperatingBrief,
+} from "@/features/daily-operating/domain/compose-daily-operating-brief";
+import { PRODUCT_MODULE_BY_ID } from "@/features/product-access/domain/module-registry";
+import type { ModuleNavVisibility } from "@/features/product-access/domain/types";
 import { getAttentionSeverityLabel } from "@/features/attention/domain/severity";
 import styles from "./daily-operating-brief.module.css";
 
@@ -7,6 +16,7 @@ type DailyOperatingBriefPanelProps = {
   brief: DailyOperatingBrief;
   attentionQueryFailed: boolean;
   tasksQueryFailed: boolean;
+  moduleNavVisibility: ModuleNavVisibility;
 };
 
 function Section({
@@ -23,7 +33,7 @@ function Section({
   title: string;
   emptyTitle: string;
   emptyDescription: string;
-  viewAllHref: string;
+  viewAllHref: string | null;
   viewAllLabel: string;
   failed?: boolean;
   failedMessage?: string;
@@ -35,9 +45,11 @@ function Section({
     <section className={styles.section} aria-labelledby={headingId}>
       <div className={styles.sectionHeader}>
         <h2 id={headingId}>{title}</h2>
-        <Link className={styles.viewAll} href={viewAllHref}>
-          {viewAllLabel}
-        </Link>
+        {viewAllHref ? (
+          <Link className={styles.viewAll} href={viewAllHref}>
+            {viewAllLabel}
+          </Link>
+        ) : null}
       </div>
       {failed ? (
         <p className={styles.errorRow} role="alert">
@@ -55,13 +67,63 @@ function Section({
   );
 }
 
+function BriefRow({
+  href,
+  navigable,
+  children,
+}: {
+  href: string;
+  navigable: boolean;
+  children: React.ReactNode;
+}) {
+  if (!navigable) {
+    return <div className={styles.row}>{children}</div>;
+  }
+  return (
+    <Link className={styles.row} href={href}>
+      {children}
+    </Link>
+  );
+}
+
 export function DailyOperatingBriefPanel({
   brief,
   attentionQueryFailed,
   tasksQueryFailed,
+  moduleNavVisibility,
 }: DailyOperatingBriefPanelProps) {
-  const orgQs = `?org=${encodeURIComponent(brief.organizationId)}`;
   const showOrgAttention = brief.role === "owner" || brief.role === "admin";
+  const showCalm = isDailyOperatingCalmState({
+    hasAnyActionable: brief.hasAnyActionable,
+    attentionQueryFailed,
+    tasksQueryFailed,
+  });
+  const calmActions = showCalm
+    ? resolveDailyOperatingCalmActions({
+        navVisibility: moduleNavVisibility,
+        organizationId: brief.organizationId,
+      })
+    : [];
+  const attentionListHref = moduleNavVisibility.attention
+    ? buildDailyOperatingModuleHref(
+        PRODUCT_MODULE_BY_ID.attention.route,
+        brief.organizationId,
+      )
+    : null;
+  const overdueListHref = moduleNavVisibility.tasks
+    ? buildDailyOperatingModuleHref(
+        PRODUCT_MODULE_BY_ID.tasks.route,
+        brief.organizationId,
+        { dueState: "overdue" },
+      )
+    : null;
+  const dueTodayListHref = moduleNavVisibility.tasks
+    ? buildDailyOperatingModuleHref(
+        PRODUCT_MODULE_BY_ID.tasks.route,
+        brief.organizationId,
+        { dueState: "due_today" },
+      )
+    : null;
 
   return (
     <div className={styles.root}>
@@ -79,17 +141,19 @@ export function DailyOperatingBriefPanel({
         </div>
       )}
 
-      {!brief.hasAnyActionable && !attentionQueryFailed && !tasksQueryFailed ? (
+      {showCalm ? (
         <div className={styles.calmState} role="status">
-          <p className={styles.calmTitle}>You are clear for now.</p>
-          <p className={styles.calmDescription}>
-            Nothing urgent needs your attention and no assigned work is due today.
-          </p>
-          <div className={styles.calmLinks}>
-            <Link href={`/attention${orgQs}`}>Open Attention</Link>
-            <Link href={`/tasks${orgQs}`}>Open Tasks</Link>
-            <Link href={`/leads${orgQs}`}>Open Leads</Link>
-          </div>
+          <p className={styles.calmTitle}>{DAILY_OPERATING_CALM_TITLE}</p>
+          <p className={styles.calmDescription}>{DAILY_OPERATING_CALM_SUPPORTING}</p>
+          {calmActions.length > 0 ? (
+            <div className={styles.calmLinks}>
+              {calmActions.map((action) => (
+                <Link key={action.moduleId} href={action.href}>
+                  {action.label}
+                </Link>
+              ))}
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -98,7 +162,7 @@ export function DailyOperatingBriefPanel({
           title="Organization attention"
           emptyTitle="Nothing urgent needs organization attention."
           emptyDescription="Critical and high Attention for this organization will appear here."
-          viewAllHref={`/attention${orgQs}`}
+          viewAllHref={attentionListHref}
           viewAllLabel="View all Attention"
           failed={attentionQueryFailed}
           failedMessage="Unable to load Attention."
@@ -106,7 +170,7 @@ export function DailyOperatingBriefPanel({
         >
           {brief.organizationAttention.map((item) => (
             <li key={`org-att-${item.id}`}>
-              <Link className={styles.row} href={item.href}>
+              <BriefRow href={item.href} navigable={moduleNavVisibility.attention}>
                 <span className={styles.rowMain}>
                   <span className={styles.rowTitle}>{item.title}</span>
                   {item.contextLabel ? (
@@ -117,7 +181,7 @@ export function DailyOperatingBriefPanel({
                   <span className={styles.srOnly}>Severity </span>
                   {getAttentionSeverityLabel(item.severity)}
                 </span>
-              </Link>
+              </BriefRow>
             </li>
           ))}
         </Section>
@@ -127,7 +191,7 @@ export function DailyOperatingBriefPanel({
         title="Assigned to me — Attention"
         emptyTitle="No Attention is assigned to you."
         emptyDescription="Items assigned to you will appear here when they need action."
-        viewAllHref={`/attention${orgQs}`}
+        viewAllHref={attentionListHref}
         viewAllLabel="View all Attention"
         failed={attentionQueryFailed}
         failedMessage="Unable to load Attention."
@@ -135,7 +199,7 @@ export function DailyOperatingBriefPanel({
       >
         {brief.myAttention.map((item) => (
           <li key={`my-att-${item.id}`}>
-            <Link className={styles.row} href={item.href}>
+            <BriefRow href={item.href} navigable={moduleNavVisibility.attention}>
               <span className={styles.rowMain}>
                 <span className={styles.rowTitle}>{item.title}</span>
                 {item.contextLabel ? (
@@ -146,7 +210,7 @@ export function DailyOperatingBriefPanel({
                 <span className={styles.srOnly}>Severity </span>
                 {getAttentionSeverityLabel(item.severity)}
               </span>
-            </Link>
+            </BriefRow>
           </li>
         ))}
       </Section>
@@ -155,7 +219,7 @@ export function DailyOperatingBriefPanel({
         title="Overdue work"
         emptyTitle="No assigned work is overdue."
         emptyDescription="Open tasks assigned to you that are past due will appear here."
-        viewAllHref={`/tasks${orgQs}&dueState=overdue`}
+        viewAllHref={overdueListHref}
         viewAllLabel="View overdue tasks"
         failed={tasksQueryFailed}
         failedMessage="Unable to load Tasks."
@@ -163,12 +227,12 @@ export function DailyOperatingBriefPanel({
       >
         {brief.overdueTasks.map((item) => (
           <li key={`overdue-${item.id}`}>
-            <Link className={styles.row} href={item.href}>
+            <BriefRow href={item.href} navigable={moduleNavVisibility.tasks}>
               <span className={styles.rowMain}>
                 <span className={styles.rowTitle}>{item.title}</span>
                 <span className={styles.rowMeta}>Overdue</span>
               </span>
-            </Link>
+            </BriefRow>
           </li>
         ))}
       </Section>
@@ -177,7 +241,7 @@ export function DailyOperatingBriefPanel({
         title="Due today"
         emptyTitle="No work is due today."
         emptyDescription="Open tasks assigned to you and due today will appear here."
-        viewAllHref={`/tasks${orgQs}&dueState=due_today`}
+        viewAllHref={dueTodayListHref}
         viewAllLabel="View today’s tasks"
         failed={tasksQueryFailed}
         failedMessage="Unable to load Tasks."
@@ -185,12 +249,12 @@ export function DailyOperatingBriefPanel({
       >
         {brief.dueTodayTasks.map((item) => (
           <li key={`today-${item.id}`}>
-            <Link className={styles.row} href={item.href}>
+            <BriefRow href={item.href} navigable={moduleNavVisibility.tasks}>
               <span className={styles.rowMain}>
                 <span className={styles.rowTitle}>{item.title}</span>
                 <span className={styles.rowMeta}>Due today</span>
               </span>
-            </Link>
+            </BriefRow>
           </li>
         ))}
       </Section>

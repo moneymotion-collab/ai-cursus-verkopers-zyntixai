@@ -1,9 +1,24 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   composeDailyOperatingBrief,
   buildDailyOperatingHomePath,
+  buildDailyOperatingModuleHref,
   canSeeOrganizationAttention,
+  DAILY_OPERATING_CALM_ACTION_LIMIT,
+  DAILY_OPERATING_CALM_SUPPORTING,
+  DAILY_OPERATING_CALM_TITLE,
+  DAILY_OPERATING_TODAY_SUBTITLE,
+  isDailyOperatingCalmState,
+  resolveDailyOperatingCalmActions,
 } from "@/features/daily-operating/domain/compose-daily-operating-brief";
+import {
+  FAIL_CLOSED_MODULE_NAV_VISIBILITY,
+  buildUnresolvedProductModuleAccess,
+} from "@/features/product-access/domain/module-access";
+import { operatingModelNavVisibility } from "@/features/product-access/domain/operating-model-module-access";
+import type { ModuleNavVisibility } from "@/features/product-access/domain/types";
 import type { AttentionItemListItemReadModel } from "@/features/attention/domain/read-types";
 import type { TaskListItemReadModel } from "@/features/tasks/domain/read-types";
 
@@ -327,5 +342,207 @@ describe("composeDailyOperatingBrief", () => {
     });
 
     expect(brief.organizationAttention[0]?.contextLabel).toBe("Field tablet");
+  });
+});
+
+describe("daily operating calm truth and context-safe actions", () => {
+  const ALL_CALM_VISIBLE: ModuleNavVisibility = {
+    ...FAIL_CLOSED_MODULE_NAV_VISIBILITY,
+    attention: true,
+    tasks: true,
+    workOrders: true,
+    orders: true,
+    projects: true,
+    leads: true,
+  };
+
+  it("freezes the H1 calm copy and Today subtitle", () => {
+    expect(DAILY_OPERATING_CALM_TITLE).toBe(
+      "No priority attention or due work is showing in today\u2019s brief.",
+    );
+    expect(DAILY_OPERATING_CALM_SUPPORTING).toBe(
+      "This page lists priority Attention and due work in today\u2019s brief. Other items may exist elsewhere.",
+    );
+    expect(DAILY_OPERATING_TODAY_SUBTITLE).toBe(
+      "Priority Attention and due work in today\u2019s brief.",
+    );
+    expect(DAILY_OPERATING_CALM_TITLE).not.toContain("You are clear for now");
+    expect(DAILY_OPERATING_CALM_SUPPORTING).not.toContain("Everything is complete");
+    expect(DAILY_OPERATING_CALM_SUPPORTING).not.toContain("Nothing is assigned to you");
+    expect(DAILY_OPERATING_CALM_SUPPORTING).not.toContain("No work remains");
+    expect(DAILY_OPERATING_CALM_SUPPORTING).not.toContain("Your organization is healthy");
+  });
+
+  it("source-locks the Home page to the frozen Today subtitle", () => {
+    const page = readFileSync(
+      join(process.cwd(), "src/app/(authenticated)/home/page.tsx"),
+      "utf8",
+    );
+    expect(page).toContain("DAILY_OPERATING_TODAY_SUBTITLE");
+    expect(page).not.toContain(
+      "What needs attention and what you need to do next.",
+    );
+    expect(page).toContain(
+      "moduleNavVisibility={result.moduleAccess.navVisibility}",
+    );
+  });
+
+  it("shows calm only when both sources succeed and the brief is empty", () => {
+    expect(
+      isDailyOperatingCalmState({
+        hasAnyActionable: false,
+        attentionQueryFailed: false,
+        tasksQueryFailed: false,
+      }),
+    ).toBe(true);
+    expect(
+      isDailyOperatingCalmState({
+        hasAnyActionable: true,
+        attentionQueryFailed: false,
+        tasksQueryFailed: false,
+      }),
+    ).toBe(false);
+    expect(
+      isDailyOperatingCalmState({
+        hasAnyActionable: false,
+        attentionQueryFailed: true,
+        tasksQueryFailed: false,
+      }),
+    ).toBe(false);
+    expect(
+      isDailyOperatingCalmState({
+        hasAnyActionable: false,
+        attentionQueryFailed: false,
+        tasksQueryFailed: true,
+      }),
+    ).toBe(false);
+    expect(
+      isDailyOperatingCalmState({
+        hasAnyActionable: false,
+        attentionQueryFailed: true,
+        tasksQueryFailed: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("keeps organization context on Home module hrefs and does not invent org", () => {
+    expect(buildDailyOperatingModuleHref("/attention", ORG)).toBe(
+      `/attention?org=${ORG}`,
+    );
+    expect(
+      buildDailyOperatingModuleHref("/tasks", ORG, { dueState: "overdue" }),
+    ).toBe(`/tasks?org=${ORG}&dueState=overdue`);
+    expect(buildDailyOperatingModuleHref("/leads", "")).toBe("/leads");
+    expect(buildDailyOperatingModuleHref("/leads", "")).not.toContain("org=");
+    expect(buildDailyOperatingModuleHref("/leads", ORG)).not.toContain(OTHER_ORG);
+    expect(buildDailyOperatingModuleHref("/leads", "a&b=1")).toBe(
+      "/leads?org=a%26b%3D1",
+    );
+  });
+
+  it("builds at most three unique actions from server visibility, in contract order", () => {
+    const actions = resolveDailyOperatingCalmActions({
+      navVisibility: ALL_CALM_VISIBLE,
+      organizationId: ORG,
+    });
+    expect(actions).toHaveLength(DAILY_OPERATING_CALM_ACTION_LIMIT);
+    expect(actions.map((action) => action.moduleId)).toEqual([
+      "attention",
+      "tasks",
+      "workOrders",
+    ]);
+    expect(new Set(actions.map((action) => action.moduleId)).size).toBe(3);
+    expect(actions.some((action) => action.moduleId === "leads")).toBe(false);
+  });
+
+  it("omits hidden modules and unresolved Home-only visibility", () => {
+    const hiddenLeads = resolveDailyOperatingCalmActions({
+      navVisibility: {
+        ...FAIL_CLOSED_MODULE_NAV_VISIBILITY,
+        attention: true,
+        tasks: true,
+        leads: false,
+      },
+      organizationId: ORG,
+    });
+    expect(hiddenLeads.map((action) => action.moduleId)).toEqual([
+      "attention",
+      "tasks",
+    ]);
+    expect(hiddenLeads.some((action) => action.moduleId === "leads")).toBe(
+      false,
+    );
+
+    const unresolved = resolveDailyOperatingCalmActions({
+      navVisibility: buildUnresolvedProductModuleAccess().navVisibility,
+      organizationId: ORG,
+    });
+    expect(unresolved).toEqual([]);
+  });
+
+  it("maps course_seller visibility to Attention, Tasks, and Leads", () => {
+    const actions = resolveDailyOperatingCalmActions({
+      navVisibility: operatingModelNavVisibility("course_seller"),
+      organizationId: ORG,
+    });
+    expect(actions.map((action) => action.moduleId)).toEqual([
+      "attention",
+      "tasks",
+      "leads",
+    ]);
+    expect(actions.some((action) => action.moduleId === "projects")).toBe(false);
+    expect(actions.some((action) => action.moduleId === "workOrders")).toBe(
+      false,
+    );
+    expect(actions.some((action) => action.moduleId === "orders")).toBe(false);
+    expect(actions.every((action) => action.href.includes(`org=${ORG}`))).toBe(
+      true,
+    );
+  });
+
+  it("maps service visibility to Attention, Tasks, and Projects", () => {
+    const actions = resolveDailyOperatingCalmActions({
+      navVisibility: operatingModelNavVisibility("service"),
+      organizationId: ORG,
+    });
+    expect(actions.map((action) => action.moduleId)).toEqual([
+      "attention",
+      "tasks",
+      "projects",
+    ]);
+    expect(actions.some((action) => action.moduleId === "leads")).toBe(false);
+    expect(actions.some((action) => action.moduleId === "workOrders")).toBe(
+      false,
+    );
+  });
+
+  it("maps field_operations visibility to Attention, Tasks, and Work orders", () => {
+    const actions = resolveDailyOperatingCalmActions({
+      navVisibility: operatingModelNavVisibility("field_operations"),
+      organizationId: ORG,
+    });
+    expect(actions.map((action) => action.moduleId)).toEqual([
+      "attention",
+      "tasks",
+      "workOrders",
+    ]);
+    expect(actions.some((action) => action.moduleId === "leads")).toBe(false);
+    expect(actions[2]?.href).toBe(`/work-orders?org=${ORG}`);
+  });
+
+  it("maps product_operations visibility to Attention, Tasks, and Orders without Leads", () => {
+    const visibility = operatingModelNavVisibility("product_operations");
+    expect(visibility.leads).toBe(false);
+    const actions = resolveDailyOperatingCalmActions({
+      navVisibility: visibility,
+      organizationId: ORG,
+    });
+    expect(actions.map((action) => action.moduleId)).toEqual([
+      "attention",
+      "tasks",
+      "orders",
+    ]);
+    expect(actions.some((action) => action.moduleId === "leads")).toBe(false);
+    expect(actions[2]?.href).toBe(`/orders?org=${ORG}`);
   });
 });

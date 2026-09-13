@@ -8,9 +8,55 @@ import type { AttentionItemListItemReadModel } from "@/features/attention/domain
 import type { TaskListItemReadModel } from "@/features/tasks/domain/read-types";
 import { getAttentionSeverityRank } from "@/features/attention/domain/severity";
 import type { OrganizationRole } from "@/features/tasks/domain/permissions";
+import { PRODUCT_MODULE_BY_ID } from "@/features/product-access/domain/module-registry";
+import type { ModuleNavVisibility, ProductModuleId } from "@/features/product-access/domain/types";
 
 export const DAILY_OPERATING_ATTENTION_FETCH_LIMIT = 25;
 export const DAILY_OPERATING_SECTION_LIMIT = 5;
+
+/** Frozen H1 calm title. Bounded brief only — not organization health. */
+export const DAILY_OPERATING_CALM_TITLE =
+  "No priority attention or due work is showing in today\u2019s brief.";
+
+/** Frozen H1 calm supporting sentence. */
+export const DAILY_OPERATING_CALM_SUPPORTING =
+  "This page lists priority Attention and due work in today\u2019s brief. Other items may exist elsewhere.";
+
+/** Frozen Today subtitle. */
+export const DAILY_OPERATING_TODAY_SUBTITLE =
+  "Priority Attention and due work in today\u2019s brief.";
+
+export const DAILY_OPERATING_CALM_ACTION_LIMIT = 3;
+
+export const DAILY_OPERATING_ROLE_LABELS: Record<OrganizationRole, string> = {
+  owner: "Owner",
+  admin: "Admin",
+  staff: "Staff",
+  viewer: "Viewer",
+};
+
+/**
+ * Contract §8.3 order: Attention, Tasks, then the operating-model-specific
+ * third link. Visibility — not hardcoded operating-model IDs — selects which
+ * of work orders / orders / projects / leads is lawful.
+ */
+const CALM_ACTION_CANDIDATES = [
+  "attention",
+  "tasks",
+  "workOrders",
+  "orders",
+  "projects",
+  "leads",
+] as const satisfies readonly ProductModuleId[];
+
+export type DailyOperatingCalmActionModuleId =
+  (typeof CALM_ACTION_CANDIDATES)[number];
+
+export type DailyOperatingCalmAction = {
+  moduleId: DailyOperatingCalmActionModuleId;
+  href: string;
+  label: string;
+};
 
 export type DailyOperatingAttentionBucket =
   | "critical"
@@ -234,9 +280,81 @@ export function composeDailyOperatingBrief(input: {
 }
 
 export function buildDailyOperatingHomePath(organizationId: string): string {
-  return `/home?org=${encodeURIComponent(organizationId)}`;
+  return `/home${buildDailyOperatingOrgQuery(organizationId)}`;
 }
 
 export function isDailyOperatingHomePathname(pathname: string): boolean {
   return pathname === "/home" || pathname.startsWith("/home/");
+}
+
+export function formatDailyOperatingRoleLabel(role: OrganizationRole): string {
+  return DAILY_OPERATING_ROLE_LABELS[role];
+}
+
+export function isDailyOperatingCalmState(input: {
+  hasAnyActionable: boolean;
+  attentionQueryFailed: boolean;
+  tasksQueryFailed: boolean;
+}): boolean {
+  return (
+    !input.hasAnyActionable &&
+    !input.attentionQueryFailed &&
+    !input.tasksQueryFailed
+  );
+}
+
+/**
+ * Preserve the active organization on Home links. Empty organizationId does
+ * not invent a fallback org and does not append `org=`.
+ */
+export function buildDailyOperatingOrgQuery(
+  organizationId: string,
+  extra?: Record<string, string>,
+): string {
+  const params = new URLSearchParams();
+  if (organizationId) {
+    params.set("org", organizationId);
+  }
+  if (extra) {
+    for (const [key, value] of Object.entries(extra)) {
+      params.set(key, value);
+    }
+  }
+  const encoded = params.toString();
+  return encoded ? `?${encoded}` : "";
+}
+
+export function buildDailyOperatingModuleHref(
+  pathname: string,
+  organizationId: string,
+  extra?: Record<string, string>,
+): string {
+  return `${pathname}${buildDailyOperatingOrgQuery(organizationId, extra)}`;
+}
+
+export function resolveDailyOperatingCalmActions(input: {
+  navVisibility: ModuleNavVisibility;
+  organizationId: string;
+}): DailyOperatingCalmAction[] {
+  const actions: DailyOperatingCalmAction[] = [];
+
+  for (const moduleId of CALM_ACTION_CANDIDATES) {
+    if (actions.length >= DAILY_OPERATING_CALM_ACTION_LIMIT) {
+      break;
+    }
+    if (input.navVisibility[moduleId] !== true) {
+      continue;
+    }
+    const definition = PRODUCT_MODULE_BY_ID[moduleId];
+    if (!definition.implemented) {
+      continue;
+    }
+    actions.push({
+      moduleId,
+      href: buildDailyOperatingModuleHref(definition.route, input.organizationId),
+      label: `Open ${definition.label}`,
+    });
+  }
+
+  return actions;
 }
