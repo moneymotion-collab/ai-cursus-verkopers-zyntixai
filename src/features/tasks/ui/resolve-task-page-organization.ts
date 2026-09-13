@@ -13,7 +13,10 @@ import {
 } from "@/features/tasks/ui/resolve-task-organization-selection";
 import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
 import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
-import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
+import type {
+  ProductModuleAccessState,
+  ProductModuleId,
+} from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 
 export type TaskPageOrganizationResult =
@@ -34,6 +37,7 @@ export type TaskPageOrganizationResult =
 export async function resolveTaskPageOrganization(
   supabase: SupabaseClient<Database>,
   orgParam: string | undefined,
+  moduleId: ProductModuleId = "tasks",
 ): Promise<TaskPageOrganizationResult> {
   const {
     data: { user },
@@ -107,7 +111,7 @@ export async function resolveTaskPageOrganization(
     supabase,
   );
   const routeAccess = evaluateProductModuleRouteAccess({
-    moduleId: "tasks",
+    moduleId,
     access: moduleAccess,
   });
   if (!routeAccess.allowed) {

@@ -48,7 +48,11 @@ describe("P1-D app-shell product admission boundary", () => {
     );
     expect(home).toContain("loadDailyOperatingPage");
     expect(daily).toContain("resolveTaskPageOrganization");
+    expect(daily).toMatch(
+      /resolveTaskPageOrganization\(\s*supabase,\s*orgParam,\s*"home"\s*\)/,
+    );
     expect(tasks).toContain("redirectIfOrganizationOnboardingIncomplete");
+    expect(tasks).toMatch(/moduleId:\s*ProductModuleId\s*=\s*"tasks"/);
     expect(tasks).toMatch(
       /loadProductModuleAccess\(\s*selection\.organizationId,\s*supabase,?/,
     );

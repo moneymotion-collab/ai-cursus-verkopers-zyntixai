@@ -41,7 +41,7 @@ export async function loadDailyOperatingPage(
     ? rawSearchParams.org[0]
     : rawSearchParams.org;
 
-  const orgResult = await resolveTaskPageOrganization(supabase, orgParam);
+  const orgResult = await resolveTaskPageOrganization(supabase, orgParam, "home");
   if (orgResult.kind === "auth_required") {
     return { kind: "auth_required" };
   }

@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { loadDailyOperatingPage } from "@/features/daily-operating/server/load-daily-operating-page";
@@ -6,7 +8,16 @@ import { resolveTaskPageOrganization } from "@/features/tasks/ui/resolve-task-pa
 import { resolveOrganizationContext } from "@/features/organizations/server/resolve-organization-context";
 import { listAttentionItems } from "@/features/attention/server/attention-read-queries";
 import { listTasks } from "@/features/tasks/server/task-read-queries";
-import { mockKnowledgeProductModuleAccess } from "../product-access/module-access-fixtures";
+import {
+  mockKnowledgeProductModuleAccess,
+} from "../product-access/module-access-fixtures";
+import {
+  buildUnresolvedProductModuleAccess,
+} from "@/features/product-access/domain/module-access";
+import { PRODUCT_MODULE_BY_ID } from "@/features/product-access/domain/module-registry";
+import { evaluateProductModuleRouteAccess } from "@/features/product-access/server/enforce-product-module-access";
+import { buildOperatingModelProductModuleAccess } from "@/features/product-access/domain/operating-model-module-access";
+import type { OperatingModelId } from "@/features/onboarding/domain/operating-model";
 
 vi.mock("@/features/tasks/ui/resolve-task-page-organization", () => ({
   resolveTaskPageOrganization: vi.fn(),
@@ -306,12 +317,117 @@ describe("loadDailyOperatingPage", () => {
 
     await loadDailyOperatingPage(supabase(), { org: OTHER_ORG });
 
-    expect(resolveOrgMock).toHaveBeenCalledWith(expect.anything(), OTHER_ORG);
+    expect(resolveOrgMock).toHaveBeenCalledWith(
+      expect.anything(),
+      OTHER_ORG,
+      "home",
+    );
     expect(listAttentionMock).toHaveBeenCalledWith(
       expect.objectContaining({ organizationId: ORG }),
     );
     expect(listTasksMock).toHaveBeenCalledWith(
       expect.objectContaining({ organizationId: ORG }),
     );
+  });
+
+  it("does not load domain data when no membership exists", async () => {
+    resolveOrgMock.mockResolvedValue({ kind: "organization_unavailable" });
+    const result = await loadDailyOperatingPage(supabase(), {});
+    expect(result.kind).toBe("no_organizations");
+    expect(listAttentionMock).not.toHaveBeenCalled();
+    expect(listTasksMock).not.toHaveBeenCalled();
+  });
+
+  it("keeps organization selection required for multiple memberships", async () => {
+    resolveOrgMock.mockResolvedValue({
+      kind: "organization_required",
+      organizations: [
+        { organizationId: ORG, displayName: "Acme", role: "owner" },
+        { organizationId: OTHER_ORG, displayName: "Other", role: "staff" },
+      ],
+    });
+    const result = await loadDailyOperatingPage(supabase(), {});
+    expect(result.kind).toBe("organization_required");
+    if (result.kind !== "organization_required") return;
+    expect(result.organizations).toHaveLength(2);
+    expect(listAttentionMock).not.toHaveBeenCalled();
+    expect(listTasksMock).not.toHaveBeenCalled();
+  });
+
+  it("still composes Home when Tasks nav is hidden on the resolved payload", async () => {
+    resolveOrgMock.mockResolvedValue({
+      ...readyOrg("owner"),
+      moduleAccess: buildUnresolvedProductModuleAccess(),
+    });
+    resolveMembershipMock.mockResolvedValue(membershipOk("owner"));
+
+    const result = await loadDailyOperatingPage(supabase(), { org: ORG });
+    expect(result.kind).toBe("success");
+    if (result.kind !== "success") return;
+    expect(result.moduleAccess.navVisibility.home).toBe(true);
+    expect(result.moduleAccess.navVisibility.tasks).toBe(false);
+    expect(listAttentionMock).toHaveBeenCalled();
+    expect(listTasksMock).toHaveBeenCalled();
+  });
+});
+
+describe("B1-C1-H1-ADMISSION Home module authority", () => {
+  it("locks Home loader admission to existing moduleId home", () => {
+    const daily = readFileSync(
+      join(process.cwd(), "src/features/daily-operating/server/load-daily-operating-page.ts"),
+      "utf8",
+    );
+    const resolver = readFileSync(
+      join(process.cwd(), "src/features/tasks/ui/resolve-task-page-organization.ts"),
+      "utf8",
+    );
+    expect(daily).toMatch(
+      /resolveTaskPageOrganization\(\s*supabase,\s*orgParam,\s*"home"\s*\)/,
+    );
+    expect(daily).not.toMatch(
+      /resolveTaskPageOrganization\(\s*supabase,\s*orgParam\s*\)/,
+    );
+    expect(resolver).toMatch(/moduleId:\s*ProductModuleId\s*=\s*"tasks"/);
+    expect(resolver).toMatch(
+      /evaluateProductModuleRouteAccess\(\{\s*moduleId,/,
+    );
+    expect(resolver).not.toMatch(/moduleId:\s*"home"/);
+  });
+
+  it("uses the existing home ProductModuleId without adding a capability grant", () => {
+    expect(PRODUCT_MODULE_BY_ID.home.id).toBe("home");
+    expect(PRODUCT_MODULE_BY_ID.home.capabilityRequirement).toBeNull();
+    expect(PRODUCT_MODULE_BY_ID.home.route).toBe("/home");
+  });
+
+  it.each([
+    "course_seller",
+    "service",
+    "field_operations",
+    "product_operations",
+  ] as const satisfies readonly OperatingModelId[])(
+    "allows Home admission for completed resolved %s context",
+    (model) => {
+      const access = buildOperatingModelProductModuleAccess(model);
+      expect(
+        evaluateProductModuleRouteAccess({ moduleId: "home", access }).allowed,
+      ).toBe(true);
+    },
+  );
+
+  it("allows Home and denies Tasks when context is unresolved", () => {
+    const unresolved = buildUnresolvedProductModuleAccess();
+    expect(
+      evaluateProductModuleRouteAccess({
+        moduleId: "home",
+        access: unresolved,
+      }).allowed,
+    ).toBe(true);
+    expect(
+      evaluateProductModuleRouteAccess({
+        moduleId: "tasks",
+        access: unresolved,
+      }).allowed,
+    ).toBe(false);
   });
 });
