@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Alert } from "@/components/ui/alert";
 import {
   DAILY_OPERATING_CALM_SUPPORTING,
   DAILY_OPERATING_CALM_TITLE,
@@ -125,21 +126,21 @@ export function DailyOperatingBriefPanel({
       )
     : null;
 
+  const partialTitle = attentionQueryFailed && !tasksQueryFailed
+    ? "Attention could not be loaded. Task items below may still be accurate."
+    : tasksQueryFailed && !attentionQueryFailed
+      ? "Tasks could not be loaded. Attention items below may still be accurate."
+      : attentionQueryFailed && tasksQueryFailed
+        ? "Some operating data could not be loaded."
+        : null;
+
   return (
     <div className={styles.root}>
-      {(attentionQueryFailed || tasksQueryFailed) && (
-        <div className={styles.partialWarning} role="status">
-          {attentionQueryFailed && !tasksQueryFailed
-            ? "Attention could not be loaded. Task items below may still be accurate."
-            : null}
-          {tasksQueryFailed && !attentionQueryFailed
-            ? "Tasks could not be loaded. Attention items below may still be accurate."
-            : null}
-          {attentionQueryFailed && tasksQueryFailed
-            ? "Some operating data could not be loaded."
-            : null}
+      {partialTitle ? (
+        <div className={styles.partialWarning}>
+          <Alert variant="warning" title={partialTitle} />
         </div>
-      )}
+      ) : null}
 
       {showCalm ? (
         <div className={styles.calmState} role="status">

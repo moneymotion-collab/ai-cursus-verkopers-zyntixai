@@ -4,17 +4,12 @@
 }
 
 .partialWarning {
-  border: 1px solid #b45309;
-  background: #fffbeb;
-  color: #92400e;
-  border-radius: 0.75rem;
-  padding: 0.875rem 1rem;
-  margin: 0;
+  min-width: 0;
 }
 
 .calmState {
   border: 1px solid var(--border-color);
-  border-radius: 0.75rem;
+  border-radius: var(--surface-radius);
   padding: 1.25rem;
   background: var(--surface-color);
   display: grid;
@@ -25,11 +20,13 @@
   margin: 0;
   font-size: 1.125rem;
   font-weight: 650;
+  overflow-wrap: anywhere;
 }
 
 .calmDescription {
   margin: 0;
   color: var(--muted-text);
+  overflow-wrap: anywhere;
 }
 
 .calmLinks {
@@ -40,15 +37,27 @@
 }
 
 .calmLinks a {
-  min-height: 2.5rem;
+  min-height: var(--control-min-height);
   display: inline-flex;
   align-items: center;
-  text-decoration: underline;
+  justify-content: center;
+  padding: 0.375rem 0.875rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: var(--control-radius);
+  background: var(--surface-color);
+  color: var(--text-color);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.calmLinks a:hover {
+  border-color: var(--focus-color);
 }
 
 .section {
+  min-width: 0;
   border: 1px solid var(--border-color);
-  border-radius: 0.75rem;
+  border-radius: var(--surface-radius);
   padding: 1rem;
   background: var(--surface-color);
   display: grid;
@@ -66,13 +75,14 @@
 .sectionHeader h2 {
   margin: 0;
   font-size: 1.05rem;
+  overflow-wrap: anywhere;
 }
 
 .viewAll {
-  min-height: 2.5rem;
+  min-height: var(--control-min-height);
   display: inline-flex;
   align-items: center;
-  color: inherit;
+  color: var(--link-color);
 }
 
 .empty {
@@ -83,11 +93,13 @@
 .emptyTitle {
   margin: 0;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .emptyDescription {
   margin: 0;
   color: var(--muted-text);
+  overflow-wrap: anywhere;
 }
 
 .list {
@@ -103,9 +115,9 @@
   gap: 0.75rem;
   align-items: flex-start;
   justify-content: space-between;
-  min-height: 2.75rem;
+  min-height: var(--control-min-height);
   padding: 0.75rem;
-  border-radius: 0.5rem;
+  border-radius: var(--control-radius);
   border: 1px solid transparent;
   text-decoration: none;
   color: inherit;
@@ -114,7 +126,7 @@
 .row:hover,
 .row:focus-visible {
   border-color: var(--border-color);
-  background: color-mix(in srgb, var(--surface-color) 88%, #2563eb 12%);
+  background: color-mix(in srgb, var(--surface-color) 88%, var(--focus-color) 12%);
 }
 
 .row:focus-visible {
@@ -171,6 +183,7 @@
 .errorRow {
   color: #991b1b;
   padding: 0.5rem 0.25rem;
+  overflow-wrap: anywhere;
 }
 
 .srOnly {
@@ -210,8 +223,21 @@
 .orgList a {
   display: inline-flex;
   align-items: center;
-  min-height: 2.5rem;
+  min-height: var(--control-min-height);
   text-decoration: underline;
+}
+
+@media (min-width: 960px) {
+  .root {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .partialWarning,
+  .calmState {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 640px) {
@@ -222,5 +248,9 @@
 
   .severity {
     align-self: flex-start;
+  }
+
+  .calmLinks a {
+    max-width: 100%;
   }
 }

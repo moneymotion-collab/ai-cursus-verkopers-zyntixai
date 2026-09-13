@@ -1,8 +1,8 @@
 import { Alert } from "@/components/ui/alert";
 import { AppShell } from "@/components/app-shell";
 import {
+  DAILY_OPERATING_ROLE_LABELS,
   DAILY_OPERATING_TODAY_SUBTITLE,
-  formatDailyOperatingRoleLabel,
 } from "@/features/daily-operating/domain/compose-daily-operating-brief";
 import { loadDailyOperatingPage } from "@/features/daily-operating/server/load-daily-operating-page";
 import { DailyOperatingBriefPanel } from "@/features/daily-operating/ui/daily-operating-brief";
@@ -71,6 +71,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       organization.organizationId === result.selectedOrganizationId,
   );
   const organizationDisplayName = selectedOrganization?.displayName ?? null;
+  const roleLabel = DAILY_OPERATING_ROLE_LABELS[result.role] ?? null;
 
   return (
     <AppShell
@@ -83,14 +84,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     >
       <div className={styles.page}>
         <header className={styles.pageHeader}>
-          <h1>Today</h1>
           {organizationDisplayName ? (
-            <p className={styles.subtitle}>
+            <p className={styles.kicker}>
               {organizationDisplayName}
-              {" · "}
-              {formatDailyOperatingRoleLabel(result.role)}
+              {roleLabel ? ` · ${roleLabel}` : null}
             </p>
           ) : null}
+          <h1>Today</h1>
           <p className={styles.subtitle}>{DAILY_OPERATING_TODAY_SUBTITLE}</p>
         </header>
         <DailyOperatingBriefPanel

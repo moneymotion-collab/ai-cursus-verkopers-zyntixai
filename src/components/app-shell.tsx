@@ -87,6 +87,11 @@ export type AppShellProps = {
    */
   socialNavVisible?: boolean;
   activeNav?: AppShellActiveNav;
+  /**
+   * Home loading honesty. `"pending"` hides Primary nav so FAIL_CLOSED is not
+   * presented as a finished product. Default keeps every other page unchanged.
+   */
+  navigationPresentation?: "resolved" | "pending";
 };
 
 function PrimaryNavFallback({
@@ -416,6 +421,7 @@ export function AppShell({
   membersNavVisible,
   socialNavVisible,
   activeNav = "tasks",
+  navigationPresentation = "resolved",
 }: AppShellProps) {
   const showOrgSelector = organizationOptions.length > 1;
   const showMembersNav = resolveMembersNavVisible({
@@ -424,68 +430,102 @@ export function AppShell({
     selectedOrganizationId,
   });
   const supportMailto = resolveClosedBetaSupportMailto();
+  const navigationPending = navigationPresentation === "pending";
+
+  const resolvedNav = (key: string) =>
+    navigationPending ? null : (
+      <Suspense
+        key={key}
+        fallback={
+          <PrimaryNavFallback
+            selectedOrganizationId={selectedOrganizationId}
+            socialNavVisible={socialNavVisible}
+            showMembersNav={showMembersNav}
+            moduleNavVisibility={moduleNavVisibility}
+            terminology={terminology}
+            activeNav={activeNav}
+          />
+        }
+      >
+        <PrimaryNav
+          selectedOrganizationId={selectedOrganizationId}
+          socialNavVisible={socialNavVisible}
+          showMembersNav={showMembersNav}
+          moduleNavVisibility={moduleNavVisibility}
+          terminology={terminology}
+          activeNav={activeNav}
+        />
+      </Suspense>
+    );
+
+  const shellActions = (organizationSelectId: string) => (
+    <div className={styles.headerActions}>
+      {showOrgSelector ? (
+        <form className={styles.orgForm} method="get" action={organizationSelectorAction}>
+          <label className={styles.orgLabel} htmlFor={organizationSelectId}>
+            Organization
+          </label>
+          <select
+            id={organizationSelectId}
+            name="org"
+            className={styles.orgSelect}
+            defaultValue={selectedOrganizationId}
+            aria-label="Select organization"
+          >
+            {organizationOptions.map((option) => (
+              <option key={option.organizationId} value={option.organizationId}>
+                {option.displayName}
+              </option>
+            ))}
+          </select>
+          <button type="submit" className={styles.orgSubmit}>
+            Switch
+          </button>
+        </form>
+      ) : null}
+      <form action={logoutAction} className={styles.logoutForm}>
+        <button type="submit" className={styles.logoutButton}>
+          Log out
+        </button>
+      </form>
+    </div>
+  );
 
   return (
     <div className={styles.shell}>
+      <a className={styles.skipLink} href="#main-content">
+        Skip to main content
+      </a>
       <header className={styles.header}>
         <div className={styles.headerInner}>
           <div className={styles.brandBlock}>
             <p className={styles.brand}>ZyntixAI</p>
-            <Suspense
-              fallback={
-                <PrimaryNavFallback
-                  selectedOrganizationId={selectedOrganizationId}
-                  socialNavVisible={socialNavVisible}
-                  showMembersNav={showMembersNav}
-                  moduleNavVisibility={moduleNavVisibility}
-                  terminology={terminology}
-                  activeNav={activeNav}
-                />
-              }
-            >
-              <PrimaryNav
-                selectedOrganizationId={selectedOrganizationId}
-                socialNavVisible={socialNavVisible}
-                showMembersNav={showMembersNav}
-                moduleNavVisibility={moduleNavVisibility}
-                terminology={terminology}
-                activeNav={activeNav}
-              />
-            </Suspense>
-          </div>
-          <div className={styles.headerActions}>
-            {showOrgSelector ? (
-              <form className={styles.orgForm} method="get" action={organizationSelectorAction}>
-                <label className={styles.orgLabel} htmlFor="organization-selector">
-                  Organization
-                </label>
-                <select
-                  id="organization-selector"
-                  name="org"
-                  className={styles.orgSelect}
-                  defaultValue={selectedOrganizationId}
-                  aria-label="Select organization"
-                >
-                  {organizationOptions.map((option) => (
-                    <option key={option.organizationId} value={option.organizationId}>
-                      {option.displayName}
-                    </option>
-                  ))}
-                </select>
-                <button type="submit" className={styles.orgSubmit}>
-                  Switch
-                </button>
-              </form>
+            {navigationPending ? (
+              <p className={styles.navPending} role="status">
+                Loading workspace…
+              </p>
             ) : null}
-            <form action={logoutAction} className={styles.logoutForm}>
-              <button type="submit" className={styles.logoutButton}>
-                Log out
-              </button>
-            </form>
           </div>
+          {navigationPending ? (
+            shellActions("organization-selector")
+          ) : (
+            <>
+              <div className={styles.desktopCluster}>
+                {resolvedNav("desktop-nav")}
+                {shellActions("organization-selector")}
+              </div>
+              <details className={styles.navDisclosure}>
+                <summary className={styles.menuTrigger}>Menu</summary>
+                <div className={styles.navCluster}>
+                  {resolvedNav("mobile-nav")}
+                  {shellActions("organization-selector-mobile")}
+                </div>
+              </details>
+            </>
+          )}
         </div>
       </header>
-      <main id="main-content" className={styles.main}>
+      <main id="main-content" className={styles.main} tabIndex={-1}>
         {children}
       </main>
       {supportMailto ? (

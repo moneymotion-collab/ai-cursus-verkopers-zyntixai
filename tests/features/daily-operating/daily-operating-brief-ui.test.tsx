@@ -403,4 +403,79 @@ describe("DailyOperatingBriefPanel", () => {
     expect(page).not.toContain('"use client"');
     expect(page).toContain("result.moduleAccess.navVisibility");
   });
+
+  it("keeps the four operational sections, severity text, and status semantics", () => {
+    const html = renderPanel({ moduleNavVisibility: COURSE_NAV });
+    expect(html).toContain(">Organization attention</h2>");
+    expect(html).toContain(">Assigned to me — Attention</h2>");
+    expect(html).toContain(">Overdue work</h2>");
+    expect(html).toContain(">Due today</h2>");
+    expect(html).not.toContain("<canvas");
+    expect(html).not.toContain("<svg");
+    expect(html).not.toContain("KPI");
+  });
+
+  it("keeps partial warnings as status and section failures as alerts", () => {
+    const html = renderPanel({
+      moduleNavVisibility: ATTENTION_TASKS_NAV,
+      attentionQueryFailed: true,
+      tasksQueryFailed: false,
+    });
+    expect(html).toContain('role="status"');
+    expect(html).toContain('role="alert"');
+    expect(html).not.toContain(DAILY_OPERATING_CALM_TITLE);
+  });
+
+  it("source-locks the 960px two-column grid, wrap, and control height contract", () => {
+    const css = readFileSync(
+      join(
+        process.cwd(),
+        "src/features/daily-operating/ui/daily-operating-brief.module.css",
+      ),
+      "utf8",
+    );
+    const loadingCss = readFileSync(
+      join(process.cwd(), "src/app/(authenticated)/home/loading.module.css"),
+      "utf8",
+    );
+    expect(css).toContain("@media (min-width: 960px)");
+    expect(css).toContain("minmax(0, 1fr) minmax(0, 1fr)");
+    expect(css).toContain("min-height: var(--control-min-height)");
+    expect(css).toContain("overflow-wrap: anywhere");
+    expect(css).not.toContain("max-width: 56rem");
+    expect(loadingCss).not.toContain("max-width: 56rem");
+    expect(loadingCss).toContain("@media (min-width: 960px)");
+  });
+
+  it("source-locks the Home header to kicker, one Today h1, and no calendar date", () => {
+    const page = readFileSync(
+      join(process.cwd(), "src/app/(authenticated)/home/page.tsx"),
+      "utf8",
+    );
+    expect(page).toContain("styles.kicker");
+    expect(page).toContain("<h1>Today</h1>");
+    expect(page).toContain("DAILY_OPERATING_TODAY_SUBTITLE");
+    expect(page).not.toContain("DateTimeFormat");
+    expect(page).not.toContain("result.timeZone");
+    expect(page.indexOf("styles.kicker")).toBeLessThan(page.indexOf("<h1>Today</h1>"));
+  });
+});
+
+describe("Home loading honesty", () => {
+  it("uses frozen subtitle, pending copy, and no invented workspace identity", async () => {
+    const { default: HomeLoading } = await import(
+      "@/app/(authenticated)/home/loading"
+    );
+    const html = renderToStaticMarkup(<HomeLoading />);
+    expect(html).toContain("Today");
+    expect(html).toContain("Priority Attention and due work in today\u2019s brief.");
+    expect(html).toContain("Loading today’s brief…");
+    expect(html).toContain("Loading workspace…");
+    expect(html).not.toContain("What needs attention and what you need to do next.");
+    expect(html).not.toContain("You are clear for now");
+    expect(html).not.toContain("Open Attention");
+    expect(html).not.toContain('aria-label="Primary"');
+    expect(html).not.toContain(" · Owner");
+    expect((html.match(/<h1\b/g) ?? []).length).toBe(1);
+  });
 });
