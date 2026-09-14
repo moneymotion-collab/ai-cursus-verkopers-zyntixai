@@ -114,7 +114,7 @@ test.describe("B1-C5 Production product polish — desktop", () => {
       timeout: 30_000,
     });
     await expect(
-      page.getByText("What needs attention and what you need to do next."),
+      page.getByText("Priority Attention and due work in today\u2019s brief."),
     ).toBeVisible();
   });
 });

@@ -24,7 +24,7 @@ export async function expectDailyOperatingShell(page: Page) {
   });
   await expect(page.getByText("Loading today’s brief…")).toHaveCount(0);
   await expect(
-    page.getByText("What needs attention and what you need to do next."),
+    page.getByText("Priority Attention and due work in today\u2019s brief."),
   ).toBeVisible();
 }
 
