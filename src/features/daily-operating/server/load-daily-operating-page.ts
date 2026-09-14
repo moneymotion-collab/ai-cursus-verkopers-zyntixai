@@ -1,6 +1,8 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { AttentionItemListItemReadModel } from "@/features/attention/domain/read-types";
+import type { AttentionSeverity } from "@/features/attention/domain/types";
 import { listAttentionItems } from "@/features/attention/server/attention-read-queries";
 import { listTasks } from "@/features/tasks/server/task-read-queries";
 import { resolveOrganizationContext } from "@/features/organizations/server/resolve-organization-context";
@@ -9,8 +11,8 @@ import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organi
 import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
 import type { Database } from "@/types/database";
 import {
+  canSeeOrganizationAttention,
   composeDailyOperatingBrief,
-  DAILY_OPERATING_ATTENTION_FETCH_LIMIT,
   DAILY_OPERATING_SECTION_LIMIT,
   type DailyOperatingBrief,
 } from "@/features/daily-operating/domain/compose-daily-operating-brief";
@@ -32,6 +34,42 @@ export type DailyOperatingPageResult =
       tasksQueryFailed: boolean;
       moduleAccess: ProductModuleAccessState;
     };
+
+const HOME_ATTENTION_STATUSES = ["open", "acknowledged"] as const;
+const ORGANIZATION_ATTENTION_SEVERITIES = [
+  "critical",
+  "high",
+] as const satisfies readonly AttentionSeverity[];
+const ASSIGNED_ATTENTION_SEVERITIES = [
+  "critical",
+  "high",
+  "medium",
+  "low",
+] as const satisfies readonly AttentionSeverity[];
+
+type AttentionListResult = Awaited<ReturnType<typeof listAttentionItems>>;
+
+function mergeAttentionListResults(results: AttentionListResult[]): {
+  items: AttentionItemListItemReadModel[];
+  failed: boolean;
+} {
+  let failed = false;
+  const byId = new Map<string, AttentionItemListItemReadModel>();
+
+  for (const result of results) {
+    if (!result.ok) {
+      failed = true;
+      continue;
+    }
+    for (const item of result.data.items) {
+      if (!byId.has(item.id)) {
+        byId.set(item.id, item);
+      }
+    }
+  }
+
+  return { items: [...byId.values()], failed };
+}
 
 export async function loadDailyOperatingPage(
   supabase: SupabaseClient<Database>,
@@ -76,17 +114,40 @@ export async function loadDailyOperatingPage(
   const organizationId = orgResult.organizationId;
   const timeZone = orgResult.timeZone;
 
-  const [attentionResult, overdueResult, dueTodayResult] = await Promise.all([
-    listAttentionItems({
+  function listHomeAttention(filters: {
+    severity: AttentionSeverity;
+    assigneeMemberId?: string;
+  }) {
+    return listAttentionItems({
       supabase,
       organizationId,
       filters: {
-        status: ["open", "acknowledged"],
+        status: [...HOME_ATTENTION_STATUSES],
         includeArchived: false,
+        severity: filters.severity,
+        ...(filters.assigneeMemberId
+          ? { assigneeMemberId: filters.assigneeMemberId }
+          : {}),
       },
-      pagination: { page: 1, pageSize: DAILY_OPERATING_ATTENTION_FETCH_LIMIT },
-      sort: { field: "severity", direction: "desc" },
-    }),
+      pagination: { page: 1, pageSize: DAILY_OPERATING_SECTION_LIMIT },
+      sort: { field: "last_detected_at", direction: "desc" },
+    });
+  }
+
+  const organizationAttentionQueries = canSeeOrganizationAttention(orgResult.role)
+    ? ORGANIZATION_ATTENTION_SEVERITIES.map((severity) =>
+        listHomeAttention({ severity }),
+      )
+    : [];
+  const assignedAttentionQueries = ASSIGNED_ATTENTION_SEVERITIES.map(
+    (severity) =>
+      listHomeAttention({
+        severity,
+        assigneeMemberId: membershipId,
+      }),
+  );
+
+  const [overdueResult, dueTodayResult, ...attentionResults] = await Promise.all([
     listTasks({
       supabase,
       organizationId,
@@ -111,9 +172,12 @@ export async function loadDailyOperatingPage(
       pagination: { page: 1, pageSize: DAILY_OPERATING_SECTION_LIMIT },
       sort: { field: "due_at", direction: "asc" },
     }),
+    ...organizationAttentionQueries,
+    ...assignedAttentionQueries,
   ]);
 
-  const attentionQueryFailed = !attentionResult.ok;
+  const attentionMerge = mergeAttentionListResults(attentionResults);
+  const attentionQueryFailed = attentionMerge.failed;
   const tasksQueryFailed = !overdueResult.ok || !dueTodayResult.ok;
 
   if (attentionQueryFailed && tasksQueryFailed) {
@@ -127,7 +191,7 @@ export async function loadDailyOperatingPage(
     organizationId,
     membershipId,
     role: orgResult.role,
-    attentionItems: attentionResult.ok ? attentionResult.data.items : [],
+    attentionItems: attentionMerge.items,
     overdueTasks: overdueResult.ok ? overdueResult.data.items : [],
     dueTodayTasks: dueTodayResult.ok ? dueTodayResult.data.items : [],
   });

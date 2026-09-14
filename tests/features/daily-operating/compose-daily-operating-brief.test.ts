@@ -9,6 +9,7 @@ import {
   DAILY_OPERATING_CALM_ACTION_LIMIT,
   DAILY_OPERATING_CALM_SUPPORTING,
   DAILY_OPERATING_CALM_TITLE,
+  DAILY_OPERATING_SECTION_LIMIT,
   DAILY_OPERATING_TODAY_SUBTITLE,
   isDailyOperatingCalmState,
   resolveDailyOperatingCalmActions,
@@ -79,9 +80,13 @@ function task(
       dueToday?: boolean;
     },
 ): TaskListItemReadModel {
-  const overdue = overrides.overdue ?? false;
-  const dueToday = overrides.dueToday ?? false;
-  const { overdue: _o, dueToday: _d, ...rest } = overrides;
+  const {
+    overdue: overdueFlag,
+    dueToday: dueTodayFlag,
+    ...rest
+  } = overrides;
+  const overdue = overdueFlag ?? false;
+  const dueToday = dueTodayFlag ?? false;
   return {
     organizationId: ORG,
     status: "open",
@@ -314,6 +319,92 @@ describe("composeDailyOperatingBrief", () => {
       ...brief.overdueTasks.map((row) => row.id),
       ...brief.dueTodayTasks.map((row) => row.id),
     ]).size).toBe(5);
+  });
+
+  it("breaks Attention ties by id after severity rank and lastDetectedAt", () => {
+    const brief = composeDailyOperatingBrief({
+      organizationId: ORG,
+      membershipId: ME,
+      role: "owner",
+      attentionItems: [
+        attention({
+          id: "tie-b",
+          severity: "critical",
+          title: "Tie B",
+          lastDetectedAt: "2026-08-19T10:00:00.000Z",
+        }),
+        attention({
+          id: "tie-a",
+          severity: "critical",
+          title: "Tie A",
+          lastDetectedAt: "2026-08-19T10:00:00.000Z",
+        }),
+      ],
+      overdueTasks: [],
+      dueTodayTasks: [],
+    });
+
+    expect(brief.organizationAttention.map((row) => row.id)).toEqual([
+      "tie-a",
+      "tie-b",
+    ]);
+  });
+
+  it("applies the section display cap after selecting relevant Attention", () => {
+    const brief = composeDailyOperatingBrief({
+      organizationId: ORG,
+      membershipId: ME,
+      role: "owner",
+      attentionItems: Array.from({ length: 8 }, (_, index) =>
+        attention({
+          id: `org-${String(index).padStart(2, "0")}`,
+          severity: "critical",
+          title: `Org ${index}`,
+          lastDetectedAt: `2026-08-19T1${index}:00:00.000Z`,
+        }),
+      ),
+      overdueTasks: [],
+      dueTodayTasks: [],
+    });
+
+    expect(brief.organizationAttention).toHaveLength(DAILY_OPERATING_SECTION_LIMIT);
+    expect(brief.organizationAttention.map((row) => row.id)).toEqual([
+      "org-07",
+      "org-06",
+      "org-05",
+      "org-04",
+      "org-03",
+    ]);
+  });
+
+  it("keeps overdue and due-today mutually exclusive after the display cap", () => {
+    const brief = composeDailyOperatingBrief({
+      organizationId: ORG,
+      membershipId: ME,
+      role: "owner",
+      attentionItems: [],
+      overdueTasks: [
+        task({ id: "overdue-keep", title: "Overdue", overdue: true }),
+        task({
+          id: "today-misfiled",
+          title: "Today misfiled",
+          dueToday: true,
+          overdue: false,
+        }),
+      ],
+      dueTodayTasks: [
+        task({ id: "today-keep", title: "Today", dueToday: true }),
+        task({
+          id: "overdue-misfiled",
+          title: "Overdue misfiled",
+          overdue: true,
+          dueToday: false,
+        }),
+      ],
+    });
+
+    expect(brief.overdueTasks.map((row) => row.id)).toEqual(["overdue-keep"]);
+    expect(brief.dueTodayTasks.map((row) => row.id)).toEqual(["today-keep"]);
   });
 
   it("uses the Product name as Home context for inventory Attention", () => {

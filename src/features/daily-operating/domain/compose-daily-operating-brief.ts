@@ -11,7 +11,6 @@ import type { OrganizationRole } from "@/features/tasks/domain/permissions";
 import { PRODUCT_MODULE_BY_ID } from "@/features/product-access/domain/module-registry";
 import type { ModuleNavVisibility, ProductModuleId } from "@/features/product-access/domain/types";
 
-export const DAILY_OPERATING_ATTENTION_FETCH_LIMIT = 25;
 export const DAILY_OPERATING_SECTION_LIMIT = 5;
 
 /** Frozen H1 calm title. Bounded brief only — not organization health. */
@@ -121,7 +120,11 @@ function compareAttentionRows(
   if (severityDelta !== 0) {
     return severityDelta;
   }
-  return right.lastDetectedAt.localeCompare(left.lastDetectedAt);
+  const detectedDelta = right.lastDetectedAt.localeCompare(left.lastDetectedAt);
+  if (detectedDelta !== 0) {
+    return detectedDelta;
+  }
+  return left.id.localeCompare(right.id);
 }
 
 function toAttentionRow(
