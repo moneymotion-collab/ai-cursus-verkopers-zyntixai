@@ -71,9 +71,13 @@ describe("B1.5.8 Programs and Enrollments stale-copy remediation", () => {
       "Progress tracking within this enrollment is deferred to a later phase.",
     );
     expect(enrollmentDetail).not.toContain("deferred to a later phase");
-    expect(enrollmentDetail).toContain(
-      "Progress for this enrollment is recorded and reviewed in the Progress workspace.",
-    );
+    // B1-C4 replaced the B1.6.4 boundary sentence with operational Progress
+    // on enrollment detail. Progress remains a live workspace via gated links.
+    expect(enrollmentDetail).toContain('id="enrollment-progress-title"');
+    expect(enrollmentDetail).toContain("Last meaningful progress");
+    expect(enrollmentDetail).toContain("viewProgressHref");
+    expect(enrollmentDetail).toContain("View progress");
+    expect(enrollmentDetail).toMatch(/progressLinks\s*\?/);
 
     expect(programDetail).not.toContain("Progress tracking remains deferred to a later phase");
     expect(programDetail).not.toContain("deferred to a later phase");

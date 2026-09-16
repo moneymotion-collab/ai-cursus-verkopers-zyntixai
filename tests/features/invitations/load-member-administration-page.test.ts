@@ -215,18 +215,24 @@ describe("loadMemberAdministrationPage authorization", () => {
       ok: true,
       memberships: [{ organizationId: ORG_ID, role: "owner" }],
     });
-    resolveOrgContextMock.mockResolvedValue(readyContext("owner"));
 
     const result = await loadMemberAdministrationPage(createSupabase(), {
       org: OTHER_ORG,
     });
 
-    // Single-org membership: invalid foreign org is ignored; selection stays on the only org.
-    expect(resolveOrgContextMock).toHaveBeenCalledWith({
-      supabase: expect.anything(),
-      organizationId: ORG_ID,
-    });
-    expect(result.kind).toBe("success");
+    // Single-org membership: a foreign org query must not silently serve
+    // the only membership or load privileged member/invitation data.
+    expect(result.kind).toBe("organization_required");
+    if (result.kind !== "organization_required") return;
+    expect(result.organizations).toEqual([
+      expect.objectContaining({ organizationId: ORG_ID, role: "owner" }),
+    ]);
+    expect(
+      result.organizations.some((organization) => organization.organizationId === OTHER_ORG),
+    ).toBe(false);
+    expect(resolveOrgContextMock).not.toHaveBeenCalled();
+    expect(loadMembersMock).not.toHaveBeenCalled();
+    expect(loadInvitationsMock).not.toHaveBeenCalled();
   });
 
   it("requires explicit org selection for multi-org without trusting client alone", async () => {
