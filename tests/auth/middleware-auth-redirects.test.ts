@@ -114,6 +114,26 @@ describe("updateSession protected-route redirects", () => {
     expect(response.headers.get("location")).toBeNull();
   });
 
+  it("does not redirect logged-out visitors away from public /", async () => {
+    getUserMock.mockResolvedValue({ data: { user: null }, error: null });
+
+    const request = new NextRequest("http://localhost:3000/");
+    const response = await updateSession(request);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+  });
+
+  it("still redirects logged-out /home visits to login with a safe return path", async () => {
+    getUserMock.mockResolvedValue({ data: { user: null }, error: null });
+
+    const request = new NextRequest("http://localhost:3000/home");
+    const response = await updateSession(request);
+    expect(response.status).toBe(307);
+    const location = new URL(response.headers.get("location") ?? "");
+    expect(location.pathname).toBe("/login");
+    expect(location.searchParams.get("next")).toBe("/home");
+  });
+
   it("allows anonymous /register when public registration is enabled", async () => {
     process.env.PUBLIC_REGISTRATION_ENABLED = "true";
     getUserMock.mockResolvedValue({ data: { user: null }, error: null });

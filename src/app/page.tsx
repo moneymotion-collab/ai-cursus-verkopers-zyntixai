@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { resolveAuthenticatedEntryPath } from "@/features/auth/server/resolve-registration-destination";
 import { readInvitationCookiesFromStore } from "@/features/invitations/server/resolve-invitation-auth-state";
+import { PublicHomepage } from "@/features/public-web/ui/public-homepage";
+
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const supabase = await createSupabaseServerClient();
@@ -11,7 +14,7 @@ export default async function HomePage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    return <PublicHomepage />;
   }
 
   const cookieStore = await cookies();

@@ -9,6 +9,7 @@ const getUserMock = vi.hoisted(() => vi.fn());
 const createServerClientMock = vi.hoisted(() => vi.fn());
 const listMembershipsMock = vi.hoisted(() => vi.fn());
 const cookiesGetMock = vi.hoisted(() => vi.fn());
+const lifecycleMock = vi.hoisted(() => vi.fn());
 
 vi.mock("next/headers", () => ({
   cookies: async () => ({
@@ -33,6 +34,10 @@ vi.mock("@/features/organizations/server/resolve-organization-context", () => ({
   listActiveOrganizationMemberships: listMembershipsMock,
 }));
 
+vi.mock("@/features/onboarding/server/resolve-onboarding-lifecycle", () => ({
+  resolveOrganizationOnboardingLifecycle: lifecycleMock,
+}));
+
 import HomePage from "@/app/page";
 import LoginPage from "@/app/login/page";
 import { LoginForm } from "@/features/auth/ui/login-form";
@@ -52,7 +57,18 @@ describe("root entry redirects", () => {
     createServerClientMock.mockReset();
     listMembershipsMock.mockReset();
     cookiesGetMock.mockReset();
+    lifecycleMock.mockReset();
     cookiesGetMock.mockReturnValue(undefined);
+    lifecycleMock.mockImplementation(async (_supabase: unknown, organizationId?: string) => ({
+      ok: true,
+      organizationId: organizationId ?? ORG_A,
+      membershipRole: "owner",
+      state: {
+        kind: "legacy",
+        logicalStage: "legacy",
+        completed: true,
+      },
+    }));
     redirectMock.mockImplementation((path: string) => {
       throw new Error(`NEXT_REDIRECT:${path}`);
     });
@@ -89,9 +105,14 @@ describe("root entry redirects", () => {
     }
   });
 
-  it("redirects logged-out root visits to /login", async () => {
+  it("renders the public homepage for logged-out root visits", async () => {
     getUserMock.mockResolvedValue({ data: { user: null }, error: null });
-    await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT:/login");
+    const element = await HomePage();
+    const html = renderToStaticMarkup(element);
+    expect(html).toContain("Houd zicht op klanten, werk en voortgang.");
+    expect(html).toContain('lang="nl"');
+    expect(html).toContain("Ga naar de hoofdinhoud");
+    expect(redirectMock).not.toHaveBeenCalled();
   });
 
   it("redirects single-organization users to organization-scoped home", async () => {
@@ -122,6 +143,61 @@ describe("root entry redirects", () => {
 
     listMembershipsMock.mockResolvedValue({ ok: true, memberships: [] });
     await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT:/register/complete");
+  });
+
+  it("redirects unverified authenticated root visits to email verification", async () => {
+    getUserMock.mockResolvedValue({
+      data: { user: { id: "u1", email_confirmed_at: null } },
+      error: null,
+    });
+    await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT:/register/check-email");
+  });
+
+  it("redirects incomplete-onboarding owners through the existing resolver", async () => {
+    getUserMock.mockResolvedValue({
+      data: { user: { id: "u1", email_confirmed_at: "2026-01-01T00:00:00Z" } },
+      error: null,
+    });
+    listMembershipsMock.mockResolvedValue({
+      ok: true,
+      memberships: [{ organizationId: ORG_A, role: "owner" }],
+    });
+    lifecycleMock.mockResolvedValue({
+      ok: true,
+      organizationId: ORG_A,
+      membershipRole: "owner",
+      state: {
+        kind: "legacy",
+        logicalStage: "legacy",
+        completed: false,
+      },
+    });
+    await expect(HomePage()).rejects.toThrow(`NEXT_REDIRECT:/onboarding?org=${ORG_A}`);
+  });
+
+  it("treats a null user with an auth error as a logged-out public visit", async () => {
+    getUserMock.mockResolvedValue({
+      data: { user: null },
+      error: { message: "Auth session missing" },
+    });
+    const element = await HomePage();
+    const html = renderToStaticMarkup(element);
+    expect(html).toContain("Houd zicht op klanten, werk en voortgang.");
+    expect(redirectMock).not.toHaveBeenCalled();
+  });
+
+  it("bounces authenticated /login visitors through the post-login destination resolver", async () => {
+    getUserMock.mockResolvedValue({
+      data: { user: { id: "u1", email_confirmed_at: "2026-01-01T00:00:00Z" } },
+      error: null,
+    });
+    listMembershipsMock.mockResolvedValue({
+      ok: true,
+      memberships: [{ organizationId: ORG_A, role: "owner" }],
+    });
+    await expect(
+      LoginPage({ searchParams: Promise.resolve({}) }),
+    ).rejects.toThrow(`NEXT_REDIRECT:/home?org=${ORG_A}`);
   });
 });
 
