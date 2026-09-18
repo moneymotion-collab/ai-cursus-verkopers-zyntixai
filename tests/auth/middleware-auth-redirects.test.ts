@@ -121,6 +121,41 @@ describe("updateSession protected-route redirects", () => {
     const response = await updateSession(request);
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
+    expect(response.headers.get("x-middleware-request-x-document-language")).toBe(
+      "nl",
+    );
+  });
+
+  it("overwrites spoofed document-language metadata using the pathname allowlist", async () => {
+    getUserMock.mockResolvedValue({ data: { user: null }, error: null });
+
+    const spoofedHome = new NextRequest("http://localhost:3000/?lang=en", {
+      headers: { "x-document-language": "en" },
+    });
+    const homeResponse = await updateSession(spoofedHome);
+    expect(homeResponse.status).toBe(200);
+    expect(homeResponse.headers.get("x-middleware-request-x-document-language")).toBe(
+      "nl",
+    );
+
+    const spoofedLogin = new NextRequest("http://localhost:3000/login", {
+      headers: { "x-document-language": "nl" },
+    });
+    const loginResponse = await updateSession(spoofedLogin);
+    expect(loginResponse.status).toBe(200);
+    expect(loginResponse.headers.get("location")).toBeNull();
+    expect(loginResponse.headers.get("x-middleware-request-x-document-language")).toBe(
+      "en",
+    );
+
+    const spoofedHomeProtected = new NextRequest("http://localhost:3000/home", {
+      headers: { "x-document-language": "fr" },
+    });
+    const homeProtected = await updateSession(spoofedHomeProtected);
+    expect(homeProtected.status).toBe(307);
+    expect(new URL(homeProtected.headers.get("location") ?? "").pathname).toBe(
+      "/login",
+    );
   });
 
   it("still redirects logged-out /home visits to login with a safe return path", async () => {

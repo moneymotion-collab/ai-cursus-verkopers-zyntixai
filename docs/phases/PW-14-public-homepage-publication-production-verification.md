@@ -2483,3 +2483,1734 @@ DO NOT DEPLOY
 This commit does not authorize Preview promotion, Production deployment, publication closure, accessibility PASS, WCAG conformance, visitor-validation PASS, or Production verification.
 
 End of PW-14-C2-FV evidence.
+
+---
+
+# PW-14-C3 — Preview Accessibility and Rendered Measurement Evidence
+
+| Field | Value |
+| --- | --- |
+| Phase | PW-14-C3 |
+| Date | 2026-09-18 |
+| Branch | `core/platform-readiness-20260707` |
+| Local HEAD | `2daff99f5f8336dc4a455484ec3ced413a834f8d` |
+| Application source baseline | `a8e359bc8b549ec8a6f53c1a2236ce794b84dc8e` |
+| Parent PW-14 | `BLOCKED — PW-14 PUBLICATION ADMISSION FAILED` / `DO NOT DEPLOY` |
+| C2 status | Closed with evidence; dual-use routing only |
+
+C3 does not authorize publication, Production, visitor validation, WCAG certification, or Today AppShell accessibility.
+
+## 1. Phase purpose and boundary
+
+C3 was to validate the retained non-Production Preview logged-out public homepage with headed Chromium, actual NVDA, rendered measurements, and related public interaction states.
+
+Mandatory headed public-page execution and actual NVDA did **not** complete. C3 is therefore **BLOCKED**. Source and local test evidence below is not converted into rendered or NVDA PASS.
+
+## 2. Preflight
+
+| Check | Result |
+| --- | --- |
+| Root | `D:/project ai cursus verkopers.worktrees/parallel__laptop-product-track-20260707-1` |
+| Branch | `core/platform-readiness-20260707` |
+| Local HEAD | `2daff99f5f8336dc4a455484ec3ced413a834f8d` |
+| Upstream | same SHA after `git fetch origin` |
+| Ahead / behind | `0 0` |
+| Staged / untracked | none at preflight |
+| Product/test/style diff vs Preview baseline `a8e359bc` | **none** (documentation-only child commit) |
+| Git operations | none |
+| Instruction files | none |
+| Current commit | `docs(public-web): close PW-14-C2 preview routing evidence` parent `a8e359bc` |
+| OS | Windows 11 Pro, NT 10.0.26200 |
+| NVDA | **not found** (`nvda.exe` absent from Program Files, LocalAppData, Uninstall registry, PATH) |
+| Headed Chromium | Cursor IDE browser available |
+| Forced-colours | OS Contrast Themes **not** activated; CDP emulation available but not equivalent |
+| Reduced-motion | CDP/emulation available; not executed on a logged-out public page |
+| axe-core in lockfile | transitive `4.12.1`; no repo script; **not installed as a project tool** |
+
+## 3. Authority review
+
+B1-GATE.1, PW-0–PW-13, PW-14 blocked admission, C1/C1-R1/C1-FV, complete C2 chain, C2-R1, C2-FV, public homepage source/CSS, root layout, middleware, and `tests/public-web/public-homepage.test.tsx`.
+
+PW-1 remains the public-truth ceiling. PW-13 remains implementation authority. PW-14-C2 proves Preview dual-use routing only. `PW12-DEFER-010`, `015`, and `016` remain publication blockers unless C3 executes them.
+
+## 4. Retained Preview identity
+
+| Property | Result | Class |
+| --- | --- | --- |
+| Host | same retained C2-C7 Preview | deployment metadata |
+| Inspect | `name=zyntixai`, `target=preview`, Ready, created `2026-09-17 17:18:58 +02` | deployment metadata |
+| Production listing newest | unchanged multi-day Ready row; not this Preview | deployment metadata |
+| Promoted | no | deployment metadata |
+
+Inspect still has no `gitCommitSha`. Application baseline remains the C2 deploy-command / C7 metadata for `a8e359bc`. Current HEAD differs from that baseline only by this evidence file’s C2 commit.
+
+## 5. Source and test baseline
+
+| Fact | Class | Result |
+| --- | --- | --- |
+| Logged-out `/` returns `<PublicHomepage />` | source | `src/app/page.tsx` |
+| No session/membership/org props on PublicHomepage | source | component takes no props |
+| Public CSS module-scoped; isolation tests lock AppShell/Home/login | source + test | 9/9 local tests passed |
+| Skip link `Ga naar de hoofdinhoud` → `#hoofdinhoud` | source | present; `main` `tabIndex={-1}` |
+| Compact nav is native `details`/`summary`, not a dialog | source | `role="dialog"` absent |
+| `html lang="en"`; public wrapper `lang="nl"` | source | layout vs public-web |
+| Focus `:focus-visible` 2px+2px teal; skip revealed on focus | source | CSS |
+| `@media (forced-colors: active)` and `prefers-reduced-motion: reduce` | source | present |
+| No `overflow-x: clip/hidden` on public CSS | test lock | PW-13 contract |
+| `force-dynamic` on root | source + test | present |
+
+Source correctness is **not** a rendered PASS.
+
+## 6. Test environment
+
+| Item | Record |
+| --- | --- |
+| Local timestamp | 2026-09-18 ~11:19 +02 |
+| UTC | 2026-09-18 ~09:19Z |
+| Chromium | Cursor IDE headed browser (version not independently printed) |
+| NVDA | unavailable |
+| Viewport / zoom / DPR / forced-colours / reduced-motion on public page | **not recorded** — public page not loaded logged-out |
+| Input | aborted after authenticated landing |
+| Preview classification | non-Production Ready |
+| ZyntixAI session | leftover C2 cookies still present in this IDE browser; **not** a fresh logged-out context |
+| Cookie/storage CDP | `Network.clearBrowserCookies` and `Storage.clearDataForOrigin` denied |
+| Application sign-in | not performed |
+| Tab disposition | authenticated landing left immediately via `about:blank`; tab closed |
+
+Deployment Protection was already passable in this browser. That is not ZyntixAI login. Leftover **application** cookies made `/` resolve to authenticated onboarding. C3 did not inventory that private page.
+
+Logged-out `/home` on Preview was **not** rechecked in a clean application context. Production logged-out `/home` still 307 `/login?next=%2Fhome` at `2026-09-18T11:19:54+02:00`.
+
+## 7. Evidence-classification rules
+
+Skipped ≠ passed. Automated ≠ NVDA. Source tokens ≠ rendered computed contrast. CSS min-height ≠ measured bounding box. Emulated forced-colours ≠ OS Contrast Themes. Accessibility-tree snapshots ≠ NVDA speech.
+
+## 8. Rendered page inventory
+
+**BLOCKED — LOGGED-OUT PUBLIC HOMEPAGE NOT RENDERED IN HEADED CHROMIUM**
+
+Intended inventory from **source** (not headed observation):
+
+| Item | Source value | Headed |
+| --- | --- | --- |
+| Title | layout `"ZyntixAI"` | not observed on public `/` |
+| Document language | `html` en; wrapper nl | not observed |
+| H1 | frozen Route A2 Dutch H1 | not observed |
+| H2 count | 6 | not observed |
+| Landmarks | header, `nav` named Navigatie, `main#hoofdinhoud`, footer | not observed |
+| Skip | link, Dutch name | not observed |
+| Disclosure | `details` initially closed in markup | not observed |
+| Images / SVG / forms / live regions | none in PublicHomepage | N/A at source |
+| Motion | skip `transform`; reduced-motion kills animation/transition | not observed |
+
+## 9. Automated accessibility results
+
+| Item | Result |
+| --- | --- |
+| axe / Lighthouse / pa11y on Preview | **SKIPPED — TOOL UNAVAILABLE** as a project script; no packages installed; transitive axe-core not invoked against the Preview |
+| `npm run test:run -- tests/public-web/public-homepage.test.tsx` | exit 0; 1 file; **9 passed**; 0 failed; 0 skipped |
+| Full Vitest suite | **not** re-executed; last complete run remains C1-FV 536/4213/0/0 on unchanged product/test HEAD |
+
+Automated zero-run does not prove WCAG.
+
+## 10. Keyboard and focus results
+
+**BLOCKED — ACTUAL KEYBOARD SEQUENCE ON LOGGED-OUT PUBLIC PAGE NOT COMPLETED**
+
+No Tab/Shift+Tab/Enter/Space/Escape sequence was recorded on the public homepage. No compact disclosure keyboard test. No focus-visibility screenshot or computed outline measurement.
+
+## 11. Skip-link and structural navigation
+
+**BLOCKED** as headed browser evidence.
+
+Source: skip is first control, off-screen until `:focus`/`:focus-visible`, href `#hoofdinhoud`, `main` is tabbable. Hash-focus helper focuses `main` for skip and headings for other fragments. Not converted to PASS.
+
+## 12. NVDA + Chromium results
+
+```text
+BLOCKED — ACTUAL NVDA + CHROMIUM EXECUTION NOT COMPLETED
+```
+
+NVDA was not running. Speech was not observed. An accessibility snapshot of an authenticated surface is not NVDA evidence and was not used as a public-page inventory.
+
+Unresolved **P1**. Prevents C3 PASS.
+
+## 13. Text contrast measurements
+
+**Rendered computed-style measurement: NOT EXECUTED.**
+
+Source-token arithmetic (sRGB relative luminance, WCAG 2.x formula). Class: **source evidence / inference**, not rendered PASS.
+
+| Pair | Ratio | Large text? | AA 4.5:1 (normal) | Class |
+| --- | ---: | --- | --- | --- |
+| ink `#1A1916` on canvas `#F4F1EA` | 15.585 | H1 2rem/700 may qualify | source-only | source |
+| secondary `#3F3C36` on canvas | 9.742 | support 1.125rem/400 is not large | source-only | source |
+| muted `#5C574E` on canvas (footer) | 6.357 | 0.9375rem/600 not large | source-only | source |
+| teal `#1F5C57` on canvas (body link) | 6.827 | no | source-only | source |
+| teal on surface `#FFFFFF` | 7.701 | no | source-only | source |
+| ink on today `#EBE6DC` | 14.135 | no | source-only | source |
+| secondary on today | 8.836 | qualifier 0.9375rem/400 | source-only | source |
+| teal-hover on canvas | 9.106 | no | source-only | source |
+
+These numbers are **not** a C3 contrast PASS. Anti-aliasing, compositing, and actual computed backgrounds were not measured.
+
+## 14. Non-text and focus-indicator measurements
+
+**Rendered: NOT EXECUTED.**
+
+Source: focus outline `2px solid #1F5C57` offset 2px. Teal vs canvas 6.827; teal vs surface 7.701 (both ≥ 3:1 as token arithmetic). Forced-colours outline uses `Highlight` in CSS. Header/footer borders are decorative at source; `#C9C2B4` on white is 1.771 and is **not** claimed as a required 1.4.11 boundary.
+
+Not a focus-appearance PASS.
+
+## 15. Target-size measurements
+
+**Rendered bounding boxes: NOT EXECUTED.**
+
+Source CSS: skip and nav/sign-in/disclosure controls `min-height: 2.75rem` (44px at 16px root); nav/sign-in/disclosure `min-width: 1.5rem` (24px at 16px root). Compact vs desktop states not measured. No exception path documented from geometry.
+
+Not a target-size PASS.
+
+## 16. 320 CSS-pixel results
+
+**BLOCKED — NOT EXECUTED** on the retained Preview. Source has `@media (max-width: 24.375rem)` type scale and `@media (max-width: 45rem)` plus `@container` disclosure swap. Not rendered evidence.
+
+## 17. 200% zoom results
+
+**BLOCKED — NOT EXECUTED.**
+
+## 18. Text-spacing results
+
+**BLOCKED — NOT EXECUTED.** No temporary override was applied to the Preview. None remains.
+
+## 19. Forced-colours results
+
+Actual OS Contrast Themes: **not used**.
+
+Emulation: **not applied** to a logged-out public page.
+
+```text
+EMULATED FORCED-COLOURS EVIDENCE
+```
+
+was **not** produced. Source `@media (forced-colors: active)` exists (Today `CanvasText` border, underlined links, `Highlight` focus). C3 requires actual OS testing where the contract demands it. Unavailable actual OS test is unresolved **P1**.
+
+## 20. Reduced-motion results
+
+**BLOCKED — NOT EXECUTED** as rendered.
+
+Source: `@media (prefers-reduced-motion: reduce)` sets `animation`, `transition`, and `scroll-behavior` to none on `.publicWeb *`. Skip uses `transform` without a declared transition. No carousel or auto-moving content in source. Rendered confirmation missing, so not `NOT APPLICABLE` as a headed result.
+
+## 21. Responsive state matrix
+
+| State | Result |
+| --- | --- |
+| Desktop default | BLOCKED — public page not loaded logged-out |
+| Desktop 200% zoom | BLOCKED |
+| 320 CSS pixels | BLOCKED |
+| Mobile navigation closed | BLOCKED |
+| Mobile navigation open | BLOCKED |
+| Text-spacing override | BLOCKED |
+| Forced colours | BLOCKED |
+| Reduced motion | BLOCKED |
+
+Skipped/blocked is not passed.
+
+## 22. Error, status, and dynamic-content review
+
+| Feature | Presence (source) | Headed |
+| --- | --- | --- |
+| Forms / validation | absent | N/A |
+| Live counters / carousels / auto-update | absent | N/A |
+| Expandable region | compact `details` nav | not tested |
+| Loading states | none dedicated | N/A |
+| Hash-focus client helper | present | not tested |
+
+Absent features: **NOT APPLICABLE**. Disclosure: **BLOCKED**.
+
+## 23. Privacy and isolation review
+
+| Check | Result |
+| --- | --- |
+| Intended C3 surface | logged-out public homepage — **not reached** |
+| Application sign-in | not performed |
+| Leftover C2 cookies | present in IDE browser; caused authenticated `/` bounce |
+| Private page inventory | **not** recorded; no org/query values copied into this appendix |
+| Authenticated HTML/screenshot/HAR/trace/video/storage-state | none added to the repo |
+| Production | unchanged (see §2 Production headers) |
+| Temporary a11y scripts / packages | none retained |
+| Chat-only C2-FV-C1 wording issue | **not** added here |
+
+## 24. Findings register
+
+| ID | Sev | Affected check | Class | Observation | Impact | Follow-up | Owner | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| PW14-C3-FND-001 | P1 | NVDA + Chromium | environment | NVDA not installed; speech not observed | Mandatory C3 check missing | Complete actual NVDA + headed Chromium on logged-out public `/` | C3 | **Open** |
+| PW14-C3-FND-002 | P1 | Logged-out headed Preview | browser | `/` in IDE browser reused leftover application cookies; cookie-clear CDP denied | Public homepage keyboard, skip, inventory, measurements blocked | Fresh logged-out context (no app session) on retained Preview | C3 | **Open** |
+| PW14-C3-FND-003 | P1 | Keyboard / focus / skip | browser | Not executed on public page | Mandatory C3 checks missing | Execute after FND-002 | C3 | **Open** |
+| PW14-C3-FND-004 | P1 | Rendered contrast, non-text, targets | measurement | Not executed | `PW12-DEFER-015`/`016` still open | Measure computed colours and boxes on Preview | C3 | **Open** |
+| PW14-C3-FND-005 | P1 | 320 / 200% / text-spacing | browser | Not executed | Reflow unproven | Execute on logged-out public `/` | C3 | **Open** |
+| PW14-C3-FND-006 | P1 | Forced-colours | environment | OS Contrast Themes not used; emulation not run on public page | Required C3 forced-colours missing | Actual OS mode on logged-out public `/` | C3 | **Open** |
+| PW14-C3-FND-007 | P1 | Reduced-motion | browser | Not executed on public page | Motion adaptation unproven | `prefers-reduced-motion: reduce` on Preview | C3 | **Open** |
+| PW14-C3-FND-008 | P2 | Automated scan | tool | No project axe/Lighthouse command; none run | Coverage gap only if manual complete | Optional later | C3 | Open |
+| PW14-C3-FND-009 | P2 | `html lang` vs wrapper `lang=nl` | source | Root layout English; public wrapper Dutch | AT page-language unproven without NVDA | Observe in NVDA session | C3 | Open |
+| PW14-C3-FND-010 | P2 | C4 visitor validation | scope | Not in C3 | Publication still blocked | PW-14-C4 | PW-14 | Open |
+| PW14-C3-FND-011 | P2 | Production verification | scope | Production still pre-PW-13 `/` → `/login` | Not a C3 substitute | Later Production phases | PW-14 | Open |
+
+P0 remaining: **0**. P1 remaining: **7**. P2 remaining: **4**.
+
+No product defect was proven on the public page because the page was not tested headed logged-out. No product code was changed.
+
+## 25. C3 AND-gate
+
+Failed. Missing: logged-out public load in headed Chromium; NVDA; keyboard; skip; rendered semantics observation; rendered contrast; non-text/focus contrast; target-size measurement; 320; 200% zoom; text-spacing; forced-colours; reduced-motion headed result; complete responsive matrix.
+
+## 26. Remaining PW-14 blockers
+
+- Complete the missing C3 manual validation (NVDA, logged-out headed measurements) before C3-R1
+- PW-14-C3 independent review (not started)
+- PW-14-C3 final verification and evidence commit (not authorized while C3 is BLOCKED)
+- PW-14-C4 visitor comprehension / access-meaning
+- Final publication admission
+- Production deployment authorization
+- Public and authenticated Production verification
+- Gated metadata / legal / favicon / canonical-host items
+- `PW12-DEFER-010`, `015`, `016` remain open
+
+Parent remains `BLOCKED — PW-14 PUBLICATION ADMISSION FAILED` / `DO NOT DEPLOY`.
+
+## 27. File and security integrity
+
+Only this evidence document is modified in C3. No source, test, style, config, env, dependency, lockfile, screenshot, HAR, trace, video, or storage-state change. No org UUID, cookie, token, or credential recorded.
+
+## 28. Git state
+
+HEAD remains `2daff99f5f8336dc4a455484ec3ced413a834f8d`. Upstream same. `0 0`. This file unstaged after C3 recording. Nothing staged.
+
+## 29. Commit, push, deploy, and promotion status
+
+No stage. No commit. No push. No Preview created. No promote. No `--prod`. No Vercel/Supabase settings change.
+
+## 30. Gate result
+
+```text
+BLOCKED — PW-14-C3 PREVIEW ACCESSIBILITY AND RENDERED MEASUREMENT EVIDENCE FAILED
+PW-14 REMAINS BLOCKED
+DO NOT COMMIT
+DO NOT PROMOTE
+PRODUCTION UNCHANGED
+```
+
+## 31. Next authorized step
+
+The missing manual validation must be completed before C3-R1: actual NVDA + headed Chromium on a **logged-out** retained Preview public homepage, plus rendered measurements, 320/200%/text-spacing, actual OS forced-colours, and reduced-motion. Do not start C3-R1, C3-FV, C4, publication, or Production verification from this BLOCKED result.
+
+End of PW-14-C3 evidence.
+
+# PW-14-C3-C1 — Logged-Out Accessibility Evidence Recovery and Completion
+
+| Field | Value |
+| --- | --- |
+| Phase | PW-14-C3-C1 |
+| Date | 2026-09-18 |
+| Branch | `core/platform-readiness-20260707` |
+| Local HEAD | `2daff99f5f8336dc4a455484ec3ced413a834f8d` |
+| Application source baseline | `a8e359bc8b549ec8a6f53c1a2236ce794b84dc8e` |
+| Retained Preview | `https://zyntixai-ecbqshegd-guus-projects-ai.vercel.app` (`dpl_CPp7EasM3VWQXFUP7AWV4qcnQefQ`, target Preview, Ready, created 2026-09-17 17:18:58 +02) |
+| Parent C3 | Historical **BLOCKED** — not rewritten |
+
+C3-C1 is evidence recovery and completion only. It does not authorize product remediation, publication, Production, visitor validation, WCAG certification, or Today AppShell accessibility.
+
+## 1. Purpose and recovery boundary
+
+Recover a clean logged-out headed Chromium context on the retained non-Production Preview, execute the mandatory C3 checks that were missing, reconcile the seven initial C3 P1s, and record actual results. The initial C3 BLOCKED appendix remains historical fact. Product code, tests, styles, configuration, dependencies, lockfiles, and environment variables were not modified.
+
+## 2. Preflight and drift check
+
+Performed read-only after `git fetch origin` at C3-C1 resume.
+
+| Check | Result |
+| --- | --- |
+| Root | `D:/project ai cursus verkopers.worktrees/parallel__laptop-product-track-20260707-1` |
+| Branch | `core/platform-readiness-20260707` |
+| Local HEAD | `2daff99f5f8336dc4a455484ec3ced413a834f8d` |
+| Upstream | `origin/core/platform-readiness-20260707` at the same SHA |
+| Ahead / behind | `0 0` |
+| Staged | none |
+| Unstaged tracked | this evidence document only (initial C3 appendix, then this C3-C1 appendix) |
+| Untracked | none |
+| Git operations | none (no merge/rebase/cherry-pick/revert/bisect) |
+| Instruction files | none (`AGENTS.md`, `CONTRIBUTING.md`, `.cursor/rules` absent) |
+| Current commit | `docs(public-web): close PW-14-C2 preview routing evidence`; parent `a8e359bc` |
+| Product/test/style diff vs `a8e359bc` | none |
+| Retained Preview | Ready, target Preview, identity unchanged |
+| Production listing | unchanged older Ready Production row; not this Preview |
+| NVDA (resume) | running; product 2026.2 |
+| Headed Chromium | Google Chrome 152.0.7977.84 |
+| Windows | 11 Pro 25H2, 10.0.26200.9457 |
+| Contrast Themes baseline | high-contrast bit **off** (flags 126) |
+| Animation baseline | `MinAnimate=1`; `prefers-reduced-motion` false |
+
+No drift stop condition applied.
+
+## 3. Initial C3 evidence preservation
+
+The initial C3 appendix remains in this file above this section. It still records: contaminated IDE-browser cookies; authenticated onboarding landing; no public-page inventory; NVDA absent at that time; blocked keyboard/skip/contrast/target/reflow/spacing/forced-colours/reduced-motion; seven P1s; four P2s; no code change; no deployment. Gate text remains `BLOCKED — PW-14-C3 PREVIEW ACCESSIBILITY AND RENDERED MEASUREMENT EVIDENCE FAILED`. That appendix was not deleted or rewritten.
+
+## 4. NVDA prerequisite
+
+Owner provided official NVDA after the C3-C1 pause. Observed at resume:
+
+| Item | Result |
+| --- | --- |
+| Running processes | NVDA 2026.2 launcher plus `nvda_noUIAccess` |
+| Product version | 2026.2 (file 2026.2.0.57664) |
+| Synth | OneCore |
+| Speech Viewer | Owner stated it was open; this session **did not enumerate** a Speech Viewer / Spraakweergavevenster window |
+| Extra-menu attempt | Opened `NVDA logboek lezer` (log viewer); closed it; subsequent Extra toggle did not produce a Speech Viewer window |
+
+NVDA was therefore available to run with headed Chromium. Full Speech Viewer announcement capture was **not** obtained. Accessibility-tree, DOM, and NVDA log language warnings are supporting evidence only and do not replace Speech Viewer summaries.
+
+## 5. Clean logged-out browser establishment
+
+The contaminated IDE browser profile was not reused.
+
+| Step | Result |
+| --- | --- |
+| Profile | New directory `%TEMP%\pw14-c3-c1-chromium` (OS temp; not the repository; not the default Chrome profile) |
+| Launch | Headed Chrome 152.0.7977.84, `--remote-debugging-port=9333`, no imported cookies/history/passwords |
+| First document | Vercel Deployment Protection → GitHub SSO interstitial (not ZyntixAI `/login`) |
+| Owner-assisted DP | Permitted; completed in this isolated window |
+| Landing after DP | Retained Preview `/`, title `ZyntixAI`, Dutch H1 visible |
+| ZyntixAI `/login` form | Not used; no application credentials entered |
+
+The earlier C3 authenticated-onboarding landing remains classified as leftover application cookies in the IDE profile, not as a product defect.
+
+## 6. Application-auth isolation proof
+
+Counts only. No cookie names, values, tokens, headers, or storage keys are recorded.
+
+| Check | Count / result |
+| --- | --- |
+| Application-auth cookies | **0** |
+| Other cookies (Deployment Protection / host chrome) | 33 present; not treated as application authentication |
+| `localStorage` auth entries | **0** (total keys 0, then 2 non-auth after later reloads) |
+| `sessionStorage` auth entries | **0** (non-auth keys present) |
+| Observed `Authorization` headers intentionally created | **0** |
+| `/` | Public homepage; H1 `Houd zicht op klanten, werk en voortgang.` |
+| `/home` (same isolated profile) | Redirected to `/login` with `next` length 13 (`?next=/home`); login H1 `Sign in`; form not filled; returned to `/` |
+| Private / onboarding content | **none** |
+| Vercel Preview chrome | Custom `VERCEL-LIVE-FEEDBACK` element appeared in tab order; treated as environment, not product |
+
+## 7. Test environment
+
+Frozen after the clean public homepage was confirmed. Browser not updated during testing. Same retained Preview throughout. Production not used for accessibility.
+
+| Item | Value |
+| --- | --- |
+| Local | 2026-09-18, session ~11:58–12:19 +02 |
+| UTC | 2026-09-18 ~09:58–10:19 Z |
+| Windows | 11 Pro 25H2 (10.0.26200.9457) |
+| Chromium | Chrome 152.0.7977.84 |
+| NVDA | 2026.2 |
+| Speech Viewer used | **No** (window not enumerable) |
+| Baseline viewport | 1280×805 CSS px (also 1264×805 content inner before metrics override) |
+| Device-pixel ratio | 1 |
+| Browser zoom | 100% after restore (`outer/inner` ~100–113% depending on window chrome) |
+| Colour scheme | light (except during forced-colours test: dark) |
+| Forced-colours baseline | inactive |
+| Reduced-motion baseline | false |
+| Input | keyboard + headed mouse for disclosure targeting only where CDP default-activation needed a focused control |
+| Preview | non-Production, Ready, `ecbqshegd` |
+| Application-auth | absent (counts above) |
+
+## 8. Rendered public-page inventory
+
+Class: **rendered browser observation** unless noted. Supporting accessibility tree is labelled separately. Source is not converted into rendered PASS.
+
+| Item | Rendered observation |
+| --- | --- |
+| Document title | `ZyntixAI` |
+| Document language | `html lang="en"` |
+| Public wrapper | `div lang="nl"` (one `lang="nl"` node; parent `BODY`) |
+| Visible H1 | `Houd zicht op klanten, werk en voortgang.` (one H1) |
+| Heading hierarchy | H1 then six H2: Over ZyntixAI; Hoe het werkt; Today als voorbeeld in het product; Als je opleidingen of coaching geeft; Hoe toegang in het product werkt; Toegang |
+| Landmarks | `header`; `nav` name `Navigatie`; `main#hoofdinhoud`; `footer` |
+| Skip | `Ga naar de hoofdinhoud` → `#hoofdinhoud`; off-screen until focus (`translateY` ≈ −88 px; box 205×44) |
+| Keyboard-order controls (desktop) | skip; wordmark; Over ZyntixAI; Hoe het werkt; Gesloten bèta; header Inloggen; access Inloggen; then Preview chrome |
+| Compact disclosure | native `details`/`summary` name `Navigatie`; hidden at 1280; visible at 320 and at CSS 200% zoom |
+| Footer | text `ZyntixAI`; no footer links |
+| Images / SVG | **NOT APPLICABLE** (none) |
+| Forms | **NOT APPLICABLE** (none on the public homepage) |
+| Live regions | **NOT APPLICABLE** for product (no `aria-live`; empty `alert` node in AX tree belonged to Preview chrome) |
+| Motion | `document.getAnimations()` length **0** |
+| Sticky / fixed | none |
+| AX tree (supporting) | title `ZyntixAI`; skip link; banner; navigation `Navigatie`; main; contentinfo; H1/H2 names as above; `button` `Vercel Toolbar` (environment) |
+
+## 9. Document-language assessment
+
+| Question | Result | Class |
+| --- | --- | --- |
+| Language exposed for the document | `html lang="en"` | rendered + source |
+| Language exposed for main public content | wrapper `lang="nl"` | rendered + source |
+| NVDA language behaviour | OneCore synth `nl_nl`; repeated log warning `Language en not supported ({'nl_nl'})` while the headed public page was the focused Chrome document | **actual NVDA engine**, not Speech Viewer |
+| Title / landmarks / headings / body announcements | **Not captured** (Speech Viewer absent) | gap |
+| Default human language programmatically accurate? | **No.** Default page language is English; visible public copy is Dutch | rendered + WCAG 2.2 3.1.1-oriented / PW8-LANG-001 |
+| Is the wrapper sufficient under project authority? | **Not as Model A.** PW-8 froze Model A (public document `lang="nl"`) and rejected Model C (Dutch clusters inside an English document) as the preferred final solution because AT may still treat the page as English. PW-13 kept shared root `en` plus wrapper `nl` as isolation. C3-C1 observed NVDA attempting English language changes against a Dutch voice | assessment |
+| Initial P2 FND-009 | **Escalated to P1** product finding `PW14-C3-C1-FND-001` | see register |
+
+No WCAG-conformance claim is made. This is not auto-failed from source alone; NVDA engine warnings were observed on the live Preview.
+
+## 10. Keyboard validation
+
+NVDA remained running. Focusable native Tab order was observed via headed CDP key events (`rawKeyDown`/`char` required for `summary` activation). Desktop and compact states both executed.
+
+Desktop (1280 CSS px), product controls:
+
+1. Skip `Ga naar de hoofdinhoud`
+2. Link `ZyntixAI` (`/`)
+3. Link `Over ZyntixAI`
+4. Link `Hoe het werkt`
+5. Link `Gesloten bèta`
+6. Link `Inloggen` (header)
+7. Link `Inloggen` (access sentence)
+
+Hidden compact `summary` and its closed panel links **did not** receive focus at desktop. No pointer-only product function. No hover-only essential information. After skip activation, next product Tab was the access `Inloggen` (header repetition bypassed). Shift+Tab from the wordmark returned to the skip link. Escape does not close native `details` (no enhanced overlay). Environment `VERCEL-LIVE-FEEDBACK` also sits in the tab cycle; not a product control.
+
+Compact 320 CSS px, disclosure **closed**: skip → wordmark → `Navigatie` → header `Inloggen` → access `Inloggen`. Closed panel links not in order.
+
+Compact 320, disclosure **open** (Space opens, Enter closes while focused on `summary`): `Navigatie` → `Over ZyntixAI` → `Hoe het werkt` → `Gesloten bèta` → header `Inloggen` → access `Inloggen`. No keyboard trap. Cycle returned to skip then wordmark then `Navigatie`.
+
+## 11. Focus validation
+
+Keyboard-focused product controls showed `outline: solid 2px rgb(31, 92, 87)` (`#1F5C57`) with `outline-offset: 2px`. Focus was not obscured. Programmatic `.focus()` without a user key is **not** treated as `:focus-visible` evidence. Skip on keyboard/scripted focus that matches `:focus` became visible (transform identity; in-view). Main `#hoofdinhoud` after skip activation: outline teal, `top: 0`, not obscured.
+
+## 12. Skip-link validation
+
+| Check | Result |
+| --- | --- |
+| Visible on focus | Yes |
+| Accessible name | `Ga naar de hoofdinhoud` |
+| Activation | Enter moved focus to `main#hoofdinhoud`; hash `#hoofdinhoud` |
+| Target effective focus | `activeId=hoofdinhoud`; outline visible |
+| Target not obscured | Yes |
+| Subsequent Tab | Access `Inloggen` (repeated header nav bypassed) |
+| Shift+Tab | Wordmark → skip |
+
+## 13. NVDA + Chromium validation
+
+| # | Check | Result |
+| --- | --- | --- |
+| 1 | Page title announcement | **NOT CAPTURED** (no Speech Viewer text) |
+| 2 | Document and content language | Engine: Dutch OneCore; English language-change commands rejected (`en` vs `nl_nl`). Speech of title/body **not captured** |
+| 3 | Landmark navigation | **NOT CAPTURED** as speech; AX tree has banner / navigation `Navigatie` / main / contentinfo |
+| 4 | Heading navigation | **NOT CAPTURED** as speech; AX headings match rendered H1/H2 |
+| 5 | Reading order | **NOT CAPTURED** as speech; DOM/reading order is skip, header, main sections, footer |
+| 6 | Links list | **NOT CAPTURED** as speech |
+| 7 | Button names | Product has no `button`; disclosure is native `summary` `Navigatie`. Speech **not captured** |
+| 8–9 | Disclosure name/role/state | Keyboard proved open/close; NVDA state-change speech **not captured** |
+| 10–12 | Skip discovery / activation / focus | Browser skip PASS; NVDA speech **not captured** |
+| 13–15 | Compact nav / hidden / decorative | Compact keyboard PASS; speech **not captured**. No product images |
+| 16–17 | Duplicate / unlabelled | Two `Inloggen` links (header + access) with the same name and destination; not unlabelled. Speech **not captured** |
+| 18 | Public/private isolation | Rendered public homepage only; no private content |
+
+NVDA+Chromium **ran**. Mandatory Speech Viewer announcement summaries were **not** obtained. Initial P1 FND-001 therefore remains open on the speech-observation limb.
+
+## 14. Rendered text-contrast measurements
+
+WCAG 2.x AA floors: normal 4.5:1; large 3:1. Ratios are computed from rendered `getComputedStyle` sRGB relative luminance. Unique meaningful product combinations (least-favourable opaque ancestor background):
+
+| Component | State | Foreground | Background | Size / weight | Large? | Ratio | Floor | Result |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| H1 | default | `#1A1916` | `#F4F1EA` | 32px / 700 | yes | 15.585 | 3 | PASS |
+| H2 on canvas | default | `#1A1916` | `#F4F1EA` | 22px / 600 | no | 15.585 | 4.5 | PASS |
+| H2 on Today band | default | `#1A1916` | `#EBE6DC` | 22px / 600 | no | 14.135 | 4.5 | PASS |
+| H2 on access panel | default | `#1A1916` | `#FFFFFF` | 22px / 600 | no | 17.580 | 4.5 | PASS |
+| Support / secondary | default | `#3F3C36` | `#F4F1EA` | 18px / 400 | no | 9.742 | 4.5 | PASS |
+| Body ink | default | `#1A1916` | `#F4F1EA` | 16px / 400 | no | 15.585 | 4.5 | PASS |
+| Qualifier on Today | default | `#3F3C36` | `#EBE6DC` | 15px / 400 | no | 8.836 | 4.5 | PASS |
+| Footer muted | default | `#5C574E` | `#F4F1EA` | 15px / 600 | no | 6.357 | 4.5 | PASS |
+| Wordmark | default | `#1A1916` | `#FFFFFF` | 20px / 700 | yes | 17.580 | 3 | PASS |
+| Nav links | default | `#1A1916` | `#FFFFFF` | 15px / 600 | no | 17.580 | 4.5 | PASS |
+| Header Inloggen | default | `#1F5C57` | `#FFFFFF` | 15px / 600 | no | 7.701 | 4.5 | PASS |
+| Access Inloggen | default | `#1F5C57` | `#FFFFFF` | 16px / 400 | no | 7.701 | 4.5 | PASS |
+| Skip (when shown) | default | `#1A1916` | `#FFFFFF` | 16px / 600 | no | 17.580 | 4.5 | PASS |
+| Wordmark | hover | `#1A1916` | `#FFFFFF` | 20px / 700 | yes | 17.580 | 3 | PASS |
+| Nav link | hover | `#1A1916` | `#FFFFFF` | 15px / 600 | no | 17.580 | 4.5 | PASS |
+| Header Inloggen | hover | `#174843` | `#FFFFFF` | 15px / 600 | no | 10.272 | 4.5 | PASS |
+| Header Inloggen | active | `#123833` | `#FFFFFF` | 15px / 600 | no | 12.811 | 4.5 | PASS |
+| Access Inloggen | hover | `#174843` | `#FFFFFF` | 16px / 400 | no | 10.272 | 4.5 | PASS |
+
+Root `body` computed colour `#0F172A` on `#F8FAFC` (17.063) is application chrome behind the public wrapper, not public-copy measurement. No text-over-image. Gradients: none on measured text.
+
+## 15. Non-text and focus-indicator measurements
+
+| Component | State | Indicator | Adjacent | Ratio | Floor | Exception | Result |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Skip / links / summary (keyboard) | `:focus-visible` | `#1F5C57` 2px solid | `#FFFFFF` header | 7.701 | 3 | — | PASS |
+| Same outline | `:focus-visible` | `#1F5C57` | `#F4F1EA` canvas | 6.827 | 3 | — | PASS |
+| Access panel edge | default | `#8A8376` | `#FFFFFF` | 3.758 | 3 | identifies the access cluster | PASS |
+| Header rule | default | `#C9C2B4` | `#FFFFFF` | 1.771 | 3 | decorative separator; not a control | **NOT APPLICABLE** |
+| Today band vs canvas | default | `#EBE6DC` | page canvas | ~1.19 | 3 | decorative band; not a control | **NOT APPLICABLE** |
+| Skip under OS forced colours | focus | Highlight 2px (`rgb(142, 227, 240)` observed) | Canvas | system | 3 | OS Highlight | PASS (perceivable) |
+
+JS `.focus()` without a key previously reported `outline: none` and must not be used as a fail. Keyboard Tab is the focus-appearance evidence.
+
+## 16. Target-size measurements
+
+WCAG 2.2 AA 2.5.8: 24×24 CSS px or a valid exception. Product 44px preference is not treated as the AA floor.
+
+Desktop 1264×805 (visible product targets):
+
+| Name | Box (CSS px) | 24×24 | Spacing | Result |
+| --- | --- | --- | --- | --- |
+| Skip | 205.48×44 | yes | 44 to wordmark | PASS |
+| Wordmark | 103.42×48 | yes | 44 | PASS |
+| Over ZyntixAI | 100.58×44 | yes | 16 to neighbour | PASS |
+| Hoe het werkt | 104.31×44 | yes | 16 | PASS |
+| Gesloten bèta | 102.22×44 | yes | 16 | PASS |
+| Header Inloggen | 68.81×44 | yes | 16 | PASS |
+| Access Inloggen | 62.83×21 | **no** | inline in a sentence | PASS — **2.5.8 inline/block-of-text exception** |
+
+320 CSS px compact closed:
+
+| Name | Box | Result |
+| --- | --- | --- |
+| Skip | 205.48×44 | PASS |
+| Wordmark | 103.42×48 | PASS |
+| Navigatie | 77.38×44 | PASS |
+| Header Inloggen | 72.86×44 | PASS |
+| Access Inloggen | 62.83×21 | PASS — same inline exception |
+
+320 compact **open** exploration links: 106.8×44, 110.7×44, 108.5×44 — PASS.
+
+## 17. 320 CSS-pixel results
+
+Viewport forced to 320×700, DPR 1, zoom 1.
+
+Closed: `scrollWidth` 305–320; no unintended horizontal overflow; no clipped text; no overlapping product blocks; H1 visible; two Inloggen controls visible; disclosure visible and operable; footer visible; skip usable on focus.
+
+Open: same overflow result; three exploration links visible (44 px tall); Tab order complete; no off-screen product control; no obscured keyboard focus on product targets.
+
+## 18. 200% zoom results
+
+Chrome UI zoom keystrokes (`Ctrl++` / `Ctrl+0`) did not reliably change `innerWidth` from this agent while device metrics had been used. **Executed separately** from the 320 test using CSS `document.documentElement.style.zoom = "2"` on a 1280×805 CSS-pixel viewport (same method class as PW-13 zoom equivalent), then removed.
+
+At 200% CSS zoom: layout reflowed to compact (`Navigatie` visible); H1 remained; two Inloggen controls remained; no `overflowingX`; no clipped product text; skip focus box 411×88, in-view, teal outline; Tab moved to wordmark then `Navigatie`. Function not lost. Zoom restored to `1`.
+
+This is labelled CSS zoom, not Chrome settings-zoom UI. It is not inferred from the 320-width run.
+
+## 19. Text-spacing results
+
+Temporary injected style (not repository source): line-height 1.5; paragraph margin-bottom 2em; letter-spacing 0.12em; word-spacing 0.16em. Then removed.
+
+Under the override at 1280×805: no horizontal overflow; no clipped text; H1 readable; two Inloggen controls present; footer visible; skip still focusable (box widened to 255×44 from letter-spacing). No lost control label. Style element removed after the check.
+
+## 20. Actual Windows forced-colours results
+
+| Item | Result |
+| --- | --- |
+| Baseline | flags 126, high-contrast **off** |
+| Theme used | Actual OS high contrast; SPI enable; Windows reported scheme `Zwart - hoog contrast` (High Contrast Black); flags 127 |
+| Chromium | `forced-colors: active` **true**; `prefers-color-scheme: dark` |
+| Text | White CanvasText on dark Canvas; H1 still the Dutch public heading |
+| Links | Link-coloured (`rgb(117, 233, 252)`) **and underlined** |
+| Focus | Skip showed 2px Highlight outline under forced colours |
+| Buttons / disclosure | Native `summary` present (compact hidden at 1280); links remain identifiable |
+| Access / Today | Forced-colours CSS borders 2px / 1px `CanvasText`; content remains visible |
+| Custom backgrounds | Brand fills replaced by Canvas; did not hide text |
+| Restoration | flags 126, high-contrast **off**; Chrome `forced-colors` **false**; light scheme |
+
+User-assisted SPI activation. DevTools emulation was **not** used as the forced-colours evidence.
+
+## 21. Reduced-motion results
+
+Source: public stylesheet sets `animation/transition/scroll-behavior` none under `prefers-reduced-motion: reduce`. Rendered: `document.getAnimations()` length 0 in the default state (no product animation running). Skip uses a transform snap without an observed animation. Disclosure open/close is instant.
+
+Method: **labelled Chromium emulation** `Emulation.setEmulatedMedia` `prefers-reduced-motion: reduce` (project authority allows OS or clearly labelled emulation). `matchMedia` became true. Skip activation still moved focus to `#hoofdinhoud` with visible outline; no information disappeared; no flashing introduced. Emulation cleared afterward; `prefers-reduced-motion` false.
+
+Meaningful motion: none observed. Result: **NOT APPLICABLE** for motion removal, with source + rendered + emulated-preference execution recorded. Not skipped.
+
+## 22. Responsive state matrix
+
+| State | Viewport | Zoom | Preference | Browser | Keyboard | NVDA | Result |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Desktop default | 1280×805 | 100% | default | inventory + contrast + targets | full product order; skip; focus visible | speech not captured | PASS (browser/keyboard); NVDA speech **BLOCKED** |
+| Desktop with NVDA | same | 100% | default | NVDA process attached to Chrome | Tab order as above | engine language warnings only | **BLOCKED** (speech) |
+| Compact nav closed | 320×700 | 100% | default | disclosure visible, panel hidden | skip → wordmark → Navigatie → Inloggen | speech not captured | PASS (browser/keyboard) |
+| Compact nav open | 320×700 | 100% | default | three links visible; no overflow | Space/Enter toggle; Tab through links | speech not captured | PASS (browser/keyboard) |
+| 320 CSS pixels | 320×700 | 100% | default | no unintended x-scroll | operable | speech not captured | PASS (browser/keyboard) |
+| 200% zoom | 1280×805 | CSS 200% | default | compact reflow; no x-scroll | skip + nav operable | speech not captured | PASS (browser/keyboard; CSS zoom method) |
+| Text-spacing override | 1280×805 | 100% | injected 1.4.12 | no clip/overflow | skip usable | n/a | PASS |
+| Actual Windows forced colours | 1280×805 | 100% | OS HC Black | text/links/focus/borders perceivable | skip Tab continued | n/a | PASS |
+| Reduced motion | 1280×805 | 100% | emulated reduce | no running animations | skip still understandable | n/a | NOT APPLICABLE (no meaningful motion) with execution |
+
+Skipped is not passed. NVDA speech rows remain blocked.
+
+## 23. Automated and local test evidence
+
+Automated accessibility package: **SKIPPED — TOOL UNAVAILABLE** (no project axe/Lighthouse command; none installed). Remains P2 because this gap does not replace the incomplete NVDA speech matrix.
+
+Local command:
+
+```text
+npx vitest run tests/public-web/public-homepage.test.tsx
+```
+
+Result: 9 passed, 0 failed, 0 skipped. Exit code 0. Duration 825 ms. Snapshots not updated. Tests not edited. Full suite not re-executed.
+
+## 24. Initial P1 reconciliation
+
+| Original ID | Original | New evidence | Class | Current | Disposition |
+| --- | --- | --- | --- | --- | --- |
+| PW14-C3-FND-001 | P1 Open — NVDA unavailable | NVDA 2026.2 ran with headed Chrome; Speech Viewer not enumerable; announcement summaries missing | environment / incomplete AT capture | **Open P1** | Not resolved |
+| PW14-C3-FND-002 | P1 Open — no clean logged-out context | Isolated temp Chrome profile; app-auth cookie/storage counts 0; Dutch H1; `/home` logged-out bounce | browser | **Resolved** | Environment recovery |
+| PW14-C3-FND-003 | P1 Open — keyboard/skip missing | Desktop + compact keyboard, skip, focus visibility executed | browser | **Resolved** | — |
+| PW14-C3-FND-004 | P1 Open — contrast/targets missing | Rendered text, non-text/focus, and target boxes measured | measurement | **Resolved** | — |
+| PW14-C3-FND-005 | P1 Open — 320 / 200% / spacing missing | All three executed | browser | **Resolved** | — |
+| PW14-C3-FND-006 | P1 Open — OS forced-colours missing | Actual `Zwart - hoog contrast`; Chrome `forced-colors: active`; restored | environment | **Resolved** | — |
+| PW14-C3-FND-007 | P1 Open — reduced-motion missing | Source + rendered + labelled emulation | browser | **Resolved** (N/A for motion, executed) | — |
+
+## 25. P2 reconciliation
+
+| Original ID | Original | Reassessment | Current |
+| --- | --- | --- | --- |
+| PW14-C3-FND-008 | Automated scan unavailable | Still no project tool | Open P2 |
+| PW14-C3-FND-009 | Root `en` vs wrapper `nl` | NVDA engine English language-change vs Dutch voice; 3.1.1 default language mismatch | **Escalated to P1** as `PW14-C3-C1-FND-001` |
+| PW14-C3-FND-010 | C4 visitor validation | Out of C3-C1 scope | Open P2 |
+| PW14-C3-FND-011 | Production verification | Production still `/` → `/login`; not tested for accessibility | Open P2 |
+
+## 26. Updated findings register
+
+| ID | Sev | Area | Evidence class | Finding | Gate effect | Owner | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| PW14-C3-FND-001 | P1 | NVDA speech | environment | NVDA runs, but Speech Viewer announcements were not observed | Blocks C3-C1 | C3-C1 / owner Speech Viewer | **Open** |
+| PW14-C3-C1-FND-001 | P1 | Language of page | NVDA engine + rendered | Document default `lang="en"`; Dutch public content; wrapper `lang="nl"`; OneCore `Language en not supported ({'nl_nl'})` | Blocks C3-C1 as product finding; do not fix in C3-C1 | Separate remediation authority | **Open** |
+| PW14-C3-FND-002 | P1 | Logged-out context | browser | — | — | C3-C1 | **Resolved** |
+| PW14-C3-FND-003 | P1 | Keyboard / skip | browser | — | — | C3-C1 | **Resolved** |
+| PW14-C3-FND-004 | P1 | Contrast / targets | measurement | — | — | C3-C1 | **Resolved** |
+| PW14-C3-FND-005 | P1 | 320 / 200% / spacing | browser | — | — | C3-C1 | **Resolved** |
+| PW14-C3-FND-006 | P1 | Forced-colours | environment | — | — | C3-C1 | **Resolved** |
+| PW14-C3-FND-007 | P1 | Reduced-motion | browser | — | — | C3-C1 | **Resolved** |
+| PW14-C3-FND-008 | P2 | Automated scan | tool | Unavailable | Non-blocking if manual complete; manual NVDA speech still open | later | Open |
+| PW14-C3-FND-009 | P2→P1 | Language | see C3-C1-FND-001 | Escalated | — | — | **Superseded by C3-C1-FND-001** |
+| PW14-C3-FND-010 | P2 | C4 | scope | Outstanding | Blocks PW-14, not closable here | PW-14-C4 | Open |
+| PW14-C3-FND-011 | P2 | Production | scope | Outstanding | Blocks PW-14 | later Production phases | Open |
+
+P0 remaining: **0**. P1 remaining: **2**. P2 remaining: **3**.
+
+## 27. C3-C1 AND-gate
+
+| Condition | Met? |
+| --- | --- |
+| Expected Git state | Yes |
+| Initial C3 evidence preserved | Yes |
+| Retained Preview identity | Yes |
+| Clean logged-out application state | Yes |
+| Public homepage rendered | Yes |
+| No private content | Yes |
+| Actual NVDA + Chromium **speech** testing completed | **No** |
+| Keyboard / focus / skip | Yes |
+| Rendered structure / names | Yes |
+| Language explicitly assessed | Yes (product P1 opened) |
+| Rendered text contrast | Yes |
+| Non-text / focus contrast | Yes |
+| Target sizes / exceptions | Yes |
+| 320 / 200% / text-spacing | Yes |
+| Actual OS forced-colours | Yes |
+| Reduced-motion executed or N/A | Yes |
+| State matrix complete (no silent skip) | Yes, with NVDA speech blocked |
+| Every initial P1 reconciled | Yes (audit trail; two remain open) |
+| No P0 | Yes |
+| No unresolved P1 | **No** |
+| P2 transparent | Yes |
+| No code/test change | Yes |
+| Production unchanged | Yes |
+| No Preview created / no promote | Yes |
+| No WCAG-conformance claim | Yes |
+
+AND-gate **fails**.
+
+## 28. Remaining PW-14 blockers
+
+Publication admission, visitor validation (C4), Production verification, and independent C3 review remain outstanding. C3-C1 itself remains BLOCKED on NVDA speech capture and the language-of-page product finding. Today AppShell accessibility remains out of scope. Authenticated Home remains closed.
+
+## 29. Privacy and security integrity
+
+No credentials, cookie values, tokens, Authorization headers, environment values, Supabase identifiers, email addresses, UUIDs, private authenticated content, full Speech Viewer transcripts, or private query values were written. Deployment Protection was not weakened. Application login was not used.
+
+## 30. File integrity
+
+Only this evidence document is intended to change. No source, test, style, config, env, dependency, lockfile, report, binary, or browser profile was added to the repository.
+
+## 31. Git state
+
+HEAD `2daff99f5f8336dc4a455484ec3ced413a834f8d`. Upstream same. Ahead/behind `0 0`. Nothing staged. Unstaged: this file only. Untracked: none. No conflicting Git operation.
+
+## 32. Commit, push, deploy, and promotion status
+
+No stage. No commit. No push. No Preview created. No promote. No `--prod`. No Vercel or Supabase settings change. No aliases changed.
+
+## 33. Gate result
+
+```text
+BLOCKED — PW-14-C3-C1 LOGGED-OUT ACCESSIBILITY EVIDENCE RECOVERY AND COMPLETION FAILED
+PW-14 REMAINS BLOCKED
+DO NOT COMMIT
+DO NOT PROMOTE
+PRODUCTION UNCHANGED
+```
+
+The initial C3 BLOCKED result remains a historical fact. C3-C1 recovered logged-out headed measurements and closed five of seven original environment P1s, but did not close C3. This does not close PW-14. C3 is not ready for independent review.
+
+## 34. Next authorized step
+
+1. Complete actual NVDA Speech Viewer announcement capture on the same clean logged-out retained Preview (resume this C3-C1 phase once the Speech Viewer window is visible to the tester).
+2. A separately authorized targeted C3 remediation would be required for `PW14-C3-C1-FND-001` (document language). Do not fix it inside C3-C1.
+
+Do not start PW-14-C3-R1, C3-FV, C4, publication admission, or Production verification from this BLOCKED result.
+
+End of PW-14-C3-C1 evidence.
+
+# PW-14-C3-C2 — Document Language Remediation and Accessibility Evidence Correction
+
+| Field | Value |
+| --- | --- |
+| Phase | PW-14-C3-C2 |
+| Date | 2026-09-18 |
+| Repository root | `D:/project ai cursus verkopers.worktrees/parallel__laptop-product-track-20260707-1` |
+| Branch | `core/platform-readiness-20260707` |
+| HEAD (unchanged) | `2daff99f5f8336dc4a455484ec3ced413a834f8d` |
+| Parent | `a8e359bc8b549ec8a6f53c1a2236ce794b84dc8e` |
+| Commit subject | `docs(public-web): close PW-14-C2 preview routing evidence` |
+| Upstream | `origin/core/platform-readiness-20260707` at the same SHA |
+| Ahead/behind | `0 0` |
+| Staging | none |
+| Commit / push / deploy / Preview / promote | none |
+
+## 1. Purpose and phase boundary
+
+C3-C2 is a targeted product-remediation and documentary-correction phase. It:
+
+1. implements the smallest safe server-rendered document-language architecture for WCAG 2.2 SC 3.1.1;
+2. adds regression tests for that architecture;
+3. corrects the current accessibility findings reconciliation from two open P1s to three open P1s;
+4. preserves the historical PW-14-C3 and PW-14-C3-C1 appendices;
+5. runs complete local verification.
+
+C3-C2 does **not** execute final NVDA Speech Viewer validation. C3-C2 does **not** execute actual 200% browser/user-agent zoom. Those checks require a new Preview after this remediation is independently reviewed, committed, and pushed. C3-C2 does not create a Preview, does not authenticate to ZyntixAI, and does not authorize publication.
+
+C3-C2 local PASS is not PW-14-C3 PASS and is not a WCAG-conformance claim.
+
+## 2. Preflight and drift verification
+
+Read-only preflight, then `git fetch origin`. After fetch:
+
+| Check | Result |
+| --- | --- |
+| Repository root | matches the authorized worktree |
+| Branch | `core/platform-readiness-20260707` |
+| Local HEAD | `2daff99f5f8336dc4a455484ec3ced413a834f8d` |
+| Upstream SHA | identical |
+| Ahead/behind | `0 0` |
+| Staged files | none |
+| Entry unstaged tracked file | `docs/phases/PW-14-public-homepage-publication-production-verification.md` only |
+| Entry untracked files | none |
+| Merge / rebase / cherry-pick / revert / bisect | none (`MERGE_HEAD`, `REBASE_HEAD`, `CHERRY_PICK_HEAD`, `REVERT_HEAD`, `BISECT_LOG` absent) |
+| Instruction files | no project `AGENTS.md`, `CONTRIBUTING.md`, or `.cursor/rules` |
+| Existing evidence diff | C3 BLOCKED appendix and C3-C1 BLOCKED recovery appendix present; not reset, stashed, rewritten, or normalized |
+| Retained Preview | non-Production; Deployment Protection SSO still present; no C3-C2 deployment created |
+| Production | unchanged logged-out pre-PW-13 `/` → `/login` |
+
+No conflicting Git operation was active. Drift-repair was not required and was not performed.
+
+## 3. Authority review
+
+Applied: B1-GATE.1 (100% required gates; this subphase is local remediation + evidence correction, not parent C3 closure); PW-0 through PW-13; the complete PW-14 evidence chain including C1 / C1-R1 / C1-FV and C2 / C2-R1 / C2-FV; the initial C3 BLOCKED appendix; C3-C1; PW-8 Language Model A (`PW8-LANG-001` / `PW8-OD-002`); WCAG 2.2 SC 3.1.1, SC 1.4.4, and SC 1.4.10.
+
+PW-1 remains the public-truth ceiling. PW-13 remains the public-homepage implementation authority. PW-14-C2 remains routing evidence only. C3-C2 does not authorize publication.
+
+PW-8 frozen Language Model A: the public homepage document language must be Dutch; English authenticated surfaces and `/login` keep English. Model B (global root `lang="nl"`) and Model C (Dutch clusters inside an English document as the final remedy) remain rejected. A Dutch wrapper inside an English `<html lang="en">` is not accepted as the final remedy.
+
+## 4. Historical C3 / C3-C1 preservation
+
+The initial C3 appendix and the later C3-C1 appendix remain above this section and were not rewritten. They continue to record:
+
+- contaminated IDE-browser cookies sending headed `/` to authenticated onboarding;
+- initial missing logged-out evidence;
+- initial seven P1 findings;
+- later clean isolated-browser recovery and application-auth isolation;
+- completed keyboard, focus, skip-link, contrast, target, 320 CSS-pixel, text-spacing, forced-colours, and reduced-motion checks;
+- incomplete NVDA Speech Viewer announcement capture;
+- the language finding (`html lang="en"` vs predominantly Dutch public copy);
+- CSS `zoom: 2` labelled as CSS zoom in the C3-C1 narrative;
+- no product code change during C3 / C3-C1;
+- no commit, push, deployment, or promotion.
+
+C3-C1’s historical findings register still shows P1 remaining **2**. That register is left as a historical snapshot. The current three-P1 correction is recorded only in this C3-C2 appendix as an evidence-classification correction, not as a claim that the earlier report was dishonest.
+
+## 5. Route-language inventory
+
+Inspected before implementation: logged-out `/`, `/login`, public homepage source, authenticated root resolver, onboarding headings, `/home` / Today / AppShell, invitation accept, organization-selection via `/home`, register and recovery forms, onboarding error fallback, Home loading, and the default Next.js not-found document. No `next-intl` / `i18next` document-locale stack exists. Organization `default_locale` fields are private product data and were **not** used for `<html lang>`.
+
+| Route or class | Rendered state | Predominant visible language | Inherited `<html lang>` before C3-C2 | Nested `lang` | Expected document language | Evidence source | HTML or redirect |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Logged-out `/` | PublicHomepage | Dutch | `en` | wrapper `lang="nl"` | `nl` | C3-C1 Preview + source + local `next start` | HTML 200 |
+| Authenticated `/` | `resolveAuthenticatedEntryPath` | n/a (no page body) | n/a | n/a | n/a for the redirect response; destination page owns language | `src/app/page.tsx`; entry-routing tests | Redirect only |
+| `/login` | Sign-in form | English (`Sign in`, `Email`, `Password`) | `en` | none | `en` | source + local `next start` | HTML 200 |
+| Public homepage fragment | same as logged-out `/` | Dutch | inherited from root | wrapper `nl` | document `nl` (wrapper may remain) | `public-homepage.tsx` | HTML via `/` |
+| `/home` logged-out | n/a | n/a | n/a | n/a | destination `/login` is `en` | middleware tests + local 307 | Redirect |
+| `/home` authenticated | Today / AppShell | English (`Today`, `Skip to main content`) | `en` | none | `en` | Home / AppShell source | HTML when admitted |
+| Onboarding HTML | operating-model, team, ready, creating, errors | English | `en` | none | `en` | onboarding headings (`How does your business operate?`, `Setup needs attention`) | HTML when admitted |
+| `/onboarding` logged-out | n/a | n/a | n/a | n/a | destination `/login` is `en` | local 307 | Redirect |
+| `/invite/accept` | invitation continuation / unavailable | English (`Invitation unavailable`, `Sign in`) | `en` | none | `en` | source + local `next start` | HTML 200 (no token) |
+| `/register` | create-account form when rendered | English (`Create your account`) | `en` | none | `en` | register form source | HTML when enabled; local production server followed existing registration-disabled redirect to `/login?registration=disabled` |
+| `/forgot-password` | reset form | English (`Reset password`) | `en` | none | `en` | source + local `next start` | HTML 200 |
+| `/reset-password` | choose-password / expired | English | `en` | none | `en` | reset-password form source | HTML |
+| Organization selection | `/home` membership states | English (`Organization required`) | `en` | none | `en` | Home page source | HTML when admitted |
+| Default not-found | Next.js 404 | English (`404`, `This page could not be found.`) | `en` | none | `en` | local `GET /this-path-does-not-exist` | HTML 404 |
+| Home loading | AppShell pending | English (`Today`) | `en` | none | `en` | `home/loading.tsx` | HTML when loading |
+| Metadata | title / description | English (`ZyntixAI`, `ZyntixAI application foundation`) | n/a | n/a | unchanged | root `metadata` + local HTML `<title>` | present on HTML pages |
+
+Not every application route is Dutch. Global `<html lang="nl">` would mislabel `/login`, AppShell, onboarding, invitations, register, recovery, and the default 404.
+
+## 6. Architecture assessment
+
+Evaluated:
+
+- **Option A — Global Dutch root language.** Rejected. Inventory proves English HTML pages inherit the same root layout.
+- **Option B — Language-specific route groups with separate root layouts.** Rejected for C3-C2. Dual-use `/` cannot gain a second root layout without URL or auth-tree migration. Authenticated `/` is redirect-only, but `/login` and the rest of the app would still need a broad restructure to isolate `html`. Risk exceeds the smallest safe change.
+- **Option C — Governed server-side route-language resolution.** Accepted. Pathname-only allowlisted resolver; middleware overwrites any client-supplied internal language header; root layout is an async Server Component that reads the trusted header before render.
+- **Option D — Other framework mechanism.** Nested layouts cannot change the root `<html>` element. Client `document.documentElement.lang` mutation is prohibited. Query, cookie, `Accept-Language`, and organization locale negotiation were rejected.
+
+No broad route-tree migration was required. Implementation continued.
+
+## 7. Selected design and rejected alternatives
+
+Selected: Option C, pathname-only.
+
+`/` → `nl`. Every other pathname → `en`. Query, hash, trailing slashes, `Accept-Language`, cookies, and client `x-document-language` do not control the value. Invalid or missing parsed values fall back to allowlisted `en`. Authenticated `/` remains redirect-only and does not emit the Dutch public document.
+
+Why correct: it implements PW-8 Model A without announcing English product chrome as Dutch, and it puts the language on the server-rendered `<html>` element before JavaScript runs.
+
+Why smallest: one helper module, root layout `lang={lang}`, and reuse of the existing middleware `NextResponse.next({ request: { headers } })` path. No route-group move, no auth rewrite, no copy change.
+
+Rejected alternatives: Option A, Option B, Model C wrapper-only, client `useEffect` patching, `Accept-Language` personalization, cookie-controlled language, query `?lang=`, and organization `default_locale`.
+
+Impact:
+
+| Surface | Impact |
+| --- | --- |
+| Public `/` | Initial HTML `<html lang="nl">`; wrapper `lang="nl"` retained; copy unchanged |
+| `/login` | Remains `<html lang="en">` |
+| Authenticated routes | Remain `en` when they render HTML; redirects unchanged |
+| Middleware | Request-header overwrite only; redirect branches unchanged |
+| Caching | `/` already `force-dynamic`; build remains all-dynamic `ƒ`; public responses stay `private, no-store`; language header is not a client cache key |
+| Metadata | Unchanged title and description |
+| Hydration | Server `lang` matches RSC payload `{"lang":"nl"}` / `{"lang":"en"}`; no client patch |
+| Route transitions | Language follows the destination pathname on the next server render |
+
+## 8. Acceptance contract
+
+Established before editing:
+
+1. Logged-out public `/` initial HTML is Dutch on `<html lang>`.
+2. Predominant language is on the `<html>` element.
+3. No post-hydration correction.
+4. JavaScript-disabled initial HTML remains correct.
+5. `/login` is English.
+6. Other rendered classes keep English.
+7. Redirect-only root behaviour unchanged.
+8. Authenticated root routing unchanged.
+9. `/home` protection unchanged.
+10. Membership, onboarding, invitation, and organization-selection behaviour unchanged.
+11. PublicHomepage still receives no private props.
+12. Public CSS isolation unchanged.
+13. No caching or cross-user privacy regression.
+14. No arbitrary client-controlled language value reaches `<html lang>`.
+15. Only allowlisted `en` \| `nl` are emitted.
+16. Existing metadata remains correct.
+17. No hydration mismatch.
+18. Historical accessibility findings remain historically accurate.
+19. Current findings corrected to three open P1s.
+20. Actual NVDA and actual 200% browser zoom remain outstanding.
+
+## 9. Implementation
+
+Source changes:
+
+- `src/lib/i18n/document-language.ts` — allowlist, pathname resolver, header overwrite, `nextWithTrustedDocumentLanguage`.
+- `src/app/layout.tsx` — async Server Component; `headers()` + `parseDocumentLanguage`; `<html lang={lang}>`.
+- `src/lib/supabase/middleware.ts` — both previous `NextResponse.next({ request })` sites now call `nextWithTrustedDocumentLanguage(request)`. Redirect responses are unchanged.
+
+Not changed: public copy, public CSS, `src/app/page.tsx`, `/login` UI, AppShell, onboarding, invitations, metadata strings, `src/middleware.ts` matcher, dependencies, lockfile, Vercel, Supabase, environment files.
+
+The public wrapper `lang="nl"` remains as a nested language mark. It is no longer the only language signal and is not treated as the final 3.1.1 remedy.
+
+No `useEffect` or `document.documentElement.lang` mutation was added.
+
+## 10. Security and privacy review
+
+- Client-supplied `x-document-language` is deleted and overwritten from the pathname before the layout reads headers.
+- Accepted values are exactly `en` and `nl`.
+- Invalid / missing parsed values fall back to `en`.
+- Query `?lang=en` on `/` still yields document `nl`.
+- Path, query, cookie, email, organization, membership, and session values are not written into `<html lang>` or into public HTML.
+- PublicHomepage still receives no private props (`src/app/page.tsx` unchanged).
+- Logged-out `/home` and `/onboarding` still 307 to `/login`.
+- No service-role key is used.
+- No environment value is exposed in HTML.
+- The internal header is a request-overwrite (`x-middleware-request-x-document-language`). Local HTML responses did not echo `x-document-language` to the client.
+- Cache-Control for public HTML remains `private, no-cache, no-store, max-age=0, must-revalidate`.
+- Organization locale / membership data are not a language input.
+- Negative tests cover spoofed `en` on `/`, spoofed `nl` on `/login`, spoofed `fr` on `/home` (still 307), and invalid parse fallback.
+
+## 11. Test additions
+
+New:
+
+- `tests/lib/i18n/document-language.test.ts` — pathname matrix, query stripping, allowlist, overwrite, spoof resistance.
+- `tests/app/root-document-language.test.tsx` — server-rendered root markup for `nl`, `en`, and invalid/missing fallback.
+
+Strengthened:
+
+- `tests/public-web/public-homepage.test.tsx` — isolation lock now requires the resolver + `<html lang={lang}>` and forbids hardcoded root `lang`, `useEffect`, and `document.documentElement` in the root layout; wrapper `lang="nl"` remains on the fragment and is not treated as a substitute for the document root.
+- `tests/auth/middleware-auth-redirects.test.ts` — logged-out `/` forwards `nl`; spoof overwrite; `/home` protection preserved.
+- `tests/auth/entry-routing-and-login-ui.test.tsx` — public fragment has wrapper `lang="nl"` but not `<html>`; login fragment has `Sign in` and not `<html>`.
+
+No snapshots updated. No skips, todo, only, quarantine, or retries.
+
+## 12. Focused regression results
+
+Language / public / middleware / login:
+
+```text
+npx vitest run tests/lib/i18n/document-language.test.ts tests/app/root-document-language.test.tsx tests/public-web/public-homepage.test.tsx tests/auth/middleware-auth-redirects.test.ts tests/auth/entry-routing-and-login-ui.test.tsx
+```
+
+Exit code 0. Test files 5 passed. Tests 45 passed. Failed 0. Skipped 0.
+
+Routing / `/home` / AppShell / onboarding / invitation / safe-return:
+
+```text
+npx vitest run tests/auth/safe-return-path.test.ts tests/auth/public-registration.test.ts tests/features/daily-operating/load-daily-operating-page.test.ts tests/onboarding/onboarding-routing.test.ts tests/onboarding/product-admission-routing.test.ts tests/features/invitations/load-member-administration-page.test.ts tests/ui/appshell-customers-terminology.test.tsx tests/onboarding/product-admission-app-shell.test.ts
+```
+
+Exit code 0. Test files 8 passed. Tests 117 passed. Failed 0. Skipped 0.
+
+Skipped is not passed. Evidence scope: document language, public homepage isolation, logged-out root, authenticated root resolver, `/login`, middleware, safe return, membership/onboarding/invitation routing, `/home` protection, public/AppShell boundary.
+
+## 13. Full-suite result
+
+```text
+npx vitest run
+```
+
+Exit code 0. Test files **538** passed. Tests **4225** passed. Failed **0**. Skipped **0**. Duration 53.40s.
+
+Previous baseline was 536 files / 4213 tests. The increase is the two new test files plus one new middleware example; existing assertions were not weakened.
+
+## 14. Lint result
+
+```text
+npm run lint
+```
+
+Exit code 0. `No ESLint warnings or errors`.
+
+## 15. Typecheck result
+
+```text
+npm run typecheck
+```
+
+Exit code 0 (`tsc --noEmit`). Not run concurrently with build.
+
+## 16. Build result
+
+```text
+npm run build
+```
+
+Exit code 0. Next.js 15.5.20. Routes remain `ƒ` dynamic. Pre-existing autoprefixer warning in social-beta operator CSS is unchanged and unrelated. No new static generation of `/`.
+
+## 17. Static initial-HTML verification
+
+Local production server: `npx next start -H 127.0.0.1 -p 4314` against the C3-C2 build. Bound to loopback only. Stopped before phase completion (listener PID terminated; subsequent fetch failed closed). No browser profile, trace, video, or HAR was saved.
+
+| Request | Status | `<html lang>` | Visible H1 / note |
+| --- | --- | --- | --- |
+| `GET /` | 200 | `nl` | Dutch public H1; wrapper `lang="nl"` also present |
+| `GET /?lang=en` | 200 | `nl` | Query does not switch language |
+| `GET /` + `x-document-language: fr` | 200 | `nl` | Spoof ignored |
+| `GET /` + `x-document-language: en` | 200 | `nl` | Spoof ignored |
+| `GET /login` | 200 | `en` | `Sign in` |
+| `GET /login` + `x-document-language: nl` | 200 | `en` | Spoof ignored |
+| `GET /home` | 307 | n/a (no HTML document) | `Location` `/login?next=%2Fhome` |
+| `GET /forgot-password` | 200 | `en` | `Reset password` |
+| `GET /register` | 307 | n/a | Existing registration-disabled redirect to `/login?registration=disabled` |
+| `GET /invite/accept` | 200 | `en` | `Invitation unavailable`; no invitation identifier in the recorded summary |
+| `GET /onboarding` | 307 | n/a | `/login?next=%2Fonboarding` |
+| `GET /this-path-does-not-exist` | 404 | `en` | Default Next.js 404 |
+
+Initial `/` bytes begin `<!DOCTYPE html><html lang="nl">`. Initial `/login` bytes begin `<!DOCTYPE html><html lang="en">`. Language is present before any client script executes. Curl is JavaScript-disabled; disabling JavaScript is not required to correct the language. RSC payload repeats `{"lang":"nl"}` for `/` and `{"lang":"en"}` for `/login`. No `documentElement.lang` patch. No hydration warning text. No private-content leak markers in the recorded public HTML. Metadata title remains `ZyntixAI`. Public `/` Cache-Control remains `private, no-store`. Client responses did not include `x-document-language`.
+
+This is local production-mode HTML, not Preview evidence and not Production evidence.
+
+## 18. Three-P1 evidence correction
+
+C3-C1 current-entry remainder of **P1 remaining: 2** is a historical snapshot and is not rewritten. Corrected **current** entry state for C3-C2:
+
+- P0 remaining: **0**
+- P1 remaining: **3**
+- P2 remaining: **3**
+
+The three open P1 findings are:
+
+1. Actual NVDA Speech Viewer announcements were not captured.
+2. The public page’s default document language was incorrect (now locally remediated; Preview verification outstanding).
+3. Actual 200% browser/user-agent zoom was not executed.
+
+The third P1 is recorded as: actual 200% browser/user-agent zoom was not executed; temporary CSS `zoom: 2` was supporting layout evidence only and did not resolve the browser-zoom requirement.
+
+## 19. Zoom / reflow finding reconciliation
+
+Original combined C3 finding `PW14-C3-FND-005` covered 320 CSS pixels, 200% zoom, and text-spacing. C3-C1 executed 320, text-spacing, and a CSS `zoom: 2` layout observation, then marked the combined finding resolved.
+
+This C3-C2 correction reclassifies that combined finding as **only partially resolved**:
+
+| Limb | Evidence | Current |
+| --- | --- | --- |
+| 320 CSS-pixel reflow (SC 1.4.10) | C3-C1 executed | Resolved by executed evidence |
+| text-spacing (SC 1.4.12) | C3-C1 executed | Resolved by executed evidence |
+| CSS `zoom: 2` layout observation | C3-C1 supporting evidence | Completed as supporting evidence only |
+| Actual 200% browser/user-agent zoom (SC 1.4.4 evidence required by C3) | Not executed; Chrome UI zoom was not reliably obtained | **Open P1** (`PW14-C3-C2-FND-001`) |
+
+This is an evidence-classification correction. It does not state that the C3-C1 report was dishonest. CSS zoom must not be treated as equivalent to browser zoom. C3-C2 did not fabricate browser-zoom evidence and did not re-run CSS zoom as a substitute.
+
+## 20. Language-finding reconciliation
+
+| Item | Result |
+| --- | --- |
+| Defect | Confirmed: predominantly Dutch public `/` was served under `<html lang="en">` |
+| Local source remediation | Implemented (Option C) |
+| Local tests | Passed (focused + full suite) |
+| Local initial HTML | `<html lang="nl">` on `/`; `<html lang="en">` on `/login` and other inspected HTML classes |
+| Runtime Preview verification | **Outstanding** — no new Preview in C3-C2 |
+| NVDA language behaviour | **Outstanding** — not re-run |
+| Status | `REMEDIATED LOCALLY — AWAITING NEW PREVIEW VERIFICATION` |
+
+The finding is not fully resolved for C3.
+
+## 21. NVDA finding disposition
+
+`PW14-C3-FND-001` remains **OPEN**. NVDA running without captured Speech Viewer announcements remains incomplete evidence. C3-C2 did not run NVDA, did not substitute the accessibility tree, source, browser logs, Narrator, axe, or Lighthouse, and does not claim NVDA PASS.
+
+## 22. Updated findings register
+
+Historical C3 and C3-C1 registers are unchanged. Current C3-C2 classifications:
+
+| ID | Sev | Finding | Status |
+| --- | --- | --- | --- |
+| PW14-C3-FND-001 | P1 | NVDA Speech Viewer announcements not captured | **OPEN** |
+| PW14-C3-C1-FND-001 | P1 | Document-language defect on public `/` | **REMEDIATED LOCALLY — AWAITING NEW PREVIEW VERIFICATION** |
+| PW14-C3-C2-FND-001 | P1 | Actual 200% browser/user-agent zoom not executed; CSS `zoom: 2` is supporting only | **OPEN** |
+| PW14-C3-FND-008 | P2 | Automated axe/Lighthouse scan unavailable | Open |
+| PW14-C3-FND-010 | P2 | PW-14-C4 visitor validation outstanding | Open |
+| PW14-C3-FND-011 | P2 | Production verification outstanding | Open |
+
+P0 remaining: **0**. P1 remaining: **3**. P2 remaining: **3**.
+
+No additional product defect was discovered inside the local remediation scope. A locally remediated finding remains unresolved for C3 until verified on a new governed Preview.
+
+## 23. Remaining C3 blockers
+
+- New governed Preview after independent review, commit, and push.
+- NVDA Speech Viewer announcement capture on that Preview.
+- Actual 200% Chrome/browser zoom on that Preview.
+- Preview verification of the document-language remediation, including NVDA language behaviour.
+
+C3-C2 local PASS does not close PW-14-C3.
+
+## 24. Remaining PW-14 blockers
+
+Parent PW-14 remains BLOCKED. Outstanding beyond C3: C3 independent review / later C3 chain, C4 visitor validation, publication admission, and Production verification. Production still serves pre-PW-13 logged-out `/` → `/login`. Authenticated Home remains closed. Today AppShell visual accessibility remains out of C3-C2 scope.
+
+## 25. File and security integrity
+
+Changed tracked files:
+
+- `docs/phases/PW-14-public-homepage-publication-production-verification.md`
+- `src/app/layout.tsx`
+- `src/lib/supabase/middleware.ts`
+- `tests/auth/entry-routing-and-login-ui.test.tsx`
+- `tests/auth/middleware-auth-redirects.test.ts`
+- `tests/public-web/public-homepage.test.tsx`
+
+New untracked files (unstaged by instruction):
+
+- `src/lib/i18n/document-language.ts`
+- `tests/app/root-document-language.test.tsx`
+- `tests/lib/i18n/document-language.test.ts`
+
+No unrelated source or tests. No visual style change. No config, environment, dependency, or lockfile change. No generated artifact, browser profile, HAR, trace, video, screenshot, or report added. No temporary script remains. Local server stopped. No secret or private identifier added.
+
+`git diff --check` on tracked changes: clean.
+
+## 26. Git state
+
+HEAD `2daff99f5f8336dc4a455484ec3ced413a834f8d`. Upstream same. Ahead/behind `0 0`. Staged: none. Unstaged tracked: the six files listed above. Untracked: the three new source/test files. Untracked remainder is not empty solely because staging is forbidden for new files. No conflicting Git operation.
+
+## 27. Commit, push, deploy, and promotion status
+
+No stage. No commit. No push. No amend. No Preview created. No promote. No `--prod`. No Vercel or Supabase configuration change. No aliases changed.
+
+## 28. Gate result
+
+```text
+PASS — PW-14-C3-C2 DOCUMENT LANGUAGE REMEDIATION AND ACCESSIBILITY EVIDENCE CORRECTION CLOSED LOCALLY WITH EVIDENCE
+PW-14-C3-C2 READY FOR INDEPENDENT REVIEW
+PW-14-C3 REMAINS BLOCKED — NEW PREVIEW, NVDA SPEECH AND ACTUAL 200 PERCENT BROWSER ZOOM VERIFICATION OUTSTANDING
+DO NOT COMMIT
+DO NOT PROMOTE
+PRODUCTION UNCHANGED
+```
+
+## 29. Next authorized step
+
+`PW-14-C3-C2-R1 — Independent Document-Language Remediation and Evidence Review`
+
+Do not start C3-C2-FV, C3-C3, C3-R1, C3-FV, C4, publication admission, or Production verification from this local result.
+
+End of PW-14-C3-C2 evidence.
+
+# PW-14-C3-C2-R1 — Independent Document-Language Remediation and Evidence Review Evidence
+
+| Field | Value |
+| --- | --- |
+| Phase | PW-14-C3-C2-R1 |
+| Date | 2026-09-18 |
+| Repository root | `D:/project ai cursus verkopers.worktrees/parallel__laptop-product-track-20260707-1` |
+| Branch | `core/platform-readiness-20260707` |
+| HEAD (unchanged) | `2daff99f5f8336dc4a455484ec3ced413a834f8d` |
+| Parent | `a8e359bc8b549ec8a6f53c1a2236ce794b84dc8e` |
+| Commit subject | `docs(public-web): close PW-14-C2 preview routing evidence` |
+| Upstream | `origin/core/platform-readiness-20260707` at the same SHA |
+| Ahead/behind | `0 0` |
+| Staging | none |
+| Product/test edits in R1 | none |
+| Commit / push / deploy / Preview / promote | none |
+
+## 1. Preflight
+
+Read-only preflight, then `git fetch origin`. After fetch:
+
+| Check | Result |
+| --- | --- |
+| Repository root | authorized worktree |
+| Branch | `core/platform-readiness-20260707` |
+| Local HEAD | `2daff99f5f8336dc4a455484ec3ced413a834f8d` |
+| Upstream SHA | identical |
+| Ahead/behind | `0 0` |
+| Staged files | none |
+| Modified tracked files | exactly the six expected files |
+| Untracked files | exactly the three expected files |
+| Total changed/new set | exactly nine files |
+| Merge / rebase / cherry-pick / revert / bisect | none |
+| Instruction files | no project `AGENTS.md`, `CONTRIBUTING.md`, or `.cursor/rules` |
+| C3 / C3-C1 / C3-C2 appendices | present |
+| C3-C2 gate text | present as local PASS, C3 still blocked |
+| Retained Preview | non-Production; Deployment Protection SSO still present |
+| Production | unchanged logged-out pre-PW-13 `/` → `/login` |
+
+No drift repair was required or performed.
+
+## 2. Review independence
+
+Every material C3-C2 claim was treated as an unverified hypothesis. This review independently inspected source, complete diffs, complete new-file contents, Next.js 15.5.20 middleware header-override behaviour, tests, focused and full suites, lint, typecheck, build, and a new local production-mode HTTP pass on `127.0.0.1:4315`. C3-C2 statements were not accepted solely because they appear in the evidence document.
+
+Evidence classes used below: source, test, local production-mode HTTP, Next.js framework source, historical appendix, Production HTTP headers.
+
+## 3. Authority review
+
+Applied B1-GATE.1; PW-0 through PW-13; the PW-14 chain including C1 / C1-R1 / C1-FV and C2 / C2-R1 / C2-FV; C3; C3-C1; C3-C2; PW-8 Language Model A (`PW8-LANG-001` / `PW8-OD-002`); WCAG 2.2 SC 3.1.1, SC 1.4.4, and SC 1.4.10; the repository’s existing Next.js App Router and Supabase SSR middleware contracts.
+
+PW-1 remains the public-truth ceiling. PW-13 remains the public-homepage implementation authority. PW-14-C2 remains routing evidence only. C3-C2 does not authorize publication or deployment. R1 local confirmation is not PW-14-C3 PASS and is not a WCAG-conformance claim.
+
+## 4. Complete diff review
+
+Independently reviewed the complete tracked diffs and the complete contents of the three new files. Line classification:
+
+| File | Classification |
+| --- | --- |
+| `src/lib/i18n/document-language.ts` | document-language implementation + trusted request metadata handling |
+| `src/app/layout.tsx` | root-layout rendering |
+| `src/lib/supabase/middleware.ts` | trusted request metadata handling (two `NextResponse.next` construction sites) |
+| `tests/lib/i18n/document-language.test.ts` | relevant regression test |
+| `tests/app/root-document-language.test.tsx` | relevant regression test |
+| `tests/public-web/public-homepage.test.tsx` | relevant regression test |
+| `tests/auth/middleware-auth-redirects.test.ts` | relevant regression test |
+| `tests/auth/entry-routing-and-login-ui.test.tsx` | relevant regression test |
+| PW-14 evidence document | evidence documentation |
+
+No public copy change, visual redesign, authentication/authorization/membership/onboarding/invitation/Home/AppShell change, unrelated middleware refactor, dependency/lockfile/environment/Vercel/Supabase change, hidden deployment behaviour, debug code, temporary instrumentation, or broad formatting rewrite was found.
+
+Middleware still uses `getPublicSupabaseEnv()` publishable values only. Redirect branches, `applyCookies`, and `getUser()` remain the pre-C3-C2 control flow.
+
+## 5. Historical evidence review
+
+Independently reread C3, C3-C1, and C3-C2.
+
+| Claim | Independent result |
+| --- | --- |
+| C3 historically BLOCKED | Confirmed; seven P1s recorded |
+| C3-C1 historically BLOCKED | Confirmed |
+| C3-C1 then-current snapshot P1 remaining 2 | Confirmed at C3-C1 register; not rewritten |
+| C3-C2 later corrects current state to three P1s | Confirmed; described as evidence-classification correction, not dishonesty |
+| CSS `zoom: 2` labelled supporting | Confirmed in C3-C1 narrative and C3-C2 reconciliation |
+| 320 CSS-pixel reflow separately valid | Confirmed executed in C3-C1 §17 |
+| Actual browser zoom open | Confirmed as `PW14-C3-C2-FND-001` |
+| NVDA speech open | Confirmed; Speech Viewer announcements not captured |
+| Language locally remediated, not Preview-verified | Confirmed |
+| PW-14-C3 remains blocked | Confirmed in C3-C2 gate text |
+| Production unchanged | Confirmed historically and by this R1 Production header pass |
+
+Historical vs current, local vs Preview vs Production, passed vs skipped vs open vs locally remediated remain distinguished.
+
+## 6. Route-language inventory assessment
+
+Independent source inspection of visible copy, plus logged-out local HTML where reachable:
+
+| Route / class | Predominant language | Expected `<html lang>` | HTML or redirect | Independent support |
+| --- | --- | --- | --- | --- |
+| Logged-out `/` | Dutch public H1 and body | `nl` | HTML 200 | source + local HTTP |
+| Authenticated `/` | n/a | n/a | Redirect only | source (`redirect(resolveAuthenticatedEntryPath)`); **authenticated runtime not executed in R1** |
+| `/login` | English `Sign in` | `en` | HTML 200 | source + local HTTP |
+| `/home` logged-out | n/a | destination `/login` `en` | 307 | middleware tests + local HTTP |
+| `/home` / Today / AppShell admitted | English (`Today`, `Skip to main content`, `Sign in required`) | `en` | HTML when admitted | source; **authenticated runtime not executed in R1** |
+| Onboarding HTML | English (`How does your business operate?`, `Setup needs attention`) | `en` | HTML when admitted | source |
+| `/onboarding` logged-out | n/a | `/login` `en` | 307 | local HTTP |
+| `/invite/accept` | English (`Invitation unavailable`, metadata `Invitation \| ZyntixAI`) | `en` | HTML 200 | source + local HTTP |
+| `/register` when rendered | English (`Create your account`) | `en` | HTML when enabled | source; local prod followed existing registration-disabled redirect |
+| `/forgot-password` | English `Reset password` | `en` | HTML 200 | source + local HTTP |
+| `/reset-password` | English `Reset link expired` without a token | `en` | HTML 200 | source + local HTTP |
+| Default 404 | English `404` | `en` | HTML 404 | local HTTP |
+| Loading / error states | English product chrome | `en` | HTML when those files render | source (Home loading `Today`; product errors `Something went wrong`) |
+
+The `/` → `nl`, everything-else → `en` mapping is supported by the current rendered inventory. No rendered route contradicted it.
+
+## 7. Language-resolver assessment
+
+Inspected complete `src/lib/i18n/document-language.ts`.
+
+- Allowlist is exact `'en' \|\| 'nl'` at runtime; TypeScript union cannot bypass `parseDocumentLanguage`.
+- `normalizePathname` strips query/hash before comparison; `/` and empty/all-slash paths become `/` → `nl`; `/login/` and `/home/` → `en`.
+- Resolver uses pathname only. No cookie, `Accept-Language`, organization locale, session, or query input.
+- Missing, empty, `fr`, `NL`, `en-US`, and other malformed values fall back to `en`.
+- Layout never writes a raw header string into `lang`; it writes the parsed allowlisted value.
+- Helper names (`applyTrustedDocumentLanguageHeaders`, `nextWithTrustedDocumentLanguage`, `parseDocumentLanguage`) communicate the trust boundary.
+- Application has no `basePath` and no locale-prefix routing. Unknown routes resolve `en`, matching the English default 404.
+
+## 8. Middleware trust-boundary assessment
+
+Inspected complete `src/lib/supabase/middleware.ts` and `src/middleware.ts`, not only the changed lines, plus Next.js 15.5.20 `NextResponse.next` / `x-middleware-override-headers` handling.
+
+- Both `NextResponse.next` construction sites now call `nextWithTrustedDocumentLanguage`.
+- That helper clones inbound headers, deletes `x-document-language`, and sets the pathname-derived allowlisted value. Fetch `Headers` delete/get is case-insensitive.
+- Next.js override semantics delete request headers not listed in the override set. The helper copies **all** inbound headers before setting language, so `Cookie` and other request headers remain in the override list. This is the safe pattern; setting only the language header would have been a P1 cookie-loss risk. That unsafe pattern is **not** present.
+- After `request.cookies.set` in `setAll`, the helper re-reads `request.headers` (RequestCookies mutate the Cookie header) and `applyCookies` still copies refresh cookies onto the response, including redirect branches.
+- Redirect control flow is unchanged. Logged-out `/home` still 307s to `/login?next=/home`. Language cannot change destination routing.
+- Matcher still excludes `_next/static`, `_next/image`, favicon, and image extensions; HTML routes including `/` are included. Unknown HTML routes still pass middleware and receive `en`.
+- No service-role usage. No private identifiers added to headers. Local HTML responses did not echo `x-document-language`.
+- No redirect-loop mechanism was introduced.
+
+Authenticated cookie-refresh **runtime** was not executed in R1 (no session). Classification: source + framework review, not live session proof.
+
+## 9. Root-layout assessment
+
+`src/app/layout.tsx` remains a Server Component (no `"use client"`). It awaits `headers()`, parses through the allowlisted helper, and renders `<html lang={lang}>`. Metadata export is unchanged. Body still contains only `{children}`. No `useEffect`, inline script, or `document.documentElement` mutation exists in the layout. `src/app/page.tsx` is unchanged (PublicHomepage still receives no props; authenticated `/` still redirects).
+
+`headers()` keeps the root layout dynamic. The C3-C2 build and this R1 rebuild both list every App Router route as `ƒ` dynamic; `/` already had `export const dynamic = "force-dynamic"`. Dynamic rendering is therefore not a new cache-class change. A safe dynamic route is not a defect.
+
+## 10. Server-rendered initial-HTML verification
+
+Independent local production-mode pass: `npx next start -H 127.0.0.1 -p 4315` after this R1 rebuild. Loopback only. Server stopped afterward; no listener remained on 4315. No HAR, trace, video, or browser profile was saved.
+
+| Request | Status | `<html lang>` | Note |
+| --- | --- | --- | --- |
+| `GET /` | 200 | `nl` | prefix `<!DOCTYPE html><html lang="nl">`; Dutch H1 |
+| `GET /?lang=en` | 200 | `nl` | query does not switch language |
+| `GET /` + `x-document-language: en` | 200 | `nl` | spoof ignored |
+| `GET /` + `x-document-language: fr` | 200 | `nl` | spoof ignored |
+| `GET /` + empty language header | 200 | `nl` | spoof ignored |
+| `GET /` + 400-character unsupported value | 200 | `nl` | spoof ignored |
+| `GET /login` | 200 | `en` | `Sign in` |
+| `GET /login` + `nl` | 200 | `en` | spoof ignored |
+| `GET /login` + `fr` | 200 | `en` | spoof ignored |
+| `GET /home` | 307 | n/a | `/login?next=%2Fhome` |
+| `GET /forgot-password` | 200 | `en` | `Reset password` |
+| `GET /reset-password` | 200 | `en` | `Reset link expired` |
+| `GET /invite/accept` | 200 | `en` | `Invitation unavailable` |
+| `GET /onboarding` | 307 | n/a | `/login?next=%2Fonboarding` |
+| unknown path | 404 | `en` | default Next.js 404 |
+| `GET /register` | 307 | n/a | existing registration-disabled redirect |
+
+Public HTML Cache-Control: `private, no-cache, no-store, max-age=0, must-revalidate`. Response did not include `x-document-language`. Escaped RSC payload contains `lang":"nl"` for `/` and `lang":"en"` for `/login`, matching the HTML root. No `documentElement` patch. No hydration-warning text. No private-content leak markers in the recorded public HTML.
+
+This is local production-mode evidence, not Preview evidence.
+
+## 11. Test-quality assessment
+
+| Acceptance criterion | Independent proof |
+| --- | --- |
+| Public `/` document language Dutch | resolver tests + layout `renderToStaticMarkup` + local HTTP |
+| Language on `<html>` | layout tests assert `startsWith('<html lang=…')`; local HTTP prefix |
+| Wrapper is not a substitute for the document root | entry-routing asserts public fragment contains `lang="nl"` and **not** `<html`; layout owns `<html>` |
+| `/login` English | login fragment `Sign in` without `<html`; local HTTP `html lang="en"` |
+| Spoof overwrite | middleware + `nextWithTrustedDocumentLanguage` tests; local HTTP spoof matrix |
+| Invalid/missing fallback | `parseDocumentLanguage` + layout fallback tests |
+| `/home` protection | existing + spoofed `/home` still 307; local HTTP |
+| Redirect-only authenticated `/` | entry-routing redirect tests; **runtime session not executed** |
+| Public isolation / no private props | public-homepage isolation lock + `PublicHomepage` takes no props |
+| No client lang patch | layout source assertions + no `documentElement` in local HTML |
+| Allowlist | parse tests reject `fr`, `NL`, `en-US` |
+
+Source-string isolation assertions exist but are not the sole proof. No skips, todo, only, quarantine, retries, or weakened snapshots.
+
+Limitations recorded as P2: the middleware suite does not invoke the cookie `setAll` reconstruction path; one resolver example titled “ignores query strings” does not itself pass a query (coverage exists elsewhere).
+
+## 12. Focused test results
+
+Batch 1:
+
+```text
+npx vitest run tests/lib/i18n/document-language.test.ts tests/app/root-document-language.test.tsx tests/public-web/public-homepage.test.tsx tests/auth/middleware-auth-redirects.test.ts tests/auth/entry-routing-and-login-ui.test.tsx
+```
+
+Exit 0. Files 5. Passed 45. Failed 0. Skipped 0.
+
+Batch 2:
+
+```text
+npx vitest run tests/auth/safe-return-path.test.ts tests/auth/public-registration.test.ts tests/features/daily-operating/load-daily-operating-page.test.ts tests/onboarding/onboarding-routing.test.ts tests/onboarding/product-admission-routing.test.ts tests/features/invitations/load-member-administration-page.test.ts tests/ui/appshell-customers-terminology.test.tsx tests/onboarding/product-admission-app-shell.test.ts
+```
+
+Exit 0. Files 8. Passed 117. Failed 0. Skipped 0.
+
+## 13. Full-suite result
+
+```text
+npx vitest run
+```
+
+Exit 0. Files **538** passed. Tests **4225** passed. Failed **0**. Skipped **0**.
+
+## 14. Lint, typecheck, and build
+
+| Command | Exit |
+| --- | --- |
+| `npm run lint` | 0 |
+| `npm run typecheck` | 0 |
+| `npm run build` | 0 |
+| `git diff --check` | 0 |
+
+Typecheck and build were not concurrent. Pre-existing unrelated social-beta autoprefixer warning only. All App Router routes remain `ƒ` dynamic.
+
+## 15. Authentication and routing regression review
+
+Source and tests, not a new authenticated session:
+
+- Logged-out `/` still returns `<PublicHomepage />` (`src/app/page.tsx` unchanged; entry-routing test).
+- Authenticated `/` still `redirect(await resolveAuthenticatedEntryPath(…))` and does not render marketing. **Authenticated runtime not executed in R1.**
+- `/login` authenticated bounce to `/` remains in middleware; search stripped.
+- `/home` remains protected.
+- Safe-return, registration, onboarding, invitation, and product-admission focused tests passed.
+- No hard-coded `/home` shortcut was added.
+- Language selection cannot change middleware destinations; pathname language is applied only on `NextResponse.next` construction, not on redirect URL building.
+
+## 16. Cache, privacy, and security review
+
+Observed (local production-mode HTTP): public `/`, `/login`, recovery, invite, and 404 responses use `private, no-store`. Language is pathname-derived, not user-derived, so a `Vary` on language is not required. Internal language header was not echoed. No client-controlled value reached `<html lang>`. No service-role, secret, or environment addition exists in the nine-file scope.
+
+Inference / limitation: authenticated HTML Cache-Control was not re-read in R1 because no session was created. Invite accept already declares `force-dynamic` and `revalidate = 0` in source. Recorded as P2 cache-evidence limitation, not an identified unsafe behaviour.
+
+## 17. Three-P1 reconciliation
+
+Independently confirmed against C3-C1 executed evidence and C3-C2 classification:
+
+| Item | R1 result |
+| --- | --- |
+| 320 CSS-pixel reflow executed in C3-C1 | Yes (historical executed evidence) |
+| Text-spacing executed | Yes |
+| CSS `zoom: 2` labelled supporting | Yes |
+| Actual browser/user-agent zoom executed | No |
+| Combined zoom/reflow finding only partially resolved | Yes |
+| Actual 200% browser zoom | remains OPEN |
+| NVDA running vs announcements captured | ran; Speech Viewer summaries not captured; remains OPEN |
+| Language defect on old Preview | historically confirmed (`html lang="en"` vs Dutch copy) |
+| Local remediation proves new Preview | No |
+| Language status | `REMEDIATED LOCALLY — AWAITING NEW PREVIEW VERIFICATION` |
+| P0 | 0 |
+| Current P1 count | 3 |
+| Current P2 count | 3 |
+
+R1 did not reduce the P1 count. R1 did not run NVDA. R1 did not treat CSS zoom as browser zoom.
+
+## 18. Findings register
+
+Parent C3 findings remain as currently classified. They do not fail R1 when accurately deferred.
+
+R1-owned findings:
+
+| ID | Sev | Evidence | Class | Impact | Required correction | Owner/gate | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| PW14-C3-C2-R1-FND-001 | P2 | Middleware tests do not invoke cookie `setAll` reconstruction; both source `next()` sites use the trusted helper and copy full headers | test clarity | Does not contradict source/framework review that cookies remain listed for override | Optional later test of the `setAll` path | later test hygiene | Open — non-blocking |
+| PW14-C3-C2-R1-FND-002 | P2 | One resolver example titled “ignores query strings” does not pass a query in that `it`; query immunity is proven by other tests and local HTTP `/?lang=en` | test clarity | None on product behaviour | Optional rename/assert later | later test hygiene | Open — non-blocking |
+| PW14-C3-C2-R1-FND-003 | P2 | `/` is the only Dutch HTML pathname; additional future Dutch pages would need a new inventory | architecture | Current inventory is correct; mapping is not a general i18n system | Later localization phase if needed | future localization | Open — non-blocking |
+| PW14-C3-C2-R1-FND-004 | P2 | Authenticated HTML Cache-Control not observed in R1 (no session) | evidence limitation | No unsafe public cache identified | None in R1; do not invent PASS | C3/later authenticated surfaces | Open — non-blocking |
+
+R1 P0 remaining: **0**. R1 P1 remaining: **0**.
+
+Current parent C3 accessibility register unchanged:
+
+| ID | Sev | Status |
+| --- | --- | --- |
+| PW14-C3-FND-001 | P1 | OPEN — NVDA speech |
+| PW14-C3-C1-FND-001 | P1 | REMEDIATED LOCALLY — AWAITING NEW PREVIEW VERIFICATION |
+| PW14-C3-C2-FND-001 | P1 | OPEN — actual 200% browser zoom |
+| PW14-C3-FND-008 | P2 | Open — axe/Lighthouse unavailable |
+| PW14-C3-FND-010 | P2 | Open — C4 visitor validation |
+| PW14-C3-FND-011 | P2 | Open — Production verification |
+
+## 19. Corrections performed
+
+None. No product source, test, style, config, dependency, or lockfile change. No rewrite of historical C3 / C3-C1 / C3-C2 facts. This appendix only.
+
+## 20. Remaining C3 blockers
+
+- Independent C3-C2 final verification, evidence commit, and push (next authorized step).
+- New governed Preview after that commit.
+- NVDA Speech Viewer announcement capture on that Preview.
+- Actual 200% browser/user-agent zoom on that Preview.
+- Preview verification of document language, including NVDA language behaviour.
+
+C3-C2-R1 PASS does not close PW-14-C3.
+
+## 21. Remaining PW-14 blockers
+
+Parent PW-14 remains BLOCKED. Outstanding beyond C3: C4 visitor validation, publication admission, and Production verification. Live Production still serves pre-PW-13 logged-out `/` → `/login`. Authenticated Home remains closed.
+
+## 22. File and security integrity
+
+R1 changed only this evidence document. The eight product/test files remain SHA-256-identical to R1 entry. No generated report, browser profile, HAR, trace, video, screenshot, or temporary script was added. Local server on 4315 was stopped; no listener remained.
+
+## 23. Git state
+
+HEAD `2daff99f5f8336dc4a455484ec3ced413a834f8d`. Upstream same. Ahead/behind `0 0`. Staged: none. Unstaged tracked: the same six files, with this document now containing the R1 appendix. Untracked: the same three new files. No conflicting Git operation.
+
+## 24. Commit, push, deploy, and promotion status
+
+No stage. No commit. No push. No amend. No Preview created. No promote. No `--prod`. No Vercel or Supabase configuration change. No aliases changed.
+
+## 25. Gate result
+
+```text
+PASS — PW-14-C3-C2-R1 INDEPENDENT DOCUMENT-LANGUAGE REMEDIATION AND EVIDENCE REVIEW CLOSED WITH EVIDENCE
+PW-14-C3-C2 CONFIRMED — READY FOR FINAL VERIFICATION AND COMMIT
+PW-14-C3 REMAINS BLOCKED — NEW PREVIEW, NVDA SPEECH AND ACTUAL 200 PERCENT BROWSER ZOOM VERIFICATION OUTSTANDING
+DO NOT PROMOTE
+PRODUCTION UNCHANGED
+```
+
+## 26. Next authorized step
+
+`PW-14-C3-C2-FV — Final Verification, Evidence Commit, and Push`
+
+Do not start C3-C3, C3-R1, C3-FV, C4, publication admission, or Production verification from this result.
+
+End of PW-14-C3-C2-R1 evidence.
+
+# PW-14-C3-C2-FV — Final Verification, Evidence Commit, and Push Authorization
+
+| Field | Value |
+| --- | --- |
+| Phase | PW-14-C3-C2-FV |
+| Date | 2026-09-18 |
+| Repository root | `D:/project ai cursus verkopers.worktrees/parallel__laptop-product-track-20260707-1` |
+| Branch | `core/platform-readiness-20260707` |
+| Pre-commit HEAD | `2daff99f5f8336dc4a455484ec3ced413a834f8d` |
+| Expected parent | `2daff99f5f8336dc4a455484ec3ced413a834f8d` |
+| Expected subject | `fix(public-web): govern document language by route` |
+| Vercel CLI | 56.3.1 |
+| Vercel team / project | `guus-projects-ai` / `zyntixai` (names only) |
+
+This appendix is pre-commit authorization evidence. It does not invent a future commit SHA and does not claim that a new Preview already exists.
+
+## 1. Phase purpose and boundary
+
+FV performs final verification of the nine-file document-language remediation, appends this evidence, and authorizes one normal commit and a normal branch push. It closes PW-14-C3-C2 only. It does not close PW-14-C3, authorize Preview promotion, Production deployment, publication, WCAG conformance, NVDA PASS, or actual 200% browser-zoom PASS. No Preview is created manually. No ZyntixAI authentication is performed.
+
+## 2. Preflight
+
+| Check | Result |
+| --- | --- |
+| Root | authorized worktree |
+| Branch | `core/platform-readiness-20260707` |
+| Local HEAD | `2daff99f5f8336dc4a455484ec3ced413a834f8d` |
+| Upstream | same SHA |
+| Ahead/behind | `0 0` |
+| Staged | none |
+| Modified tracked | exactly the six expected files |
+| Untracked | exactly the three expected files |
+| Total scope | exactly nine files |
+| Git operations | none |
+| Instruction files | none |
+| C3-C2 local PASS | present |
+| C3-C2-R1 PASS | present |
+| Retained old Preview | non-Production |
+| Production | unchanged logged-out `/` → `/login` |
+
+## 3. Fetch and drift verification
+
+`git fetch origin` completed. HEAD, upstream, and `0 0` remained unchanged. Nothing was staged. The nine-file set matched. No conflicting Git operation. Drift was not repaired. No merge, rebase, reset, stash, amend, or discard was used.
+
+## 4. Authority review
+
+Applied B1-GATE.1, PW-0 through PW-13, the PW-14 chain including C1/C1-R1/C1-FV and C2/C2-R1/C2-FV, C3, C3-C1, C3-C2, C3-C2-R1, PW-8 Language Model A, and WCAG 2.2 SC 3.1.1 / 1.4.4 / 1.4.10. PW-1 remains the public-truth ceiling. PW-13 remains implementation authority. C3-C2 does not authorize publication.
+
+## 5. Historical evidence reconciliation
+
+Independently confirmed:
+
+1. Initial C3 BLOCKED.
+2. Initial C3 seven P1 evidence gaps.
+3. C3-C1 recovered logged-out browser checks.
+4. C3-C1 remained BLOCKED.
+5. C3-C1 two-P1 snapshot remains historical (`P1 remaining: 2`).
+6. C3-C2 corrected the current count to three P1s.
+7. The correction did not rewrite history as dishonest.
+8. CSS `zoom: 2` remains supporting only.
+9. 320 CSS-pixel reflow remains separately executed.
+10. Actual browser zoom remains open.
+11. NVDA speech remains open.
+12. Old Preview language defect remains historical.
+13. Language is remediated locally only.
+14. C3-C2 local verification passed.
+15. C3-C2-R1 independently passed (R1 P0=0, R1 P1=0, R1 P2=4).
+16. PW-14-C3 remains blocked.
+17. Production remains unchanged.
+
+No wording in this phase implies NVDA PASS, actual browser-zoom PASS, Preview language verification, complete accessibility PASS, WCAG conformance, publication readiness, or Production verification.
+
+## 6. Complete final diff review
+
+The nine-file set remains limited to trusted document-language resolution, middleware request-header propagation, root-layout `lang`, relevant tests, and PW-14 evidence.
+
+Confirmed: `/` → `nl`; other current rendered routes → `en`; only `en`/`nl` accepted; invalid fallback `en`; client `x-document-language` overwritten; both `NextResponse.next` sites use `nextWithTrustedDocumentLanguage` and copy full headers; Supabase cookie `getAll`/`setAll`/`applyCookies` remain; redirect branches and `/home` protection unchanged; root layout is a Server Component; `<html lang>` is server-rendered; no client language patch; no query/cookie/`Accept-Language`/org locale/session control; no public copy, visual style, dependency, lockfile, debug, or temporary code.
+
+## 7. Test-quality review
+
+Resolver, root document language, public Dutch `/`, English `/login`, spoof overwrite, invalid fallback, query immunity (`/?lang=en` middleware + HTML), wrapper-not-root, root routing, `/home` protection, login/safe-return, and public/private isolation remain covered. No skips, todo, only, retry, quarantine, or weakened snapshots. The four R1 P2 findings remain open and are not silently reclassified.
+
+## 8. Focused test results
+
+Batch 1: `npx vitest run tests/lib/i18n/document-language.test.ts tests/app/root-document-language.test.tsx tests/public-web/public-homepage.test.tsx tests/auth/middleware-auth-redirects.test.ts tests/auth/entry-routing-and-login-ui.test.tsx` — exit 0; files 5; passed 45; failed 0; skipped 0.
+
+Batch 2: `npx vitest run tests/auth/safe-return-path.test.ts tests/auth/public-registration.test.ts tests/features/daily-operating/load-daily-operating-page.test.ts tests/onboarding/onboarding-routing.test.ts tests/onboarding/product-admission-routing.test.ts tests/features/invitations/load-member-administration-page.test.ts tests/ui/appshell-customers-terminology.test.tsx tests/onboarding/product-admission-app-shell.test.ts` — exit 0; files 8; passed 117; failed 0; skipped 0.
+
+## 9. Full-suite result
+
+`npx vitest run` — exit 0. Files **538** passed. Tests **4225** passed. Failed **0**. Skipped **0**.
+
+## 10. Lint result
+
+`npm run lint` — exit 0. No ESLint warnings or errors.
+
+## 11. Typecheck result
+
+`npm run typecheck` — exit 0. Not concurrent with build.
+
+## 12. Build result
+
+`npm run build` — exit 0. Routes remain `ƒ` dynamic. Pre-existing unrelated social-beta autoprefixer warning only.
+
+## 13. Final local initial-HTML verification
+
+`npx next start -H 127.0.0.1 -p 4316` after this rebuild. Loopback only. Stopped afterward; no listener remained.
+
+| Request | Result |
+| --- | --- |
+| `GET /` | 200, `<!DOCTYPE html><html lang="nl">`, Dutch H1, RSC `lang":"nl"` |
+| `GET /?lang=en` | still `nl` |
+| spoofed `en` / `fr` / empty / long on `/` | still `nl` |
+| `GET /login` | 200, `<html lang="en">`, `Sign in`, RSC `lang":"en"` |
+| spoofed `nl` / `fr` on `/login` | still `en` |
+| `GET /home` | 307 `/login?next=%2Fhome` |
+| `GET /onboarding` | 307 `/login?next=%2Fonboarding` |
+| `/forgot-password` | 200 `en` `Reset password` |
+| `/reset-password` | 200 `en` `Reset link expired` |
+| `/invite/accept` | 200 `en` `Invitation unavailable` |
+| unknown path | 404 `en` |
+
+No echoed `x-document-language`. No `documentElement` patch. No hydration-warning text. No private-content leak markers. Public HTML `Cache-Control: private, no-store`. Local production-mode evidence only; not Preview evidence.
+
+## 14. Security and privacy audit
+
+Count-only scan of the nine-file candidate: email addresses 0; JWT 0; `sb-access` 0; Authorization Bearer 0; Set-Cookie 0; forbidden org UUID 0. Environment-variable **names** and historical `.supabase.co` suffix / `example.supabase.co` mock remain; no live project hostname, cookie value, token, or private HTML was added. Result: PASS.
+
+## 15. File-integrity verification
+
+Exactly nine files. No style, config, env, dependency, lockfile, generated report, browser profile, HAR, trace, video, or temporary script. `git diff --check` clean. Trailing-whitespace 0. EOF present. Markdown fences even. Conflict markers 0. Historical C3/C3-C1/C3-C2/R1 intact. Current parent C3 P1 count remains 3.
+
+## 16. Findings reconciliation
+
+Parent C3: P0=0; P1=3; P2=3. NVDA OPEN. Language `REMEDIATED LOCALLY — AWAITING NEW PREVIEW VERIFICATION`. Actual 200% browser zoom OPEN. R1 P0=0; R1 P1=0; R1 P2=4 remain transparent (setAll test gap; query-test name; mapping is not general i18n; authenticated cache headers unobserved).
+
+## 17. Remaining C3 blockers
+
+New governed Preview after this commit is pushed; Preview language verification; NVDA Speech Viewer capture; actual 200% browser zoom. C3-C2-FV does not start C3-C3.
+
+## 18. Remaining PW-14 blockers
+
+C4 visitor validation, publication admission, Production verification. Live `/` still 307 `/login`. Authenticated Home remains closed.
+
+## 19. Final AND-gate
+
+All pre-staging conditions held: expected Git baseline; upstream unchanged; nine-file scope; C3-C2 PASS; R1 PASS; R1 P0/P1 zero; four R1 P2s transparent; parent P0=0 and P1=3; language implementation safe; spoof ineffective; routing intact; focused/full/lint/typecheck/build/HTML/security/integrity passed; Production unchanged; no manual Preview; no promote; PW-14-C3 remains blocked.
+
+## 20. Authorized staging scope
+
+Exactly:
+
+- `docs/phases/PW-14-public-homepage-publication-production-verification.md`
+- `src/app/layout.tsx`
+- `src/lib/supabase/middleware.ts`
+- `src/lib/i18n/document-language.ts`
+- `tests/public-web/public-homepage.test.tsx`
+- `tests/auth/middleware-auth-redirects.test.ts`
+- `tests/auth/entry-routing-and-login-ui.test.tsx`
+- `tests/app/root-document-language.test.tsx`
+- `tests/lib/i18n/document-language.test.ts`
+
+## 21. Expected commit subject and parent
+
+| Item | Value |
+| --- | --- |
+| Subject | `fix(public-web): govern document language by route` |
+| Parent | `2daff99f5f8336dc4a455484ec3ced413a834f8d` |
+
+Commit SHA is not invented here.
+
+## 22. Deployment and promotion boundary
+
+Normal branch push only. No `vercel --prod`, alias promotion, deployment-ID promotion, workflow mutation, or force push. An automatic non-Production Preview, if created by hosting, is not C3 evidence in this phase and must not be tested here.
+
+## 23. Gate result
+
+```text
+FINAL VERIFICATION PASSED — STAGING AND COMMIT AUTHORIZED
+PW-14-C3 REMAINS BLOCKED — NEW PREVIEW, NVDA SPEECH AND ACTUAL 200 PERCENT BROWSER ZOOM VERIFICATION OUTSTANDING
+DO NOT PROMOTE
+PRODUCTION UNCHANGED
+```
+
+End of PW-14-C3-C2-FV pre-commit evidence.

@@ -112,6 +112,7 @@ describe("root entry redirects", () => {
     expect(html).toContain("Houd zicht op klanten, werk en voortgang.");
     expect(html).toContain('lang="nl"');
     expect(html).toContain("Ga naar de hoofdinhoud");
+    expect(html).not.toMatch(/<html\b/);
     expect(redirectMock).not.toHaveBeenCalled();
   });
 
@@ -247,6 +248,7 @@ describe("login page session-expired messaging", () => {
     expect(html).toContain('href="/forgot-password"');
     expect(html).toContain("Sign in");
     expect(html).toContain('for="login-email"');
+    expect(html).not.toMatch(/<html\b/);
   });
 
   it("shows a neutral notice for registration=disabled", async () => {

@@ -8,6 +8,7 @@ import {
   isProtectedApplicationPath,
   isRegistrationPath,
 } from "@/features/auth/server/safe-return-path";
+import { nextWithTrustedDocumentLanguage } from "@/lib/i18n/document-language";
 
 type CookieToSet = {
   name: string;
@@ -32,7 +33,7 @@ function hasSupabaseAuthCookie(request: NextRequest): boolean {
 }
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+  let supabaseResponse = nextWithTrustedDocumentLanguage(request);
   const cookiesToSet: CookieToSet[] = [];
   const { url, publishableKey } = getPublicSupabaseEnv();
 
@@ -46,7 +47,7 @@ export async function updateSession(request: NextRequest) {
           request.cookies.set(name, value);
         });
         cookiesToSet.splice(0, cookiesToSet.length, ...incoming);
-        supabaseResponse = NextResponse.next({ request });
+        supabaseResponse = nextWithTrustedDocumentLanguage(request);
         applyCookies(supabaseResponse, cookiesToSet);
       },
     },
