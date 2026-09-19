@@ -5103,3 +5103,601 @@ This closes parent PW-14-C3 only. It does not close parent PW-14. It is not a WC
 This phase does not start C4, publication admission, or Production verification.
 
 End of PW-14-C3-FV evidence.
+
+---
+
+# PW-14-C4 — Visitor Validation
+
+| Field | Value |
+| --- | --- |
+| Phase | `PW-14-C4 — Visitor Validation` |
+| Appendix type | Scope-and-method contract freeze (documentation only; in-place correction of the uncommitted freeze) |
+| Date | 2026-09-19 |
+| Branch | `core/platform-readiness-20260707` |
+| Documentation HEAD at freeze | `ccea19f56eb2ea291a169ed748a52dd7dbea1b38` |
+| Application source under test | `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` |
+| Retained Preview | `https://zyntixai-lcuvv7fv7-guus-projects-ai.vercel.app` |
+| Parent PW-14 | `BLOCKED — PW-14 PUBLICATION ADMISSION FAILED` / `DO NOT DEPLOY` |
+| C3 status | Closed with evidence; accessibility/measurement only |
+| Canonical identifiers created | none beyond the existing parent heading |
+| Contract-review findings addressed in place | `PW14-C4-CR-FND-001` through `PW14-C4-CR-FND-016`; `PW14-C4-CR2-FND-001` through `PW14-C4-CR2-FND-003` |
+
+This appendix freezes the C4 execution contract under the existing parent heading `PW-14-C4 — Visitor Validation`. It does not create a child phase identifier. It does not start the independent expert review. It does not recruit, contact, invite, or test visitors. It does not record participant answers. It does not claim that contract review has passed.
+
+PW-1 remains the public-truth ceiling. PW-6 Route A2 remains frozen copy. PW-13 remains implementation authority. `PW12-DEFER-020` and `PW12-DEFER-022` remain publication blockers until later authorized execution closes them with evidence.
+
+```text
+PW-14-C4 VISITOR VALIDATION CONTRACT FROZEN
+PW-14-C4 EXECUTION NOT STARTED
+DO NOT PROMOTE
+PRODUCTION UNCHANGED
+```
+
+## 1. Phase purpose
+
+C4 answers whether the rendered logged-out public homepage communicates product meaning and access meaning without the publication-blocking misreads named by `PW12-DEFER-020` and `PW12-DEFER-022`.
+
+C4 is visitor comprehension and access-meaning validation. It is not publication admission, Production verification, WCAG conformance, market validation, conversion research, or permission to change copy, layout, routing, or hosting.
+
+The question C4 must later answer:
+
+1. After one independent expert review, do five eligible visitors understand the governed concepts in §6 without a critical misinterpretation?
+2. Specifically, is the page free of GA, open-signup, chatbot-only, and LMS misreads (`PW12-DEFER-020`)?
+3. Specifically, is the access panel understood as neither a technical error nor a conversion or open-signup form (`PW12-DEFER-022`)?
+
+## 2. Source requirements and traceability
+
+C4 executes only these still-open user-validation IDs. They are not renumbered, replaced, or expanded.
+
+| C4 ID | Authoritative ID | Subject | Publication blocker if failed | Source |
+| --- | --- | --- | --- | --- |
+| VAL-001 | `PW11-VAL-001` / `PW12-VDISP-001` / `PW12-DEFER-020` | Five-second comprehension | yes | PW-11 §42; PW-12 §12 and §27 |
+| VAL-002 | `PW11-VAL-002` / `PW12-VDISP-002` / `PW12-DEFER-020` | Operator-primary recognition | yes | PW-11 §42; PW-12 §12 and §27 |
+| VAL-003 | `PW11-VAL-003` / `PW12-VDISP-003` / `PW12-DEFER-020` | Chatbot misinterpretation | yes | PW-11 §42; PW-12 §12 and §27 |
+| VAL-004 | `PW11-VAL-004` / `PW12-VDISP-004` / `PW12-DEFER-020` | Closed-beta comprehension | yes | PW-11 §42; PW-12 §12 and §27 |
+| VAL-005 | `PW11-VAL-005` / `PW12-VDISP-005` / `PW12-DEFER-020` | Sign in versus signup | yes | PW-11 §42; PW-12 §12 and §27 |
+| VAL-006 | `PW11-VAL-006` / `PW12-VDISP-006` / `PW12-DEFER-020` | Today-as-example | yes | PW-11 §42; PW-12 §12 and §27 |
+| VAL-007 | `PW11-VAL-007` / `PW12-VDISP-007` / `PW12-DEFER-020` | CS relevance versus brand | yes | PW-11 §42; PW-12 §12 and §27 |
+| VAL-008 | `PW11-VAL-008` / `PW12-VDISP-008` / `PW12-DEFER-020` | Trust-copy interpretation | yes | PW-11 §42; PW-12 §12 and §27 |
+| VAL-009 | `PW11-VAL-009` / `PW12-VDISP-009` / `PW12-DEFER-020` | Honest-stop dignity | yes | PW-11 §42; PW-12 §12 and §27 |
+| VAL-010 | `PW11-VAL-010` / `PW12-VDISP-010` / `PW12-DEFER-020` | Desktop scan path | **no** | PW-11 §42; PW-12 §12 and §27 |
+| VAL-031 | `PW11-VAL-031` / `PW12-VDISP-031` / `PW12-DEFER-022` | Access not error/acquisition | yes | PW-11 §42; PW-12 §12 and §27 |
+
+`PW12-DEFER-020` method remains **governed expert then visitor**. Pass language remains **no GA / signup / chatbot / LMS misread**. Artifact remains **notes**. Failure consequence remains **copy/layout only with new authority**.
+
+`PW12-DEFER-022` method remains **access meaning**. Pass language remains **not error or conversion**. Artifact remains **notes**. Failure consequence remains **restyle panel** under later authority.
+
+`PW11-VAL-032` / `PW12-VDISP-032` (footer completeness) is user-validation-dependent in PW-12 but is **not** in `PW12-DEFER-020` or `PW12-DEFER-022` and is **not** a publication blocker. It is **out of C4 scope**.
+
+Originating question and metric catalogues in PW-2 through PW-9 remain historical proposed plans. They inform the frozen C4 instrument below. They do **not** supply C4 participant counts, 8/10 thresholds, or additional VAL IDs. `PW2-M-001` through `PW2-M-011`, `PW4-VAL-*` numeric proposals, and all `PROPOSED — NOT ACHIEVED` rows stay unachieved hypotheses. This C4 contract is informed by the historical question `PW6-Q-017` and freezes the C4 method within PW-14 authority only. It does **not** resolve, close, or edit `PW6-Q-017`.
+
+B1-GATE.1 applies to later C4 evidence closure: required scope must be pre-agreed (this appendix); misleading user information is a closure blocker; reports must not publish secrets, tokens, emails, or raw PII.
+
+```text
+SKIPPED ≠ PASSED
+```
+
+The term `USER VALIDATED` is forbidden entirely for this five-person C4 study. Permitted later wording is limited to the exact governed C4 outcome. Do not imply general-population, market, commercial, or statistical validation.
+
+## 3. Authorized participant model
+
+C4 consists of exactly this sequence:
+
+1. One governed independent expert review (`E01`), scored with the E01 page-defect model in §6.5.
+2. Then five independent visitor sessions (`P01` through `P05`), only if `E01` is complete under the sequencing-completeness rule below and records no unresolved publication-blocking finding.
+3. Then evidence consolidation and a C4 decision in a later authorized pass.
+
+The expert reviewer must not also count as one of the five visitors.
+
+No visitor may be recruited, scheduled, or tested until `E01` has:
+
+- passed eligibility and capability screening;
+- completed all blocking VAL tasks (VAL-001–009 and VAL-031);
+- completed the non-blocking VAL-010 desktop scan;
+- produced every required evidence row, including a completed VAL-010 row;
+- produced no unresolved publication-blocking finding.
+
+If `E01` records `FAIL — publication-blocking page defect observed` on any blocking VAL, or `NOT EXECUTED` / missing rationale / missing page evidence / unresolved blocking concern on any blocking VAL, record the finding and **stop**. Do not recruit or test visitors until separate remediation authority exists.
+
+A blocking `E01` failure stops C4 before visitor recruitment or visitor testing.
+
+An absent or `NOT EXECUTED` VAL-010 row means `E01` is incomplete and **holds** visitor recruitment and testing until that row is completed. A completed VAL-010 `OBSERVATION` does **not** block visitor work and does **not** reclassify VAL-010 as a publication-blocking item. This is a sequencing-completeness rule only.
+
+This freeze does not name a child identifier for consolidation or final verification. Those remain later authorized work under the same parent heading.
+
+## 4. Eligibility and exclusion rules
+
+Do not record names, employer names, email addresses, account details, or other identifying details.
+
+Empty screening fields, contradictions, or unresolved uncertainty mean the person cannot be counted.
+
+### 4.1 Expert reviewer (`E01`)
+
+The expert reviewer must:
+
+- be independent from the implementation under review;
+- have relevant professional experience in UX, information architecture, content comprehension, user research, or accessibility-related meaning;
+- receive this governed task and scoring contract before reviewing;
+- review the logged-out retained Preview public homepage, not Production and not authenticated product;
+- not rewrite product copy, layout, or code during the review;
+- disclose any prior involvement with ZyntixAI and any conflict affecting independent judgment.
+
+The founder, implementer, and anyone who designed, implemented, reviewed, or approved the public homepage cannot serve as `E01`. If independence or relevant capability cannot be established, `E01` is invalid for C4 closure.
+
+Required `E01` screening questions (record summarized answers only):
+
+1. Were you involved in designing, implementing, approving, or previously reviewing this homepage?
+2. Have you previously advised ZyntixAI on the intended answers to this validation?
+3. Do you have relevant professional experience in UX, information architecture, content comprehension, user research, or accessibility-related meaning?
+4. Do you have any relationship or conflict that could affect independent judgment?
+5. What prior involvement, if any, have you had with ZyntixAI?
+
+Required pseudonymous `E01` capability and eligibility record:
+
+- identifier `E01` only;
+- relevant discipline;
+- approximate experience level or comparable qualification basis;
+- independence disclosure;
+- conflict disclosure;
+- eligibility verdict;
+- eligibility rationale;
+- date.
+
+Do not store identifying employer or contact information. `E01` is invalid when independence or relevant capability cannot be established, when any screening field is empty, or when answers contradict independence.
+
+### 4.2 Visitors (`P01`–`P05`)
+
+C4 requires exactly five **valid** visitor sessions. Invalid sessions do not count toward those five.
+
+Each counted visitor must:
+
+- be Dutch-speaking and able to complete the session comfortably in Dutch;
+- represent, or be a credible close analogue of, a small-business owner/operator (`PW2-VIS-001` analogue);
+- be unfamiliar with the current ZyntixAI public homepage;
+- not have designed, implemented, reviewed, or approved the page;
+- not have received a product explanation that would reveal the expected answers;
+- not be a ZyntixAI team member;
+- participate individually, without hearing another participant’s answers.
+
+The founder, implementer, expert reviewer (`E01`), and anyone already substantially briefed about the intended homepage meaning cannot count as a visitor.
+
+Course sellers or coaches (`PW2-VIS-002` analogue) may be included when they otherwise satisfy these rules. **At most two** of the five counted visitors may have course selling or coaching as their **primary** business context. All five must still independently satisfy the small-business-owner/operator analogue. The sample must not be restricted entirely to that secondary context.
+
+Use only pseudonymous identifiers `P01` through `P05` for counted valid sessions. If an invalid session is recorded, keep that record as invalid evidence under a distinct invalid identifier (for example `P-INV-01`) and do not reuse `P01`–`P05` for it.
+
+Required visitor screening questions (record summarized yes/no/short answers only):
+
+1. Have you previously viewed or tested this exact current ZyntixAI homepage?
+2. Have you previously received an explanation of what this homepage is intended to communicate?
+3. Were you involved in designing, implementing, reviewing, or approving ZyntixAI or this homepage?
+4. Are you a ZyntixAI team member, expert reviewer, founder, or implementer?
+5. Do you own, operate, co-manage, or make operational decisions for a small business, or are you a credible close analogue?
+6. Can you comfortably complete the session in Dutch?
+7. Is course selling or coaching your primary business context?
+
+A visitor is invalid if the required answers do not establish unfamiliarity, independence, Dutch-language ability, and small-business-owner/operator relevance. Empty screening fields, contradictions, or unresolved uncertainty mean the person cannot be counted.
+
+### 4.3 Replacement for invalid sessions
+
+An invalid session does not count toward the required five.
+
+It may be replaced only by a new eligible person who has not seen the homepage and has not received the intended answers.
+
+Preserve the invalid-session record as invalid evidence. Do not delete, relabel as valid, or fabricate a replacement row from the invalid session.
+
+No new recruitment is authorized from a **blocked** C4 (publication-blocking fail). Replacement recruitment is allowed only to replace invalid (ineligible, coached, wrong-host, or incomplete) sessions while C4 is still executing and is not already blocked by a publication-blocking finding.
+
+## 5. Environment and protected-Preview access procedure
+
+| Item | Frozen value |
+| --- | --- |
+| URL | `https://zyntixai-lcuvv7fv7-guus-projects-ai.vercel.app` |
+| Source commit | `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` |
+| Class | retained non-Production Preview; Ready; not a Production alias |
+| Application state | logged out of ZyntixAI; no application credentials |
+| Production | forbidden for C4; live logged-out `/` remains pre-PW-13 `/login` bounce |
+| Deployment Protection | remains enabled; must not be disabled or weakened |
+| Promotion | `DO NOT PROMOTE` |
+| Identity-proof method | same governed read-only inspection as PW-14-C3-C2-D1: filtered Preview listing by `githubCommitSha` plus inspect of Ready / `target=preview`; `ls --meta` remains the binding metadata proof where `inspect --json` omits custom `--meta` keys (`D1-P2-001`) |
+
+Before `E01` and before each visitor session, verify with that D1 method and record:
+
+- exact Preview URL;
+- deployment-ready state;
+- source commit;
+- verification timestamp;
+- verification result.
+
+The session may proceed only when the host is exactly the retained URL, the deployment is Ready Preview, and the source commit is tied to `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991`. Also confirm the session context is logged out of ZyntixAI and the first product document after protection is the Dutch public homepage, not authenticated product.
+
+If the retained Preview cannot be tied to source commit `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991`, stop the session. Do not substitute Production or another deployment without new authority.
+
+Do not expose or store Vercel secrets, tokens, cookies, or authentication material.
+
+Because the Preview is protected by Vercel Deployment Protection:
+
+- the facilitator may authenticate the browser to Vercel **before** the participant begins;
+- Vercel credentials, links containing secrets, bypass tokens, cookies, or session material must never be shown, dictated, copied, or provided to the participant;
+- use a facilitator-controlled browser profile or a supervised screen-sharing session;
+- the participant must interact only with the rendered Preview;
+- Deployment Protection must not be disabled or weakened;
+- no Production deployment, redeploy, or promotion is permitted;
+- platform SSO is not ZyntixAI authentication.
+
+No participant, expert, or facilitator may sign in to ZyntixAI or enter ZyntixAI credentials during C4. Clicking `Inloggen` may open public `/login` only as specified in §6. Credentials must not be entered there.
+
+## 6. Exact neutral session instrument
+
+### 6.1 Integrity and answer-status rules
+
+- State only that the participant is reviewing a public website page.
+- Do not explain ZyntixAI or reveal expected interpretations before scored answers are captured.
+- Do not use leading prompts such as “this is a closed beta, right?” or “Inloggen is not for new accounts, is it?”
+- The facilitator must read frozen questions consistently and may not explain the correct answer.
+- Record the first answer of each stage before any follow-up.
+- Separate observed behaviour, verbatim or close-to-verbatim response, facilitator interpretation, and verdict.
+- Do not convert founder or facilitator interpretation into participant evidence.
+- Do not correct, coach, persuade, or explain until every scored answer has been captured.
+- Coaching, answer-revealing explanation, or another participant’s presence invalidates that session.
+- Later full-page answers and `/login` comparison must not overwrite VAL-001.
+
+Required answer-status values (exactly one per scored answer):
+
+| Status | Meaning |
+| --- | --- |
+| `UNPROMPTED` | VAL-001 first-screen response after the governed silent five-second exposure, recorded while the page is hidden. The frozen VAL-001 questions may be asked after that exposure. This is not a scheduled probe and is not informed by later full-page review |
+| `SCHEDULED NEUTRAL QUESTION` | Frozen open question in §6.4 |
+| `SCHEDULED DIRECT PROBE` | Frozen mandatory verification question. Direct probes are not unprompted first impressions. Used for VAL-003 verification, VAL-006 Today follow-up, VAL-007 verification, and VAL-008 interpretation check |
+| `NEUTRAL FOLLOW-UP` | Ask only for more about something already mentioned; may not introduce the correct answer |
+| `COACHED/EXPLAINED — INVALID` | Answer obtained after coaching, explaining intended meaning, or revealing the correct answer |
+
+An answer with status `COACHED/EXPLAINED — INVALID` cannot satisfy any gate. Silence, no answer, “weet ik niet,” a skipped mandatory probe, a blank row, or a missing row cannot pass a blocking VAL.
+
+Staged visitor tasks `VAL-003`, `VAL-006`, `VAL-007`, and `VAL-008` require **two** distinct evidence rows under the same authoritative VAL identifier. Frozen approach: two matrix rows sharing the VAL ID, distinguished by stage. These are evidence-row labels, not new canonical VAL IDs:
+
+- `VAL-003 / OPEN` then `VAL-003 / VERIFICATION`
+- `VAL-006 / OPEN` then `VAL-006 / VERIFICATION`
+- `VAL-007 / OPEN` then `VAL-007 / VERIFICATION`
+- `VAL-008 / OPEN` then `VAL-008 / VERIFICATION`
+
+Each stage must independently contain: the authoritative VAL identifier; stage (`OPEN` or `VERIFICATION`); the exact question asked; close-to-verbatim response; answer-status; observed behaviour when applicable; stage-level interpretation; reviewer rationale.
+
+The final VAL verdict is determined only after both required stages exist. A missing `OPEN` stage is incomplete. A missing `VERIFICATION` stage is incomplete. An invalid or coached stage cannot satisfy the VAL. The verification answer may clarify the interpretation but may not rewrite or erase the open answer. Both stages remain preserved.
+
+```text
+SKIPPED ≠ PASSED
+```
+
+Audio or video recording is not required. If any recording is considered, obtain explicit consent first and keep it outside the repository under appropriate privacy controls. Do not invent a repository path for it.
+
+### 6.2 Expert procedure (`E01`)
+
+Not started by this freeze. Do **not** score `E01` as though the expert were a normal visitor.
+
+1. Complete §4.1 screening and the capability record. Invalid `E01` stops C4.
+2. Confirm consent for written pseudonymized review notes.
+3. Receive this contract, including §6.4, §6.5, and §7, before viewing scored tasks as a test.
+4. Complete §5 Preview verification and record URL, Ready state, source commit, timestamp, and result.
+5. Use the retained logged-out Preview only, after facilitator Deployment Protection handling if needed.
+6. For every VAL-001 through VAL-010 and VAL-031, assess the **rendered page** using §6.5.
+7. VAL-010 for `E01` is the authoritative desktop scan at approximately 1440 CSS pixels.
+8. Cite exact visible content, hierarchy, interaction, or absence. Personal knowledge of ZyntixAI cannot satisfy a task.
+9. For every **blocking** VAL (VAL-001–009 and VAL-031), record one verdict: `PASS — no publication-blocking page defect observed`; `FAIL — publication-blocking page defect observed`; or `NOT EXECUTED`.
+10. For non-blocking VAL-010, do **not** use the publication-blocking verdict vocabulary. Record one of: `PASS — required non-blocking desktop scan completed; no observation`; `OBSERVATION — required non-blocking desktop scan completed; issue observed`; or `NOT EXECUTED`.
+11. A VAL-010 `OBSERVATION` is a P2 observation. It does not become a publication blocker, does not by itself fail C4, and must not use the wording `publication-blocking page defect`.
+12. `NOT EXECUTED`, missing scan evidence, or a missing VAL-010 row means the `E01` review is incomplete and cannot advance to visitor recruitment. That incompleteness does **not** reclassify VAL-010 as a publication-blocking item.
+13. For blocking VALs, `NOT EXECUTED`, missing rationale, missing page evidence, or an unresolved blocking concern cannot pass the expert gate.
+14. Do not rewrite copy. A blocking `E01` `FAIL` on VAL-001–009 or VAL-031 stops C4 before visitor recruitment or visitor testing.
+15. End the governed review before informal product discussion.
+
+No visitor may be recruited, scheduled, or tested until this `E01` procedure is complete under §3, including the VAL-010 row.
+
+### 6.3 Visitor procedure (`P01`–`P05`)
+
+Not started by this freeze. Use the same procedure for all counted visitors. Visitor prompts are Dutch.
+
+**A. Intake (page not yet shown)**
+
+1. Complete §4.2 screening. Invalid persons are not shown the homepage as a counted session.
+2. Confirm consent for written, pseudonymized research notes.
+3. Record participant ID, date, session mode, device class, browser, viewport or window size, exact Preview URL, verified source commit, verification timestamp, and verification result (§5).
+4. State only that the participant is reviewing a public website page. Do not explain ZyntixAI or reveal expected interpretations.
+
+**B. Isolated five-second first-screen test (VAL-001 only)**
+
+1. Load the Preview homepage at its top position **before** the participant views it.
+2. Confirm the browser is on the expected host and the participant has not yet seen the page.
+3. Show only the initial viewport for approximately five seconds.
+4. During those five seconds, do not scroll, click, navigate, explain, zoom, search, or otherwise interact with the page.
+5. Hide or cover the page immediately after the exposure.
+6. Ask and record VAL-001 while the page is hidden, using the frozen wording in §6.4. Answer-status must be `UNPROMPTED` for this exposure response (the questions are asked after a silent exposure, not after a full-page read).
+7. Score VAL-001 only from that first-screen response. Information from the later full-page review may not retroactively change VAL-001.
+
+**C. Full homepage review (VAL-002 through VAL-010 and VAL-031)**
+
+Only after VAL-001 has been recorded may the full homepage be restored. Then scrolling and later tasks may begin.
+
+8. Execute VAL-002 through VAL-010 in identifier order, then VAL-031, using §6.4. Remain on `/`. VAL-005 must be completed before any navigation away from `/`.
+9. VAL-010 for a visitor is an ordered page inventory at **that visitor’s recorded viewport**. It is not a 1440-pixel result.
+10. Only after homepage answers for VAL-001 through VAL-010 and VAL-031 are recorded, the participant may open public `/login` to compare it with their expectation. They must not enter credentials or attempt authentication. Record the comparison as observation, not as a new VAL ID. `/login` is optional, post-homepage, unscored, and credential-free.
+11. Record answers as closely as practical in the participant’s own words. Distinguish answer-status values from §6.1. For VAL-003, VAL-006, VAL-007, and VAL-008, record two rows per VAL as specified in §6.1 (`/ OPEN` then `/ VERIFICATION`).
+12. After scoring is complete, end the governed test before any general discussion or product explanation.
+
+Not permitted during homepage scoring: `/login` before step 10, ZyntixAI credentials, other routes, Production, facilitator explanation of intended meaning.
+
+Session mode must be one of: facilitator-controlled local browser; supervised screen-share onto a facilitator-controlled browser. The participant must not receive the Preview URL with a bypass token, and must not operate Vercel SSO.
+
+### 6.4 Visitor instrument
+
+The facilitator must read these questions consistently.
+
+| VAL | Governed concept | Visitor sequence | Answer-status | Blocking | PASS | FAIL / cannot pass |
+| --- | --- | --- | --- | --- | --- | --- |
+| VAL-001 | Five-second name and purpose | After the hidden five-second exposure: `Wat is dit?` Then `Waar helpt dit bij?` | `UNPROMPTED` | yes | Identifies the page or product as ZyntixAI **and** gives a materially correct high-level purpose (organizing customers, work, responsibilities, progress, or what needs attention). Minor pronunciation or transcription differences are acceptable only when clearly referring to the visible ZyntixAI brand name | Generic “een website,” “software,” “de pagina,” “a business website,” or “the page” without naming ZyntixAI; naming ZyntixAI without purpose; chatbot-only, LMS-only, or generic AI-tool as the whole purpose; silence; skipped |
+| VAL-002 | Operator-primary audience | `Voor wie lijkt deze pagina bedoeld?` | `SCHEDULED NEUTRAL QUESTION` | yes | Small-business owner/operator is the apparent primary audience; course/coaching may be a later example | Primary audience is students, an LMS, only course sellers, or anyone invited to sign up; silence; skipped |
+| VAL-003 | Not only a chatbot | **Always both stages.** Open: `Wat voor soort product of hulpmiddel denk je dat ZyntixAI is? Wat verwacht je ermee te kunnen doen?` Then mandatory: `Denk je dat ZyntixAI alleen een chatbot is, een breder systeem om bedrijfswerk te organiseren, allebei, of iets anders? Leg uit waarom.` | Open = `SCHEDULED NEUTRAL QUESTION`; verification = `SCHEDULED DIRECT PROBE` | yes | Rejects “only a chatbot” **and** recognizes broader work-organization functionality | Concludes it is only a chatbot; silence; “weet ik niet”; skipped direct probe |
+| VAL-004 | Closed / limited access, not GA | `Kan iedereen dit nu gaan gebruiken?` If needed, `NEUTRAL FOLLOW-UP` only on what they already said | `SCHEDULED NEUTRAL QUESTION` | yes | Communicates **both**: (1) access is currently limited, controlled, invitation-based, test-stage, or otherwise not generally available; (2) a new visitor cannot freely create an account from the public page. Exact words `gesloten bèta` are not required. Accepted paraphrases include `besloten test`, `alleen op uitnodiging`, `alleen voor bestaande of toegelaten gebruikers`, or another materially equivalent statement containing **both** meanings. Meaning (2) may also be evidenced by a passing VAL-005 row, but VAL-004 and VAL-005 must each exist and pass independently | Anyone can start now; GA; launch; open join; `Niet voor iedereen` **by itself**; silence; skipped |
+| VAL-005 | `Inloggen` vs signup | Before any click: `Wat is Inloggen volgens jou?` Then `Kun je via deze pagina een nieuw account aanmaken?` | `SCHEDULED NEUTRAL QUESTION` | yes | `Inloggen` is for people who already have an account; no new public account can be created here | `Inloggen` as Start, Join, Register, trial, or product tour; open signup believed available; silence; skipped |
+| VAL-006 | Today is an example, not the whole product | Open: `Wat is Today op deze pagina?` Then always: `Is Today volgens jou het hele product, of een voorbeeld van een onderdeel binnen een breder product? Leg uit.` | Open = `SCHEDULED NEUTRAL QUESTION`; follow-up = `SCHEDULED DIRECT PROBE` | yes | Understands Today is an example / part of a broader product, not the entire product, and not a public demo | Today is the whole product, a public demo, or public Home; silence; skipped probe |
+| VAL-007 | Course/coaching example, not an LMS | **Always both stages.** Open: `Wat betekent het deel over opleidingen of coaching?` Then mandatory: `Denk je dat ZyntixAI zelf een leeromgeving is waarin deelnemers lessen volgen, of gebruikt de pagina cursus en coaching als voorbeeld van een bedrijf dat ZyntixAI kan gebruiken? Leg uit waarom.` | Open = `SCHEDULED NEUTRAL QUESTION`; verification = `SCHEDULED DIRECT PROBE` | yes | Understands course/coaching is a business-use example and ZyntixAI is not presented as an LMS | Students take courses here; LMS/catalogue; ZyntixAI is only a course product; silence; “weet ik niet”; skipped direct probe |
+| VAL-008 | Trust/data-context wording is not certification | Target the trust/data-context section, **not** `Toegang`. Open: `Wat zegt het gedeelte over vertrouwen en gegevens volgens jou toe?` Then always: `Lees je dit als uitleg over de werkwijze, als een garantie, als een certificering, of als iets anders? Leg uit.` | Open = `SCHEDULED NEUTRAL QUESTION`; check = `SCHEDULED DIRECT PROBE` | yes | Does not treat the wording as a certification, absolute guarantee, or proof of compliance | Certification, legal compliance, or absolute guarantee as a page promise; silence; skipped probe |
+| VAL-009 | Honest stop | `Als je zelf geen account hebt, wat kun je volgens deze pagina doen?` | `SCHEDULED NEUTRAL QUESTION` | yes | Reading/getting to know ZyntixAI is a valid outcome; not a broken page | Error, hostile rejection, waitlist/request path, coming-soon access promise, or missing-button defect; silence; skipped |
+| VAL-010 | Ordered inventory at the visitor viewport | `Bekijk de pagina van boven naar beneden. Welke onderdelen zie je, in welke volgorde?` Record viewport. Not a 1440-pixel claim | `SCHEDULED NEUTRAL QUESTION` | **no** | Required content present and readable in a downward scan at the recorded viewport | Missing/unreadable required clusters. Empty-luxury perception alone is P2. Incomplete row still means VAL-010 was not executed |
+| VAL-031 | `Toegang` panel is information, not error or conversion | Exclusively the `Toegang` panel: `Wat is het blok Toegang volgens jou?` Then `Wat denk je dat je daar kunt doen?` | `SCHEDULED NEUTRAL QUESTION` | yes | Informational access/status panel; existing-account `Inloggen` only; not an error; not a signup form | Technical error, outage, disabled form, waitlist, request-access, demo, or open conversion form; silence; skipped |
+
+After VAL-031, optional `/login` comparison: `Komt deze pagina overeen met wat je verwachtte na Inloggen?` Observation only. No credentials. Not a VAL ID.
+
+Staged VAL evidence-row labels (not new VAL IDs). Record two matrix rows for each of VAL-003, VAL-006, VAL-007, and VAL-008:
+
+| Evidence-row label | Authoritative VAL | Stage | Answer-status |
+| --- | --- | --- | --- |
+| `VAL-003 / OPEN` | VAL-003 | `OPEN` | `SCHEDULED NEUTRAL QUESTION` |
+| `VAL-003 / VERIFICATION` | VAL-003 | `VERIFICATION` | `SCHEDULED DIRECT PROBE` |
+| `VAL-006 / OPEN` | VAL-006 | `OPEN` | `SCHEDULED NEUTRAL QUESTION` |
+| `VAL-006 / VERIFICATION` | VAL-006 | `VERIFICATION` | `SCHEDULED DIRECT PROBE` |
+| `VAL-007 / OPEN` | VAL-007 | `OPEN` | `SCHEDULED NEUTRAL QUESTION` |
+| `VAL-007 / VERIFICATION` | VAL-007 | `VERIFICATION` | `SCHEDULED DIRECT PROBE` |
+| `VAL-008 / OPEN` | VAL-008 | `OPEN` | `SCHEDULED NEUTRAL QUESTION` |
+| `VAL-008 / VERIFICATION` | VAL-008 | `VERIFICATION` | `SCHEDULED DIRECT PROBE` |
+
+### 6.5 E01 page-defect instrument
+
+For every blocking VAL, `E01` must assess whether the rendered page itself:
+
+- contains sufficiently visible and understandable evidence for the intended meaning;
+- avoids contradictory or misleading cues;
+- is likely to support the required visitor interpretation **without product knowledge**;
+- presents a publication-blocking comprehension or access-meaning risk.
+
+| VAL | E01 inspects | Publication-blocking page defect if |
+| --- | --- | --- |
+| VAL-001 | First viewport ~5s at top; identity and purpose visible without scroll | Name or operator purpose absent, hidden, or contradicted in the first screen |
+| VAL-002 | Apparent primary audience before CS | Page presents students, LMS, only course sellers, or public signup as the brand-primary audience |
+| VAL-003 | Chatbot vs work-organization cues | Page reads as a chatbot-only product |
+| VAL-004 | Maturity/availability in the early page | Page reads as GA, open join, or unlimited public access |
+| VAL-005 | `Inloggen` labelling vs signup | `Inloggen` reads as Start/Join/Register or the page offers open signup |
+| VAL-006 | Today qualifier vs whole-product cues | Today reads as the entire product or a public demo |
+| VAL-007 | Course/coaching example vs LMS | Page reads as a learner LMS or as a course-only product |
+| VAL-008 | Trust/data-context section only | Trust copy reads as certification, absolute guarantee, or compliance proof |
+| VAL-009 | Honest stop | Stop reads as error, rejection wall, waitlist, or missing conversion control |
+| VAL-031 | `Toegang` panel only | Panel reads as technical error or as an open-signup/conversion form |
+
+VAL-010 is required and non-blocking. Do not record it with the publication-blocking verdict vocabulary.
+
+| VAL | E01 inspects | Non-blocking verdict |
+| --- | --- | --- |
+| VAL-010 | Authoritative scan at approximately 1440 CSS px; required clusters; not vh-hero | `PASS — required non-blocking desktop scan completed; no observation` when required clusters are present and readable; `OBSERVATION — required non-blocking desktop scan completed; issue observed` when clusters are missing/unreadable or empty-luxury is noted (P2; does not fail C4; must not use `publication-blocking page defect`); `NOT EXECUTED` if the scan was not done. Missing scan evidence or a missing VAL-010 row holds visitor recruitment until completed; it does not make VAL-010 publication-blocking |
+
+## 7. Success and failure rules
+
+C4 may later be closed as PASS only when **all** of the following are true together, including the mechanical evidence gate in §9:
+
+- one valid `E01` eligibility and capability record;
+- `E01` records `PASS — no publication-blocking page defect observed` for every blocking VAL (VAL-001–009 and VAL-031), each with cited page evidence and rationale;
+- VAL-010 is executed and recorded for `E01` at approximately 1440 CSS px using the non-blocking vocabulary in §6.2 (`PASS — required non-blocking desktop scan completed; no observation` or `OBSERVATION — required non-blocking desktop scan completed; issue observed`; `NOT EXECUTED` is not allowed);
+- exactly five valid visitor eligibility records and session records (`P01`–`P05`);
+- no counted visitor interprets the product as generally available;
+- no counted visitor believes open signup is available;
+- no counted visitor concludes that ZyntixAI is only a chatbot;
+- no counted visitor concludes that the product is an LMS;
+- no counted visitor interprets the access panel as a technical error;
+- no counted visitor interprets the access panel as an open-signup or conversion form;
+- all five counted visitors identify the page or product as ZyntixAI and give a materially correct high-level purpose (VAL-001);
+- all five understand that existing account holders can use `Inloggen`;
+- all five communicate both closed/limited access **and** no free public account creation (VAL-004 aligned with VAL-005);
+- no publication-blocking fail is recorded against VAL-001 through VAL-009 or VAL-031 for `E01` or any of `P01`–`P05`;
+- at most two counted visitors have course selling or coaching as primary business context.
+
+VAL-010 must be executed and recorded. A VAL-010 `OBSERVATION` or empty-luxury note **must not** be upgraded into a publication blocker and **must not** by itself prevent C4 PASS. Visitor work may proceed after a completed VAL-010 `OBSERVATION`. An absent or `NOT EXECUTED` VAL-010 row holds visitor recruitment until completed and prevents C4 PASS through incompleteness, without making VAL-010 publication-blocking.
+
+A single critical misinterpretation means C4 cannot be closed as PASS.
+
+When a critical failure occurs:
+
+- preserve the evidence;
+- create a governed finding;
+- classify C4 as blocked;
+- do not modify product copy, design, or code;
+- do not deploy, redeploy, promote, or begin Production verification;
+- state that remediation and retesting require separate authority.
+
+Do not create unsupported statistical claims from a five-person qualitative study. Do not describe the result as general population proof, market validation, WCAG conformance, or Production validation. Do not use the term `USER VALIDATED`. Do not apply `PW2-M-*` 8/10 or “majority” thresholds as C4 gates.
+
+This freeze does not itself pass C4. Contract final verification, recorded after this appendix when that review passes, is what treats the contract as ready for `E01`. This freeze does not execute `E01`.
+
+## 8. Severity and finding handling
+
+| Class | Use | Effect on C4 |
+| --- | --- | --- |
+| Publication-blocking / critical | Any fail listed in §7, including a publication-blocking fail of VAL-001–009 or VAL-031, or a blocking `E01` page defect | C4 cannot PASS; stop visitor recruitment and testing if found in `E01`; do not remediate inside C4 |
+| P2 observation | Non-critical misunderstanding, wording friction, E01 VAL-010 `OBSERVATION`, environment chrome, or polish that does **not** contradict a publication-blocking success condition | Record; does not by itself block C4 PASS or visitor work after a complete `E01` |
+| Invalid session | Failed screening, coaching, wrong host, authenticated ZyntixAI state, Deployment Protection leakage, or incomplete blocking rows | Session does not count; preserve as invalid; replace only per §4.3 |
+
+Do not silently mark a critical fail as P2. Do not invent P0 product defects from qualitative wording unless a separate product/security fact is evidenced; C4 is not a code-defect hunt.
+
+If the expert review is publication-blocking, visitors are not started. If `E01` is incomplete, including an absent or `NOT EXECUTED` VAL-010 row, visitors are not recruited, scheduled, or tested until that completeness is restored. If a **visitor** session is publication-blocking, remaining already-scheduled sessions may still be completed only when they do not require coaching and do not change copy; they do not convert C4 to PASS. No new recruitment is authorized from a blocked C4 except invalid-session replacement while not blocked, as in §4.3.
+
+## 9. Evidence, privacy, and completeness gate
+
+Repository evidence for later execution may contain only pseudonymized summaries, screening summaries, Preview-verification records, and the completed result matrix.
+
+Required matrix columns:
+
+| Column | Rule |
+| --- | --- |
+| Identifier | `E01`, `P01`–`P05`, or `P-INV-*` |
+| Eligibility result | pass/fail against §4, with screening record present |
+| Date | session date |
+| Session mode | facilitator-controlled browser or supervised screen-share |
+| Device and browser | class only |
+| Viewport or window size | recorded as used; visitor VAL-010 uses this viewport |
+| URL | exact Preview URL |
+| Source commit | verified `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` |
+| Verification timestamp and result | §5 record |
+| VAL identifier | authoritative VAL-001–010 or VAL-031. Unstaged visitor VALs: one row per VAL. Staged visitor VALs (003, 006, 007, 008): two rows per VAL using labels `VAL-nnn / OPEN` and `VAL-nnn / VERIFICATION` (evidence-row labels, not new VAL IDs). `E01`: one row per VAL, including VAL-010 |
+| Stage | `OPEN` or `VERIFICATION` on staged visitor rows; blank or `n/a` on unstaged visitor rows and on `E01` rows |
+| Exact question asked | required on visitor scored answers; frozen wording from §6.4 |
+| Verbatim or close-to-verbatim response | required and non-empty where a visitor response is required; Dutch preserved; verification must not erase the open answer |
+| Observed behaviour | required where the task involves behaviour |
+| Answer-status | one of the §6.1 values, per scored answer / stage |
+| Stage-level interpretation | required on staged visitor rows; must not replace verbatim |
+| Verdict | visitor pass/fail/observation for the VAL after both required stages exist; or `E01` blocking `PASS` / `FAIL` / `NOT EXECUTED` page-defect wording; or `E01` VAL-010 non-blocking `PASS` / `OBSERVATION` / `NOT EXECUTED` wording |
+| Severity when applicable | critical / P2 / none |
+| Rationale | required; must not replace verbatim; `E01` must cite visible page evidence |
+
+C4 cannot PASS unless **all** of the following exist (explicit AND-gate):
+
+- one valid `E01` eligibility record;
+- a complete `E01` verdict and rationale for every blocking VAL;
+- a completed `E01` VAL-010 row using the non-blocking vocabulary (`NOT EXECUTED` or missing row is incomplete);
+- exactly five valid visitor eligibility records;
+- a session record for `P01` through `P05`;
+- verified Preview host and source-commit evidence for `E01` and each counted visitor;
+- one evidence row for every required unstaged VAL for every governed participant;
+- two evidence rows (`OPEN` and `VERIFICATION`) for every staged visitor VAL (VAL-003, VAL-006, VAL-007, VAL-008) for every counted visitor;
+- non-empty close-to-verbatim responses where a visitor response is required;
+- observed behaviour where the task involves behaviour;
+- an answer-status field on every visitor scored answer (`E01` rows use the page-defect or VAL-010 non-blocking verdict model, not visitor answer-status);
+- a verdict on every required VAL (staged visitor VALs: one final verdict only after both stages exist);
+- a rationale on every required row;
+- no unresolved blocking finding.
+
+A blank, skipped, missing, placeholder, contradictory, or invalid blocking row means C4 cannot PASS.
+
+```text
+SKIPPED ≠ PASSED
+```
+
+Do not add to the repository: names; email addresses; credentials; tokens; cookies; private invitation links; raw personal data; recordings; fabricated artifact paths; identifying employer or contact information.
+
+If detailed notes or recordings remain external, state that clearly in the later evidence appendix. Do not invent repository paths for evidence that is not committed. B1-GATE.1 remains binding: mask credentials; never publish secrets, tokens, emails, or raw PII.
+
+This contract-freeze appendix contains **no** participant answers.
+
+## 10. Retest governance
+
+If remediation is later authorized:
+
+- test the changed concept again with the expert reviewer using the E01 page-defect model;
+- then test it with new eligible visitors who have not seen the earlier version;
+- do not reuse failed participants as independent first-impression evidence;
+- do not replace or rewrite the original failed evidence;
+- link the retest evidence to the originating finding and remediation commit.
+
+The exact retest participant count must be authorized with the remediation scope. This contract does not silently define it.
+
+Copy, layout, or code changes remain forbidden until that separate authority exists (`PW12-DEFER-020` / `022` failure consequences).
+
+## 11. Explicit boundaries
+
+This freeze does not authorize and later C4 execution still must not do:
+
+- beginning the expert review in this documentation pass;
+- recruiting, contacting, inviting, or messaging participants;
+- executing visitor sessions;
+- fabricating participant evidence;
+- changing product code, copy, CSS, tests, configuration, dependencies, lockfiles, generated files, or deployment files;
+- deploying, redeploying, or creating a new Preview as C4 evidence;
+- disabling or weakening Deployment Protection;
+- promoting to Production;
+- accessing or testing Production as a C4 surface;
+- signing in to ZyntixAI or using ZyntixAI credentials;
+- closing parent PW-14;
+- claiming publication admission;
+- claiming WCAG conformance;
+- claiming `PASS — PW-14-C4 CLOSED WITH EVIDENCE`;
+- using the term `USER VALIDATED`.
+
+Parent remaining blockers after this freeze remain: C4 execution itself; final publication admission; Production deployment; public Production verification; authenticated Production verification; gated metadata/legal/favicon/canonical-host items; authenticated Home remains closed.
+
+## 12. Readiness checklist for beginning the expert review
+
+The expert review may begin only after the contract final-verification record in this document has passed, and only when all of the following are true:
+
+| Check | Frozen expectation |
+| --- | --- |
+| Contract | this appendix is the C4 method contract; contract final verification is recorded after the freeze end-marker when that review passes |
+| Git | authorized branch; dirty inventory recorded; no unrelated product diff required for C4 |
+| Preview identity | D1-method verification: retained URL, Ready Preview, source commit `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` |
+| Application state | logged out of ZyntixAI in the session browser |
+| Deployment Protection | still enabled; facilitator can pass it without exposing secrets |
+| Expert eligibility | complete §4.1 screening and capability record as `E01` |
+| Instrument | §6.4 and §6.5 available to the expert before the review |
+| Scope | VAL-001–010 and VAL-031 only; VAL-032 out of scope |
+| VAL-010 completeness | E01 must complete the non-blocking ~1440 CSS-pixel scan before any visitor is recruited, scheduled, or tested |
+| Boundaries | no copy edit, no deploy, no Production, no ZyntixAI login, no visitor outreach until `E01` is complete under §3 |
+| Evidence | empty matrix prepared; no fabricated rows |
+
+This checklist is not expert-review evidence. Completing it starts the expert review only in the authorized pass that treats this contract as final-verified. This freeze appendix does not execute `E01`. Visitor sessions remain unauthorized until `E01` is complete under §3 and has no unresolved publication-blocking finding.
+
+## 13. Current decision wording
+
+```text
+PW-14-C4 VISITOR VALIDATION CONTRACT FROZEN
+PW-14-C4 EXECUTION NOT STARTED
+DO NOT PROMOTE
+PRODUCTION UNCHANGED
+```
+
+This wording freezes the corrected contract only. It does not close C4, execute `E01`, authorize visitors before `E01` passes, or close PW-14.
+
+Not used: `PASS — PW-14-C4 CLOSED WITH EVIDENCE`; `USER VALIDATED`; `PUBLICATION READY`; `WCAG COMPLIANT`; `PRODUCTION VERIFIED`.
+
+Next authorized work after contract final verification: independent expert review (`E01`) under `PW-14-C4 — Visitor Validation` after §12 is satisfied. Visitor sessions remain unauthorized until `E01` is complete under §3 and has no unresolved publication-blocking finding.
+
+End of PW-14-C4 visitor-validation contract freeze.
+
+## PW-14-C4 contract final-verification record
+
+This heading is a documentation record under the existing parent `PW-14-C4 — Visitor Validation`. It is not a canonical child-phase identifier.
+
+| Field | Value |
+| --- | --- |
+| Final-verification date | 2026-09-19 |
+| Branch | `core/platform-readiness-20260707` |
+| Starting HEAD | `ccea19f56eb2ea291a169ed748a52dd7dbea1b38` |
+| Reviewed path | `docs/phases/PW-14-public-homepage-publication-production-verification.md` |
+| Pre-commit diff scope | this file only; C4 contract clarifications plus this record; historical pre-C4 evidence unchanged |
+| Authoritative sources inspected | PW-14 C4 appendix; PW-12 `PW12-DEFER-020` / `022` and VDISP; PW-11 §42; PW-2 VIS/M catalogues; PW-4 VAL proposals; `PW6-Q-017`; B1-GATE.1; PW-14-C3-C2-D1 `D1-P2-001` |
+| Contract re-review result carried in | `PASS — PW-14-C4 CONTRACT RE-REVIEW COMPLETED`; original `PW14-C4-CR-FND-001` through `016` closed; P0=0; P1=0 |
+| CR2 P2 closure | `PW14-C4-CR2-FND-001` staged two-row evidence; `PW14-C4-CR2-FND-002` distinct E01 VAL-010 non-blocking verdicts; `PW14-C4-CR2-FND-003` complete E01 including VAL-010 before visitors |
+| P0 remaining | 0 |
+| P1 remaining | 0 |
+| P2 remaining | 0 (the three CR2 findings are closed in the contract) |
+| Final contract scope | VAL-001–010 and VAL-031; VAL-032 excluded; one valid `E01` then exactly five valid visitors; at most two CS/coaching-primary |
+| E01 / visitor execution | not started in this pass |
+| C4 / parent PW-14 | both remain open |
+| Commit / push boundary | one documentation commit of this file; normal non-force push; no deploy, redeploy, promote, Production access, or ZyntixAI login |
+| Exact next action | `PW-14-C4 — execute the governed independent expert review E01 on the retained logged-out Preview.` |
+
+This record closes **only** contract final verification. It does not close C4. It does not execute `E01`. It does not authorize visitor sessions before `E01` is complete and has no unresolved publication-blocking finding. It does not close parent PW-14. It is not publication admission and not a WCAG-conformance claim.
+
+Push-safety (read-only, no Vercel CLI, no tokens recorded): Production publication uses explicit CLI candidate then `vercel promote`, not git-push promotion (C3-FV / C1-FV). `vercel.json` remains cron-empty. No GitHub Actions in this worktree. No package deploy script. This commit is documentation-only. A normal branch push is not shown to necessarily trigger a prohibited Production deployment or promotion. If hosting later creates a non-Production Preview, it must not be promoted and is not C4 evidence.
+
+```text
+PASS — PW-14-C4 CONTRACT FINAL VERIFICATION CLOSED WITH EVIDENCE
+PW-14-C4 EXPERT REVIEW READY TO START
+PW-14-C4 VISITOR SESSIONS NOT AUTHORIZED UNTIL E01 PASSES
+DO NOT PROMOTE
+PRODUCTION UNCHANGED
+```
