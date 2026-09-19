@@ -17,6 +17,7 @@ import {
   SiteDetail,
   SitesList,
   WorkOrderDetail,
+  WorkOrdersList,
 } from "@/features/field-operations/ui/views";
 import { ProjectDetail } from "@/features/projects/ui/project-views";
 import type { ProjectRecord } from "@/features/projects/domain/types";
@@ -104,6 +105,16 @@ const project: ProjectRecord = {
   updatedAt: "2026-09-05T08:00:00Z",
 };
 
+function emptyStateRegion(html: string) {
+  const labelledBy = 'aria-labelledby="empty-state-title"';
+  const labelledIndex = html.indexOf(labelledBy);
+  if (labelledIndex === -1) return null;
+  const start = html.lastIndexOf("<section", labelledIndex);
+  const end = html.indexOf("</section>", labelledIndex);
+  if (start === -1 || end === -1) return null;
+  return html.slice(start, end + "</section>".length);
+}
+
 describe("TG3 Field Operations workflow UI", () => {
   it("shows Field-only Sites, Work orders, and Dispatch navigation with Job terminology", () => {
     const html = renderToStaticMarkup(
@@ -176,6 +187,59 @@ describe("TG3 Field Operations workflow UI", () => {
     expect(html).toContain("Install control panel");
     expect(html).toContain("Finished visit");
     expect(html).toContain("No routing or optimization");
+  });
+
+  it("teaches an empty unfiltered Work Orders workspace and keeps grouped no-results distinct", () => {
+    const workspaceHtml = renderToStaticMarkup(
+      <WorkOrdersList context={{ ...context, moduleId: "workOrders" }} workOrders={[]} />,
+    );
+    const filteredHtml = renderToStaticMarkup(
+      <WorkOrdersList context={{ ...context, moduleId: "workOrders" }} workOrders={[]} status="scheduled" />,
+    );
+    const viewerHtml = renderToStaticMarkup(
+      <WorkOrdersList context={{ ...context, moduleId: "workOrders", role: "viewer" }} workOrders={[]} />,
+    );
+    const populatedHtml = renderToStaticMarkup(
+      <WorkOrdersList context={{ ...context, moduleId: "workOrders" }} workOrders={[workOrder]} />,
+    );
+    const dispatchHtml = renderToStaticMarkup(
+      <DispatchView context={{ ...context, moduleId: "dispatch" }} workOrders={[]} />,
+    );
+
+    const workspaceEmpty = emptyStateRegion(workspaceHtml);
+    const viewerEmpty = emptyStateRegion(viewerHtml);
+    expect(workspaceEmpty).not.toBeNull();
+    expect(viewerEmpty).not.toBeNull();
+    if (!workspaceEmpty || !viewerEmpty) {
+      throw new Error("Work Orders empty-state region was not rendered.");
+    }
+    const headerMarkup = workspaceHtml.slice(0, workspaceHtml.indexOf(workspaceEmpty));
+
+    expect(workspaceEmpty).toContain("No work orders yet");
+    expect(workspaceEmpty).toContain("Work orders appear here when field work is scheduled across Jobs and Sites.");
+    expect(workspaceEmpty).toContain("New work order");
+    expect(workspaceEmpty).toContain(`href="/work-orders/new?org=${ORG}"`);
+    expect(headerMarkup).toContain(`href="/work-orders/new?org=${ORG}"`);
+    expect(workspaceHtml).not.toContain("No work orders in this group.");
+
+    expect(filteredHtml).toContain("No work orders in this group.");
+    expect(filteredHtml).not.toContain("No work orders yet");
+    expect(emptyStateRegion(filteredHtml)).toBeNull();
+
+    expect(viewerEmpty).toContain("No work orders yet");
+    expect(viewerEmpty).toContain("Work orders appear here when field work is scheduled across Jobs and Sites.");
+    expect(viewerEmpty).not.toContain("New work order");
+    expect(viewerEmpty).not.toContain("/work-orders/new");
+    expect(viewerEmpty).not.toContain("<a ");
+    expect(viewerHtml).not.toContain("/work-orders/new");
+
+    expect(populatedHtml).toContain("Install control panel");
+    expect(populatedHtml).not.toContain("No work orders yet");
+    expect(emptyStateRegion(populatedHtml)).toBeNull();
+
+    expect(dispatchHtml).toContain("No work orders in this group.");
+    expect(dispatchHtml).not.toContain("No work orders yet");
+    expect(emptyStateRegion(dispatchHtml)).toBeNull();
   });
 
   it("composes Sites and Work orders only into a Field Job detail", () => {

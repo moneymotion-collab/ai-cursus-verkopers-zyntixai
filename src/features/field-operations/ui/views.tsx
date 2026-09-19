@@ -1,5 +1,6 @@
 import { AppShell, type AppShellActiveNav } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { FieldContextResult } from "@/features/field-operations/server/resolve-field-page-context";
 import type {
   FieldPageContext,
@@ -107,11 +108,27 @@ function dateTime(value: string | null): string {
 function WorkOrderRows({
   workOrders,
   organizationId,
+  emptyMode = "group",
+  createHref,
 }: {
   workOrders: WorkOrderRecord[];
   organizationId: string;
+  emptyMode?: "workspace" | "group";
+  createHref?: string;
 }) {
-  if (workOrders.length === 0) return <p className={styles.muted}>No work orders in this group.</p>;
+  if (workOrders.length === 0) {
+    if (emptyMode === "workspace") {
+      return (
+        <EmptyState
+          title="No work orders yet"
+          description="Work orders appear here when field work is scheduled across Jobs and Sites."
+          actionHref={createHref}
+          actionLabel={createHref ? "New work order" : undefined}
+        />
+      );
+    }
+    return <p className={styles.muted}>No work orders in this group.</p>;
+  }
   return (
     <ul className={styles.list}>
       {workOrders.map((workOrder) => (
@@ -211,7 +228,16 @@ export function WorkOrdersList({
         <label>Status<select name="status" defaultValue={status ?? ""}><option value="">All statuses</option>{WORK_ORDER_STATUSES.map((item) => <option key={item} value={item}>{workOrderStatusLabel(item)}</option>)}</select></label>
         <button>Apply</button>
       </form>
-      <WorkOrderRows workOrders={workOrders} organizationId={context.organizationId} />
+      <WorkOrderRows
+        workOrders={workOrders}
+        organizationId={context.organizationId}
+        emptyMode={status ? "group" : "workspace"}
+        createHref={
+          !status && canOperateField(context.role)
+            ? `/work-orders/new?org=${encodeURIComponent(context.organizationId)}`
+            : undefined
+        }
+      />
     </section>
   );
 }

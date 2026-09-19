@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { AppShell, type AppShellActiveNav } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { canShowCreateWorkflow } from "@/features/customers/ui/customer-workflow-visibility";
 import {
   canAdministerProducts,
   canOperateProducts,
@@ -154,7 +156,113 @@ export function OrderDetailView({ context, order }: { context: ProductOperations
 }
 
 export function InventoryView({ context, products }: { context: ProductOperationsPageContext; products: ProductRecord[] }) {
-  return <section className={styles.page}><header className={styles.header}><div><h1>Inventory</h1><p className={styles.muted}>One organization-wide on-hand balance per product.</p></div></header><div className={styles.card}><ul className={styles.list}>{products.map((product) => <li className={styles.row} key={product.id}><div><Link href={`${productDetailHref(product.id)}?org=${context.organizationId}`}>{product.name}</Link><div className={styles.muted}>{product.sku}</div></div><div className={styles.actions}><Badge>{`${product.onHand} on hand`}</Badge>{canOperateProducts(context.role) ? <Link className={styles.secondary} href={`${inventoryAdjustHref(product.id)}?org=${context.organizationId}`}>Adjust</Link> : null}</div></li>)}</ul></div></section>;
+  const canAdjustInventory = canOperateProducts(context.role);
+  const canCreateProduct =
+    canOperateProducts(context.role) && context.moduleAccess.navVisibility.products === true;
+  return (
+    <section className={styles.page}>
+      <header className={styles.header}>
+        <div>
+          <h1>Inventory</h1>
+          <p className={styles.muted}>One organization-wide on-hand balance per product.</p>
+        </div>
+      </header>
+      {products.length === 0 ? (
+        <EmptyState
+          title="No inventory yet"
+          description="Create or activate a product before tracking on-hand inventory."
+          actionHref={canCreateProduct ? `/products/new?org=${encodeURIComponent(context.organizationId)}` : undefined}
+          actionLabel={canCreateProduct ? "New product" : undefined}
+        />
+      ) : (
+        <div className={styles.card}>
+          <ul className={styles.list}>
+            {products.map((product) => (
+              <li className={styles.row} key={product.id}>
+                <div>
+                  <Link href={`${productDetailHref(product.id)}?org=${context.organizationId}`}>{product.name}</Link>
+                  <div className={styles.muted}>{product.sku}</div>
+                </div>
+                <div className={styles.actions}>
+                  <Badge>{`${product.onHand} on hand`}</Badge>
+                  {canAdjustInventory ? (
+                    <Link className={styles.secondary} href={`${inventoryAdjustHref(product.id)}?org=${context.organizationId}`}>
+                      Adjust
+                    </Link>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
+export function OrderCreateUnavailablePanel({
+  organizationId,
+  missingCustomers,
+  missingProducts,
+  canCreateCustomer,
+  canCreateProduct,
+  customerSingular,
+  productSingular,
+}: {
+  organizationId: string;
+  missingCustomers: boolean;
+  missingProducts: boolean;
+  canCreateCustomer: boolean;
+  canCreateProduct: boolean;
+  customerSingular: string;
+  productSingular: string;
+}) {
+  const orgQuery = encodeURIComponent(organizationId);
+  return (
+    <div className={styles.statePanel}>
+      {missingCustomers ? (
+        <p>
+          {canCreateCustomer ? (
+            <>
+              <Link href={`/customers/new?org=${orgQuery}`}>Create a {customerSingular}</Link>
+              {" first."}
+            </>
+          ) : (
+            `Create a ${customerSingular} first.`
+          )}
+        </p>
+      ) : null}
+      {missingProducts ? (
+        <p>
+          {canCreateProduct ? (
+            <>
+              <Link href={`/products/new?org=${orgQuery}`}>Create an active {productSingular}</Link>
+              {" first."}
+            </>
+          ) : (
+            `Create an active ${productSingular} first.`
+          )}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+export function resolveOrderCreateUnavailableProps(context: ProductOperationsPageContext, options: {
+  customers: unknown[];
+  products: unknown[];
+}) {
+  return {
+    organizationId: context.organizationId,
+    missingCustomers: options.customers.length === 0,
+    missingProducts: options.products.length === 0,
+    canCreateCustomer:
+      canShowCreateWorkflow(context.role) && context.moduleAccess.navVisibility.customers === true,
+    canCreateProduct:
+      canOperateProducts(context.role) && context.moduleAccess.navVisibility.products === true,
+    customerSingular: context.terminology.customer.singular,
+    productSingular: context.terminology.product.singular,
+  };
 }
 
 export function FulfillmentView({ context, orders }: { context: ProductOperationsPageContext; orders: OrderRecord[] }) {
