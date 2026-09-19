@@ -4214,3 +4214,892 @@ PRODUCTION UNCHANGED
 ```
 
 End of PW-14-C3-C2-FV pre-commit evidence.
+
+# PW-14-C3-C2-D1 — Governed Non-Production Preview Establishment Evidence
+
+| Field | Value |
+| --- | --- |
+| Phase | PW-14-C3-C2-D1 |
+| Date | 2026-09-18 |
+| Branch | `core/platform-readiness-20260707` |
+| Source commit | `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` |
+| Subject | `fix(public-web): govern document language by route` |
+| Parent | `2daff99f5f8336dc4a455484ec3ced413a834f8d` |
+| Worktree | `D:/project ai cursus verkopers.worktrees/parallel__laptop-product-track-20260707-1` |
+| Status | `PASS — PW-14-C3-C2-D1 GOVERNED NON-PRODUCTION PREVIEW ESTABLISHED WITH EVIDENCE` |
+| Parent C3 | remains `BLOCKED` |
+| Promotion | `DO NOT PROMOTE` |
+| Production | unchanged |
+
+## 1. Purpose and boundary
+
+D1 establishes exactly one governed non-Production Vercel Preview from the clean committed C3-C2 source. It proves deployment identity, Preview classification, Ready state, source-commit metadata, and Production non-change.
+
+D1 does not prove that document language works in Preview. It does not authorize Production deployment, Preview promotion, alias changes, application authentication, public-page runtime verification, NVDA testing, browser-zoom testing, accessibility closure, publication, or Production verification. PW-1 remains the public-truth ceiling. PW-13 remains implementation authority. PW-14-C3 remains blocked. This phase does not start PW-14-C3-C3.
+
+## 2. Git preflight
+
+| Check | Result |
+| --- | --- |
+| Repository root | `D:/project ai cursus verkopers.worktrees/parallel__laptop-product-track-20260707-1` |
+| Branch | `core/platform-readiness-20260707` |
+| Local HEAD | `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` |
+| Upstream | `origin/core/platform-readiness-20260707` at the same SHA |
+| Remote branch | `git ls-remote origin refs/heads/core/platform-readiness-20260707` = same SHA |
+| Ahead / behind after `git fetch origin` | `0 0` |
+| Subject | `fix(public-web): govern document language by route` |
+| Parent | `2daff99f5f8336dc4a455484ec3ced413a834f8d` |
+| Staged files | none |
+| Unstaged tracked files | none |
+| Untracked files | none |
+| Exact changed-file set | empty |
+| Merge / rebase / cherry-pick / revert / bisect | none |
+| Instruction discovery | B1-GATE.1; complete PW-14 evidence including C3, C3-C1, C3-C2, C3-C2-R1, C3-C2-FV; existing `.vercel/project.json` (gitignored; names only); `vercel.json` present and unmodified. No `AGENTS.md`, `CONTRIBUTING.md`, or `.cursor/rules`. |
+
+`git fetch origin` completed. No reset, stash, clean, merge, rebase, amend, commit, or push was used to satisfy preflight.
+
+## 3. Source-integrity verification
+
+The checkout used for deployment was this exact commit. No later local commit existed. No source, test, config, environment, dependency, or lockfile modification existed. No generated or temporary file was present. Tests, lint, typecheck, build, and local initial-HTML verification were not repeated; they already passed in C3-C2-FV and no source drift was discovered.
+
+Committed nine-file scope and diff-stat (`9 files changed, 2021 insertions(+), 5 deletions(-)`):
+
+| Path | Role |
+| --- | --- |
+| `docs/phases/PW-14-public-homepage-publication-production-verification.md` | C3-C2 / R1 / FV evidence |
+| `src/app/layout.tsx` | route-governed `<html lang>` |
+| `src/lib/i18n/document-language.ts` | trusted document-language helper |
+| `src/lib/supabase/middleware.ts` | trusted header overwrite |
+| `tests/app/root-document-language.test.tsx` | layout language tests |
+| `tests/auth/entry-routing-and-login-ui.test.tsx` | login HTML language |
+| `tests/auth/middleware-auth-redirects.test.ts` | spoof / query overwrite |
+| `tests/lib/i18n/document-language.test.ts` | resolver unit tests |
+| `tests/public-web/public-homepage.test.tsx` | public `/` language lock |
+
+No source was regenerated, edited, or rebuilt before deployment.
+
+## 4. Vercel identity and project link
+
+| Check | Result |
+| --- | --- |
+| CLI | `vercel.cmd` (not `vercel.ps1`); Vercel CLI 56.3.1 |
+| `vercel.cmd whoami` | `guusvermolen-6030` |
+| Active team / scope | `guus-projects-ai` |
+| Linked project name | `zyntixai` |
+| Linked pair | `guus-projects-ai/zyntixai` |
+| Link origin | already present in gitignored `.vercel/project.json` |
+| Relink | not run; `.vercel/project.json` not modified |
+
+Private project and organization identifiers were inspected only to confirm names and were not recorded. `vercel link` was not run.
+
+## 5. Automatic-Preview absence
+
+Before D1:
+
+```text
+vercel.cmd ls zyntixai --environment=preview --scope guus-projects-ai --meta githubCommitSha=7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991
+> No deployments found under guus-projects-ai.
+```
+
+Recent Preview listing showed the newest existing Preview as `https://zyntixai-ecbqshegd-guus-projects-ai.vercel.app`, Ready, Preview, age 22h. That host predates `7c2361a`. No Preview for the expected commit was queued, initializing, building, or Ready. D1 deployment was therefore required. No duplicate was created of an already-governed C3-C2 Preview.
+
+## 6. Production baseline
+
+Newest Production before D1: `https://zyntixai-d6el9vl1s-guus-projects-ai.vercel.app`, Ready, Production, age 4d, account `guusvermolen-6030`. It predates D1 and is not the C3-C2 commit.
+
+Logged-out checks (no authentication; no cookies, tokens, or private headers recorded):
+
+| Surface | Result |
+| --- | --- |
+| `https://www.zyntixai.com/` | 307 `Location: /login` |
+| `https://www.zyntixai.com/login` | 200 |
+| `https://www.zyntixai.com/home` | 307 `Location: /login?next=%2Fhome` |
+| `https://zyntixai.com/` | 308 `Location: https://www.zyntixai.com/` |
+
+## 7. Deployment authorization
+
+All pre-deploy AND-gate conditions held together: exact clean source commit; upstream and remote match; worktree clean; linked team and project match; automatic Preview for `7c2361a` absent; Production predates D1; authorized command class reviewed. Exactly one normal non-Production deploy was authorized. No Production option was selected.
+
+## 8. Exact safe command classification
+
+Intended and executed command, from the repository root, exactly once:
+
+```text
+vercel.cmd deploy --scope guus-projects-ai --meta githubCommitSha=7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991 --meta pw14Phase=PW-14-C3-C2-D1
+```
+
+| Safety check | Result |
+| --- | --- |
+| Contains `deploy` | yes |
+| Contains `--prod` | no |
+| Contains `promote` | no |
+| Contains `alias` | no |
+| Contains `redeploy` | no |
+| Contains `--force` | no |
+| Contains `--public` | no |
+| Current repository root | yes |
+| Team scope `guus-projects-ai` | yes |
+| Source-commit metadata | exact `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` |
+| D1 phase metadata | `pw14Phase=PW-14-C3-C2-D1` |
+| Environment values on the command line | none |
+
+The CLI later printed a non-executed suggestion to deploy with `--prod`. That suggestion was not followed.
+
+## 9. Deployment creation result
+
+| Item | Result |
+| --- | --- |
+| Command invocations | 1 |
+| Process exit | 0 |
+| Classification printed by CLI | Preview |
+| Returned URL | `https://zyntixai-lcuvv7fv7-guus-projects-ai.vercel.app` |
+| Initial inspect state | Ready |
+| Created | 2026-09-18 15:17:39 +02 |
+| `--prod` / promote / alias | not used |
+
+Build completed on the Preview path. Build logs were not requested after Ready. No second deployment was created.
+
+## 10. Deployment identity
+
+| Item | Result |
+| --- | --- |
+| Project | `zyntixai` |
+| Team / scope | `guus-projects-ai` |
+| Inspect `target` | `preview` |
+| Inspect `status` | Ready |
+| Production | no |
+| Created during D1 | yes |
+| Created from clean expected checkout | yes |
+| Production alias pointing to it | none |
+| Promoted | no |
+| Manual custom domain assigned | no |
+
+`vercel.cmd inspect https://zyntixai-lcuvv7fv7-guus-projects-ai.vercel.app --scope guus-projects-ai --wait --timeout=10m` returned Ready, `name=zyntixai`, `target=preview`.
+
+## 11. Preview target and Ready state
+
+Post-deploy filtered listing:
+
+```text
+vercel.cmd ls zyntixai --environment=preview --scope guus-projects-ai --meta githubCommitSha=7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991
+```
+
+Exactly one row: `https://zyntixai-lcuvv7fv7-guus-projects-ai.vercel.app`, Ready, Preview, age 2m, duration 1m, project `guus-projects-ai/zyntixai`. Candidate identity is not ambiguous.
+
+## 12. Commit metadata
+
+Custom `--meta` fields are not rendered in `vercel inspect --json` on CLI 56.3.1 (display limitation). They are queryable:
+
+| Filter | Result |
+| --- | --- |
+| `--meta githubCommitSha=7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` before D1 | no deployments |
+| same filter after D1 | exactly the new Preview |
+| `--meta pw14Phase=PW-14-C3-C2-D1` after D1 | exactly the same Preview |
+
+Source metadata therefore matches `7c2361a`. D1 phase metadata is present. Local HEAD at deploy time was the same SHA.
+
+## 13. Deployment Protection disposition
+
+Vercel configuration was not modified. No protection bypass, token, or SSO pass was used. The Preview application was not opened and was not requested with `curl`. Deployment Protection remains the governed project control. Platform protection is not ZyntixAI authentication. Runtime page checks belong to PW-14-C3-C3.
+
+## 14. Production non-change
+
+After Ready:
+
+| Check | Result |
+| --- | --- |
+| Newest Production host | still `https://zyntixai-d6el9vl1s-guus-projects-ai.vercel.app` |
+| Newest Production status | Ready, Production, age still 4d |
+| New Production created during D1 | no |
+| `www /` | still 307 `/login` |
+| `/login` | still 200 |
+| `/home` | still 307 `/login?next=%2Fhome` |
+| Apex | still 308 to `https://www.zyntixai.com/` |
+| Alias sources for `zyntixai.com` and `www.zyntixai.com` | still the pre-existing Production host |
+| New Preview in alias list | absent |
+| Promoted | no |
+
+No Production authentication was performed.
+
+## 15. Post-deployment Git integrity
+
+Before this evidence write: HEAD, upstream, and remote remained `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991`; ahead/behind `0 0`; staged empty; unstaged empty; untracked empty; no merge/rebase/cherry-pick/revert/bisect. No source, test, config, environment, dependency, lockfile, generated deployment file, browser artifact, or running local server. Linked project name remained `zyntixai`. Gitignored `.vercel/` was not treated as a tracked change.
+
+## 16. Findings register
+
+| ID | Severity | Evidence | Impact | Required correction | Owner / gate | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| D1-P2-001 | P2 | `vercel inspect --json` omits custom `--meta` keys; `vercel ls --meta` returns the D1 Preview for both declared keys | none on identity | none; treat `ls --meta` as the binding metadata proof | PW-14-C3-C2-D1 | OPEN — accepted display limitation |
+| D1-P2-002 | P2 | Project Deployment Protection remains in force; D1 did not change protection and did not pass it | Preview HTML is not yet a C3 runtime source | C3-C3 may pass protection only as separately authorized | PW-14-C3-C3 | OPEN |
+| D1-P2-003 | P2 | D1 performed no Preview content, language, NVDA, or browser-zoom check | parent C3 cannot close | execute PW-14-C3-C3 on this Preview | PW-14-C3-C3 | OPEN |
+
+P0 remaining: 0. P1 remaining: 0.
+
+## 17. Remaining C3 blockers
+
+Preview language verification, NVDA Speech Viewer capture, and actual 200% browser zoom remain outstanding on the new governed Preview. PW-14-C3 remains blocked. D1 does not start C3-C3.
+
+## 18. Remaining PW-14 blockers
+
+C3 runtime/accessibility verification; C4 visitor validation; publication admission; Production verification. Live Production `/` still 307 `/login`. Authenticated Home remains closed.
+
+## 19. File/security integrity
+
+This appendix is the only authorized post-deploy change. No source, test, style, config, environment, dependency, lockfile, generated report, temporary script, browser profile, screenshot, HAR, trace, video, or storage state was added. No credential, token, bypass parameter, cookie, authorization header, environment value, email address, UUID, or private project/organization identifier is recorded here. The Preview URL is public deployment identity.
+
+## 20. Commit, push, promotion, and alias status
+
+Nothing was staged, committed, or pushed after deployment. No Production deploy, promotion, or alias change was performed. `vercel.json` and Vercel project settings were not modified. Supabase configuration was not modified.
+
+## 21. Gate result
+
+```text
+PASS — PW-14-C3-C2-D1 GOVERNED NON-PRODUCTION PREVIEW ESTABLISHED WITH EVIDENCE
+
+NEW NON-PRODUCTION PREVIEW READY FOR PW-14-C3-C3
+
+PW-14-C3 REMAINS BLOCKED — PREVIEW LANGUAGE, NVDA SPEECH AND ACTUAL 200 PERCENT BROWSER ZOOM VERIFICATION OUTSTANDING
+
+DO NOT PROMOTE
+
+PRODUCTION UNCHANGED
+```
+
+## 22. Next authorized step
+
+`PW-14-C3-C3 — New Preview Language, NVDA Speech, and Actual Browser Zoom Verification`
+
+Do not automatically redeploy. Do not promote. Do not start C3-C3 in this phase.
+
+End of PW-14-C3-C2-D1 evidence.
+
+# PW-14-C3-C3 — New Preview Language, NVDA Speech, and Actual Browser Zoom Verification Evidence
+
+| Field | Value |
+| --- | --- |
+| Phase | PW-14-C3-C3 |
+| Date | 2026-09-18; evidence closure 2026-09-19 |
+| Branch | `core/platform-readiness-20260707` |
+| Source commit | `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` |
+| Subject | `fix(public-web): govern document language by route` |
+| Parent | `2daff99f5f8336dc4a455484ec3ced413a834f8d` |
+| Preview | `https://zyntixai-lcuvv7fv7-guus-projects-ai.vercel.app` |
+| Preview class | non-Production, Ready, target Preview |
+| Status | `PASS — PW-14-C3-C3 NEW PREVIEW LANGUAGE, NVDA SPEECH, AND ACTUAL BROWSER ZOOM VERIFICATION CLOSED WITH EVIDENCE` |
+| Parent C3 | remains open; C3-R1 not started |
+| Promotion | `DO NOT PROMOTE` |
+| Production | unchanged |
+
+## 1. Purpose and boundary
+
+C3-C3 verifies three remaining C3 limbs on the governed D1 Preview only:
+
+1. document language on the live Preview;
+2. NVDA Speech Viewer announcement capture;
+3. actual Chrome page zoom at 200%, not CSS `zoom` and not device emulation.
+
+The 2026-09-18 session left NVDA Speech Viewer uncaptured. The 2026-09-19 manual session supplies that Speech Viewer evidence and confirms actual Chrome 200% zoom with restore to 100%. C3-C3 now closes. It does not close parent PW-14-C3. It does not authorize Production deployment, Preview promotion, alias changes, ZyntixAI application login, publication, WCAG certification, visitor validation, or Production verification. PW-1 remains the public-truth ceiling. PW-13 remains implementation authority.
+
+## 2. Git preflight
+
+| Check | Result |
+| --- | --- |
+| Repository root | `D:/project ai cursus verkopers.worktrees/parallel__laptop-product-track-20260707-1` |
+| Branch | `core/platform-readiness-20260707` |
+| Local HEAD | `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` |
+| Upstream | same SHA |
+| Ahead / behind | `0 0` |
+| Staged | none |
+| Unstaged tracked | this PW-14 evidence document only (D1 appendix already present) |
+| Untracked | none |
+| Merge / rebase / cherry-pick / revert / bisect | none |
+| Product / test / style / config / lockfile diff | none |
+
+`git fetch origin` completed earlier in D1 and was not required to repair drift. No reset, stash, clean, merge, rebase, amend, commit, or push was used.
+
+## 3. Isolated headed Chrome
+
+Owner-provided isolated window, reused for C3-C3:
+
+| Item | Result |
+| --- | --- |
+| Profile | newly created temporary user-data directory under OS TEMP with prefix `pw14-c3-c3-chrome` |
+| Default Chrome profile | not used (separate window remained on an unrelated document) |
+| Cursor IDE browser | not used |
+| Extensions | disabled (`--disable-extensions`) |
+| Chrome Sync | not enabled |
+| Baseline page zoom | 100% as stated by the owner and confirmed by `innerWidth` 1034 with `visualViewport.scale` 1 and computed CSS `zoom` `1` |
+| Browser | Chrome 152.0.7977.84 |
+| Instrumentation | the same TEMP profile was relaunched with `--remote-debugging-port` so language and zoom metrics could be read; this did not import the default Chrome profile |
+
+No ZyntixAI application login was performed.
+
+## 4. Preview identity
+
+| Item | Result |
+| --- | --- |
+| Host | `zyntixai-lcuvv7fv7-guus-projects-ai.vercel.app` |
+| Project / team | `guus-projects-ai/zyntixai` |
+| Environment | Preview |
+| State | Ready |
+| Source commit metadata | `githubCommitSha=7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` |
+| Phase metadata | `pw14Phase=PW-14-C3-C2-D1` |
+| Bypass query | absent |
+| Production alias | does not point here |
+
+The first headed document after isolation showed the Dutch public homepage, not a Vercel SSO interstitial, so Deployment Protection had already been passed in this TEMP profile. Platform SSO is not ZyntixAI authentication.
+
+## 5. Application-auth isolation
+
+Counts only. No cookie names, values, tokens, or storage keys recorded.
+
+| Check | Result |
+| --- | --- |
+| Application-auth cookies | 0 |
+| Other cookies | 2 (treated as host/protection chrome, not application auth) |
+| `localStorage` auth-like keys | 0 (total keys 0) |
+| `sessionStorage` auth-like keys | 0 (non-auth keys present; count 3) |
+| Login form filled | no |
+| Private / onboarding content | none on `/` |
+
+Logged-out `/home` in this profile landed on `/login` with `next` length 13 matching `/home`. H1 remained `Sign in`. The form was not submitted.
+
+## 6. Document language — public `/`
+
+Class: **rendered Preview observation** on the D1 host. Not local `next start`. Not the superseded C2 Preview.
+
+| Item | Result |
+| --- | --- |
+| Path | `/` |
+| Title | `ZyntixAI` |
+| `<html lang>` | `nl` |
+| Public wrapper | `div lang="nl"` |
+| Visible H1 | `Houd zicht op klanten, werk en voortgang.` |
+| Predominant copy | Dutch public homepage |
+| English root language | absent |
+
+This matches PW-8 Language Model A for the public document. The C3-C1 product finding that `/` declared `html lang="en"` while showing Dutch copy is **not reproduced** on this Preview.
+
+## 7. Document language — `/login`
+
+| Item | Result |
+| --- | --- |
+| Path | `/login` |
+| `<html lang>` | `en` |
+| Visible H1 | `Sign in` |
+| Dutch public H1 | absent |
+| Credentials entered | no |
+
+English login remains English. Global `<html lang="nl">` was not applied.
+
+## 8. NVDA Speech Viewer
+
+### 8.1 2026-09-18 session (historical)
+
+NVDA was not running in the 2026-09-18 instrumentation session. Speech Viewer text was not captured that day. UIA names were supporting only.
+
+### 8.2 2026-09-19 manual Speech Viewer — Preview `/`
+
+Class: **externally supplied manual evidence**. Screenshots and a Speech Viewer transcript were reviewed outside this repository. Those binaries are **not** present in the worktree and were **not** committed. No image or transcript path is invented here. The following Speech Viewer observations are the recorded evidence.
+
+NVDA was run on Windows with Speech Viewer visibly updating, headed Chromium on Preview `https://zyntixai-lcuvv7fv7-guus-projects-ai.vercel.app/` only.
+
+Preview root `/` announced:
+
+- `ZyntixAI document`
+- `Ga naar de hoofdinhoud` as a same-page link
+- `hoofdinhoud oriëntatiepunt`
+- `Houd zicht op klanten, werk en voortgang.` as `kop niveau 1`
+- `Over ZyntixAI`, `Hoe het werkt`, `Today als voorbeeld in het product`, `Als je opleidingen of coaching geeft`, `Hoe toegang in het product werkt`, and `Toegang` as level-two headings
+- `Inloggen` as a link
+
+Result: **PASS**. `PW14-C3-FND-001` is **CLOSED**.
+
+### 8.3 2026-09-19 manual Speech Viewer — Preview `/login`
+
+Exact route: `https://zyntixai-lcuvv7fv7-guus-projects-ai.vercel.app/login`. No credentials were entered.
+
+NVDA announced:
+
+- `ZyntixAI document`
+- `hoofdinhoud oriëntatiepunt`
+- `Engels (niet ondersteund)`
+- `Sign in` as `kop niveau 1`
+- `Sign in to continue to ZyntixAI.`
+
+`Engels (niet ondersteund)` means the local synthesizer lacked an English voice. It confirms English document-language detection and is **not** a product defect.
+
+Result: **PASS**.
+
+### 8.4 Preview-toolbar noise
+
+Announcements such as `Vercel Command Menu`, `Suggestions`, `Switch Branch`, `Layout Shifts`, and `Interaction Timing` came from the Vercel Preview toolbar. They are environment chrome and are **not** classified as ZyntixAI product defects.
+
+## 9. Actual 200% Chrome page zoom
+
+Method: native OS `Ctrl+0` then repeated native `Ctrl++` (`VK_OEM_PLUS`) sent to the isolated Chrome window after focusing the page. CDP `Input.dispatchKeyEvent` did **not** change page zoom and was abandoned. CSS `document.documentElement.style.zoom` was **not** set. `Emulation.setDeviceMetricsOverride` and `Emulation.setPageScaleFactor` were **not** used.
+
+| Step | `innerWidth` | Implied zoom vs 1034 | CSS `zoom` | Inline `zoom` | `visualViewport.scale` |
+| --- | ---: | --- | --- | --- | ---: |
+| 100% baseline | 1034 | 100% | `1` | empty | 1 |
+| After 1 native zoom-in | 940 | 110% | `1` | empty | 1 |
+| After 2 | 827 | 125% | `1` | empty | 1 |
+| After 3 | 689 | 150% | `1` | empty | 1 |
+| After 4 | 591 | 175% | `1` | empty | 1 |
+| After 5 | 517 | **200%** (`1034/517 = 2`) | `1` | empty | 1 |
+
+At 200%:
+
+| Check | Result |
+| --- | --- |
+| Window `outerWidth` | still 1050 (window size unchanged) |
+| `devicePixelRatio` | 2 (was 1 at 100%; Chrome page-zoom side effect, not an OS 2× display change) |
+| Horizontal overflow | none (`scrollWidth` = `clientWidth`) |
+| H1 | still the Dutch public heading |
+| `<html lang>` | still `nl` |
+| Skip | present; box 205×44 CSS px |
+| `Inloggen` controls | 2 |
+| Compact `Navigatie` | visible (`summary` `inline-flex`; `(max-width: 45rem)` true) |
+| Any element `style.zoom` | false |
+
+Function was not lost. This is **actual Chrome page zoom**, not the C3-C1 CSS `zoom: 2` substitute.
+
+The 2026-09-18 instrumentation session left the window at 200% after metric capture. No CSS zoom was applied.
+
+### 9.1 2026-09-19 manual 200% confirmation
+
+Class: **externally supplied manual evidence**, same Preview root, actual Chrome zoom only (`100% → 110% → 125% → 150% → 175% → 200%`). Not CSS zoom. Not device emulation.
+
+At 200% on Preview `/`:
+
+- navigation remained visible without overlap;
+- the H1 and body content wrapped correctly;
+- the `Toegang` card remained inside the viewport;
+- `Inloggen` remained visible;
+- the final sentence and footer label `ZyntixAI` remained complete;
+- no horizontal scrollbar, clipping, or two-dimensional scrolling was observed.
+
+Chrome was restored to **100%** after capture.
+
+Result: **PASS**. `PW14-C3-C2-FND-001` is **CLOSED**.
+
+## 10. Production non-change
+
+Logged-out Production after C3-C3 (no authentication):
+
+| Surface | Result |
+| --- | --- |
+| `www /` | 307 `/login` |
+| `/login` | 200 |
+| `/home` | 307 `/login?next=%2Fhome` |
+| Apex | 308 to `https://www.zyntixai.com/` |
+
+No Production deploy, promote, or alias change was performed.
+
+## 11. Findings register
+
+| ID | Severity | Evidence | Impact | Required correction | Owner / gate | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| PW14-C3-C1-FND-001 | P1 | Preview `/` is `html lang="nl"` with Dutch H1; `/login` is `html lang="en"` with `Sign in`; NVDA announced Dutch headings on `/` and English `Sign in` on `/login` | Language defect on the old Preview is remediated here | none for language on this Preview | PW-14-C3-C3 | **CLOSED** |
+| PW14-C3-C2-FND-001 | P1 | Actual Chrome zoom `100% → 200%` on Preview `/`; no CSS zoom; restored to 100%; no overlap, clipping, or two-dimensional scrolling | Actual 200% browser-zoom limb complete | none | PW-14-C3-C3 | **CLOSED** |
+| PW14-C3-FND-001 | P1 | 2026-09-19 NVDA + Chromium with Speech Viewer visibly updating on Preview `/` and `/login` | Speech-capture limb complete | none | PW-14-C3-C3 | **CLOSED** |
+| PW14-C3-FND-008 | P2 | No project axe/Lighthouse command | Non-blocking for C3-C3 | optional later | later | OPEN |
+| PW14-C3-FND-010 | P2 | C4 visitor validation not in C3-C3 | Publication still blocked | PW-14-C4 | PW-14 | OPEN |
+| PW14-C3-FND-011 | P2 | Production still `/` → `/login` | Not a C3 substitute | later Production phases | PW-14 | OPEN |
+| C3-C3-P2-001 | P2 | Preview remains Deployment Protection gated | Expected | none | PW-14-C3-C3 | OPEN |
+| C3-C3-P2-002 | P2 | Vercel Preview toolbar speech (`Vercel Command Menu`, `Suggestions`, `Switch Branch`, `Layout Shifts`, `Interaction Timing`) | Environment chrome only; not a product defect | none | PW-14-C3-C3 | OPEN — accepted environment |
+
+P0 remaining: **0**. P1 remaining: **0**. P2 remaining: **5**.
+
+Historical C3 / C3-C1 / C3-C2 registers that still show these IDs as OPEN are snapshots and were not rewritten.
+
+## 12. Remaining C3 blockers
+
+No remaining P0 or P1 inside C3-C3. Parent PW-14-C3 is not closed: independent review (C3-R1) and C3-FV have not started. This phase does not start them.
+
+## 13. Remaining PW-14 blockers
+
+PW-14-C3-R1, PW-14-C3-FV, C4 visitor validation, publication admission, and Production verification. Live Production `/` still 307 `/login`. Authenticated Home remains closed. Preview-only evidence is not Production evidence.
+
+## 14. File and security integrity
+
+Only this evidence document is modified. No source, test, style, config, environment, dependency, lockfile, generated report, screenshot, HAR, trace, video, or storage-state file was added to the repository. Externally supplied Speech Viewer screenshots and transcript were reviewed and are **not** stored or path-invented here. CDP helpers, if any, stayed in OS TEMP. No credential, token, bypass parameter, cookie value, authorization header, environment value, email address, UUID, or private project/organization identifier is recorded here.
+
+## 15. Commit, push, promotion, and alias status
+
+Nothing staged, committed, or pushed. No `--prod`. No promote. No alias change. No Vercel or Supabase configuration change.
+
+## 16. Gate result
+
+```text
+PASS — PW-14-C3-C3 NEW PREVIEW LANGUAGE, NVDA SPEECH, AND ACTUAL BROWSER ZOOM VERIFICATION CLOSED WITH EVIDENCE
+PW-14-C3 READY FOR INDEPENDENT REVIEW
+DO NOT PROMOTE
+PRODUCTION UNCHANGED
+```
+
+Preview `/` language, Preview `/login` language, NVDA Speech Viewer on both routes, and actual Chrome 200% page zoom are closed on `https://zyntixai-lcuvv7fv7-guus-projects-ai.vercel.app` at source commit `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991`. This is not parent PW-14-C3 CLOSED WITH EVIDENCE, not a WCAG-conformance claim, not publication ready, and not Production verified. No promotion, deployment, application login, commit, or push occurred.
+
+## 17. Next authorized step
+
+`PW-14-C3-R1 — Independent Preview Accessibility Review`
+
+This phase does not start C3-R1, C3-FV, C4, publication admission, or Production verification.
+
+End of PW-14-C3-C3 evidence.
+
+---
+
+# PW-14-C3-R1 — Independent Evidence Review
+
+| Field | Value |
+| --- | --- |
+| Phase | PW-14-C3-R1 |
+| Date | 2026-09-19 |
+| Repository root | `D:/project ai cursus verkopers.worktrees/parallel__laptop-product-track-20260707-1` |
+| Branch | `core/platform-readiness-20260707` |
+| HEAD (unchanged) | `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` |
+| Subject | `fix(public-web): govern document language by route` |
+| Upstream | `origin/core/platform-readiness-20260707` at the same SHA |
+| Ahead/behind | `0 0` |
+| Dirty path | `docs/phases/PW-14-public-homepage-publication-production-verification.md` only |
+| Unstaged diff at R1 entry | 533 insertions, 0 deletions |
+| Staging | none |
+| Product/test/style/config/lockfile edits in R1 | none |
+| Commit / push / deploy / Preview / promote | none |
+
+R1 independently reviews the complete PW-14-C3 evidence chain. It does not close parent PW-14-C3. It does not start C3-FV or C4. It does not authorize promotion, Production deployment, publication, or WCAG conformance.
+
+## 1. Preflight
+
+Read-only preflight, then `git fetch origin`. After fetch:
+
+| Check | Result |
+| --- | --- |
+| Branch | `core/platform-readiness-20260707` |
+| Local HEAD | `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` |
+| Upstream SHA | identical |
+| Ahead/behind | `0 0` |
+| Staged files | none |
+| Modified tracked files | this PW-14 evidence document only |
+| Untracked files | none |
+| `git diff --stat HEAD` | 533 insertions, 0 deletions, one file |
+| `git diff --check HEAD` | clean |
+| Merge / rebase / cherry-pick / revert / bisect | none |
+| Instruction files | B1-GATE.1; complete PW-14 evidence. No project `AGENTS.md`, `CONTRIBUTING.md`, or `.cursor/rules` |
+| Product / test / CSS / config / dependency / lockfile / generated / binary / deployment dirty paths | none |
+
+No drift repair was required or performed.
+
+## 2. Review independence
+
+Every material C3, C3-C1, C3-C2, C3-C2-R1, C3-C2-FV, C3-C2-D1, and C3-C3 claim was treated as an unverified hypothesis. This review independently reread those appendices, the complete current unstaged diff, B1-GATE.1, and the deployment-trigger evidence already recorded in C1-FV / C2-FV / D1. No browser, NVDA, deployment, or Production test was re-run. C3-C3 statements were not accepted solely because they appear in the evidence document.
+
+## 3. Authority review
+
+Applied B1-GATE.1; PW-0 through PW-13; the PW-14 chain including C1 / C1-R1 / C1-FV and C2 / C2-R1 / C2-FV; C3; C3-C1; C3-C2; C3-C2-R1; C3-C2-FV; C3-C2-D1; C3-C3; PW-8 Language Model A; WCAG 2.2 SC 3.1.1, SC 1.4.4, and SC 1.4.10 as evidence-classification references only.
+
+PW-1 remains the public-truth ceiling. PW-13 remains the public-homepage implementation authority. PW-14-C2 remains routing evidence only. Preview-only evidence is not Production evidence. R1 is not a WCAG-conformance claim and is not publication admission.
+
+## 4. Complete current diff review
+
+Independently reviewed the complete unstaged diff versus `7c2361a`.
+
+| Fact | Independent result |
+| --- | --- |
+| Changed path | exactly `docs/phases/PW-14-public-homepage-publication-production-verification.md` |
+| Diffstat | 533 insertions, 0 deletions |
+| Hunk | append-only after C3-C2-FV (`@@ -4214,3 +4214,536 @@`) |
+| Sequential appendices in that addition | PW-14-C3-C2-D1, then PW-14-C3-C3 |
+| Historical appendices rewritten, squashed, or deleted | none |
+| Source, test, CSS, configuration, dependency, lockfile, generated, binary, or deployment files | not dirty |
+| Conflict markers | none |
+| Trailing whitespace | none |
+| Markdown fences in the dirty file | 122, even |
+| Invented screenshot / transcript / HAR repository paths | none |
+
+The 533-line addition consists of the sequential D1 and C3-C3 appendices.
+
+## 5. Historical chain review
+
+Independently reread C3 through C3-C3.
+
+| Claim | Independent result |
+| --- | --- |
+| Initial C3 BLOCKED | Confirmed; seven P1 evidence gaps; gate text remains historical |
+| C3-C1 recovered logged-out interaction and measurement evidence | Confirmed: keyboard, skip, focus, contrast, targets, 320 CSS-pixel, text-spacing, actual OS forced-colours, labelled reduced-motion |
+| C3-C1 historically BLOCKED | Confirmed; Speech Viewer uncaptured; language P1 opened; two-P1 snapshot not rewritten |
+| C3-C2 route-aware language remediation | Confirmed locally; `/` → `nl`, other rendered routes → `en`; parent C3 not closed |
+| C3-C2-R1 independent remediation review | Confirmed PASS; R1 P0=0; R1 P1=0 |
+| C3-C2-FV source-commit closure | Confirmed; committed SHA `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` |
+| C3-C2-D1 governed retained Preview | Confirmed non-Production Ready host `https://zyntixai-lcuvv7fv7-guus-projects-ai.vercel.app` bound to `7c2361a` |
+| C3-C3 Preview `/` Dutch structure | Confirmed `html lang="nl"`, Dutch H1, Dutch headings |
+| C3-C3 Preview `/login` English structure | Confirmed `html lang="en"`, `Sign in`; `Engels (niet ondersteund)` is synthesizer limitation |
+| C3-C3 actual NVDA Speech Viewer | Confirmed 2026-09-19 capture on `/` and `/login` |
+| C3-C3 actual Chrome 200% zoom | Confirmed 2026-09-18 `innerWidth` 517 at 2× with CSS `zoom` `1`; 2026-09-19 manual sequence restored to 100% |
+| C3-C3 closed the three remaining P1s | Confirmed: `PW14-C3-FND-001`, `PW14-C3-C1-FND-001`, `PW14-C3-C2-FND-001` |
+| Parent PW-14-C3 closed during C3-C3 | No; C3-C3 leaves C3 open for R1/FV |
+| Duplicate current appendices | none; each C3 heading appears once |
+| Conflicting current phase outcomes | none; earlier BLOCKED/OPEN rows are labelled historical snapshots |
+| Stale blockers presented as current | none in C3-C3; D1 still shows D1-era OPEN rows as D1 snapshots |
+| Date / URL / commit / environment mismatch | none on the retained Preview identity |
+| Accidental Production claim | none |
+| WCAG-conformance claim | none |
+| Publication-readiness overclaim | none |
+| ZyntixAI login or credentials | none |
+| Production unchanged / no promotion | confirmed in D1 and C3-C3 records |
+
+C3-C1 interaction evidence remains sufficient for C3: C3-C2 did not change public copy or public CSS. Language, NVDA speech, and actual browser zoom were the limbs that required the new Preview and are closed in C3-C3.
+
+## 6. Retained Preview identity
+
+| Property | Documented value | Independent check |
+| --- | --- | --- |
+| URL | `https://zyntixai-lcuvv7fv7-guus-projects-ai.vercel.app` | identical in D1 and C3-C3 |
+| Source commit | `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` | identical in D1, C3-C3, and current HEAD |
+| Classification | non-Production, Ready, target Preview | identical in D1 and C3-C3 |
+| Manual evidence date | `2026-09-19` | C3-C3 Speech Viewer and 200% restore |
+| Production alias | does not point here | D1 alias check; C3-C3 no promote |
+
+## 7. Findings register
+
+R1-owned findings: none.
+
+Parent C3 current register, taking C3-C3 as canonical for later-closed IDs:
+
+| ID | Sev | Status in canonical later register | R1 result |
+| --- | --- | --- | --- |
+| PW14-C3-FND-001 | P1 | **CLOSED** in C3-C3 | Confirmed closed; historical OPEN rows remain snapshots |
+| PW14-C3-C1-FND-001 | P1 | **CLOSED** in C3-C3 | Confirmed closed on the D1 Preview |
+| PW14-C3-C2-FND-001 | P1 | **CLOSED** in C3-C3 | Confirmed closed; CSS `zoom: 2` remains supporting only |
+| D1-P2-003 | P2 | OPEN in the dated 2026-09-18 D1 snapshot | Non-blocking note; C3-C3 is canonical |
+| PW14-C3-FND-008 | P2 | OPEN | Non-blocking |
+| PW14-C3-FND-010 | P2 | OPEN — C4 | Blocks PW-14, not C3-R1 |
+| PW14-C3-FND-011 | P2 | OPEN — Production | Blocks PW-14, not C3-R1 |
+| C3-C3-P2-001 | P2 | OPEN — Deployment Protection | Non-blocking environment |
+| C3-C3-P2-002 | P2 | OPEN — Vercel toolbar speech | Accepted environment |
+| D1-P2-001 | P2 | OPEN — inspect JSON meta display | Accepted display limitation |
+| D1-P2-002 | P2 | OPEN in D1 snapshot | Same environment fact as C3-C3-P2-001 |
+
+R1 P0 remaining: **0**. R1 P1 remaining: **0**.
+
+## 8. Non-blocking R1 notes
+
+These are review notes, not blockers:
+
+1. `D1-P2-003` remains OPEN inside the dated 2026-09-18 D1 snapshot. The later C3-C3 register is canonical.
+2. The evidence chain combines 2026-09-18 quantitative actual-zoom evidence (`innerWidth` 517 across the 2× series while CSS `zoom` remained `1`) with 2026-09-19 manually observed Chrome zoom sequence and return to 100%.
+3. Public `/` did not produce a literal Dutch language-name announcement, but Preview `html lang="nl"`, Dutch content, Dutch headings, and NVDA structure support the closure.
+4. `/login` explicitly produced `Engels (niet ondersteund)`, correctly treated as document-language detection plus a local synthesizer limitation.
+
+## 9. Corrections performed
+
+None. No product source, test, style, config, dependency, or lockfile change. No rewrite of historical C3 / C3-C1 / C3-C2 / C3-C2-R1 / C3-C2-FV / D1 / C3-C3 facts. This appendix only.
+
+## 10. Remaining C3 blockers after R1
+
+Independent C3-FV, evidence commit, and governed push. Parent PW-14-C3 is not closed in R1. C3-FV and C4 were not started during R1.
+
+## 11. Remaining PW-14 blockers
+
+Parent PW-14 remains BLOCKED. Outstanding beyond C3: C4 visitor validation, publication admission, and Production verification. Live Production still serves pre-PW-13 logged-out `/` → `/login` in the already recorded evidence. Authenticated Home remains closed.
+
+## 12. File and security integrity
+
+R1 changed only this evidence document by appending this appendix. No generated report, browser profile, HAR, trace, video, screenshot, or temporary script was added. No credential, token, cookie value, environment value, email address, UUID, or private project/organization identifier is recorded here.
+
+## 13. Git state
+
+HEAD `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991`. Upstream same. Ahead/behind `0 0`. Staged: none. Unstaged tracked: this file only. Untracked: none.
+
+## 14. Commit, push, deploy, and promotion status
+
+No stage. No commit. No push. No amend. No Preview created. No promote. No `--prod`. No Vercel or Supabase configuration change.
+
+## 15. Gate result
+
+```text
+PASS — PW-14-C3-R1 INDEPENDENT REVIEW CLOSED WITH EVIDENCE
+PW-14-C3 READY FOR FINAL VERIFICATION
+DO NOT PROMOTE
+PRODUCTION UNCHANGED
+```
+
+## 16. Next authorized step
+
+`PW-14-C3-FV — Final Verification, Evidence Commit, and Governed Push`
+
+R1 does not start C3-FV, C4, publication admission, or Production verification.
+
+End of PW-14-C3-R1 evidence.
+
+---
+
+# PW-14-C3-FV — Final Verification, Evidence Commit, and Governed Push
+
+| Field | Value |
+| --- | --- |
+| Phase | PW-14-C3-FV |
+| Date | 2026-09-19 |
+| Repository root | `D:/project ai cursus verkopers.worktrees/parallel__laptop-product-track-20260707-1` |
+| Branch | `core/platform-readiness-20260707` |
+| Pre-commit HEAD | `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` |
+| Expected parent | `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` |
+| Expected subject | `docs(public-web): close PW-14-C3 accessibility evidence` |
+| Authorized file | `docs/phases/PW-14-public-homepage-publication-production-verification.md` |
+| Parent PW-14 | `BLOCKED — PW-14 PUBLICATION ADMISSION FAILED` / `DO NOT DEPLOY` |
+
+This appendix is pre-commit authorization evidence. It does not invent a future commit SHA. It closes parent PW-14-C3 only. It does not close parent PW-14. It does not start C4. Browser, NVDA, deployment, and Production tests were not re-run; FV verifies the governed evidence already collected.
+
+```text
+PW-14-C3 CLOSED ≠ PW-14 CLOSED
+PREVIEW ACCESSIBILITY EVIDENCE ≠ WCAG CONFORMANCE
+C3 CLOSED ≠ PUBLICATION ADMISSION
+C3 CLOSED ≠ PUBLICATION READY
+C3 CLOSED ≠ PRODUCTION VERIFICATION
+C3 CLOSED ≠ C4 STARTED
+DO NOT PROMOTE
+PRODUCTION UNCHANGED
+```
+
+## FV.1 Preflight
+
+| Check | Result |
+| --- | --- |
+| Root | authorized worktree |
+| Branch | `core/platform-readiness-20260707` |
+| Local HEAD | `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` |
+| Upstream after `git fetch origin` | same SHA |
+| Ahead/behind | `0 0` |
+| Staged | none |
+| Unstaged tracked | this evidence document only |
+| Untracked | none |
+| Product / test / CSS / config / lockfile | unchanged versus HEAD |
+| Merge / rebase / cherry-pick / revert / bisect | none |
+| Instruction files | B1-GATE.1; complete PW-14 evidence |
+| C3-C3 PASS | present |
+| C3-R1 PASS | present |
+| Retained Preview in documentation | `https://zyntixai-lcuvv7fv7-guus-projects-ai.vercel.app` at `7c2361a`, manual evidence `2026-09-19` |
+| Production verification in this phase | not re-run; prior C3-C3 record remains unchanged |
+
+## FV.2 Authority review
+
+Applied B1-GATE.1, PW-0 through PW-13, the complete PW-14 chain through C3-C3 and C3-R1, PW-8 Language Model A, and WCAG 2.2 SC 3.1.1 / 1.4.4 / 1.4.10 as classification references only. PW-1 remains the public-truth ceiling. PW-13 remains implementation authority. C3-FV does not authorize publication or Production.
+
+B1-GATE.1 Gate 4 full-suite re-run is **NOT REQUIRED WITH JUSTIFICATION**: this FV is documentation-only evidence closure; no product, test, or configuration file changes. Gate 7 re-execution is **NOT REQUIRED WITH JUSTIFICATION**: headed, NVDA, and measurement evidence already exists in C3-C1 and C3-C3; this phase is forbidden from re-running those tests. Gate 8 is **NOT REQUIRED WITH JUSTIFICATION**: C3 is Preview accessibility evidence; Production remains the pre-PW-13 logged-out `/` → `/login` bounce in already recorded evidence and must not be inspected here.
+
+## FV.3 Complete C3 chain confirmation
+
+Independently confirmed sufficient, without re-running live tests:
+
+| Limb | Evidence | FV result |
+| --- | --- | --- |
+| C3-C1 historical interaction and accessibility | Keyboard, skip, focus, contrast, targets, 320, text-spacing, OS forced-colours, reduced-motion | PASS as historical executed evidence |
+| C3-C2 route-aware language remediation | Source `/` → `nl`; other rendered routes → `en` | PASS as committed source at `7c2361a` |
+| C3-C2-R1 independent remediation review | PASS recorded | PASS |
+| C3-C2-FV source-commit closure | `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991` | PASS |
+| C3-C2-D1 governed retained Preview identity | `https://zyntixai-lcuvv7fv7-guus-projects-ai.vercel.app` | PASS |
+| C3-C3 actual NVDA Speech Viewer | 2026-09-19 `/` and `/login` | PASS |
+| Preview `/` Dutch structure | `html lang="nl"`; Dutch H1 and headings | PASS |
+| Preview `/login` English structure | `html lang="en"`; `Sign in` | PASS |
+| Actual Chrome 200% zoom and restore to 100% | 2026-09-18 metrics + 2026-09-19 restore | PASS |
+| No ZyntixAI login or credentials | Isolation counts in C3-C1 and C3-C3 | PASS |
+| Production unchanged | D1 and C3-C3 records; not re-inspected here | PASS |
+| No promotion | D1 and C3-C3 `DO NOT PROMOTE` | PASS |
+| C3-R1 independent review | PASS; P0=0; P1=0 | PASS |
+
+No P0 or P1 inconsistency was found. Parent C3 may close.
+
+## FV.4 R1 findings reconciliation
+
+R1 P0 remaining: **0**. R1 P1 remaining: **0**. R1 notes in C3-R1 §8 remain notes, not blockers. No P2 was silently marked resolved.
+
+## FV.5 Remaining P2 observations
+
+Open P2 observations remain governed and **non-blocking for C3 closure**:
+
+| ID | Sev | Status |
+| --- | --- | --- |
+| PW14-C3-FND-008 | P2 | OPEN — no project axe/Lighthouse command |
+| PW14-C3-FND-010 | P2 | OPEN — C4 visitor validation; blocks PW-14, not C3 |
+| PW14-C3-FND-011 | P2 | OPEN — Production verification; blocks PW-14, not C3 |
+| C3-C3-P2-001 | P2 | OPEN — Preview remains Deployment Protection gated |
+| C3-C3-P2-002 | P2 | OPEN — Vercel Preview toolbar speech; accepted environment |
+| D1-P2-001 | P2 | OPEN — accepted `inspect --json` meta display limitation |
+| D1-P2-003 | P2 | OPEN in the 2026-09-18 D1 snapshot only; C3-C3 is canonical |
+
+## FV.6 File-integrity verification
+
+Only this evidence document is modified. Historical snapshots were not rewritten. No trailing whitespace. Terminating newline present. Markdown fences balanced. Conflict markers 0. `git diff --check HEAD` clean. No screenshots, binaries, or invented evidence paths. No secrets.
+
+## FV.7 Deployment-trigger safety
+
+Read-only. No project identifiers, tokens, or environment values are recorded here. No Vercel CLI was used in this phase.
+
+| Evidence | Result |
+| --- | --- |
+| Established Production workflow | Explicit CLI candidate then `vercel promote`, documented in B1.5-DEPLOY / C1-FV / C2-FV; not git-push promotion |
+| `vercel.json` | cron-empty only; unmodified |
+| GitHub Actions | none in this worktree |
+| Package deploy script | none |
+| Last source commit `7c2361a` already on origin | D1 recorded that an automatic Preview for that SHA was **absent**; D1 then created one governed Preview manually |
+| This commit content | documentation-only C3-R1 / C3-FV / parent C3 closure |
+
+Conclusion: a normal push of this documentation commit to `origin/core/platform-readiness-20260707` is not an unauthorized Production deployment and is not shown to **necessarily** trigger a prohibited deploy or redeploy. If hosting later creates a non-Production Preview, it must not be promoted and is not C3 or C4 evidence. No deploy is triggered manually.
+
+## FV.8 Final AND-gate
+
+All C3-FV conditions passed together: expected Git baseline; upstream unchanged; only this evidence document modified; complete C3 chain sufficient; C3-R1 PASS; P0=0; P1=0; P2 transparent and non-blocking for C3; retained Preview identity tied to `https://zyntixai-lcuvv7fv7-guus-projects-ai.vercel.app` / `7c2361a` / `2026-09-19`; no WCAG-conformance claim; no publication admission; no publication-ready claim; no Production verification; C4 not started; parent PW-14 remains blocked; no promotion.
+
+## FV.9 Staging and commit plan
+
+Stage exactly:
+
+`docs/phases/PW-14-public-homepage-publication-production-verification.md`
+
+One non-amended documentation/evidence commit. Exact subject:
+
+`docs(public-web): close PW-14-C3 accessibility evidence`
+
+Expected parent: `7c2361a4c6cbc6baf785007ef5a8ab9b07b5a991`. Then one normal `git push origin HEAD` without force, after the push-safety gate above.
+
+## FV.10 Remaining PW-14 blockers
+
+Unchanged and still open after C3 closure:
+
+- PW-14-C4 visitor / access-meaning validation (`PW12-DEFER-020`, `PW12-DEFER-022`)
+- Final publication admission
+- Production deployment
+- Public Production verification
+- Authenticated Production verification
+- Gated metadata / legal / favicon / canonical-host items
+- Authenticated Home remains closed
+
+```text
+BLOCKED — PW-14 PUBLICATION ADMISSION FAILED
+DO NOT DEPLOY
+```
+
+## FV.11 Explicit no-promote statement
+
+This commit does not authorize Preview promotion, Production deployment, publication closure, WCAG conformance, visitor-validation PASS, or Production verification. C4 has not started.
+
+## FV.12 Gate result
+
+```text
+PASS — PW-14-C3-FV FINAL VERIFICATION CLOSED WITH EVIDENCE
+PASS — PW-14-C3 CLOSED WITH EVIDENCE
+PW-14 READY FOR PW-14-C4 VISITOR VALIDATION
+DO NOT PROMOTE
+PRODUCTION UNCHANGED
+```
+
+This closes parent PW-14-C3 only. It does not close parent PW-14. It is not a WCAG-conformance claim. It is not publication admission. It is not publication ready. It is not Production verification. C4 has not started. Open P2 observations remain governed and non-blocking for C3 closure.
+
+## FV.13 Next authorized step
+
+`PW-14-C4 — Visitor Validation`
+
+This phase does not start C4, publication admission, or Production verification.
+
+End of PW-14-C3-FV evidence.
