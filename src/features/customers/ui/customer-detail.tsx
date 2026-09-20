@@ -51,12 +51,14 @@ function badgeVariantForStatus(label: string): "neutral" | "success" | "warning"
 export function CustomerUnavailableDetail({
   backHref,
   terminology = DEFAULT_PRODUCT_TERMINOLOGY,
+  unresolved = false,
 }: {
   backHref: string;
   terminology?: ProductTerminology;
+  unresolved?: boolean;
 }) {
-  const singular = terminology.customer.singular;
-  const pluralLower = terminology.customer.plural.toLowerCase();
+  const singular = unresolved ? "Record" : terminology.customer.singular;
+  const pluralLower = unresolved ? "records" : terminology.customer.plural.toLowerCase();
   return (
     <section className={styles.statePanel} aria-labelledby="customer-unavailable-title">
       <h1 id="customer-unavailable-title">{singular} unavailable</h1>

@@ -169,6 +169,58 @@ describe("updateSession protected-route redirects", () => {
     expect(location.searchParams.get("next")).toBe("/home");
   });
 
+  it("redirects logged-out TG2–TG4 and Creating/Ready routes to login with a safe next path", async () => {
+    getUserMock.mockResolvedValue({ data: { user: null }, error: null });
+
+    const paths = [
+      "/projects?org=11111111-1111-4111-8111-111111111111",
+      "/sites",
+      "/work-orders/new",
+      "/dispatch",
+      "/products",
+      "/orders/new",
+      "/inventory",
+      "/fulfillment",
+      "/onboarding/creating?org=11111111-1111-4111-8111-111111111111",
+      "/onboarding/ready?org=11111111-1111-4111-8111-111111111111",
+    ];
+
+    for (const path of paths) {
+      const request = new NextRequest(`http://localhost:3000${path}`);
+      const response = await updateSession(request);
+      expect(response.status).toBe(307);
+      const location = new URL(response.headers.get("location") ?? "");
+      expect(location.pathname).toBe("/login");
+      expect(location.searchParams.get("next")).toBe(path);
+    }
+  });
+
+  it("does not treat prefix-adjacent TG workspace names as protected", async () => {
+    getUserMock.mockResolvedValue({ data: { user: null }, error: null });
+
+    for (const path of ["/projects-evil", "/sites-evil", "/orders-evil", "/onboarding/creating-evil"]) {
+      const request = new NextRequest(`http://localhost:3000${path}`);
+      const response = await updateSession(request);
+      expect(response.headers.get("location")).toBeNull();
+      expect(response.status).toBe(200);
+    }
+  });
+
+  it("marks expired-looking TG workspace sessions with reason=session_expired", async () => {
+    getUserMock.mockResolvedValue({ data: { user: null }, error: null });
+
+    const request = new NextRequest("http://localhost:3000/projects", {
+      headers: {
+        cookie: "sb-example-auth-token=stale",
+      },
+    });
+    const response = await updateSession(request);
+    const location = new URL(response.headers.get("location") ?? "");
+    expect(location.pathname).toBe("/login");
+    expect(location.searchParams.get("next")).toBe("/projects");
+    expect(location.searchParams.get("reason")).toBe("session_expired");
+  });
+
   it("allows anonymous /register when public registration is enabled", async () => {
     process.env.PUBLIC_REGISTRATION_ENABLED = "true";
     getUserMock.mockResolvedValue({ data: { user: null }, error: null });

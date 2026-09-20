@@ -86,6 +86,35 @@ describe("resolveSafeReturnPath", () => {
       "/",
     );
     expect(resolveSafeReturnPath("/onboarding/team-evil")).toBe("/");
+    expect(
+      resolveSafeReturnPath("/onboarding/creating?org=11111111-1111-4111-8111-111111111111"),
+    ).toBe("/onboarding/creating?org=11111111-1111-4111-8111-111111111111");
+    expect(
+      resolveSafeReturnPath("/onboarding/ready?org=11111111-1111-4111-8111-111111111111"),
+    ).toBe("/onboarding/ready?org=11111111-1111-4111-8111-111111111111");
+    expect(resolveSafeReturnPath("/onboarding/creating-evil")).toBe("/");
+    expect(resolveSafeReturnPath("/onboarding/ready-evil")).toBe("/");
+  });
+
+  it("accepts TG2–TG4 workspace paths including nested routes", () => {
+    expect(resolveSafeReturnPath("/projects")).toBe("/projects");
+    expect(
+      resolveSafeReturnPath("/projects?org=11111111-1111-4111-8111-111111111111"),
+    ).toBe("/projects?org=11111111-1111-4111-8111-111111111111");
+    expect(
+      resolveSafeReturnPath("/projects/22222222-2222-4222-8222-222222222222/edit"),
+    ).toBe("/projects/22222222-2222-4222-8222-222222222222/edit");
+    expect(resolveSafeReturnPath("/sites")).toBe("/sites");
+    expect(resolveSafeReturnPath("/sites/new")).toBe("/sites/new");
+    expect(resolveSafeReturnPath("/work-orders")).toBe("/work-orders");
+    expect(resolveSafeReturnPath("/work-orders/new")).toBe("/work-orders/new");
+    expect(resolveSafeReturnPath("/dispatch")).toBe("/dispatch");
+    expect(resolveSafeReturnPath("/products")).toBe("/products");
+    expect(resolveSafeReturnPath("/products/new")).toBe("/products/new");
+    expect(resolveSafeReturnPath("/orders")).toBe("/orders");
+    expect(resolveSafeReturnPath("/orders/new")).toBe("/orders/new");
+    expect(resolveSafeReturnPath("/inventory")).toBe("/inventory");
+    expect(resolveSafeReturnPath("/fulfillment")).toBe("/fulfillment");
   });
 
   it("accepts exact Invitation continuation path and rejects /invite wildcards", () => {
@@ -160,6 +189,19 @@ describe("resolveSafeReturnPath", () => {
     expect(resolveSafeReturnPath("/attention-evil")).toBe("/");
     expect(resolveSafeReturnPath("/attentions")).toBe("/");
     expect(resolveSafeReturnPath("/settings/members-evil")).toBe("/");
+    expect(resolveSafeReturnPath("/projects-evil")).toBe("/");
+    expect(resolveSafeReturnPath("/project")).toBe("/");
+    expect(resolveSafeReturnPath("/sites-evil")).toBe("/");
+    expect(resolveSafeReturnPath("/work-orders-evil")).toBe("/");
+    expect(resolveSafeReturnPath("/work-order")).toBe("/");
+    expect(resolveSafeReturnPath("/dispatch-evil")).toBe("/");
+    expect(resolveSafeReturnPath("/products-evil")).toBe("/");
+    expect(resolveSafeReturnPath("/product")).toBe("/");
+    expect(resolveSafeReturnPath("/orders-evil")).toBe("/");
+    expect(resolveSafeReturnPath("/order")).toBe("/");
+    expect(resolveSafeReturnPath("/inventory-evil")).toBe("/");
+    expect(resolveSafeReturnPath("/fulfillment-evil")).toBe("/");
+    expect(resolveSafeReturnPath("/Projects")).toBe("/");
   });
 
   it("rejects path traversal that escapes allowlisted families", () => {
@@ -246,6 +288,19 @@ describe("isProtectedApplicationPath", () => {
       isProtectedApplicationPath("/onboarding/workspace-confirmation"),
     ).toBe(true);
     expect(isProtectedApplicationPath("/onboarding/team")).toBe(true);
+    expect(isProtectedApplicationPath("/onboarding/creating")).toBe(true);
+    expect(isProtectedApplicationPath("/onboarding/ready")).toBe(true);
+    expect(isProtectedApplicationPath("/onboarding/creating-evil")).toBe(false);
+    expect(isProtectedApplicationPath("/projects")).toBe(true);
+    expect(isProtectedApplicationPath("/projects/abc/edit")).toBe(true);
+    expect(isProtectedApplicationPath("/sites")).toBe(true);
+    expect(isProtectedApplicationPath("/work-orders/new")).toBe(true);
+    expect(isProtectedApplicationPath("/dispatch")).toBe(true);
+    expect(isProtectedApplicationPath("/products")).toBe(true);
+    expect(isProtectedApplicationPath("/orders/new")).toBe(true);
+    expect(isProtectedApplicationPath("/inventory")).toBe(true);
+    expect(isProtectedApplicationPath("/fulfillment")).toBe(true);
+    expect(isProtectedApplicationPath("/projects-evil")).toBe(false);
     expect(isProtectedApplicationPath("/")).toBe(false);
     expect(isProtectedApplicationPath("/login")).toBe(false);
     expect(isProtectedApplicationPath("/register")).toBe(false);

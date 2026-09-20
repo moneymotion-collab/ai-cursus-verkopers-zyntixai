@@ -5,6 +5,7 @@ import {
   buildProductDestination,
 } from "@/features/onboarding/domain/onboarding-steps";
 import {
+  buildCreatingOnboardingPath,
   buildReadyOnboardingPath,
   buildTeamOnboardingPath,
   buildOnboardingStagePath,
@@ -50,7 +51,7 @@ export default async function CreatingOnboardingPage({
 
   if (!actor.ok) {
     if (actor.code === "not_authenticated") {
-      const next = buildOnboardingPath(organizationId);
+      const next = buildCreatingOnboardingPath(organizationId);
       redirect(`/login?next=${encodeURIComponent(next)}`);
     }
 

@@ -16,6 +16,10 @@ import {
 } from "@/features/customers/ui/customer-form-state";
 import { buildCustomerDetailHref } from "@/features/customers/ui/customer-navigation";
 import type { CustomerListUrlState } from "@/features/customers/ui/customer-list-search-params";
+import {
+  DEFAULT_PRODUCT_TERMINOLOGY,
+  type ProductTerminology,
+} from "@/features/product-access/domain/terminology";
 import styles from "./customer-form.module.css";
 
 type CustomerStatusFormProps = {
@@ -24,6 +28,7 @@ type CustomerStatusFormProps = {
   allowedTargets: CustomerStatus[];
   listState: CustomerListUrlState;
   cancelHref: string;
+  terminology?: ProductTerminology;
 };
 
 export function CustomerStatusForm({
@@ -32,6 +37,7 @@ export function CustomerStatusForm({
   allowedTargets,
   listState,
   cancelHref,
+  terminology = DEFAULT_PRODUCT_TERMINOLOGY,
 }: CustomerStatusFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
@@ -42,7 +48,11 @@ export function CustomerStatusForm({
   const fieldErrors = uiState.kind === "field_error" ? uiState.fieldErrors : undefined;
   const locked = customerFormIsLocked(uiState);
   const isPending = uiState.kind === "pending";
-  const effectExplanation = getStatusTransitionEffectExplanation(customer.status, toStatus);
+  const effectExplanation = getStatusTransitionEffectExplanation(
+    customer.status,
+    toStatus,
+    terminology,
+  );
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -78,6 +88,7 @@ export function CustomerStatusForm({
     uiState.kind === "reload_required" && uiState.committed
       ? uiState.customerId ?? customer.id
       : customer.id;
+  const singularLower = terminology.customer.singular.toLowerCase();
 
   return (
     <form
@@ -87,11 +98,11 @@ export function CustomerStatusForm({
       noValidate
     >
       <a className={styles.backLink} href={cancelHref}>
-        Back to customer
+        Back to {singularLower}
       </a>
-      <h1>Change customer status</h1>
+      <h1>Change {singularLower} status</h1>
       <p>
-        Current customer status: <strong>{customer.statusLabel}</strong>
+        Current {singularLower} status: <strong>{customer.statusLabel}</strong>
       </p>
 
       {uiState.kind === "error" ? (
@@ -110,13 +121,13 @@ export function CustomerStatusForm({
         <div className={styles.formNotice} role="status">
           <p>{uiState.message}</p>
           <p>
-            <a href={buildCustomerDetailHref(reloadCustomerId, listState)}>Open saved customer</a>
+            <a href={buildCustomerDetailHref(reloadCustomerId, listState)}>Open saved {singularLower}</a>
           </p>
         </div>
       ) : null}
 
       <section className={styles.section} aria-labelledby="status-target-title">
-        <h2 id="status-target-title">New customer status</h2>
+        <h2 id="status-target-title">New {singularLower} status</h2>
         <div className={styles.statusOptions} role="radiogroup" aria-labelledby="status-target-title">
           {allowedTargets.map((status) => (
             <div key={status} className={styles.statusOption}>
@@ -146,7 +157,7 @@ export function CustomerStatusForm({
       <section className={styles.section} aria-labelledby="status-reason-title">
         <h2 id="status-reason-title">Reason (optional)</h2>
         <div className={styles.field}>
-          <label htmlFor="status-reason">Reason for customer status change</label>
+          <label htmlFor="status-reason">Reason for {singularLower} status change</label>
           <textarea
             id="status-reason"
             name="reason"

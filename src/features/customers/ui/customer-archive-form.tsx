@@ -16,6 +16,10 @@ import {
 } from "@/features/customers/ui/customer-lifecycle-confirmation";
 import { buildCustomerDetailHref } from "@/features/customers/ui/customer-navigation";
 import type { CustomerListUrlState } from "@/features/customers/ui/customer-list-search-params";
+import {
+  DEFAULT_PRODUCT_TERMINOLOGY,
+  type ProductTerminology,
+} from "@/features/product-access/domain/terminology";
 import formStyles from "./customer-form.module.css";
 import lifecycleStyles from "./customer-lifecycle.module.css";
 
@@ -24,6 +28,7 @@ type CustomerArchiveFormProps = {
   customer: CustomerDetailReadModel;
   listState: CustomerListUrlState;
   backHref: string;
+  terminology?: ProductTerminology;
 };
 
 export function CustomerArchiveForm({
@@ -31,6 +36,7 @@ export function CustomerArchiveForm({
   customer,
   listState,
   backHref,
+  terminology = DEFAULT_PRODUCT_TERMINOLOGY,
 }: CustomerArchiveFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
@@ -71,23 +77,25 @@ export function CustomerArchiveForm({
     uiState.kind === "reload_required" && uiState.committed
       ? uiState.customerId ?? customer.id
       : customer.id;
+  const singularLower = terminology.customer.singular.toLowerCase();
 
   return (
     <CustomerLifecycleFormShell
-      heading="Archive customer"
-      description="Archiving hides this customer from staff and viewers while keeping the customer status unchanged."
+      heading={`Archive ${singularLower}`}
+      description={`Archiving hides this ${singularLower} from staff and viewers while keeping the ${singularLower} status unchanged.`}
       backHref={backHref}
+      terminology={terminology}
       isPending={isPending}
       pendingLabel={isPending ? "Archiving…" : undefined}
     >
-      <CustomerLifecycleSummary customer={customer} />
+      <CustomerLifecycleSummary customer={customer} terminology={terminology} />
 
       <section className={lifecycleStyles.summary} aria-labelledby="archive-explanation-title">
         <h2 id="archive-explanation-title">What archiving means</h2>
         <ul className={lifecycleStyles.explanationList}>
           <li>Archive is not deletion.</li>
-          <li>The customer status remains {customer.statusLabel}.</li>
-          <li>Staff and viewers will no longer see this customer.</li>
+          <li>The {singularLower} status remains {customer.statusLabel}.</li>
+          <li>Staff and viewers will no longer see this {singularLower}.</li>
           <li>Related records are not deleted.</li>
         </ul>
       </section>
@@ -108,7 +116,7 @@ export function CustomerArchiveForm({
           <div className={formStyles.formNotice} role="status">
             <p>{uiState.message}</p>
             <p>
-              <a href={buildCustomerDetailHref(reloadCustomerId, listState)}>Open archived customer</a>
+              <a href={buildCustomerDetailHref(reloadCustomerId, listState)}>Open archived {singularLower}</a>
             </p>
           </div>
         ) : null}
@@ -119,10 +127,10 @@ export function CustomerArchiveForm({
             className={`${formStyles.submitButton} ${lifecycleStyles.destructiveButton}`}
             disabled={locked || isPending}
           >
-            {isPending ? "Archiving…" : "Archive customer"}
+            {isPending ? "Archiving…" : `Archive ${singularLower}`}
           </button>
           <a className={formStyles.secondaryButton} href={backHref}>
-            Back to customer
+            Back to {singularLower}
           </a>
         </div>
       </form>

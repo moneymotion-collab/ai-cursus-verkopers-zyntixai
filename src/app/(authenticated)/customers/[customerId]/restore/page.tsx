@@ -4,6 +4,12 @@ import { CustomerUnavailableDetail } from "@/features/customers/ui/customer-deta
 import { CustomerRestoreForm } from "@/features/customers/ui/customer-restore-form";
 import { loadCustomerRestorePage } from "@/features/customers/ui/load-customer-lifecycle-workflow-page";
 import { buildBackToCustomersHref } from "@/features/customers/ui/customer-navigation";
+import {
+  lifecycleActionUnavailableHeading,
+  lifecycleAuthRequiredCopy,
+  lifecycleBackToSubjectLabel,
+  lifecycleOrganizationRequiredDescription,
+} from "@/features/customers/ui/customer-lifecycle-workflow-copy";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../../page.module.css";
 
@@ -23,7 +29,7 @@ export default async function CustomerRestorePage({ params, searchParams }: Cust
       <AppShell activeNav="customers">
         <section className={styles.statePanel} aria-labelledby="auth-required-title">
           <h1 id="auth-required-title">Sign in required</h1>
-          <p>Please sign in to restore customers.</p>
+          <p>{lifecycleAuthRequiredCopy("restore")}</p>
         </section>
       </AppShell>
     );
@@ -45,7 +51,7 @@ export default async function CustomerRestorePage({ params, searchParams }: Cust
         <CustomerOrganizationRequiredPanel
           organizations={result.organizations}
           targetPath={`/customers/${customerId}/restore`}
-          description="Select an organization before restoring this customer."
+          description={lifecycleOrganizationRequiredDescription("restore")}
         />
       </AppShell>
     );
@@ -65,26 +71,29 @@ export default async function CustomerRestorePage({ params, searchParams }: Cust
   if (result.kind === "invalid_customer") {
     return (
       <AppShell activeNav="customers">
-        <CustomerUnavailableDetail backHref="/customers" />
+        <CustomerUnavailableDetail backHref="/customers" unresolved />
       </AppShell>
     );
   }
 
   if (result.kind === "customer_unavailable") {
     return (
-      <AppShell activeNav="customers">
-        <CustomerUnavailableDetail backHref={buildBackToCustomersHref(result.listState)} />
+      <AppShell activeNav="customers" terminology={result.terminology}>
+        <CustomerUnavailableDetail
+          backHref={buildBackToCustomersHref(result.listState)}
+          terminology={result.terminology}
+        />
       </AppShell>
     );
   }
 
   if (result.kind === "action_unavailable") {
     return (
-      <AppShell activeNav="customers">
+      <AppShell activeNav="customers" terminology={result.terminology}>
         <section className={styles.statePanel}>
-          <h1>Restore customer unavailable</h1>
+          <h1>{lifecycleActionUnavailableHeading("restore", result.terminology)}</h1>
           <p>{result.message}</p>
-          <a href={result.backHref}>Back to customer</a>
+          <a href={result.backHref}>{lifecycleBackToSubjectLabel(result.terminology)}</a>
         </section>
       </AppShell>
     );
@@ -105,6 +114,7 @@ export default async function CustomerRestorePage({ params, searchParams }: Cust
           customer={result.customer}
           listState={result.listState}
           backHref={result.backHref}
+          terminology={result.moduleAccess.terminology}
         />
       </section>
     </AppShell>

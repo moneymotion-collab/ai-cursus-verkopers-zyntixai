@@ -140,7 +140,7 @@ describe("V2 Ready onboarding route", () => {
   it("redirects anonymous users to login with the allowlisted onboarding return path", async () => {
     actorMock.mockResolvedValue({ ok: false, code: "not_authenticated" });
     await expect(renderPage()).rejects.toThrow(
-      `REDIRECT:/login?next=${encodeURIComponent(`/onboarding?org=${ORG}`)}`,
+      `REDIRECT:/login?next=${encodeURIComponent(`/onboarding/ready?org=${ORG}`)}`,
     );
     expect(lifecycleMock).not.toHaveBeenCalled();
   });

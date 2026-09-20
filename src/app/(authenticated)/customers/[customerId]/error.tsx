@@ -14,8 +14,8 @@ export default function CustomerDetailError({ reset }: CustomerDetailErrorProps)
     <AppShell activeNav="customers">
       <section className={styles.errorPanel}>
         <h1>Something went wrong</h1>
-        <Alert title="Unable to display customer details" variant="error">
-          An unexpected error occurred while loading this customer. Please try again.
+        <Alert title="Unable to display this record" variant="error">
+          An unexpected error occurred while loading this record. Please try again.
         </Alert>
         <button type="button" className={styles.retryButton} onClick={() => reset()}>
           Try again

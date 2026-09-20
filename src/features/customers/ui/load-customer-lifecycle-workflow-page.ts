@@ -16,7 +16,9 @@ import {
   canShowRestoreWorkflow,
   canShowStatusWorkflow,
 } from "@/features/customers/ui/customer-workflow-visibility";
+import { lifecycleActionUnavailableMessage } from "@/features/customers/ui/customer-lifecycle-workflow-copy";
 import type { ProductModuleAccessState } from "@/features/product-access/domain/types";
+import type { ProductTerminology } from "@/features/product-access/domain/terminology";
 import type { Database } from "@/types/database";
 
 const CUSTOMER_ID_PATTERN =
@@ -42,8 +44,17 @@ type LifecycleOrgReady = {
 export type CustomerLifecycleWorkflowPageResult =
   | LifecycleOrgFailure
   | { kind: "invalid_customer" }
-  | { kind: "customer_unavailable"; listState: CustomerListUrlState }
-  | { kind: "action_unavailable"; message: string; backHref: string }
+  | {
+      kind: "customer_unavailable";
+      listState: CustomerListUrlState;
+      terminology: ProductTerminology;
+    }
+  | {
+      kind: "action_unavailable";
+      message: string;
+      backHref: string;
+      terminology: ProductTerminology;
+    }
   | {
       kind: "ready";
       customer: CustomerDetailReadModel;
@@ -56,13 +67,7 @@ export type CustomerLifecycleWorkflowPageResult =
       moduleAccess: ProductModuleAccessState;
     };
 
-const ACTION_UNAVAILABLE_MESSAGES = {
-  status: "This customer status cannot be changed in its current state.",
-  archive: "This customer cannot be archived in its current state.",
-  restore: "This customer cannot be restored in its current state.",
-} as const;
-
-type LifecycleAction = keyof typeof ACTION_UNAVAILABLE_MESSAGES;
+type LifecycleAction = "archive" | "restore" | "status";
 
 async function resolveLifecycleOrganization(
   supabase: SupabaseClient<Database>,
@@ -119,7 +124,11 @@ async function loadCustomerLifecycleWorkflowPage(
   const backHref = buildCustomerDetailHref(customerId, org.listState);
 
   if (!customerResult.ok) {
-    return { kind: "customer_unavailable", listState: org.listState };
+    return {
+      kind: "customer_unavailable",
+      listState: org.listState,
+      terminology: org.moduleAccess.terminology,
+    };
   }
 
   const customer = customerResult.data;
@@ -128,14 +137,19 @@ async function loadCustomerLifecycleWorkflowPage(
   });
 
   if (!permissions.canViewCustomer) {
-    return { kind: "customer_unavailable", listState: org.listState };
+    return {
+      kind: "customer_unavailable",
+      listState: org.listState,
+      terminology: org.moduleAccess.terminology,
+    };
   }
 
   if (!canShow(customer, org.role)) {
     return {
       kind: "action_unavailable",
-      message: ACTION_UNAVAILABLE_MESSAGES[action],
+      message: lifecycleActionUnavailableMessage(action, org.moduleAccess.terminology),
       backHref,
+      terminology: org.moduleAccess.terminology,
     };
   }
 
@@ -178,8 +192,9 @@ export async function loadCustomerStatusPage(
   if (allowedTargets.length === 0) {
     return {
       kind: "action_unavailable",
-      message: ACTION_UNAVAILABLE_MESSAGES.status,
+      message: lifecycleActionUnavailableMessage("status", result.moduleAccess.terminology),
       backHref: result.backHref,
+      terminology: result.moduleAccess.terminology,
     };
   }
 

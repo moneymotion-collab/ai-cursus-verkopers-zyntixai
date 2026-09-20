@@ -6,11 +6,43 @@ import { isSocialPathname } from "@/features/social-media/domain/social-navigati
 import { isSocialClosedBetaOperatorPathname } from "@/features/social-media/domain/platform-operator-navigation";
 import { isDailyOperatingHomePathname } from "@/features/daily-operating/domain/compose-daily-operating-brief";
 import {
+  CREATING_ONBOARDING_PATH,
+  READY_ONBOARDING_PATH,
   TEAM_ONBOARDING_PATH,
   WORKSPACE_CONFIRMATION_ONBOARDING_PATH,
 } from "@/features/onboarding/domain/onboarding-routes";
 
 const DEFAULT_RETURN_PATH = "/";
+
+const WORKSPACE_PATH_ROOTS = [
+  "/projects",
+  "/sites",
+  "/work-orders",
+  "/dispatch",
+  "/products",
+  "/orders",
+  "/inventory",
+  "/fulfillment",
+] as const;
+
+function isExactOrNestedPath(pathname: string, root: string): boolean {
+  return pathname === root || pathname.startsWith(`${root}/`);
+}
+
+function isTgWorkspacePathname(pathname: string): boolean {
+  return WORKSPACE_PATH_ROOTS.some((root) => isExactOrNestedPath(pathname, root));
+}
+
+function isOnboardingApplicationPath(pathname: string): boolean {
+  return (
+    pathname === "/onboarding" ||
+    pathname === "/onboarding/operating-model" ||
+    pathname === WORKSPACE_CONFIRMATION_ONBOARDING_PATH ||
+    pathname === TEAM_ONBOARDING_PATH ||
+    pathname === CREATING_ONBOARDING_PATH ||
+    pathname === READY_ONBOARDING_PATH
+  );
+}
 
 function isAllowlistedPathname(pathname: string): boolean {
   if (pathname === "/") {
@@ -81,12 +113,11 @@ function isAllowlistedPathname(pathname: string): boolean {
     return true;
   }
 
-  if (
-    pathname === "/onboarding" ||
-    pathname === "/onboarding/operating-model" ||
-    pathname === WORKSPACE_CONFIRMATION_ONBOARDING_PATH ||
-    pathname === TEAM_ONBOARDING_PATH
-  ) {
+  if (isTgWorkspacePathname(pathname)) {
+    return true;
+  }
+
+  if (isOnboardingApplicationPath(pathname)) {
     return true;
   }
 
@@ -208,10 +239,8 @@ export function isProtectedApplicationPath(pathname: string): boolean {
     isSocialClosedBetaOperatorPathname(pathname) ||
     isR1InstagramConnectPathname(pathname) ||
     isB18InstagramPublishPathname(pathname) ||
-    pathname === "/onboarding" ||
-    pathname === "/onboarding/operating-model" ||
-    pathname === WORKSPACE_CONFIRMATION_ONBOARDING_PATH ||
-    pathname === TEAM_ONBOARDING_PATH
+    isTgWorkspacePathname(pathname) ||
+    isOnboardingApplicationPath(pathname)
   );
 }
 

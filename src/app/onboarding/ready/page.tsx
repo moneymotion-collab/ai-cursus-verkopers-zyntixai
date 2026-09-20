@@ -7,6 +7,7 @@ import {
 import {
   buildCreatingOnboardingPath,
   buildOnboardingStagePath,
+  buildReadyOnboardingPath,
   buildTeamOnboardingPath,
 } from "@/features/onboarding/domain/onboarding-routes";
 import { isDatabaseProvenReadyRunStatus } from "@/features/onboarding/domain/onboarding-ready";
@@ -50,7 +51,7 @@ export default async function ReadyOnboardingPage({
 
   if (!actor.ok) {
     if (actor.code === "not_authenticated") {
-      const next = buildOnboardingPath(organizationId);
+      const next = buildReadyOnboardingPath(organizationId);
       redirect(`/login?next=${encodeURIComponent(next)}`);
     }
 
