@@ -5,9 +5,16 @@ import { useRouter } from "next/navigation";
 import { acceptInvitationAction } from "@/features/invitations/actions/accept-invitation-action";
 import { logoutAction } from "@/features/auth/actions/auth-actions";
 import { AbandonInvitationButton } from "@/features/invitations/ui/abandon-invitation-button";
+import type { AcceptInvitationUiCode } from "@/features/invitations/server/accept-invitation-result";
+import {
+  InviteAcceptShell,
+  INVITE_ACCEPT_CONTINUATION_SIGN_IN_HREF,
+  INVITE_ACCEPT_VERIFY_EMAIL_HREF,
+  resolveInviteAcceptSignedInCopy,
+} from "@/features/invitations/ui/invite-accept-states";
 
 type AcceptUiError = {
-  code: string;
+  code: AcceptInvitationUiCode;
   message: string;
 };
 
@@ -15,6 +22,76 @@ type InviteAcceptControlsProps = {
   publicRegistrationEnabled: boolean;
   showAccept: boolean;
 };
+
+type InviteAcceptSignedInViewProps = {
+  resultCode: AcceptInvitationUiCode | null;
+  publicRegistrationEnabled: boolean;
+  isPending: boolean;
+  showAccept: boolean;
+  onAccept: () => void;
+  onSwitchAccount: () => void;
+};
+
+export function InviteAcceptSignedInView({
+  resultCode,
+  publicRegistrationEnabled,
+  isPending,
+  showAccept,
+  onAccept,
+  onSwitchAccount,
+}: InviteAcceptSignedInViewProps) {
+  const copy = resolveInviteAcceptSignedInCopy(resultCode);
+
+  return (
+    <InviteAcceptShell
+      heading={copy.heading}
+      explanation={copy.explanation}
+      explanationRole={resultCode ? "alert" : undefined}
+    >
+      {showAccept ? (
+        <p>
+          <button
+            type="button"
+            onClick={onAccept}
+            disabled={isPending}
+            aria-busy={isPending}
+          >
+            {isPending ? "Accepting…" : "Accept invitation"}
+          </button>
+        </p>
+      ) : null}
+
+      {resultCode === "email_mismatch" ? (
+        <p>
+          <button
+            type="button"
+            onClick={onSwitchAccount}
+            disabled={isPending}
+          >
+            Switch account
+          </button>
+        </p>
+      ) : null}
+
+      {resultCode === "verification_required" ? (
+        <p>
+          <a href={INVITE_ACCEPT_VERIFY_EMAIL_HREF}>Verify your email</a>
+        </p>
+      ) : null}
+
+      {resultCode === "auth_required" ? (
+        <p>
+          <a href={INVITE_ACCEPT_CONTINUATION_SIGN_IN_HREF}>Sign in</a>
+        </p>
+      ) : null}
+
+      <AbandonInvitationButton
+        publicRegistrationEnabled={publicRegistrationEnabled}
+        disabled={isPending}
+      />
+    </InviteAcceptShell>
+  );
+}
 
 export function InviteAcceptControls({
   publicRegistrationEnabled,
@@ -55,46 +132,13 @@ export function InviteAcceptControls({
   }
 
   return (
-    <div>
-      {error ? (
-        <p role="alert">{error.message}</p>
-      ) : null}
-
-      {showAccept ? (
-        <p>
-          <button
-            type="button"
-            onClick={handleAccept}
-            disabled={isPending}
-            aria-busy={isPending}
-          >
-            {isPending ? "Accepting…" : "Accept invitation"}
-          </button>
-        </p>
-      ) : null}
-
-      {error?.code === "email_mismatch" ? (
-        <p>
-          <button
-            type="button"
-            onClick={handleSwitchAccount}
-            disabled={isPending}
-          >
-            Switch account
-          </button>
-        </p>
-      ) : null}
-
-      {error?.code === "verification_required" ? (
-        <p>
-          <a href="/register/check-email">Verify your email</a>
-        </p>
-      ) : null}
-
-      <AbandonInvitationButton
-        publicRegistrationEnabled={publicRegistrationEnabled}
-        disabled={isPending}
-      />
-    </div>
+    <InviteAcceptSignedInView
+      resultCode={error?.code ?? null}
+      publicRegistrationEnabled={publicRegistrationEnabled}
+      isPending={isPending}
+      showAccept={showAccept}
+      onAccept={handleAccept}
+      onSwitchAccount={handleSwitchAccount}
+    />
   );
 }
