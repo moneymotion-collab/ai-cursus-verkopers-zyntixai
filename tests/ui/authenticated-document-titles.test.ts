@@ -8,13 +8,14 @@ import {
   AUTHENTICATED_DOCUMENT_TITLE_DEFAULT_SEGMENT,
   AUTHENTICATED_DOCUMENT_TITLE_TEMPLATE,
   AUTHENTICATED_IN_SCOPE_ROUTE_TITLES,
-  AUTHENTICATED_OUT_OF_SCOPE_SOCIAL_ROUTES,
+  AUTHENTICATED_SOCIAL_ROUTES,
   applyAuthenticatedTitleTemplate,
   authenticatedLayoutMetadata,
   authenticatedPageMetadata,
-  isAuthenticatedOutOfScopeSocialRoute,
+  isAuthenticatedSocialRoute,
   resolveAuthenticatedPageDocumentTitle,
   type AuthenticatedInScopeRoute,
+  type AuthenticatedSocialRoute,
 } from "@/features/workspace/authenticated-document-titles";
 
 const REPO_ROOT = path.resolve(__dirname, "../..");
@@ -24,6 +25,7 @@ const TITLES_MODULE = path.join(
   REPO_ROOT,
   "src/features/workspace/authenticated-document-titles.ts",
 );
+const SOCIAL_FEATURE_ROOT = path.join(REPO_ROOT, "src/features/social-media");
 
 function walkFiles(dir: string, predicate: (file: string) => boolean): string[] {
   const out: string[] = [];
@@ -44,7 +46,7 @@ function countBrandSuffix(title: string): number {
   return title.split(AUTHENTICATED_DOCUMENT_TITLE_BRAND).length - 1;
 }
 
-const REPRESENTATIVE_TITLES: Array<[AuthenticatedInScopeRoute, string]> = [
+const R4A_REPRESENTATIVE_TITLES: Array<[AuthenticatedInScopeRoute, string]> = [
   ["/home", "Home | ZyntixAI"],
   ["/attention", "Attention | ZyntixAI"],
   ["/tasks", "Tasks | ZyntixAI"],
@@ -76,6 +78,15 @@ const REPRESENTATIVE_TITLES: Array<[AuthenticatedInScopeRoute, string]> = [
   ["/fulfillment", "Fulfillment | ZyntixAI"],
 ];
 
+const SOCIAL_SEMANTIC_TITLES: Array<[AuthenticatedSocialRoute, string]> = [
+  ["/social", "Social | ZyntixAI"],
+  ["/social/lifecycle", "Social activity | ZyntixAI"],
+  ["/social/b18-instagram-publish", "Social publish | ZyntixAI"],
+  ["/social/r1-instagram-connect", "Social accounts | ZyntixAI"],
+  ["/operator/social-beta", "Social closed beta | ZyntixAI"],
+  ["/operator/social-beta/[organizationId]", "Social closed beta organization | ZyntixAI"],
+];
+
 const DYNAMIC_GENERIC_TITLES: Array<[AuthenticatedInScopeRoute, string]> = [
   ["/customers/[customerId]", "Customer"],
   ["/projects/[projectId]", "Project"],
@@ -90,9 +101,10 @@ const DYNAMIC_GENERIC_TITLES: Array<[AuthenticatedInScopeRoute, string]> = [
   ["/enrollments/[enrollmentId]", "Enrollment"],
   ["/progress/[factId]", "Progress record"],
   ["/inventory/[productId]/adjust", "Adjust inventory"],
+  ["/operator/social-beta/[organizationId]", "Social closed beta organization"],
 ];
 
-describe("authenticated document titles (CB-VIS-1-R4-A)", () => {
+describe("authenticated document titles (CB-VIS-1-R4-A / R4-B)", () => {
   const authenticatedPages = walkFiles(AUTHENTICATED_APP_ROOT, (file) =>
     file.endsWith(`${path.sep}page.tsx`),
   );
@@ -127,46 +139,103 @@ describe("authenticated document titles (CB-VIS-1-R4-A)", () => {
     }
   });
 
-  it("covers every authenticated page through a deliberate title contract", () => {
-    const inScope = Object.keys(AUTHENTICATED_IN_SCOPE_ROUTE_TITLES).sort();
-    const social = [...AUTHENTICATED_OUT_OF_SCOPE_SOCIAL_ROUTES].sort();
+  it("classifies every authenticated page with a route-specific title", () => {
+    const contracted = Object.keys(AUTHENTICATED_IN_SCOPE_ROUTE_TITLES).sort();
     const fromTree = [...authenticatedRoutes].sort();
-    const contracted = [...inScope, ...social].sort();
+    const uniqueContracted = new Set(contracted);
 
+    expect(fromTree).toHaveLength(78);
+    expect(contracted).toHaveLength(78);
+    expect(uniqueContracted.size).toBe(78);
     expect(fromTree).toEqual(contracted);
 
-    for (const route of fromTree) {
-      const socialRoute = isAuthenticatedOutOfScopeSocialRoute(route);
-      const inScopeRoute = route in AUTHENTICATED_IN_SCOPE_ROUTE_TITLES;
-      expect(socialRoute || inScopeRoute, route).toBe(true);
-      expect(socialRoute && inScopeRoute, route).toBe(false);
-    }
+    const titlesSource = readFileSync(TITLES_MODULE, "utf8");
+    expect(titlesSource).not.toContain("AUTHENTICATED_OUT_OF_SCOPE_SOCIAL_ROUTES");
+    expect(titlesSource).not.toContain("isAuthenticatedOutOfScopeSocialRoute");
   });
 
-  it("wires in-scope pages to static metadata and leaves Social on the workspace default", () => {
+  it("wires every authenticated page to static metadata so none rely on the Workspace default", () => {
     for (const file of authenticatedPages) {
       const route = toAuthenticatedRoute(file);
       const source = readFileSync(file, "utf8");
       expect(source).not.toMatch(/generateMetadata/);
       expect(source).not.toMatch(/document\.title/);
-
-      if (isAuthenticatedOutOfScopeSocialRoute(route)) {
-        expect(source).not.toMatch(/export const metadata/);
-        expect(source).not.toMatch(/authenticatedPageMetadata/);
-        continue;
-      }
-
       expect(source).toContain(
         `export const metadata = authenticatedPageMetadata("${route}");`,
       );
       expect(authenticatedPageMetadata(route as AuthenticatedInScopeRoute)).toEqual({
         title: AUTHENTICATED_IN_SCOPE_ROUTE_TITLES[route as AuthenticatedInScopeRoute],
       });
+      expect(AUTHENTICATED_IN_SCOPE_ROUTE_TITLES[route as AuthenticatedInScopeRoute]).not.toBe(
+        AUTHENTICATED_DOCUMENT_TITLE_DEFAULT_SEGMENT,
+      );
     }
   });
 
-  it("resolves representative list, create, detail, edit, and lifecycle titles", () => {
-    for (const [route, expected] of REPRESENTATIVE_TITLES) {
+  it("gives the six Social routes semantic titles through the authenticated template", () => {
+    expect(AUTHENTICATED_SOCIAL_ROUTES).toHaveLength(6);
+    expect([...AUTHENTICATED_SOCIAL_ROUTES].sort()).toEqual(
+      authenticatedRoutes.filter((route) => isAuthenticatedSocialRoute(route)).sort(),
+    );
+
+    for (const [route, expected] of SOCIAL_SEMANTIC_TITLES) {
+      expect(isAuthenticatedSocialRoute(route)).toBe(true);
+      expect(resolveAuthenticatedPageDocumentTitle(route)).toBe(expected);
+      expect(countBrandSuffix(expected)).toBe(1);
+      expect(AUTHENTICATED_IN_SCOPE_ROUTE_TITLES[route]).not.toContain("ZyntixAI");
+      expect(AUTHENTICATED_IN_SCOPE_ROUTE_TITLES[route]).not.toContain("|");
+    }
+  });
+
+  it("keeps Social titles generic and leaves Social rendering files free of title metadata", () => {
+    for (const route of AUTHENTICATED_SOCIAL_ROUTES) {
+      const segment = AUTHENTICATED_IN_SCOPE_ROUTE_TITLES[route];
+      expect(segment).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-/i);
+      expect(segment).not.toContain("@");
+      expect(segment).not.toContain("[");
+      expect(segment).not.toContain("?");
+      expect(segment.toLowerCase()).not.toContain("instagram.com");
+    }
+
+    const socialAppFiles = [
+      ...walkFiles(path.join(AUTHENTICATED_APP_ROOT, "social"), () => true),
+      ...walkFiles(path.join(AUTHENTICATED_APP_ROOT, "operator"), () => true),
+    ];
+    for (const file of socialAppFiles) {
+      const source = readFileSync(file, "utf8");
+      const relative = path.relative(REPO_ROOT, file);
+      if (file.endsWith(`${path.sep}page.tsx`)) {
+        const remainder = source
+          .replace(
+            /import \{ authenticatedPageMetadata \} from "@\/features\/workspace\/authenticated-document-titles";\r?\n/,
+            "",
+          )
+          .replace(/export const metadata = authenticatedPageMetadata\("[^"]+"\);\r?\n/, "");
+        expect(remainder, relative).not.toMatch(/generateMetadata/);
+        expect(remainder, relative).not.toMatch(/document\.title/);
+        expect(remainder, relative).not.toMatch(/authenticatedPageMetadata/);
+        expect(remainder, relative).not.toMatch(/export const metadata/);
+        continue;
+      }
+      expect(source, relative).not.toMatch(/authenticatedPageMetadata/);
+      expect(source, relative).not.toMatch(/generateMetadata/);
+      expect(source, relative).not.toMatch(/document\.title/);
+    }
+
+    const socialFeatureFiles = walkFiles(
+      SOCIAL_FEATURE_ROOT,
+      (file) => file.endsWith(".ts") || file.endsWith(".tsx") || file.endsWith(".css"),
+    );
+    for (const file of socialFeatureFiles) {
+      const source = readFileSync(file, "utf8");
+      expect(source, path.relative(REPO_ROOT, file)).not.toMatch(/authenticatedPageMetadata/);
+      expect(source, path.relative(REPO_ROOT, file)).not.toMatch(/generateMetadata/);
+      expect(source, path.relative(REPO_ROOT, file)).not.toMatch(/document\.title\s*=/);
+    }
+  });
+
+  it("preserves R4-A representative list, create, detail, edit, and lifecycle titles", () => {
+    for (const [route, expected] of R4A_REPRESENTATIVE_TITLES) {
       expect(resolveAuthenticatedPageDocumentTitle(route)).toBe(expected);
     }
   });
@@ -180,11 +249,6 @@ describe("authenticated document titles (CB-VIS-1-R4-A)", () => {
       expect(segment).not.toMatch(/\{/);
       expect(segment).not.toContain("[");
     }
-
-    expect(AUTHENTICATED_OUT_OF_SCOPE_SOCIAL_ROUTES).toContain(
-      "/operator/social-beta/[organizationId]",
-    );
-    expect(AUTHENTICATED_DOCUMENT_TITLE_DEFAULT).toBe("Workspace | ZyntixAI");
 
     for (const segment of Object.values(AUTHENTICATED_IN_SCOPE_ROUTE_TITLES)) {
       expect(segment).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-/i);
@@ -212,7 +276,7 @@ describe("authenticated document titles (CB-VIS-1-R4-A)", () => {
     }
   });
 
-  it("leaves root, login, invite, and onboarding title behaviour unchanged", () => {
+  it("leaves root, login, and invite title behaviour unchanged", () => {
     const rootLayout = readFileSync(path.join(APP_ROOT, "layout.tsx"), "utf8");
     expect(rootLayout).toContain('title: "ZyntixAI"');
     expect(rootLayout).not.toContain("AUTHENTICATED_DOCUMENT_TITLE_TEMPLATE");
@@ -227,17 +291,6 @@ describe("authenticated document titles (CB-VIS-1-R4-A)", () => {
     expect(invite).toContain('title: "Invitation | ZyntixAI"');
     expect(invite).not.toContain("authenticatedPageMetadata");
     expect(invite).not.toContain("authenticatedLayoutMetadata");
-
-    const onboardingPages = walkFiles(path.join(APP_ROOT, "onboarding"), (file) =>
-      file.endsWith(`${path.sep}page.tsx`),
-    );
-    expect(onboardingPages.length).toBeGreaterThan(0);
-    for (const file of onboardingPages) {
-      const source = readFileSync(file, "utf8");
-      expect(source, path.relative(REPO_ROOT, file)).not.toMatch(/export const metadata/);
-      expect(source, path.relative(REPO_ROOT, file)).not.toMatch(/generateMetadata/);
-      expect(source, path.relative(REPO_ROOT, file)).not.toMatch(/authenticatedPageMetadata/);
-    }
   });
 
   it("rejects blank or already-suffixed title segments", () => {

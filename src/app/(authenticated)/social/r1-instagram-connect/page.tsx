@@ -1,9 +1,12 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { redirect } from "next/navigation";
 import { buildSocialWorkspaceHref } from "@/features/social-media/domain/social-navigation";
 import {
   SOCIAL_OAUTH_OUTCOME_QUERY,
 } from "@/features/social-media/server/oauth-callback-redirect";
 import { SOCIAL_OAUTH_FAILURE_STAGE_QUERY } from "@/features/social-media/domain/oauth-failure-stage";
+
+export const metadata = authenticatedPageMetadata("/social/r1-instagram-connect");
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

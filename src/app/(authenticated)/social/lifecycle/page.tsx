@@ -1,5 +1,8 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { redirect } from "next/navigation";
 import { buildSocialWorkspaceHref } from "@/features/social-media/domain/social-navigation";
+
+export const metadata = authenticatedPageMetadata("/social/lifecycle");
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

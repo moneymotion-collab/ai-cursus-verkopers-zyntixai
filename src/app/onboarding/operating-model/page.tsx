@@ -1,3 +1,4 @@
+import { onboardingPageMetadata } from "@/features/onboarding/onboarding-document-titles";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
@@ -16,6 +17,7 @@ import { buildOnboardingStagePath } from "@/features/onboarding/domain/onboardin
 import { resolveOrganizationOnboardingLifecycle } from "@/features/onboarding/server/resolve-onboarding-lifecycle";
 import { operatingModelFromPackKey } from "@/features/onboarding/domain/operating-model";
 
+export const metadata = onboardingPageMetadata("/onboarding/operating-model");
 export const dynamic = "force-dynamic";
 
 type PageProps = {

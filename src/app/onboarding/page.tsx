@@ -1,3 +1,4 @@
+import { onboardingPageMetadata } from "@/features/onboarding/onboarding-document-titles";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { readOnboardingContext } from "@/features/onboarding/server/read-onboarding-context";
@@ -19,6 +20,8 @@ import {
   buildCreatingOnboardingPath,
   buildWorkspaceConfirmationOnboardingPath,
 } from "@/features/onboarding/domain/onboarding-routes";
+
+export const metadata = onboardingPageMetadata("/onboarding");
 
 /** Always read live onboarding draft — never serve a cached Step 2 snapshot. */
 export const dynamic = "force-dynamic";

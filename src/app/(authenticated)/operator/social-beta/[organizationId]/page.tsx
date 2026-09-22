@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSocialPublishingFeatureEnabled } from "@/features/social-media/server/social-publishing-feature";
@@ -7,6 +8,8 @@ import { PlatformClosedBetaOperatorDetail } from "@/features/social-media/ui/pla
 import { SOCIAL_CLOSED_BETA_OPERATOR_ROUTE } from "@/features/social-media/domain/platform-operator-navigation";
 import Link from "next/link";
 import styles from "../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/operator/social-beta/[organizationId]");
 
 type PageProps = {
   params: Promise<{ organizationId: string }>;

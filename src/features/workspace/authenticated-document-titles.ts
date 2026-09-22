@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 /**
- * Authenticated document-title contract (CB-VIS-1-R4-A).
+ * Authenticated document-title contract (CB-VIS-1-R4-A / R4-B).
  *
  * Privacy and performance boundary: titles are static, canonical, and
  * organization-agnostic. Do not load organization context, records, or
@@ -9,8 +9,9 @@ import type { Metadata } from "next";
  * headings and navigation labels may still use organization terminology;
  * the browser title must not.
  *
- * Social routes remain out of scope and inherit the authenticated default.
- * Onboarding lives outside this route group and is not titled here.
+ * Every current authenticated page, including Social/operator routes, has a
+ * route-specific title. The Workspace default remains only as a fail-safe for
+ * future unclassified routes. Onboarding is titled by its own contract.
  */
 export const AUTHENTICATED_DOCUMENT_TITLE_BRAND = "ZyntixAI" as const;
 export const AUTHENTICATED_DOCUMENT_TITLE_TEMPLATE =
@@ -92,29 +93,32 @@ export const AUTHENTICATED_IN_SCOPE_ROUTE_TITLES = {
   "/progress/[factId]/correct": "Correct progress record",
   "/progress/[factId]/void": "Void progress record",
   "/settings/members": "Members",
+  "/social": "Social",
+  "/social/lifecycle": "Social activity",
+  "/social/b18-instagram-publish": "Social publish",
+  "/social/r1-instagram-connect": "Social accounts",
+  "/operator/social-beta": "Social closed beta",
+  "/operator/social-beta/[organizationId]": "Social closed beta organization",
 } as const;
 
 export type AuthenticatedInScopeRoute =
   keyof typeof AUTHENTICATED_IN_SCOPE_ROUTE_TITLES;
 
-export const AUTHENTICATED_OUT_OF_SCOPE_SOCIAL_ROUTES = [
+export const AUTHENTICATED_SOCIAL_ROUTES = [
   "/social",
   "/social/lifecycle",
   "/social/b18-instagram-publish",
   "/social/r1-instagram-connect",
   "/operator/social-beta",
   "/operator/social-beta/[organizationId]",
-] as const;
+] as const satisfies ReadonlyArray<AuthenticatedInScopeRoute>;
 
-export type AuthenticatedOutOfScopeSocialRoute =
-  (typeof AUTHENTICATED_OUT_OF_SCOPE_SOCIAL_ROUTES)[number];
+export type AuthenticatedSocialRoute = (typeof AUTHENTICATED_SOCIAL_ROUTES)[number];
 
-export function isAuthenticatedOutOfScopeSocialRoute(
+export function isAuthenticatedSocialRoute(
   route: string,
-): route is AuthenticatedOutOfScopeSocialRoute {
-  return (AUTHENTICATED_OUT_OF_SCOPE_SOCIAL_ROUTES as readonly string[]).includes(
-    route,
-  );
+): route is AuthenticatedSocialRoute {
+  return (AUTHENTICATED_SOCIAL_ROUTES as readonly string[]).includes(route);
 }
 
 export function applyAuthenticatedTitleTemplate(segment: string): string {

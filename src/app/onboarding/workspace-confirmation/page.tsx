@@ -1,3 +1,4 @@
+import { onboardingPageMetadata } from "@/features/onboarding/onboarding-document-titles";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { buildOnboardingPath } from "@/features/onboarding/domain/onboarding-steps";
@@ -16,6 +17,7 @@ import { OnboardingStatusPanel } from "@/features/onboarding/ui/onboarding-statu
 import { WorkspaceConfirmation } from "@/features/onboarding/ui/workspace-confirmation";
 import { loadProductModuleAccess } from "@/features/product-access/server/load-product-module-access";
 
+export const metadata = onboardingPageMetadata("/onboarding/workspace-confirmation");
 export const dynamic = "force-dynamic";
 
 type PageProps = {

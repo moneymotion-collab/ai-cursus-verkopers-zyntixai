@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { Alert } from "@/components/ui/alert";
 import { AppShell } from "@/components/app-shell";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -10,6 +11,8 @@ import { SocialWorkspacePanel } from "@/features/social-media/ui/social-workspac
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
 import type { SocialClosedBetaCustomerReadModel } from "@/features/social-media/domain/social-closed-beta-customer-read-model";
 import styles from "./page.module.css";
+
+export const metadata = authenticatedPageMetadata("/social");
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

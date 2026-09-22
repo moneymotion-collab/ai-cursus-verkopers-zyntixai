@@ -1,3 +1,4 @@
+import { onboardingPageMetadata } from "@/features/onboarding/onboarding-document-titles";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
@@ -18,6 +19,7 @@ import { loadOnboardingCreatingSnapshot } from "@/features/onboarding/server/onb
 import { OnboardingStatusPanel } from "@/features/onboarding/ui/onboarding-status-panel";
 import { OnboardingCreating } from "@/features/onboarding/ui/onboarding-creating";
 
+export const metadata = onboardingPageMetadata("/onboarding/creating");
 export const dynamic = "force-dynamic";
 
 type PageProps = {

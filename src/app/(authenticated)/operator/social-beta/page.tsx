@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSocialPublishingFeatureEnabled } from "@/features/social-media/server/social-publishing-feature";
@@ -5,6 +6,8 @@ import { listOperatorClosedBetaOrganizations } from "@/features/social-media/ser
 import { resolvePlatformClosedBetaOperatorSession } from "@/features/social-media/server/platform-operator-session";
 import { PlatformClosedBetaOperatorList } from "@/features/social-media/ui/platform-closed-beta-operator-list";
 import styles from "./page.module.css";
+
+export const metadata = authenticatedPageMetadata("/operator/social-beta");
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
