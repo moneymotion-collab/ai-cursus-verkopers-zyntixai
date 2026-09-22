@@ -1,7 +1,7 @@
 import React from "react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import {
   ENROLLMENTS_NAV_LABEL,
   ENROLLMENTS_NAV_VISIBLE,
@@ -14,13 +14,13 @@ describe("Enrollments navigation activation", () => {
     expect(ENROLLMENTS_NAV_VISIBLE).toBe(false);
 
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="enrollments"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
 
     expect(html).toContain(ENROLLMENTS_NAV_LABEL);
@@ -39,13 +39,13 @@ describe("Enrollments navigation activation", () => {
 
   it("marks the Enrollments link as the current page when active", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="enrollments"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
 
     expect(html).toContain(`aria-current="page" href="${ENROLLMENTS_ROUTE}"`);
@@ -53,7 +53,7 @@ describe("Enrollments navigation activation", () => {
 
   it("hides Enrollments link when context denies access", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="customers"
         membersNavVisible={false}
         moduleNavVisibility={{
@@ -62,7 +62,7 @@ describe("Enrollments navigation activation", () => {
         }}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
 
     expect(html).not.toContain(`>${ENROLLMENTS_NAV_LABEL}<`);

@@ -1,7 +1,7 @@
 import React from "react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import { Pagination } from "@/components/ui/pagination";
 import { LeadListFilters } from "@/features/leads/ui/lead-list-filters";
 import { LeadListPresentation } from "@/features/leads/ui/lead-list";
@@ -11,7 +11,7 @@ import { KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY } from "../features/product-access/
 describe("leads UI accessibility", () => {
   it("renders Leads navigation between Home and Customers with active state", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="leads"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
@@ -22,7 +22,7 @@ describe("leads UI accessibility", () => {
         organizationSelectorAction="/leads"
       >
         <h1>Leads</h1>
-      </AppShell>,
+      </AppShellChrome>,
     );
 
     const homeIndex = html.indexOf(">Home<");

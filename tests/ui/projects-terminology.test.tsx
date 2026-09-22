@@ -1,5 +1,5 @@
 import React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderAsyncServerTree } from "../helpers/render-async-server-tree";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({
@@ -81,8 +81,8 @@ const project: ProjectRecord = {
   updatedAt: "2026-09-05T10:00:00.000Z",
 };
 
-function render(terminology: Pick<ProductTerminology, "customer" | "project">): string {
-  return renderToStaticMarkup(
+async function render(terminology: Pick<ProductTerminology, "customer" | "project">): Promise<string> {
+  return renderAsyncServerTree(
     <ProjectList
       context={context(terminology)}
       projects={[project]}
@@ -103,8 +103,8 @@ const tasks: ProjectTask[] = [
 ];
 
 describe("Project detail Task continuity and delivery visibility (TG2-AGENCY-SLICE)", () => {
-  it("shows a New task link and an outstanding/completed/overdue summary for editors", () => {
-    const html = renderToStaticMarkup(
+  it("shows a New task link and an outstanding/completed/overdue summary for editors", async () => {
+    const html = await renderAsyncServerTree(
       <ProjectDetail
         context={context(
           { customer: { singular: "Client", plural: "Clients" }, project: { singular: "Project", plural: "Projects" } },
@@ -127,8 +127,8 @@ describe("Project detail Task continuity and delivery visibility (TG2-AGENCY-SLI
     expect(html).toContain("Overdue");
   });
 
-  it("hides New task for viewers but still shows the task list and status", () => {
-    const html = renderToStaticMarkup(
+  it("hides New task for viewers but still shows the task list and status", async () => {
+    const html = await renderAsyncServerTree(
       <ProjectDetail
         context={context(
           { customer: { singular: "Client", plural: "Clients" }, project: { singular: "Project", plural: "Projects" } },
@@ -144,8 +144,8 @@ describe("Project detail Task continuity and delivery visibility (TG2-AGENCY-SLI
     expect(html).toContain("Kickoff call");
   });
 
-  it("gates the Attention evaluate control to owner/admin and hides it for staff/viewer", () => {
-    const ownerHtml = renderToStaticMarkup(
+  it("gates the Attention evaluate control to owner/admin and hides it for staff/viewer", async () => {
+    const ownerHtml = await renderAsyncServerTree(
       <ProjectDetail
         context={context(
           { customer: { singular: "Client", plural: "Clients" }, project: { singular: "Project", plural: "Projects" } },
@@ -158,7 +158,7 @@ describe("Project detail Task continuity and delivery visibility (TG2-AGENCY-SLI
     );
     expect(ownerHtml).toContain("Evaluate project Attention");
 
-    const staffHtml = renderToStaticMarkup(
+    const staffHtml = await renderAsyncServerTree(
       <ProjectDetail
         context={context(
           { customer: { singular: "Client", plural: "Clients" }, project: { singular: "Project", plural: "Projects" } },
@@ -172,8 +172,8 @@ describe("Project detail Task continuity and delivery visibility (TG2-AGENCY-SLI
     expect(staffHtml).not.toContain("Evaluate project Attention");
   });
 
-  it("works identically under Field (Job) terminology, proving no Agency-only contamination", () => {
-    const html = renderToStaticMarkup(
+  it("works identically under Field (Job) terminology, proving no Agency-only contamination", async () => {
+    const html = await renderAsyncServerTree(
       <ProjectDetail
         context={context(
           { customer: { singular: "Customer", plural: "Customers" }, project: { singular: "Job", plural: "Jobs" } },
@@ -192,8 +192,8 @@ describe("Project detail Task continuity and delivery visibility (TG2-AGENCY-SLI
 });
 
 describe("target-aware Projects UI copy", () => {
-  it("uses Project and Client copy for Service organizations", () => {
-    const html = render({
+  it("uses Project and Client copy for Service organizations", async () => {
+    const html = await render({
       customer: { singular: "Client", plural: "Clients" },
       project: { singular: "Project", plural: "Projects" },
     });
@@ -205,8 +205,8 @@ describe("target-aware Projects UI copy", () => {
     expect(html).not.toContain(">New job<");
   });
 
-  it("uses Job and Customer copy for Field organizations", () => {
-    const html = render({
+  it("uses Job and Customer copy for Field organizations", async () => {
+    const html = await render({
       customer: { singular: "Customer", plural: "Customers" },
       project: { singular: "Job", plural: "Jobs" },
     });

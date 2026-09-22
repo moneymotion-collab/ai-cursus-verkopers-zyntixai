@@ -1,11 +1,11 @@
 import React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import ProjectsLoading from "@/app/(authenticated)/projects/loading";
+import { renderAsyncServerTree } from "../helpers/render-async-server-tree";
 
 describe("TG2 Projects route-level loading honesty", () => {
-  it("renders pending Projects loading without ready navigation, empty-state copy, or fake records", () => {
-    const html = renderToStaticMarkup(<ProjectsLoading />);
+  it("renders pending Projects loading without ready navigation, empty-state copy, or fake records", async () => {
+    const html = await renderAsyncServerTree(<ProjectsLoading />);
 
     expect(html).toContain("Loading projects");
     expect(html).toContain("Please wait while the workspace is prepared.");

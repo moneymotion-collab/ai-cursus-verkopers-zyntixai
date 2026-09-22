@@ -1,6 +1,6 @@
 "use client";
 
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import { Alert } from "@/components/ui/alert";
 import styles from "./error.module.css";
 
@@ -11,7 +11,7 @@ type LeadsErrorProps = {
 
 export default function LeadsError({ reset }: LeadsErrorProps) {
   return (
-    <AppShell activeNav="leads">
+    <AppShellChrome activeNav="leads">
       <section className={styles.errorPanel}>
         <h1>Something went wrong</h1>
         <Alert title="Unable to display leads" variant="error">
@@ -21,6 +21,6 @@ export default function LeadsError({ reset }: LeadsErrorProps) {
           Try again
         </button>
       </section>
-    </AppShell>
+    </AppShellChrome>
   );
 }

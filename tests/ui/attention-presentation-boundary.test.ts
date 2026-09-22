@@ -101,7 +101,7 @@ describe("attention presentation foundation boundaries (B1.7.5-E)", () => {
     expect(navigation).toMatch(/ATTENTION_NAV_VISIBLE\s*=\s*false/);
     expect(navigation).toContain("moduleNavVisibility");
 
-    const shell = readSrc("src/components/app-shell.tsx");
+    const shell = readSrc("src/components/app-shell-chrome.tsx");
     expect(shell).toContain("moduleNavVisibility.attention");
     expect(shell).toContain("ATTENTION_ROUTE");
   });

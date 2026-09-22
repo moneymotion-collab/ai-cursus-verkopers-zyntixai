@@ -3,7 +3,7 @@ import { join } from "node:path";
 import React from "react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import { MEMBERS_NAV_LABEL } from "@/features/invitations/domain/members-navigation";
 import { DEFAULT_PRODUCT_TERMINOLOGY } from "@/features/product-access/domain/terminology";
 import {
@@ -17,13 +17,13 @@ import {
 describe("AppShell shared nav terminology (BETA1-4TG-TERMINOLOGY)", () => {
   it("renders generic Customers label for Knowledge/OCB (TG1 unchanged) when terminology is omitted", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="customers"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(html).toContain(">Customers<");
     expect(html).not.toContain(">Clients<");
@@ -31,28 +31,28 @@ describe("AppShell shared nav terminology (BETA1-4TG-TERMINOLOGY)", () => {
 
   it("renders Customers label for Knowledge/OCB when explicit default terminology is supplied", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="customers"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
         terminology={DEFAULT_PRODUCT_TERMINOLOGY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(html).toContain(">Customers<");
   });
 
   it("renders Clients label for Service context terminology", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="customers"
         membersNavVisible={false}
         moduleNavVisibility={SERVICE_MODULE_NAV_VISIBILITY}
         terminology={SERVICE_PRODUCT_TERMINOLOGY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(html).toContain(">Clients<");
     expect(html).not.toContain(">Customers<");
@@ -60,24 +60,24 @@ describe("AppShell shared nav terminology (BETA1-4TG-TERMINOLOGY)", () => {
 
   it("renders Projects for Service and Jobs for Field", () => {
     const serviceHtml = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="projects"
         membersNavVisible={false}
         moduleNavVisibility={SERVICE_MODULE_NAV_VISIBILITY}
         terminology={SERVICE_PRODUCT_TERMINOLOGY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     const fieldHtml = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="projects"
         membersNavVisible={false}
         moduleNavVisibility={FIELD_MODULE_NAV_VISIBILITY}
         terminology={FIELD_PRODUCT_TERMINOLOGY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
 
     expect(serviceHtml).toContain('href="/projects"');
@@ -90,14 +90,14 @@ describe("AppShell shared nav terminology (BETA1-4TG-TERMINOLOGY)", () => {
 
   it("does not let project terminology grant Projects access", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="home"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
         terminology={FIELD_PRODUCT_TERMINOLOGY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
 
     expect(KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY.projects).toBe(false);
@@ -107,14 +107,14 @@ describe("AppShell shared nav terminology (BETA1-4TG-TERMINOLOGY)", () => {
 
   it("does not let terminology influence module visibility (Programs stays hidden for Service)", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="customers"
         membersNavVisible={false}
         moduleNavVisibility={SERVICE_MODULE_NAV_VISIBILITY}
         terminology={SERVICE_PRODUCT_TERMINOLOGY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(SERVICE_MODULE_NAV_VISIBILITY.programs).toBe(false);
     expect(html).not.toContain(">Programs<");
@@ -123,14 +123,14 @@ describe("AppShell shared nav terminology (BETA1-4TG-TERMINOLOGY)", () => {
 
   it("keeps the Members nav label as Members/Team for Service, not the seeded Technician term", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="members"
         membersNavVisible={true}
         moduleNavVisibility={SERVICE_MODULE_NAV_VISIBILITY}
         terminology={SERVICE_PRODUCT_TERMINOLOGY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(html).toContain(`>${MEMBERS_NAV_LABEL}<`);
     expect(html).not.toContain(">Technicians<");
@@ -139,9 +139,9 @@ describe("AppShell shared nav terminology (BETA1-4TG-TERMINOLOGY)", () => {
 
   it("falls back to generic Customers wording for unresolved context (no Course Seller fallback)", () => {
     const html = renderToStaticMarkup(
-      <AppShell activeNav="home">
+      <AppShellChrome activeNav="home">
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(html).not.toContain(">Customers<");
     expect(html).not.toContain(">Clients<");
@@ -152,13 +152,13 @@ describe("AppShell shared nav terminology (BETA1-4TG-TERMINOLOGY)", () => {
 describe("AppShell skip-link and loading honesty", () => {
   it("places one skip-link to #main-content as the first focusable control", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="home"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     const firstHref = html.match(/<a\b[^>]*href="([^"]+)"/);
     expect(firstHref?.[1]).toBe("#main-content");
@@ -183,13 +183,13 @@ describe("AppShell skip-link and loading honesty", () => {
 
   it("keeps resolved navigation unchanged when presentation is omitted", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="home"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(html).not.toContain("Loading workspace…");
     expect(html).toContain(">Leads<");
@@ -199,14 +199,14 @@ describe("AppShell skip-link and loading honesty", () => {
 
   it("hides Primary nav in pending Home loading and does not invent module links", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="home"
         navigationPresentation="pending"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(html).toContain("Loading workspace…");
     expect(html).not.toContain('aria-label="Primary"');
@@ -248,13 +248,13 @@ describe("AppShell mobile navigation disclosure and active Home", () => {
 
   it("exposes an accessible Menu trigger and keeps Primary navigation collapsed by default", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="home"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(html).toContain("<summary");
     expect(html).toContain(">Menu</summary>");
@@ -269,13 +269,13 @@ describe("AppShell mobile navigation disclosure and active Home", () => {
 
   it("keeps desktop Primary navigation order for authorized Knowledge destinations", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="home"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     const home = html.indexOf(">Home<");
     const leads = html.indexOf(">Leads<");
@@ -297,44 +297,44 @@ describe("AppShell mobile navigation disclosure and active Home", () => {
 
   it("marks Home as the current page only when Home is actually current", () => {
     const homeHtml = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="home"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(homeAnchor(homeHtml)).toContain('aria-current="page"');
 
     const leadsHtml = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="leads"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(homeAnchor(leadsHtml)).not.toContain("aria-current");
     expect(leadsHtml).toMatch(/<a\b[^>]*aria-current="page"[^>]*>Leads<\/a>/);
 
     const defaultHtml = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(homeAnchor(defaultHtml)).not.toContain("aria-current");
   });
 
   it("keeps unresolved Home-only navigation free of unauthorized modules", () => {
     const html = renderToStaticMarkup(
-      <AppShell activeNav="home">
+      <AppShellChrome activeNav="home">
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(html).toContain(">Home<");
     expect(html).toContain(">Menu</summary>");

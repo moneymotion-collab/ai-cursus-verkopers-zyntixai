@@ -41,7 +41,7 @@ vi.mock("@/features/onboarding/server/resolve-onboarding-lifecycle", () => ({
 import HomePage from "@/app/page";
 import LoginPage from "@/app/login/page";
 import { LoginForm } from "@/features/auth/ui/login-form";
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import { getSessionExpiredMessage } from "@/features/auth/server/normalize-auth-error";
 
 const ORG_A = "11111111-1111-4111-8111-111111111111";
@@ -312,9 +312,9 @@ describe("login form pending and accessibility contract", () => {
 describe("AppShell logout accessibility", () => {
   it("renders an accessible Log out control", () => {
     const html = renderToStaticMarkup(
-      <AppShell activeNav="leads" membersNavVisible={false}>
+      <AppShellChrome activeNav="leads" membersNavVisible={false}>
         <h1>Leads</h1>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(html).toContain(">Log out<");
     expect(html).toContain('type="submit"');

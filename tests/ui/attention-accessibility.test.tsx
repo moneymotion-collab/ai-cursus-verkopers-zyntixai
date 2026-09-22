@@ -6,7 +6,7 @@ import { AttentionListFilters } from "@/features/attention/ui/attention-list-fil
 import { AttentionDetail } from "@/features/attention/ui/attention-detail";
 import type { AttentionListWorkspaceRow } from "@/features/attention/ui/load-attention-list-page";
 import type { AttentionDetailViewModel } from "@/features/attention/ui/load-attention-detail-page";
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import { Pagination } from "@/components/ui/pagination";
 import { ATTENTION_ITEM_ID, ORG_ID } from "../helpers/attention-test-fixtures";
 import { KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY } from "../features/product-access/module-access-fixtures";
@@ -161,13 +161,13 @@ describe("Attention accessibility structure (B1.7.5-E)", () => {
     expect(detail).not.toMatch(/>Archive</);
 
     const shell = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="attention"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
       >
         <p>workspace</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(shell).toContain('aria-label="Primary"');
     expect(shell).toContain('aria-current="page"');

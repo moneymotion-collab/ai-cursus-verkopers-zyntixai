@@ -3,6 +3,7 @@ import { join } from "node:path";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+import { renderAsyncServerTree } from "../helpers/render-async-server-tree";
 import { CustomerArchiveForm } from "@/features/customers/ui/customer-archive-form";
 import { CustomerRestoreForm } from "@/features/customers/ui/customer-restore-form";
 import { CustomerStatusForm } from "@/features/customers/ui/customer-status-form";
@@ -101,15 +102,15 @@ function readyResult(model: OperatingModelId, customer: CustomerDetailReadModel 
 }
 
 async function renderArchivePage() {
-  return renderToStaticMarkup(await CustomerArchivePage(pageParams()));
+  return renderAsyncServerTree(await CustomerArchivePage(pageParams()));
 }
 
 async function renderRestorePage() {
-  return renderToStaticMarkup(await CustomerRestorePage(pageParams()));
+  return renderAsyncServerTree(await CustomerRestorePage(pageParams()));
 }
 
 async function renderStatusPage() {
-  return renderToStaticMarkup(await CustomerStatusPage(pageParams()));
+  return renderAsyncServerTree(await CustomerStatusPage(pageParams()));
 }
 
 function renderStatusForm(
@@ -136,7 +137,7 @@ beforeEach(() => {
 });
 
 describe("CB-VIS-1-R2 production lifecycle callers keep terminology", () => {
-  it("threads moduleAccess.terminology through archive, restore, and status pages", () => {
+  it("threads moduleAccess.terminology through archive, restore, and status pages", async () => {
     for (const source of [archivePageSource, restorePageSource, statusPageSource]) {
       expect(source).toContain("terminology={result.moduleAccess.terminology}");
       expect((source.match(/terminology=\{result\.moduleAccess\.terminology\}/g) ?? []).length).toBeGreaterThanOrEqual(2);
@@ -211,12 +212,12 @@ describe("CB-VIS-1-R2 production lifecycle callers keep terminology", () => {
     expect(restoreHtml).not.toContain("Client summary");
   });
 
-  it("renders Product-context Customer wording from product_operations terminology", () => {
+  it("renders Product-context Customer wording from product_operations terminology", async () => {
     expect(productTerminology.product.singular).toBe("Product");
     expect(productTerminology.customer.singular).toBe("Customer");
     expect(agencyTerminology.customer.singular).toBe("Client");
 
-    const html = renderToStaticMarkup(
+    const html = await renderAsyncServerTree(
       <CustomerArchiveForm
         organizationId={sampleCustomerDetail.organizationId}
         customer={sampleCustomerDetail}
@@ -225,7 +226,7 @@ describe("CB-VIS-1-R2 production lifecycle callers keep terminology", () => {
         terminology={productTerminology}
       />,
     );
-    const summaryHtml = renderToStaticMarkup(
+    const summaryHtml = await renderAsyncServerTree(
       <CustomerLifecycleSummary customer={sampleCustomerDetail} terminology={productTerminology} />,
     );
 
@@ -291,8 +292,8 @@ describe("CB-VIS-1-R2 lifecycle fail-closed copy", () => {
     expect(restoreHtml).not.toContain("What restoring means");
   });
 
-  it("CustomerUnavailableDetail unresolved mode does not claim Customer", () => {
-    const html = renderToStaticMarkup(
+  it("CustomerUnavailableDetail unresolved mode does not claim Customer", async () => {
+    const html = await renderAsyncServerTree(
       <CustomerUnavailableDetail backHref="/customers" unresolved />,
     );
     expect(html).toContain("Record unavailable");
@@ -301,7 +302,7 @@ describe("CB-VIS-1-R2 lifecycle fail-closed copy", () => {
 });
 
 describe("CB-VIS-1-R2 status-effect terminology", () => {
-  it("uses Client in Agency Completed, Cancelled, and Churned effect copy", () => {
+  it("uses Client in Agency Completed, Cancelled, and Churned effect copy", async () => {
     expect(getStatusTransitionEffectExplanation("active", "completed", agencyTerminology)).toBe(
       "Moving to Completed marks the client lifecycle as finished while keeping their record available.",
     );
@@ -327,7 +328,7 @@ describe("CB-VIS-1-R2 status-effect terminology", () => {
     expect(churnedHtml).not.toContain("the customer has left");
   });
 
-  it("uses Field Customer wording in a non-Agency effect explanation", () => {
+  it("uses Field Customer wording in a non-Agency effect explanation", async () => {
     expect(fieldTerminology.project.singular).toBe("Job");
     const explanation = getStatusTransitionEffectExplanation(
       "active",
@@ -394,10 +395,10 @@ describe("CB-VIS-1-R2-C2 lifecycle loading and unexpected-error copy", () => {
     expect(html).not.toContain("client");
   }
 
-  it("renders archive, restore, and status loading with neutral record headings", () => {
-    const archiveHtml = renderToStaticMarkup(<CustomerArchiveLoading />);
-    const restoreHtml = renderToStaticMarkup(<CustomerRestoreLoading />);
-    const statusHtml = renderToStaticMarkup(<CustomerStatusLoading />);
+  it("renders archive, restore, and status loading with neutral record headings", async () => {
+    const archiveHtml = await renderAsyncServerTree(<CustomerArchiveLoading />);
+    const restoreHtml = await renderAsyncServerTree(<CustomerRestoreLoading />);
+    const statusHtml = await renderAsyncServerTree(<CustomerStatusLoading />);
 
     expect(archiveHtml).toContain("Archive record");
     expect(archiveHtml).toContain("Loading archive form…");
@@ -421,8 +422,8 @@ describe("CB-VIS-1-R2-C2 lifecycle loading and unexpected-error copy", () => {
     assertNoVisibleCustomerOrClient(statusHtml);
   });
 
-  it("renders the shared unexpected-error boundary with record wording and retry", () => {
-    const html = renderToStaticMarkup(
+  it("renders the shared unexpected-error boundary with record wording and retry", async () => {
+    const html = await renderAsyncServerTree(
       <CustomerDetailError error={Object.assign(new Error("secret-internal"), { digest: "abc" })} reset={() => undefined} />,
     );
 

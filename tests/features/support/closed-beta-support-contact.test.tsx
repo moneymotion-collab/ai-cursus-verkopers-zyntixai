@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import {
   CLOSED_BETA_SUPPORT_SUBJECT,
   buildClosedBetaSupportMailto,
@@ -65,9 +65,9 @@ describe("AppShell support contact", () => {
   it("hides Support & feedback when destination is unset", () => {
     delete process.env.CLOSED_BETA_SUPPORT_EMAIL;
     const html = renderToStaticMarkup(
-      <AppShell activeNav="home" membersNavVisible={false}>
+      <AppShellChrome activeNav="home" membersNavVisible={false}>
         <h1>Today</h1>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(html).not.toContain("Support");
     expect(html).not.toContain("mailto:");
@@ -76,9 +76,9 @@ describe("AppShell support contact", () => {
   it("renders an accessible Support & feedback mailto when configured", () => {
     process.env.CLOSED_BETA_SUPPORT_EMAIL = "owner@example.com";
     const html = renderToStaticMarkup(
-      <AppShell activeNav="home" membersNavVisible={false}>
+      <AppShellChrome activeNav="home" membersNavVisible={false}>
         <h1>Today</h1>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(html).toContain("Support &amp; feedback");
     expect(html).toContain('href="mailto:owner@example.com?');

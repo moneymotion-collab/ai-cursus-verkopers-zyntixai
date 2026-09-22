@@ -1,6 +1,6 @@
 "use client";
 
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import { Alert } from "@/components/ui/alert";
 import styles from "../error.module.css";
 
@@ -11,7 +11,7 @@ type ProgressCreateErrorProps = {
 
 export default function ProgressCreateError({ reset }: ProgressCreateErrorProps) {
   return (
-    <AppShell activeNav="progress">
+    <AppShellChrome activeNav="progress">
       <section className={styles.errorPanel}>
         <h1>Something went wrong</h1>
         <Alert title="Unable to display record progress form" variant="error">
@@ -21,6 +21,6 @@ export default function ProgressCreateError({ reset }: ProgressCreateErrorProps)
           Try again
         </button>
       </section>
-    </AppShell>
+    </AppShellChrome>
   );
 }

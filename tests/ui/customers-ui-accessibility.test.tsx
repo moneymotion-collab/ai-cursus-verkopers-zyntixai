@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import { Pagination } from "@/components/ui/pagination";
 import { CustomerListFilters } from "@/features/customers/ui/customer-list-filters";
 import { CustomerListPresentation } from "@/features/customers/ui/customer-list";
@@ -13,7 +13,7 @@ import { KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY } from "../features/product-access/
 describe("customers UI accessibility", () => {
   it("renders Customers navigation between Leads and Tasks with active state", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="customers"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
@@ -24,7 +24,7 @@ describe("customers UI accessibility", () => {
         organizationSelectorAction="/customers"
       >
         <h1>Customers</h1>
-      </AppShell>,
+      </AppShellChrome>,
     );
 
     const homeIndex = html.indexOf(">Home<");
@@ -135,7 +135,7 @@ describe("customers UI accessibility", () => {
 
 describe("customers app shell stylesheet contract", () => {
   it("preserves org-aware tasks and customers navigation helpers", () => {
-    const shell = readFileSync(path.join(process.cwd(), "src/components/app-shell.tsx"), "utf8");
+    const shell = readFileSync(path.join(process.cwd(), "src/components/app-shell-chrome.tsx"), "utf8");
     expect(shell).toContain('href="/tasks"');
     expect(shell).toContain('href="/customers"');
     expect(shell).toContain("OrgAwareLink");

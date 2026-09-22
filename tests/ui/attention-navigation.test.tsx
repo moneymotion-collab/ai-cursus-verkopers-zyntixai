@@ -1,7 +1,7 @@
 import React from "react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import {
   ATTENTION_NAV_LABEL,
   ATTENTION_NAV_VISIBLE,
@@ -16,13 +16,13 @@ describe("Attention AppShell navigation (B1.7.5-E)", () => {
     expect(ATTENTION_NAV_VISIBLE).toBe(false);
 
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="attention"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
 
     expect(html).toContain(`>${ATTENTION_NAV_LABEL}<`);
@@ -32,7 +32,7 @@ describe("Attention AppShell navigation (B1.7.5-E)", () => {
     expect(html).toContain(">Tasks<");
 
     const shellSource = readFileSync(
-      path.join(process.cwd(), "src/components/app-shell.tsx"),
+      path.join(process.cwd(), "src/components/app-shell-chrome.tsx"),
       "utf8",
     );
     expect(shellSource).toContain("moduleNavVisibility.attention");
@@ -45,13 +45,13 @@ describe("Attention AppShell navigation (B1.7.5-E)", () => {
 
   it("keeps Attention inactive when another nav section is active", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="tasks"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
 
     expect(html).toContain(`href="${ATTENTION_ROUTE}"`);
@@ -65,7 +65,7 @@ describe("Attention AppShell navigation (B1.7.5-E)", () => {
 
   it("hides Attention link when context denies access", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="tasks"
         membersNavVisible={false}
         moduleNavVisibility={{
@@ -74,7 +74,7 @@ describe("Attention AppShell navigation (B1.7.5-E)", () => {
         }}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
 
     expect(html).not.toContain(`>${ATTENTION_NAV_LABEL}<`);

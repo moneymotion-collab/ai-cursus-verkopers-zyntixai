@@ -150,6 +150,21 @@ describe("SMM-R1-C closed-beta customer access UX", () => {
       ),
       "utf8",
     );
+    const helper = readFileSync(
+      join(
+        process.cwd(),
+        "src/features/social-media/server/load-social-primary-nav-visibility.ts",
+      ),
+      "utf8",
+    );
+    const appShell = readFileSync(
+      join(process.cwd(), "src/components/app-shell.tsx"),
+      "utf8",
+    );
+    const chrome = readFileSync(
+      join(process.cwd(), "src/components/app-shell-chrome.tsx"),
+      "utf8",
+    );
     const navAction = readFileSync(
       join(
         process.cwd(),
@@ -182,8 +197,15 @@ describe("SMM-R1-C closed-beta customer access UX", () => {
       "utf8",
     );
     expect(genericAction).toContain("initiateInstagramConnection");
-    expect(navLink).toContain("getSocialClosedBetaNavVisibleAction");
-    expect(navLink).toContain('"use client"');
+    expect(navLink).not.toContain("getSocialClosedBetaNavVisibleAction");
+    expect(navLink).not.toContain('"use client"');
+    expect(navLink).not.toContain("useEffect");
+    expect(navLink).not.toContain("useState");
+    expect(helper).toContain("loadSocialClosedBetaEnrollmentStatus");
+    expect(helper).toContain('import "server-only"');
+    expect(appShell).toMatch(/export async function AppShell/);
+    expect(appShell).toContain("loadSocialPrimaryNavVisibility");
+    expect(chrome).toContain("SocialPrimaryNavLink");
     expect(navAction).toContain("loadSocialClosedBetaEnrollmentStatus");
   });
 

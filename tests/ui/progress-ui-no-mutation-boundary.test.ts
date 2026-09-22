@@ -56,7 +56,7 @@ describe("progress B1.6.3 mutation boundary", () => {
 
   it("gates Progress nav via context-driven moduleNavVisibility", () => {
     const navigation = read("src/features/progress/domain/progress-navigation.ts");
-    const shell = read("src/components/app-shell.tsx");
+    const shell = read("src/components/app-shell-chrome.tsx");
     expect(navigation).toMatch(/PROGRESS_NAV_VISIBLE = false/);
     expect(shell).toContain("moduleNavVisibility.progress");
     expect(shell).toContain("PROGRESS_ROUTE");

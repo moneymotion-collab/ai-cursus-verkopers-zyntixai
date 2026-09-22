@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { renderAsyncServerTree } from "../../helpers/render-async-server-tree";
 import { DailyOperatingBriefPanel } from "@/features/daily-operating/ui/daily-operating-brief";
 import {
   DAILY_OPERATING_CALM_SUPPORTING,
@@ -74,7 +75,7 @@ const ATTENTION_TASKS_NAV: ModuleNavVisibility = {
 };
 
 describe("DailyOperatingBriefPanel", () => {
-  it("renders the frozen calm title without implying the organization is clear", () => {
+  it("renders the frozen calm title without implying the organization is clear", async () => {
     const html = renderPanel({ moduleNavVisibility: COURSE_NAV });
     expect(html).toContain(DAILY_OPERATING_CALM_TITLE);
     expect(html).toContain(DAILY_OPERATING_CALM_SUPPORTING);
@@ -87,7 +88,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain('role="alert"');
   });
 
-  it("renders critical Attention and overdue task with actionable links", () => {
+  it("renders critical Attention and overdue task with actionable links", async () => {
     const html = renderPanel({
       moduleNavVisibility: ATTENTION_TASKS_NAV,
       brief: brief({
@@ -129,7 +130,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain("You are clear for now");
   });
 
-  it("hides organization Attention for staff roles", () => {
+  it("hides organization Attention for staff roles", async () => {
     const html = renderPanel({
       moduleNavVisibility: ATTENTION_TASKS_NAV,
       brief: brief({
@@ -155,7 +156,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).toContain("Mine only");
   });
 
-  it("shows honest Attention failure instead of empty success or calm", () => {
+  it("shows honest Attention failure instead of empty success or calm", async () => {
     const html = renderPanel({
       moduleNavVisibility: ATTENTION_TASKS_NAV,
       brief: brief({ hasAnyActionable: false }),
@@ -169,7 +170,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain("You are clear for now");
   });
 
-  it("shows due-today task links and excludes calm empty banner when actionable", () => {
+  it("shows due-today task links and excludes calm empty banner when actionable", async () => {
     const html = renderPanel({
       moduleNavVisibility: ATTENTION_TASKS_NAV,
       brief: brief({
@@ -192,7 +193,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain(DAILY_OPERATING_CALM_TITLE);
   });
 
-  it("does not treat Tasks fetch failure as empty success or calm", () => {
+  it("does not treat Tasks fetch failure as empty success or calm", async () => {
     const html = renderPanel({
       moduleNavVisibility: ATTENTION_TASKS_NAV,
       brief: brief({ hasAnyActionable: false }),
@@ -207,7 +208,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain("No work is due today.");
   });
 
-  it("suppresses calm when both Attention and Tasks fail", () => {
+  it("suppresses calm when both Attention and Tasks fail", async () => {
     const html = renderPanel({
       moduleNavVisibility: COURSE_NAV,
       brief: brief({ hasAnyActionable: false }),
@@ -221,7 +222,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain("Open Leads");
   });
 
-  it("exposes semantic headings for keyboard/a11y automation contracts", () => {
+  it("exposes semantic headings for keyboard/a11y automation contracts", async () => {
     const html = renderPanel({
       moduleNavVisibility: COURSE_NAV,
       brief: brief({ role: "owner", hasAnyActionable: false }),
@@ -232,7 +233,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).toContain('id="due-today"');
   });
 
-  it("offers only visible course_seller actions with accessible names and org context", () => {
+  it("offers only visible course_seller actions with accessible names and org context", async () => {
     const html = renderPanel({ moduleNavVisibility: COURSE_NAV });
     expect(actionLabels(html)).toEqual([
       "Open Attention",
@@ -249,7 +250,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain("Open Orders");
   });
 
-  it("does not offer a hidden module action", () => {
+  it("does not offer a hidden module action", async () => {
     const html = renderPanel({
       moduleNavVisibility: {
         ...FAIL_CLOSED_MODULE_NAV_VISIBILITY,
@@ -262,7 +263,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain("Open Leads");
   });
 
-  it("does not show Open Leads universally", () => {
+  it("does not show Open Leads universally", async () => {
     const productHtml = renderPanel({ moduleNavVisibility: PRODUCT_NAV });
     expect(productHtml).not.toContain("Open Leads");
     const fieldHtml = renderPanel({ moduleNavVisibility: FIELD_NAV });
@@ -271,7 +272,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(unresolvedHtml).not.toContain("Open Leads");
   });
 
-  it("keeps service actions to Attention, Tasks, and Projects", () => {
+  it("keeps service actions to Attention, Tasks, and Projects", async () => {
     const html = renderPanel({ moduleNavVisibility: SERVICE_NAV });
     expect(actionLabels(html)).toEqual([
       "Open Attention",
@@ -281,7 +282,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain("Open Leads");
   });
 
-  it("keeps field_operations actions to Attention, Tasks, and Work orders", () => {
+  it("keeps field_operations actions to Attention, Tasks, and Work orders", async () => {
     const html = renderPanel({ moduleNavVisibility: FIELD_NAV });
     expect(actionLabels(html)).toEqual([
       "Open Attention",
@@ -292,7 +293,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain("/dispatch");
   });
 
-  it("keeps product_operations actions to Attention, Tasks, and Orders", () => {
+  it("keeps product_operations actions to Attention, Tasks, and Orders", async () => {
     const html = renderPanel({ moduleNavVisibility: PRODUCT_NAV });
     expect(actionLabels(html)).toEqual([
       "Open Attention",
@@ -303,7 +304,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain("Open Inventory");
   });
 
-  it("renders no module action container for unresolved Home-only visibility", () => {
+  it("renders no module action container for unresolved Home-only visibility", async () => {
     const html = renderPanel({ moduleNavVisibility: UNRESOLVED_NAV });
     expect(html).toContain(DAILY_OPERATING_CALM_TITLE);
     expect(actionLabels(html)).toEqual([]);
@@ -317,13 +318,13 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain(`href="/leads`);
   });
 
-  it("does not render an empty calm action container", () => {
+  it("does not render an empty calm action container", async () => {
     const html = renderPanel({ moduleNavVisibility: UNRESOLVED_NAV });
     expect(html).toContain(DAILY_OPERATING_CALM_TITLE);
     expect(html).not.toMatch(/calmLinks/);
   });
 
-  it("preserves org on every calm action and does not invent a foreign org", () => {
+  it("preserves org on every calm action and does not invent a foreign org", async () => {
     const html = renderPanel({
       moduleNavVisibility: COURSE_NAV,
       brief: brief({ organizationId: ORG }),
@@ -334,7 +335,7 @@ describe("DailyOperatingBriefPanel", () => {
     }
   });
 
-  it("omits org when the server brief has no organizationId", () => {
+  it("omits org when the server brief has no organizationId", async () => {
     const html = renderPanel({
       moduleNavVisibility: COURSE_NAV,
       brief: brief({ organizationId: "" }),
@@ -343,7 +344,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain("org=");
   });
 
-  it("renders hidden-module rows as non-navigating text", () => {
+  it("renders hidden-module rows as non-navigating text", async () => {
     const html = renderPanel({
       moduleNavVisibility: FAIL_CLOSED_MODULE_NAV_VISIBILITY,
       brief: brief({
@@ -369,7 +370,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain(DAILY_OPERATING_CALM_TITLE);
   });
 
-  it("caps calm actions at three unique links in deterministic order", () => {
+  it("caps calm actions at three unique links in deterministic order", async () => {
     const html = renderPanel({
       moduleNavVisibility: {
         ...FAIL_CLOSED_MODULE_NAV_VISIBILITY,
@@ -390,7 +391,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(new Set(actionLabels(html)).size).toBe(3);
   });
 
-  it("does not introduce a client-only visibility boundary", () => {
+  it("does not introduce a client-only visibility boundary", async () => {
     const panel = readFileSync(
       join(process.cwd(), "src/features/daily-operating/ui/daily-operating-brief.tsx"),
       "utf8",
@@ -404,7 +405,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(page).toContain("result.moduleAccess.navVisibility");
   });
 
-  it("keeps the four operational sections, severity text, and status semantics", () => {
+  it("keeps the four operational sections, severity text, and status semantics", async () => {
     const html = renderPanel({ moduleNavVisibility: COURSE_NAV });
     expect(html).toContain(">Organization attention</h2>");
     expect(html).toContain(">Assigned to me — Attention</h2>");
@@ -415,7 +416,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain("KPI");
   });
 
-  it("keeps partial warnings as status and section failures as alerts", () => {
+  it("keeps partial warnings as status and section failures as alerts", async () => {
     const html = renderPanel({
       moduleNavVisibility: ATTENTION_TASKS_NAV,
       attentionQueryFailed: true,
@@ -426,7 +427,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(html).not.toContain(DAILY_OPERATING_CALM_TITLE);
   });
 
-  it("source-locks the 960px two-column grid, wrap, and control height contract", () => {
+  it("source-locks the 960px two-column grid, wrap, and control height contract", async () => {
     const css = readFileSync(
       join(
         process.cwd(),
@@ -447,7 +448,7 @@ describe("DailyOperatingBriefPanel", () => {
     expect(loadingCss).toContain("@media (min-width: 960px)");
   });
 
-  it("source-locks the Home header to kicker, one Today h1, and no calendar date", () => {
+  it("source-locks the Home header to kicker, one Today h1, and no calendar date", async () => {
     const page = readFileSync(
       join(process.cwd(), "src/app/(authenticated)/home/page.tsx"),
       "utf8",
@@ -466,7 +467,7 @@ describe("Home loading honesty", () => {
     const { default: HomeLoading } = await import(
       "@/app/(authenticated)/home/loading"
     );
-    const html = renderToStaticMarkup(<HomeLoading />);
+    const html = await renderAsyncServerTree(<HomeLoading />);
     expect(html).toContain("Today");
     expect(html).toContain("Priority Attention and due work in today\u2019s brief.");
     expect(html).toContain("Loading today’s brief…");

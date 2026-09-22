@@ -1,8 +1,8 @@
 import React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderAsyncServerTree } from "../helpers/render-async-server-tree";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import NewOrderPage from "@/app/(authenticated)/orders/new/page";
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import { DEFAULT_PRODUCT_TERMINOLOGY } from "@/features/product-access/domain/terminology";
 import { FAIL_CLOSED_MODULE_NAV_VISIBILITY } from "@/features/product-access/domain/module-access";
 import type {
@@ -99,7 +99,7 @@ async function renderNewOrderPage(input: {
   const element = await NewOrderPage({
     searchParams: Promise.resolve({ org: (input.context ?? orderContext).organizationId }),
   });
-  return renderToStaticMarkup(element);
+  return renderAsyncServerTree(element);
 }
 
 afterEach(() => {
@@ -107,14 +107,14 @@ afterEach(() => {
 });
 
 describe("TG4 Product Operations UI", () => {
-  it("shows only lawful Product modules and no Project/Field/Knowledge leakage", () => {
-    const html = renderToStaticMarkup(<AppShell moduleNavVisibility={visibility} terminology={DEFAULT_PRODUCT_TERMINOLOGY} activeNav="products"><p>body</p></AppShell>);
+  it("shows only lawful Product modules and no Project/Field/Knowledge leakage", async () => {
+    const html = await renderAsyncServerTree(<AppShellChrome moduleNavVisibility={visibility} terminology={DEFAULT_PRODUCT_TERMINOLOGY} activeNav="products"><p>body</p></AppShellChrome>);
     for (const label of [">Products<", ">Orders<", ">Inventory<", ">Fulfillment<"]) expect(html).toContain(label);
     for (const href of ['href="/projects"', 'href="/sites"', 'href="/work-orders"', 'href="/dispatch"', 'href="/programs"']) expect(html).not.toContain(href);
   });
 
-  it("shows Product inventory, immutable movement history, and recent Order usage", () => {
-    const html = renderToStaticMarkup(<ProductDetailView context={context} product={product} orders={[order]} movements={[{ id: "move", order_id: order.id, movement_type: "order_deduction", quantity_delta: -2, resulting_on_hand: 5, reason: "Order WEB-1001", created_at: "2026-09-04T10:00:00Z" }]} />);
+  it("shows Product inventory, immutable movement history, and recent Order usage", async () => {
+    const html = await renderAsyncServerTree(<ProductDetailView context={context} product={product} orders={[order]} movements={[{ id: "move", order_id: order.id, movement_type: "order_deduction", quantity_delta: -2, resulting_on_hand: 5, reason: "Order WEB-1001", created_at: "2026-09-04T10:00:00Z" }]} />);
     expect(html).toContain("5");
     expect(html).toContain("WEB-1001");
     expect(html).toContain("-2");
@@ -122,8 +122,8 @@ describe("TG4 Product Operations UI", () => {
     expect(html).not.toContain("Project");
   });
 
-  it("shows Customer, Product lines, fulfillment state, and completed history on Order detail", () => {
-    const html = renderToStaticMarkup(<OrderDetailView context={{ ...context, moduleId: "orders" }} order={order} />);
+  it("shows Customer, Product lines, fulfillment state, and completed history on Order detail", async () => {
+    const html = await renderAsyncServerTree(<OrderDetailView context={{ ...context, moduleId: "orders" }} order={order} />);
     expect(html).toContain("Acme");
     expect(html).toContain("Field tablet");
     expect(html).toContain("2 units total");
@@ -131,23 +131,23 @@ describe("TG4 Product Operations UI", () => {
     expect(html).not.toContain("Mark completed");
   });
 
-  it("keeps completed Orders visible in the Fulfillment queue", () => {
-    const html = renderToStaticMarkup(<FulfillmentView context={{ ...context, moduleId: "fulfillment" }} orders={[order]} />);
+  it("keeps completed Orders visible in the Fulfillment queue", async () => {
+    const html = await renderAsyncServerTree(<FulfillmentView context={{ ...context, moduleId: "fulfillment" }} orders={[order]} />);
     expect(html).toContain("Requires action");
     expect(html).toContain("Completed");
     expect(html).toContain("WEB-1001");
   });
 
-  it("shows exact on-hand state and lawful adjustment entry point", () => {
-    const html = renderToStaticMarkup(<InventoryView context={pageContext()} products={[product]} />);
+  it("shows exact on-hand state and lawful adjustment entry point", async () => {
+    const html = await renderAsyncServerTree(<InventoryView context={pageContext()} products={[product]} />);
     expect(html).toContain("5 on hand");
     expect(html).toContain("TAB-01");
     expect(html).toContain("Adjust");
     expect(html).not.toContain("No inventory yet");
   });
 
-  it("keeps populated inventory adjustment when Products navigation is hidden", () => {
-    const html = renderToStaticMarkup(
+  it("keeps populated inventory adjustment when Products navigation is hidden", async () => {
+    const html = await renderAsyncServerTree(
       <InventoryView context={pageContext({ navVisibility: { products: false } })} products={[product]} />,
     );
     expect(html).toContain("5 on hand");
@@ -157,8 +157,8 @@ describe("TG4 Product Operations UI", () => {
     expect(html).not.toContain("New product");
   });
 
-  it("teaches empty inventory and offers product setup only when the operator can create", () => {
-    const operatorHtml = renderToStaticMarkup(<InventoryView context={pageContext()} products={[]} />);
+  it("teaches empty inventory and offers product setup only when the operator can create", async () => {
+    const operatorHtml = await renderAsyncServerTree(<InventoryView context={pageContext()} products={[]} />);
     expect(operatorHtml).toContain("No inventory yet");
     expect(operatorHtml).toContain("Create or activate a product before tracking on-hand inventory.");
     expect(operatorHtml).toContain(`href="/products/new?org=${ORG}"`);
@@ -166,8 +166,8 @@ describe("TG4 Product Operations UI", () => {
     expect(operatorHtml).not.toContain("5 on hand");
   });
 
-  it("hides empty inventory product setup when Products navigation is unavailable", () => {
-    const html = renderToStaticMarkup(
+  it("hides empty inventory product setup when Products navigation is unavailable", async () => {
+    const html = await renderAsyncServerTree(
       <InventoryView context={pageContext({ navVisibility: { products: false } })} products={[]} />,
     );
     expect(html).toContain("No inventory yet");
@@ -177,8 +177,8 @@ describe("TG4 Product Operations UI", () => {
     expect(html).not.toContain("Adjust");
   });
 
-  it("does not offer empty inventory product setup to viewers even when Products navigation is visible", () => {
-    const html = renderToStaticMarkup(<InventoryView context={pageContext({ role: "viewer" })} products={[]} />);
+  it("does not offer empty inventory product setup to viewers even when Products navigation is visible", async () => {
+    const html = await renderAsyncServerTree(<InventoryView context={pageContext({ role: "viewer" })} products={[]} />);
     expect(html).toContain("No inventory yet");
     expect(html).toContain("Create or activate a product before tracking on-hand inventory.");
     expect(html).not.toContain("New product");
@@ -186,8 +186,8 @@ describe("TG4 Product Operations UI", () => {
     expect(html).not.toContain("Adjust");
   });
 
-  it("does not offer inventory adjustment to viewers on populated records", () => {
-    const html = renderToStaticMarkup(<InventoryView context={pageContext({ role: "viewer" })} products={[product]} />);
+  it("does not offer inventory adjustment to viewers on populated records", async () => {
+    const html = await renderAsyncServerTree(<InventoryView context={pageContext({ role: "viewer" })} products={[product]} />);
     expect(html).toContain("5 on hand");
     expect(html).toContain("TAB-01");
     expect(html).not.toContain("Adjust");

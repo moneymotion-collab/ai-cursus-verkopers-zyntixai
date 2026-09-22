@@ -1,12 +1,12 @@
 import React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderAsyncServerTree } from "../helpers/render-async-server-tree";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
 
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import type {
   FieldPageContext,
   SiteRecord,
@@ -116,13 +116,13 @@ function emptyStateRegion(html: string) {
 }
 
 describe("TG3 Field Operations workflow UI", () => {
-  it("shows Field-only Sites, Work orders, and Dispatch navigation with Job terminology", () => {
-    const html = renderToStaticMarkup(
-      <AppShell
+  it("shows Field-only Sites, Work orders, and Dispatch navigation with Job terminology", async () => {
+    const html = await renderAsyncServerTree(
+      <AppShellChrome
         moduleNavVisibility={FIELD_MODULE_NAV_VISIBILITY}
         terminology={FIELD_PRODUCT_TERMINOLOGY}
         selectedOrganizationId={ORG}
-      ><p>Field</p></AppShell>,
+      ><p>Field</p></AppShellChrome>,
     );
     expect(html).toContain(">Jobs<");
     expect(html).toContain(">Sites<");
@@ -132,11 +132,11 @@ describe("TG3 Field Operations workflow UI", () => {
     expect(html).toContain("/work-orders?org=");
   });
 
-  it("keeps all Field-only navigation hidden for Service", () => {
-    const html = renderToStaticMarkup(
-      <AppShell moduleNavVisibility={SERVICE_MODULE_NAV_VISIBILITY} terminology={SERVICE_PRODUCT_TERMINOLOGY}>
+  it("keeps all Field-only navigation hidden for Service", async () => {
+    const html = await renderAsyncServerTree(
+      <AppShellChrome moduleNavVisibility={SERVICE_MODULE_NAV_VISIBILITY} terminology={SERVICE_PRODUCT_TERMINOLOGY}>
         <p>Service</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(html).toContain(">Projects<");
     expect(html).not.toContain(">Sites<");
@@ -144,9 +144,9 @@ describe("TG3 Field Operations workflow UI", () => {
     expect(html).not.toContain(">Dispatch<");
   });
 
-  it("renders Customer → Job → Site context and a prefilled New work order link", () => {
-    const listHtml = renderToStaticMarkup(<SitesList context={context} sites={[site]} />);
-    const detailHtml = renderToStaticMarkup(
+  it("renders Customer → Job → Site context and a prefilled New work order link", async () => {
+    const listHtml = await renderAsyncServerTree(<SitesList context={context} sites={[site]} />);
+    const detailHtml = await renderAsyncServerTree(
       <SiteDetail context={context} site={site} workOrders={[workOrder]} warning={null} />,
     );
     expect(listHtml).toContain("Boiler installation");
@@ -156,9 +156,9 @@ describe("TG3 Field Operations workflow UI", () => {
     expect(detailHtml).toContain("Install control panel");
   });
 
-  it("shows assignment, schedule, execution status, and completion visibility", () => {
-    const scheduled = renderToStaticMarkup(<WorkOrderDetail context={{ ...context, moduleId: "workOrders" }} workOrder={workOrder} />);
-    const completed = renderToStaticMarkup(
+  it("shows assignment, schedule, execution status, and completion visibility", async () => {
+    const scheduled = await renderAsyncServerTree(<WorkOrderDetail context={{ ...context, moduleId: "workOrders" }} workOrder={workOrder} />);
+    const completed = await renderAsyncServerTree(
       <WorkOrderDetail
         context={{ ...context, moduleId: "workOrders" }}
         workOrder={{ ...workOrder, status: "completed", completedAt: "2026-09-05T12:00:00Z" }}
@@ -171,8 +171,8 @@ describe("TG3 Field Operations workflow UI", () => {
     expect(completed).not.toContain("Not completed");
   });
 
-  it("groups overdue, unassigned, and completed work in lightweight Dispatch", () => {
-    const html = renderToStaticMarkup(
+  it("groups overdue, unassigned, and completed work in lightweight Dispatch", async () => {
+    const html = await renderAsyncServerTree(
       <DispatchView
         context={{ ...context, moduleId: "dispatch" }}
         workOrders={[
@@ -189,20 +189,20 @@ describe("TG3 Field Operations workflow UI", () => {
     expect(html).toContain("No routing or optimization");
   });
 
-  it("teaches an empty unfiltered Work Orders workspace and keeps grouped no-results distinct", () => {
-    const workspaceHtml = renderToStaticMarkup(
+  it("teaches an empty unfiltered Work Orders workspace and keeps grouped no-results distinct", async () => {
+    const workspaceHtml = await renderAsyncServerTree(
       <WorkOrdersList context={{ ...context, moduleId: "workOrders" }} workOrders={[]} />,
     );
-    const filteredHtml = renderToStaticMarkup(
+    const filteredHtml = await renderAsyncServerTree(
       <WorkOrdersList context={{ ...context, moduleId: "workOrders" }} workOrders={[]} status="scheduled" />,
     );
-    const viewerHtml = renderToStaticMarkup(
+    const viewerHtml = await renderAsyncServerTree(
       <WorkOrdersList context={{ ...context, moduleId: "workOrders", role: "viewer" }} workOrders={[]} />,
     );
-    const populatedHtml = renderToStaticMarkup(
+    const populatedHtml = await renderAsyncServerTree(
       <WorkOrdersList context={{ ...context, moduleId: "workOrders" }} workOrders={[workOrder]} />,
     );
-    const dispatchHtml = renderToStaticMarkup(
+    const dispatchHtml = await renderAsyncServerTree(
       <DispatchView context={{ ...context, moduleId: "dispatch" }} workOrders={[]} />,
     );
 
@@ -242,8 +242,8 @@ describe("TG3 Field Operations workflow UI", () => {
     expect(emptyStateRegion(dispatchHtml)).toBeNull();
   });
 
-  it("composes Sites and Work orders only into a Field Job detail", () => {
-    const fieldHtml = renderToStaticMarkup(
+  it("composes Sites and Work orders only into a Field Job detail", async () => {
+    const fieldHtml = await renderAsyncServerTree(
       <ProjectDetail
         context={{
           ...context,
@@ -256,7 +256,7 @@ describe("TG3 Field Operations workflow UI", () => {
         fieldWorkOrders={[workOrder]}
       />,
     );
-    const serviceHtml = renderToStaticMarkup(
+    const serviceHtml = await renderAsyncServerTree(
       <ProjectDetail
         context={{
           ...context,

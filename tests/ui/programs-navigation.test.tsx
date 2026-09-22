@@ -1,7 +1,7 @@
 import React from "react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import {
   PROGRAMS_NAV_LABEL,
   PROGRAMS_ROUTE,
@@ -11,13 +11,13 @@ import { KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY } from "../features/product-access/
 describe("Programs navigation activation", () => {
   it("exposes Programs link when context permits and preserves nav order", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="programs"
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
 
     expect(html).toContain(PROGRAMS_NAV_LABEL);
@@ -33,7 +33,7 @@ describe("Programs navigation activation", () => {
 
   it("hides Programs link when context denies access", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="customers"
         membersNavVisible={false}
         moduleNavVisibility={{
@@ -44,7 +44,7 @@ describe("Programs navigation activation", () => {
         }}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
 
     expect(html).not.toContain(`>${PROGRAMS_NAV_LABEL}<`);

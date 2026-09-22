@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import { TaskListPresentation } from "@/features/tasks/ui/task-list";
 import { TaskHistorySection } from "@/features/tasks/ui/task-history";
 import { emptyLabelBundle } from "@/features/tasks/ui/resolve-task-display-labels";
@@ -36,7 +36,7 @@ const listItem: TaskListItemReadModel = {
 describe("tasks UI accessibility landmarks", () => {
   it("renders one main landmark and labelled primary navigation in the shell", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         membersNavVisible={false}
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
         organizationOptions={[
@@ -46,7 +46,7 @@ describe("tasks UI accessibility landmarks", () => {
         selectedOrganizationId="02016e91-7237-4a20-aec3-6275d2e8a67f"
       >
         <h1>Tasks</h1>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(html.match(/<main\b/g)?.length).toBe(1);
     expect(html).toContain('id="main-content"');

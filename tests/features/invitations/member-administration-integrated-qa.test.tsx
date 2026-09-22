@@ -9,7 +9,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import {
   MEMBERS_NAV_LABEL,
   resolveMembersNavVisible,
@@ -176,7 +176,7 @@ describe("MULTI-ORG AUTHORITY", () => {
     ).toBe(false);
 
     const navHtml = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="tasks"
         organizationOptions={[
           { organizationId: ORG_A, role: "owner", displayName: "Org A" },
@@ -185,7 +185,7 @@ describe("MULTI-ORG AUTHORITY", () => {
         selectedOrganizationId={ORG_B}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(navHtml).not.toContain(`>${MEMBERS_NAV_LABEL}<`);
 

@@ -1,8 +1,8 @@
 import React from "react";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { renderAsyncServerTree } from "../helpers/render-async-server-tree";
 import DispatchLoading from "@/app/(authenticated)/dispatch/loading";
 import FulfillmentLoading from "@/app/(authenticated)/fulfillment/loading";
 import InventoryLoading from "@/app/(authenticated)/inventory/loading";
@@ -59,14 +59,14 @@ const LOADING_ENTRIES = [
 describe("TG3/TG4 route-level loading honesty", () => {
   it.each(LOADING_ENTRIES)(
     "renders pending $title without ready controls or unauthorized nav",
-    ({ path, Component, title, forbidden }) => {
+    async ({ path, Component, title, forbidden }) => {
       const source = readFileSync(join(process.cwd(), path), "utf8");
       expect(source).toContain('navigationPresentation="pending"');
       expect(source).not.toContain("public-web");
       expect(source).not.toContain("@/app/login");
       expect(source).not.toContain("@/features/auth/");
 
-      const html = renderToStaticMarkup(<Component />);
+      const html = await renderAsyncServerTree(<Component />);
       expect(html).toContain(title);
       expect(html).toContain("Please wait while the workspace is prepared.");
       expect(html).toContain("Loading workspace…");

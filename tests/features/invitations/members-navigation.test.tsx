@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import {
   MEMBERS_NAV_LABEL,
   MEMBERS_NAV_VISIBLE,
@@ -114,7 +114,7 @@ describe("Members navigation AppShell presentation", () => {
 
   it("renders Members nav for Owner options and hides for Staff", () => {
     const ownerHtml = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="members"
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
         organizationOptions={[
@@ -123,13 +123,13 @@ describe("Members navigation AppShell presentation", () => {
         selectedOrganizationId={ORG_A}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(ownerHtml).toContain(MEMBERS_NAV_LABEL);
     expect(ownerHtml).toContain(`aria-current="page"`);
 
     const staffHtml = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="tasks"
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
         organizationOptions={[
@@ -138,23 +138,23 @@ describe("Members navigation AppShell presentation", () => {
         selectedOrganizationId={ORG_A}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(staffHtml).not.toContain(`>${MEMBERS_NAV_LABEL}<`);
   });
 
   it("hides Members nav with no options (loading/error fail-closed)", () => {
     const html = renderToStaticMarkup(
-      <AppShell activeNav="members">
+      <AppShellChrome activeNav="members">
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(html).not.toContain(`>${MEMBERS_NAV_LABEL}<`);
   });
 
   it("hides Members when Owner in another org but Viewer is selected", () => {
     const html = renderToStaticMarkup(
-      <AppShell
+      <AppShellChrome
         activeNav="tasks"
         moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
         organizationOptions={[
@@ -164,7 +164,7 @@ describe("Members navigation AppShell presentation", () => {
         selectedOrganizationId={ORG_B}
       >
         <p>content</p>
-      </AppShell>,
+      </AppShellChrome>,
     );
     expect(html).not.toContain(`>${MEMBERS_NAV_LABEL}<`);
   });

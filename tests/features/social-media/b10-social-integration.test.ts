@@ -68,9 +68,16 @@ describe("SMM-B1.10 Social Beta 1 integration", () => {
       join(process.cwd(), "src/components/app-shell.tsx"),
       "utf8",
     );
-    expect(appShell).toContain("SocialPrimaryNavLink");
+    const chrome = readFileSync(
+      join(process.cwd(), "src/components/app-shell-chrome.tsx"),
+      "utf8",
+    );
+    expect(appShell).toContain("AppShellChrome");
     expect(appShell).toContain("socialNavVisible");
-    expect(appShell).toContain('activeNav === "social"');
+    expect(appShell).toMatch(/export async function AppShell/);
+    expect(chrome).toContain("SocialPrimaryNavLink");
+    expect(chrome).toContain("socialNavVisible");
+    expect(chrome).toContain('activeNav === "social"');
 
     for (const relative of [
       "src/app/(authenticated)/social/r1-instagram-connect/page.tsx",

@@ -1,6 +1,6 @@
 "use client";
 
-import { AppShell } from "@/components/app-shell";
+import { AppShellChrome } from "@/components/app-shell-chrome";
 import { Alert } from "@/components/ui/alert";
 import styles from "./error.module.css";
 
@@ -11,7 +11,7 @@ type AttentionErrorProps = {
 
 export default function AttentionError({ reset }: AttentionErrorProps) {
   return (
-    <AppShell activeNav="attention">
+    <AppShellChrome activeNav="attention">
       <section className={styles.errorPanel}>
         <h1>Something went wrong</h1>
         <Alert title="Unable to display Attention" variant="error">
@@ -22,6 +22,6 @@ export default function AttentionError({ reset }: AttentionErrorProps) {
           Try again
         </button>
       </section>
-    </AppShell>
+    </AppShellChrome>
   );
 }
