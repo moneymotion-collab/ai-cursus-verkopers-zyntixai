@@ -3,6 +3,11 @@ import { loadSiteEditPage } from "@/features/field-operations/ui/load-pages";
 import { SiteForm } from "@/features/field-operations/ui/forms";
 import { FieldLoadFailure, FieldShell } from "@/features/field-operations/ui/views";
 import styles from "@/features/field-operations/ui/field-operations.module.css";
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
+
+export const metadata = authenticatedPageMetadata("/sites/[siteId]/edit");
+
+
 
 export default async function EditSitePage({
   params,

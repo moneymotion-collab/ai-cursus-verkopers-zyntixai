@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { Alert } from "@/components/ui/alert";
 import { AppShell } from "@/components/app-shell";
 import { Pagination } from "@/components/ui/pagination";
@@ -19,6 +20,9 @@ import { buildEnrollmentCreateHref } from "@/features/enrollments/ui/enrollment-
 import { canShowCreateEnrollmentWorkflow } from "@/features/enrollments/ui/enrollment-workflow-visibility";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
+
+export const metadata = authenticatedPageMetadata("/enrollments");
+
 
 type EnrollmentsPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { Alert } from "@/components/ui/alert";
 import { AppShell } from "@/components/app-shell";
 import { Pagination } from "@/components/ui/pagination";
@@ -16,6 +17,9 @@ import { buildProgramCreateHref } from "@/features/programs/ui/program-navigatio
 import { canShowCreateProgramWorkflow } from "@/features/programs/ui/program-workflow-visibility";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
+
+export const metadata = authenticatedPageMetadata("/programs");
+
 
 type ProgramsPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

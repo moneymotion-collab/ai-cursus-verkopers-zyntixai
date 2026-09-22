@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { ProgramOrganizationRequiredPanel } from "@/features/programs/ui/program-organization-required-panel";
 import { ProgramCreateForm } from "@/features/programs/ui/program-create-form";
@@ -5,6 +6,9 @@ import { loadProgramCreatePage } from "@/features/programs/ui/load-program-creat
 import { buildBackToProgramsHref } from "@/features/programs/ui/program-navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/programs/new");
+
 
 type ProgramCreatePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

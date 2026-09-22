@@ -2,6 +2,11 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadWorkOrdersPage } from "@/features/field-operations/ui/load-pages";
 import { FieldLoadFailure, FieldShell, WorkOrdersList } from "@/features/field-operations/ui/views";
 import styles from "@/features/field-operations/ui/field-operations.module.css";
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
+
+export const metadata = authenticatedPageMetadata("/work-orders");
+
+
 
 export default async function WorkOrdersPage({
   searchParams,

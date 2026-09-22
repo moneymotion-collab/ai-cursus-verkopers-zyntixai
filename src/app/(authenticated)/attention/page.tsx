@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { Alert } from "@/components/ui/alert";
 import { AppShell } from "@/components/app-shell";
 import { Pagination } from "@/components/ui/pagination";
@@ -22,6 +23,9 @@ import {
   AttentionQueryErrorPanel,
 } from "@/features/attention/ui/attention-state-panels";
 import styles from "./page.module.css";
+
+export const metadata = authenticatedPageMetadata("/attention");
+
 
 type AttentionPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { CustomerOrganizationRequiredPanel } from "@/features/customers/ui/customer-organization-required-panel";
 import { CustomerUnavailableDetail } from "@/features/customers/ui/customer-detail";
@@ -6,6 +7,9 @@ import { loadCustomerEditPage } from "@/features/customers/ui/load-customer-work
 import { buildBackToCustomersHref } from "@/features/customers/ui/customer-navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/customers/[customerId]/edit");
+
 
 type CustomerEditPageProps = {
   params: Promise<{ customerId: string }>;

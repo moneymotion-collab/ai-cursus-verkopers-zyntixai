@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ATTENTION_ROUTE } from "@/features/attention/domain/attention-navigation";
@@ -11,6 +12,9 @@ import {
   AttentionUnavailablePanel,
 } from "@/features/attention/ui/attention-state-panels";
 import styles from "./page.module.css";
+
+export const metadata = authenticatedPageMetadata("/attention/[attentionItemId]");
+
 
 type AttentionDetailPageProps = {
   params: Promise<{ attentionItemId: string }>;

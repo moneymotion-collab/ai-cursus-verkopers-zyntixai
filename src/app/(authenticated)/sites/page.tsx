@@ -6,6 +6,11 @@ import {
   SitesList,
 } from "@/features/field-operations/ui/views";
 import styles from "@/features/field-operations/ui/field-operations.module.css";
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
+
+export const metadata = authenticatedPageMetadata("/sites");
+
+
 
 export default async function SitesPage({
   searchParams,

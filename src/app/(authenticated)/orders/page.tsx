@@ -1,5 +1,10 @@
 import { loadOrdersPage } from "@/features/product-operations/ui/load-pages";
 import { OrdersList, ProductOperationsLoadFailure, ProductOperationsShell } from "@/features/product-operations/ui/views";
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
+
+export const metadata = authenticatedPageMetadata("/orders");
+
+
 
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const query = await searchParams;

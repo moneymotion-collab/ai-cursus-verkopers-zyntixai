@@ -7,6 +7,11 @@ import {
   resolveOrderCreateUnavailableProps,
 } from "@/features/product-operations/ui/views";
 import styles from "@/features/product-operations/ui/product-operations.module.css";
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
+
+export const metadata = authenticatedPageMetadata("/orders/new");
+
+
 
 export default async function NewOrderPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const query = await searchParams;

@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { Alert } from "@/components/ui/alert";
 import { LeadOrganizationRequiredPanel } from "@/features/leads/ui/lead-organization-required-panel";
@@ -23,6 +24,9 @@ import {
 } from "@/features/leads/ui/lead-workflow-visibility";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/leads/[leadId]");
+
 
 type LeadDetailPageProps = {
   params: Promise<{ leadId: string }>;

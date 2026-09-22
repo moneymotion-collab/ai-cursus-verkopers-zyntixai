@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { Alert } from "@/components/ui/alert";
 import { AppShell } from "@/components/app-shell";
 import { Pagination } from "@/components/ui/pagination";
@@ -17,6 +18,9 @@ import { canShowCreateWorkflow } from "@/features/customers/ui/customer-workflow
 import type { ProductTerminology } from "@/features/product-access/domain/terminology";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
+
+export const metadata = authenticatedPageMetadata("/customers");
+
 
 type CustomersPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

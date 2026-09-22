@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { EnrollmentOrganizationRequiredPanel } from "@/features/enrollments/ui/enrollment-organization-required-panel";
 import { EnrollmentCreateForm } from "@/features/enrollments/ui/enrollment-create-form";
@@ -5,6 +6,9 @@ import { loadEnrollmentCreatePage } from "@/features/enrollments/ui/load-enrollm
 import { buildBackToEnrollmentsHref } from "@/features/enrollments/ui/enrollment-navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/enrollments/new");
+
 
 type EnrollmentCreatePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

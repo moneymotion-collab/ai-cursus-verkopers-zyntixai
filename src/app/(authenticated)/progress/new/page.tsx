@@ -1,9 +1,13 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { ProgressOrganizationRequiredPanel } from "@/features/progress/ui/progress-organization-required-panel";
 import { ProgressRecordForm } from "@/features/progress/ui/progress-record-form";
 import { loadProgressCreatePage } from "@/features/progress/ui/load-progress-create-page";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/progress/new");
+
 
 type ProgressCreatePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

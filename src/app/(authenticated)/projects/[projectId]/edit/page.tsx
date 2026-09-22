@@ -6,6 +6,11 @@ import {
   ProjectShell,
 } from "@/features/projects/ui/project-views";
 import styles from "@/features/projects/ui/projects.module.css";
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
+
+export const metadata = authenticatedPageMetadata("/projects/[projectId]/edit");
+
+
 
 type ProjectEditPageProps = {
   params: Promise<{ projectId: string }>;

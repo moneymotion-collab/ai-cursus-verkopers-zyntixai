@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { Alert } from "@/components/ui/alert";
 import { CustomerOrganizationRequiredPanel } from "@/features/customers/ui/customer-organization-required-panel";
@@ -22,6 +23,9 @@ import { projectPermissions, type ProjectRole } from "@/features/projects/domain
 import { orderCreateHrefForCustomer } from "@/features/product-operations/domain/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
+
+export const metadata = authenticatedPageMetadata("/customers/[customerId]");
+
 
 type CustomerDetailPageProps = {
   params: Promise<{ customerId: string }>;

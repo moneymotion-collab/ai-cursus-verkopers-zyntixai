@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { Alert } from "@/components/ui/alert";
 import { ProgramOrganizationRequiredPanel } from "@/features/programs/ui/program-organization-required-panel";
@@ -26,6 +27,9 @@ import { isProgramEligibleForEnrollmentCreate } from "@/features/enrollments/dom
 import { buildProgressListHref } from "@/features/progress/domain/progress-navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
+
+export const metadata = authenticatedPageMetadata("/programs/[programId]");
+
 
 type ProgramDetailPageProps = {
   params: Promise<{ programId: string }>;

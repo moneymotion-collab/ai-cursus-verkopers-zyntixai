@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { Alert } from "@/components/ui/alert";
 import { AppShell } from "@/components/app-shell";
 import {
@@ -9,6 +10,9 @@ import { DailyOperatingBriefPanel } from "@/features/daily-operating/ui/daily-op
 import { DailyOperatingOrganizationRequiredPanel } from "@/features/daily-operating/ui/daily-operating-organization-required-panel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
+
+export const metadata = authenticatedPageMetadata("/home");
+
 
 type HomePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

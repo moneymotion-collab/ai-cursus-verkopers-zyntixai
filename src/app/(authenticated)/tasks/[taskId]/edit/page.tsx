@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { OrganizationRequiredPanel } from "@/features/tasks/ui/organization-required-panel";
 import { loadTaskEditPage } from "@/features/tasks/ui/load-task-workflow-page";
@@ -5,6 +6,9 @@ import { buildBackToTasksHref, buildTaskDetailHref } from "@/features/tasks/ui/t
 import { TaskEditForm } from "@/features/tasks/ui/task-edit-form";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/tasks/[taskId]/edit");
+
 
 type TaskEditPageProps = {
   params: Promise<{ taskId: string }>;

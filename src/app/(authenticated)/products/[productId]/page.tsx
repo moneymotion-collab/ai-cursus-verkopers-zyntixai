@@ -1,6 +1,11 @@
 import { notFound } from "next/navigation";
 import { loadProductPage } from "@/features/product-operations/ui/load-pages";
 import { ProductDetailView, ProductOperationsLoadFailure, ProductOperationsShell } from "@/features/product-operations/ui/views";
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
+
+export const metadata = authenticatedPageMetadata("/products/[productId]");
+
+
 
 export default async function ProductPage({ params, searchParams }: { params: Promise<{ productId: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const [{ productId }, query] = await Promise.all([params, searchParams]);

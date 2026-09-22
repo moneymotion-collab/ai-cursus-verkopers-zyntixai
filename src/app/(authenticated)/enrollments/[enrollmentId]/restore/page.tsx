@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { EnrollmentOrganizationRequiredPanel } from "@/features/enrollments/ui/enrollment-organization-required-panel";
 import { EnrollmentUnavailableDetail } from "@/features/enrollments/ui/enrollment-detail";
@@ -6,6 +7,9 @@ import { loadEnrollmentRestorePage } from "@/features/enrollments/ui/load-enroll
 import { buildBackToEnrollmentsHref } from "@/features/enrollments/ui/enrollment-navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/enrollments/[enrollmentId]/restore");
+
 
 type EnrollmentRestorePageProps = {
   params: Promise<{ enrollmentId: string }>;

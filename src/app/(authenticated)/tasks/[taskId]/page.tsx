@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { Alert } from "@/components/ui/alert";
 import { OrganizationRequiredPanel } from "@/features/tasks/ui/organization-required-panel";
@@ -25,6 +26,9 @@ import {
 } from "@/features/tasks/ui/task-workflow-visibility";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
+
+export const metadata = authenticatedPageMetadata("/tasks/[taskId]");
+
 
 type TaskDetailPageProps = {
   params: Promise<{ taskId: string }>;

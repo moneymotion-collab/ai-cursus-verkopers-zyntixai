@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { ProgramOrganizationRequiredPanel } from "@/features/programs/ui/program-organization-required-panel";
 import { ProgramUnavailableDetail } from "@/features/programs/ui/program-detail";
@@ -6,6 +7,9 @@ import { loadProgramRestorePage } from "@/features/programs/ui/load-program-life
 import { buildBackToProgramsHref } from "@/features/programs/ui/program-navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/programs/[programId]/restore");
+
 
 type ProgramRestorePageProps = {
   params: Promise<{ programId: string }>;

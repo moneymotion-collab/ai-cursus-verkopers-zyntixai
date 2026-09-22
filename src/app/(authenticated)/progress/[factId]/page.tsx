@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import {
   ProgressDetail,
@@ -17,6 +18,9 @@ import {
 import { Alert } from "@/components/ui/alert";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
+
+export const metadata = authenticatedPageMetadata("/progress/[factId]");
+
 
 type ProgressDetailPageProps = {
   params: Promise<{ factId: string }>;

@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { ProgressOrganizationRequiredPanel } from "@/features/progress/ui/progress-organization-required-panel";
 import { ProgressUnavailableDetail } from "@/features/progress/ui/progress-detail";
@@ -5,6 +6,9 @@ import { ProgressVoidForm } from "@/features/progress/ui/progress-void-form";
 import { loadProgressVoidPage } from "@/features/progress/ui/load-progress-void-page";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/progress/[factId]/void");
+
 
 type ProgressVoidPageProps = {
   params: Promise<{ factId: string }>;

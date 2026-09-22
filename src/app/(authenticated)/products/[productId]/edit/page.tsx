@@ -3,6 +3,11 @@ import { ProductForm } from "@/features/product-operations/ui/forms";
 import { loadProductPage } from "@/features/product-operations/ui/load-pages";
 import { ProductOperationsLoadFailure, ProductOperationsShell } from "@/features/product-operations/ui/views";
 import styles from "@/features/product-operations/ui/product-operations.module.css";
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
+
+export const metadata = authenticatedPageMetadata("/products/[productId]/edit");
+
+
 
 export default async function EditProductPage({ params, searchParams }: { params: Promise<{ productId: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const [{ productId }, query] = await Promise.all([params, searchParams]);

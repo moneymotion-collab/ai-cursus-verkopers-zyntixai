@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { Alert } from "@/components/ui/alert";
 import { AppShell } from "@/components/app-shell";
 import { Pagination } from "@/components/ui/pagination";
@@ -14,6 +15,9 @@ import { canShowCreateLeadWorkflow } from "@/features/leads/ui/lead-workflow-vis
 import { FirstValueChecklistPanel } from "@/features/onboarding/ui/first-value-checklist-panel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
+
+export const metadata = authenticatedPageMetadata("/leads");
+
 
 type LeadsPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

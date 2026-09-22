@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { ProgressOrganizationRequiredPanel } from "@/features/progress/ui/progress-organization-required-panel";
 import { ProgressUnavailableDetail } from "@/features/progress/ui/progress-detail";
@@ -5,6 +6,9 @@ import { ProgressCorrectForm } from "@/features/progress/ui/progress-correct-for
 import { loadProgressCorrectPage } from "@/features/progress/ui/load-progress-correct-page";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/progress/[factId]/correct");
+
 
 type ProgressCorrectPageProps = {
   params: Promise<{ factId: string }>;

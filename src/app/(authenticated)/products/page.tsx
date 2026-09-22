@@ -1,6 +1,11 @@
 import { loadProductsPage } from "@/features/product-operations/ui/load-pages";
 import { ProductOperationsLoadFailure, ProductOperationsShell, ProductsList } from "@/features/product-operations/ui/views";
 import styles from "@/features/product-operations/ui/product-operations.module.css";
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
+
+export const metadata = authenticatedPageMetadata("/products");
+
+
 
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const query = await searchParams;

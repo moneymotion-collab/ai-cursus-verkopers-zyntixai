@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { CustomerOrganizationRequiredPanel } from "@/features/customers/ui/customer-organization-required-panel";
 import { CustomerUnavailableDetail } from "@/features/customers/ui/customer-detail";
@@ -12,6 +13,9 @@ import {
 } from "@/features/customers/ui/customer-lifecycle-workflow-copy";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/customers/[customerId]/status");
+
 
 type CustomerStatusPageProps = {
   params: Promise<{ customerId: string }>;

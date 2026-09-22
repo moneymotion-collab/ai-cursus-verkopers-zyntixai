@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { Alert } from "@/components/ui/alert";
 import { AppShell } from "@/components/app-shell";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -14,6 +15,9 @@ import { InviteMemberForm } from "@/features/invitations/ui/invite-member-form";
 import { MemberAdministrationRolloutNotice } from "@/features/invitations/ui/member-administration-rollout-notice";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
 import styles from "./page.module.css";
+
+export const metadata = authenticatedPageMetadata("/settings/members");
+
 
 type MembersPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

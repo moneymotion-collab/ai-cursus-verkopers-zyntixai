@@ -1,5 +1,10 @@
 import { loadFulfillmentPage } from "@/features/product-operations/ui/load-pages";
 import { FulfillmentView, ProductOperationsLoadFailure, ProductOperationsShell } from "@/features/product-operations/ui/views";
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
+
+export const metadata = authenticatedPageMetadata("/fulfillment");
+
+
 
 export default async function FulfillmentPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const query = await searchParams;

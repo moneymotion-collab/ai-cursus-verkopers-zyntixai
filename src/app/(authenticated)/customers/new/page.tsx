@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { CustomerOrganizationRequiredPanel } from "@/features/customers/ui/customer-organization-required-panel";
 import { CustomerCreateForm } from "@/features/customers/ui/customer-create-form";
@@ -5,6 +6,9 @@ import { loadCustomerCreatePage } from "@/features/customers/ui/load-customer-wo
 import { buildBackToCustomersHref } from "@/features/customers/ui/customer-navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/customers/new");
+
 
 type CustomerCreatePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

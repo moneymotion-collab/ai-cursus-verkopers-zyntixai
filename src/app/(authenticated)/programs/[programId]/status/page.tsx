@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { ProgramOrganizationRequiredPanel } from "@/features/programs/ui/program-organization-required-panel";
 import { ProgramUnavailableDetail } from "@/features/programs/ui/program-detail";
@@ -6,6 +7,9 @@ import { loadProgramStatusPage } from "@/features/programs/ui/load-program-lifec
 import { buildBackToProgramsHref } from "@/features/programs/ui/program-navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/programs/[programId]/status");
+
 
 type ProgramStatusPageProps = {
   params: Promise<{ programId: string }>;

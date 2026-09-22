@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { OrganizationRequiredPanel } from "@/features/tasks/ui/organization-required-panel";
 import { loadTaskCompletePage } from "@/features/tasks/ui/load-task-lifecycle-workflow-page";
@@ -6,6 +7,9 @@ import { TaskCompleteForm } from "@/features/tasks/ui/task-complete-form";
 import { canShowCompleteWorkflow } from "@/features/tasks/ui/task-workflow-visibility";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/tasks/[taskId]/complete");
+
 
 type TaskCompletePageProps = {
   params: Promise<{ taskId: string }>;

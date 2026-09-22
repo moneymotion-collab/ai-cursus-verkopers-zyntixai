@@ -1,5 +1,10 @@
 import { loadInventoryPage } from "@/features/product-operations/ui/load-pages";
 import { InventoryView, ProductOperationsLoadFailure, ProductOperationsShell } from "@/features/product-operations/ui/views";
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
+
+export const metadata = authenticatedPageMetadata("/inventory");
+
+
 
 export default async function InventoryPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const query = await searchParams;

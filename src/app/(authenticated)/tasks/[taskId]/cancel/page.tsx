@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { OrganizationRequiredPanel } from "@/features/tasks/ui/organization-required-panel";
 import { loadTaskCancelPage } from "@/features/tasks/ui/load-task-lifecycle-workflow-page";
@@ -6,6 +7,9 @@ import { TaskCancelForm } from "@/features/tasks/ui/task-cancel-form";
 import { canShowCancelWorkflow } from "@/features/tasks/ui/task-workflow-visibility";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/tasks/[taskId]/cancel");
+
 
 type TaskCancelPageProps = {
   params: Promise<{ taskId: string }>;

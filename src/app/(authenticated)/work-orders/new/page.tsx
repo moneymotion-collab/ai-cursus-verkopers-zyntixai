@@ -3,6 +3,11 @@ import { loadWorkOrderCreatePage } from "@/features/field-operations/ui/load-pag
 import { WorkOrderForm } from "@/features/field-operations/ui/forms";
 import { FieldLoadFailure, FieldShell } from "@/features/field-operations/ui/views";
 import styles from "@/features/field-operations/ui/field-operations.module.css";
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
+
+export const metadata = authenticatedPageMetadata("/work-orders/new");
+
+
 
 export default async function NewWorkOrderPage({
   searchParams,

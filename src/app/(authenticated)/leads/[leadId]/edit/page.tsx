@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { LeadOrganizationRequiredPanel } from "@/features/leads/ui/lead-organization-required-panel";
 import { LeadUnavailableDetail } from "@/features/leads/ui/lead-detail";
@@ -6,6 +7,9 @@ import { loadLeadEditPage } from "@/features/leads/ui/load-lead-workflow-page";
 import { buildBackToLeadsHref } from "@/features/leads/ui/lead-navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/leads/[leadId]/edit");
+
 
 type LeadEditPageProps = {
   params: Promise<{ leadId: string }>;

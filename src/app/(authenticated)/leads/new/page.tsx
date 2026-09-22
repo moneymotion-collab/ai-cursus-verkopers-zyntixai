@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { LeadOrganizationRequiredPanel } from "@/features/leads/ui/lead-organization-required-panel";
 import { LeadCreateForm } from "@/features/leads/ui/lead-create-form";
@@ -5,6 +6,9 @@ import { loadLeadCreatePage } from "@/features/leads/ui/load-lead-workflow-page"
 import { buildBackToLeadsHref } from "@/features/leads/ui/lead-navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/leads/new");
+
 
 type LeadCreatePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

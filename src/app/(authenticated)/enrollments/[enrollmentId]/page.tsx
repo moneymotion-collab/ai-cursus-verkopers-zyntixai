@@ -1,3 +1,4 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
 import { AppShell } from "@/components/app-shell";
 import { Alert } from "@/components/ui/alert";
 import { EnrollmentOrganizationRequiredPanel } from "@/features/enrollments/ui/enrollment-organization-required-panel";
@@ -30,6 +31,9 @@ import { resolveAttentionPermissions } from "@/features/attention/domain/permiss
 import { canShowEnrollmentViewAttentionEntry } from "@/features/attention/ui/attention-pe-entry-visibility";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
+
+export const metadata = authenticatedPageMetadata("/enrollments/[enrollmentId]");
+
 
 type EnrollmentDetailPageProps = {
   params: Promise<{ enrollmentId: string }>;
