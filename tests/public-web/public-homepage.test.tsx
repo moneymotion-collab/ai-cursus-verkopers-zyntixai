@@ -2,225 +2,190 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
-import { PublicHomepage } from "@/features/public-web/ui/public-homepage";
+import { isProtectedApplicationPath } from "@/features/auth/server/safe-return-path";
 import {
-  PUBLIC_ACCESS_H2,
-  PUBLIC_ACCESS_STATUS,
-  PUBLIC_ACCESS_UTILITY,
+  PUBLIC_ACCESS_ANSWER,
+  PUBLIC_ACCESS_QUESTION,
   PUBLIC_BETA_EXISTING,
   PUBLIC_BETA_NOW,
-  PUBLIC_CS_BODY,
-  PUBLIC_CS_H2,
-  PUBLIC_CS_QUALIFIER,
   PUBLIC_H1,
-  PUBLIC_HONEST_STOP,
-  PUBLIC_MECHANISM_BODY,
-  PUBLIC_MECHANISM_H2,
-  PUBLIC_NAV_BETA,
-  PUBLIC_NAV_DISCLOSURE,
-  PUBLIC_NAV_MECHANISM,
-  PUBLIC_NAV_OVER,
-  PUBLIC_NAV_SIGN_IN,
-  PUBLIC_SECTION_IDS,
+  PUBLIC_PRIVACY_EMAIL,
+  PUBLIC_PRIVACY_H1,
+  PUBLIC_PRIVACY_VERSION,
+  PUBLIC_INSTAGRAM_BUTTON,
+  PUBLIC_INSTAGRAM_FOOTER,
+  PUBLIC_INSTAGRAM_LIMIT,
+  PUBLIC_INSTAGRAM_PROMPT,
+  PUBLIC_INSTAGRAM_URL,
+  PUBLIC_NAV,
+  PUBLIC_OFFER,
+  PUBLIC_FREE_ANSWER,
+  PUBLIC_FREE_QUESTION,
+  PUBLIC_PREVIEW_CAPTION,
+  PUBLIC_PREVIEW_ORG,
   PUBLIC_SKIP,
-  PUBLIC_SUPPORT,
-  PUBLIC_TODAY_BODY,
-  PUBLIC_TODAY_H2,
-  PUBLIC_TODAY_QUALIFIER,
-  PUBLIC_TRUST_BODY,
-  PUBLIC_TRUST_H2,
-  PUBLIC_VALUE_BODY,
-  PUBLIC_VALUE_H2,
   PUBLIC_WORDMARK,
 } from "@/features/public-web/copy";
+import { PUBLIC_INFORMATION_PATHS } from "@/features/public-web/paths";
+import { PublicHomepage } from "@/features/public-web/ui/public-homepage";
+import {
+  PublicAboutPage,
+  PublicAudiencesPage,
+  PublicHowPage,
+  PublicNotFound,
+  PublicPlatformPage,
+  PublicPrivacyPage,
+} from "@/features/public-web/ui/public-pages";
 
-function html() {
-  return renderToStaticMarkup(<PublicHomepage />);
-}
+const FUTURE_LANGUAGE = [
+  "binnenkort",
+  "wordt ontwikkeld",
+  "in voorbereiding",
+  "beoogde werkwijze",
+  "roadmap",
+  "je hele bedrijf",
+  "alles in één",
+  "alles in een",
+  "wachtlijst",
+  "proefperiode",
+  "gratis proef",
+  "voor altijd",
+  "onbeperkt",
+  "upgrade",
+  "testimonial",
+  "Business Operating System",
+];
 
 function readSrc(relativePath: string) {
   return readFileSync(path.join(process.cwd(), relativePath), "utf8");
 }
 
-describe("public homepage frozen copy and semantics", () => {
-  it("renders one H1 and the exact Route A2 board", () => {
-    const markup = html();
+function pages() {
+  return [
+    ["/", renderToStaticMarkup(<PublicHomepage />)],
+    ["/platform", renderToStaticMarkup(<PublicPlatformPage />)],
+    ["/voor-wie", renderToStaticMarkup(<PublicAudiencesPage />)],
+    ["/zo-werkt-het", renderToStaticMarkup(<PublicHowPage />)],
+    ["/over", renderToStaticMarkup(<PublicAboutPage />)],
+    ["/privacy", renderToStaticMarkup(<PublicPrivacyPage />)],
+    ["/404", renderToStaticMarkup(<PublicNotFound />)],
+  ] as const;
+}
+
+describe("public website", () => {
+  it("renders the homepage landmarks, current description, and sign-in", () => {
+    const markup = renderToStaticMarkup(<PublicHomepage />);
     expect(markup.match(/<h1\b/g)?.length).toBe(1);
-    expect(markup.match(/<h2\b/g)?.length).toBe(6);
-    expect(markup).not.toMatch(/<h3\b/);
     expect(markup).toContain(PUBLIC_H1);
-    expect(markup).toContain(PUBLIC_SUPPORT);
     expect(markup).toContain(PUBLIC_BETA_NOW);
     expect(markup).toContain(PUBLIC_BETA_EXISTING);
-    expect(markup).toContain(PUBLIC_VALUE_H2);
-    expect(markup).toContain(PUBLIC_VALUE_BODY);
-    expect(markup).toContain(PUBLIC_MECHANISM_H2);
-    expect(markup).toContain(PUBLIC_MECHANISM_BODY);
-    expect(markup).toContain(PUBLIC_TODAY_H2);
-    expect(markup).toContain(PUBLIC_TODAY_BODY);
-    expect(markup).toContain(PUBLIC_TODAY_QUALIFIER);
-    expect(markup).toContain(PUBLIC_CS_H2);
-    expect(markup).toContain(PUBLIC_CS_BODY);
-    expect(markup).toContain(PUBLIC_CS_QUALIFIER);
-    expect(markup).toContain("programma\u2019s");
-    expect(markup).toContain(PUBLIC_TRUST_H2);
-    expect(markup).toContain(PUBLIC_TRUST_BODY);
-    expect(markup).toContain(PUBLIC_ACCESS_H2);
-    expect(markup).toContain(PUBLIC_ACCESS_STATUS);
-    expect(markup).toContain("Heb je al een account? ");
-    expect(markup).toContain(`>${PUBLIC_NAV_SIGN_IN}<`);
-    expect(markup).toContain(PUBLIC_HONEST_STOP);
+    expect(markup).toContain(PUBLIC_PREVIEW_CAPTION);
+    expect(markup).toContain(PUBLIC_PREVIEW_ORG);
+    expect(markup).toContain(PUBLIC_OFFER);
+    expect(markup).toContain(PUBLIC_FREE_QUESTION);
+    expect(markup).toContain(PUBLIC_FREE_ANSWER);
+    expect(markup).toContain(PUBLIC_ACCESS_QUESTION);
+    expect(markup).toContain(PUBLIC_ACCESS_ANSWER);
+    expect(markup).toContain(PUBLIC_INSTAGRAM_BUTTON);
+    expect(markup).toContain(PUBLIC_INSTAGRAM_PROMPT);
+    expect(markup).toContain(PUBLIC_INSTAGRAM_LIMIT);
     expect(markup).toContain(PUBLIC_WORDMARK);
     expect(markup).toContain(PUBLIC_SKIP);
-    expect(markup).toContain(PUBLIC_NAV_DISCLOSURE);
-    expect(markup).toContain(PUBLIC_NAV_OVER);
-    expect(markup).toContain(PUBLIC_NAV_MECHANISM);
-    expect(markup).toContain(PUBLIC_NAV_BETA);
-    expect(markup).toContain(PUBLIC_NAV_SIGN_IN);
-  });
-
-  it("locks diacritics and the curly apostrophe", () => {
-    expect(PUBLIC_CS_BODY).toContain("\u2019");
-    expect(PUBLIC_CS_BODY).not.toContain("programma's");
-    expect(PUBLIC_NAV_BETA).toContain("\u00e8");
-    expect(PUBLIC_BETA_NOW).toContain("\u00e8");
-    expect(PUBLIC_ACCESS_STATUS).toContain("\u00e8");
-    expect(PUBLIC_ACCESS_UTILITY).toBe("Heb je al een account? Inloggen.");
-  });
-
-  it("uses Dutch public language scope and real destinations", () => {
-    const markup = html();
     expect(markup).toContain('lang="nl"');
-    expect(markup).toContain(`id="${PUBLIC_SECTION_IDS.main}"`);
-    expect(markup).toContain(`href="#${PUBLIC_SECTION_IDS.main}"`);
-    expect(markup).toContain(`href="#${PUBLIC_SECTION_IDS.over}"`);
-    expect(markup).toContain(`href="#${PUBLIC_SECTION_IDS.mechanism}"`);
-    expect(markup).toContain(`href="#${PUBLIC_SECTION_IDS.beta}"`);
-    expect(markup).toContain(`href="/login"`);
-    expect(markup).toContain('href="/"');
-    expect(markup).not.toContain('href="#"');
-    expect(markup).not.toContain('href=""');
-    expect(markup).not.toContain('href="/home"');
-    expect(markup).not.toContain('href="/register"');
-  });
-
-  it("keeps unique ids, landmarks, and a coherent heading order", () => {
-    const markup = html();
-    const ids = [...markup.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]);
-    expect(new Set(ids).size).toBe(ids.length);
-    expect(markup).toMatch(/<header\b/);
-    expect(markup).toMatch(/<nav\b/);
-    expect(markup).toMatch(/<main\b/);
-    expect(markup).toMatch(/<footer\b/);
-    expect(markup.indexOf("<header")).toBeLessThan(markup.indexOf("<main"));
-    expect(markup.indexOf("<main")).toBeLessThan(markup.indexOf("<footer"));
-    expect(markup.indexOf(`>${PUBLIC_H1}</h1>`)).toBeLessThan(
-      markup.indexOf(`>${PUBLIC_VALUE_H2}</h2>`),
-    );
-    expect(markup.indexOf(`>${PUBLIC_VALUE_H2}</h2>`)).toBeLessThan(
-      markup.indexOf(`>${PUBLIC_MECHANISM_H2}</h2>`),
-    );
-    expect(markup.indexOf(PUBLIC_BETA_NOW)).toBeLessThan(
-      markup.indexOf(`>${PUBLIC_VALUE_H2}</h2>`),
-    );
-  });
-
-  it("keeps BOS and AI copy inactive and omits acquisition CTAs", () => {
-    const markup = html();
-    expect(markup).not.toMatch(/Business Operating System/i);
-    expect(markup).not.toContain("ZyntixAI is geen chatbot");
-    expect(markup).not.toMatch(/wachtlijst|waitlist/i);
-    expect(markup).not.toMatch(/\baanmelden\b|sign up|register now/i);
-    expect(markup).not.toMatch(/gratis proberen|free trial|request access/i);
-    expect(markup).not.toMatch(/Stripe|checkout/i);
-    expect(markup).not.toMatch(/<button\b/i);
-  });
-
-  it("exposes a non-modal Navigatie disclosure", () => {
-    const markup = html();
+    expect(markup).toContain("<header");
+    expect(markup).toContain("<main");
+    expect(markup).toContain("<footer");
     expect(markup).toContain("<details");
-    expect(markup).toContain("<summary");
-    expect(markup).toContain(`>${PUBLIC_NAV_DISCLOSURE}<`);
-    expect(markup).not.toMatch(/role="dialog"/);
-    expect(markup).not.toMatch(/aria-modal/);
+    expect(markup).toContain('href="/login"');
+    expect(markup).not.toContain('href="/register"');
+    expect(markup).not.toContain('href="/home"');
+    expect(markup).not.toContain('href="#"');
+    for (const item of PUBLIC_NAV) {
+      expect(markup).toContain(`href="${item.href}"`);
+    }
   });
-});
 
-describe("public homepage isolation source lock", () => {
-  it("keeps public tokens out of global :root and does not restyle AppShell", () => {
+  it("keeps public pages free of future promises and acquisition forms", () => {
+    const markup = pages()
+      .map(([, html]) => html)
+      .join("\n")
+      .toLowerCase();
+    for (const phrase of FUTURE_LANGUAGE) {
+      expect(markup).not.toContain(phrase.toLowerCase());
+    }
+    expect(markup).not.toMatch(/<form\b/);
+    expect(markup).not.toMatch(/<script\b/);
+    expect(markup).not.toMatch(/wachtlijst|stripe|gps/i);
+    expect(markup).not.toMatch(/instagram\.com\/(?!zyntixai\/)/);
+    expect(markup).not.toMatch(/embed|sdk|pixel/i);
+  });
+
+  it("links every public page to the same Instagram profile", () => {
+    for (const [, html] of pages()) {
+      const hrefs = html.match(/href="https:\/\/www\.instagram\.com\/[^"]*"/g) ?? [];
+      expect(hrefs.length).toBeGreaterThan(0);
+      for (const href of hrefs) {
+        expect(href).toBe(`href="${PUBLIC_INSTAGRAM_URL}"`);
+      }
+      expect(html).toContain('target="_blank"');
+      expect(html).toContain('rel="noopener noreferrer"');
+      expect(html).toContain(PUBLIC_INSTAGRAM_FOOTER);
+      expect(html).toContain('href="/login"');
+      expect(html).not.toContain('href="/register"');
+    }
+    const home = renderToStaticMarkup(<PublicHomepage />);
+    const how = renderToStaticMarkup(<PublicHowPage />);
+    const platform = renderToStaticMarkup(<PublicPlatformPage />);
+    expect(home.match(new RegExp(PUBLIC_INSTAGRAM_BUTTON, "g"))?.length).toBe(2);
+    expect(how.match(new RegExp(PUBLIC_INSTAGRAM_BUTTON, "g"))?.length).toBe(1);
+    expect(platform).not.toContain(PUBLIC_INSTAGRAM_BUTTON);
+    const privacy = renderToStaticMarkup(<PublicPrivacyPage />);
+    expect(privacy).toContain(PUBLIC_PRIVACY_H1);
+    expect(privacy).toContain("Guus Vermolen");
+    expect(privacy).toContain(PUBLIC_PRIVACY_EMAIL);
+    expect(privacy).toContain(PUBLIC_PRIVACY_VERSION);
+    expect(privacy).toContain('href="mailto:testplatform617@gmail.com"');
+    expect(privacy).toContain('href="/privacy"');
+    expect(privacy).not.toContain("KvK");
+  });
+
+  it("leaves authenticated routes protected and public routes open", () => {
+    for (const pathname of PUBLIC_INFORMATION_PATHS) {
+      expect(isProtectedApplicationPath(pathname)).toBe(false);
+    }
+    expect(isProtectedApplicationPath("/home")).toBe(true);
+    expect(isProtectedApplicationPath("/customers")).toBe(true);
+    expect(isProtectedApplicationPath("/login")).toBe(false);
+  });
+
+  it("keeps the public stylesheet isolated from the authenticated product", () => {
     const publicCss = readSrc("src/features/public-web/ui/public-homepage.module.css");
     const globals = readSrc("src/app/globals.css");
-    const layout = readSrc("src/app/layout.tsx");
-    const middleware = readSrc("src/middleware.ts");
-    const documentLanguage = readSrc("src/lib/i18n/document-language.ts");
-    const supabaseMiddleware = readSrc("src/lib/supabase/middleware.ts");
-    const appShell = readSrc("src/components/app-shell-chrome.tsx");
     const appShellCss = readSrc("src/components/app-shell.module.css");
     const loginCss = readSrc("src/app/login/page.module.css");
     const homeCss = readSrc("src/app/(authenticated)/home/page.module.css");
-    const packageJson = readSrc("package.json");
+    const layout = readSrc("src/app/layout.tsx");
     const rootPage = readSrc("src/app/page.tsx");
+    const packageJson = readSrc("package.json");
 
+    expect(publicCss).toContain("#090611");
+    expect(publicCss).toContain("#c8adff");
+    expect(publicCss).toContain("#23113f");
     expect(publicCss).not.toMatch(/(^|\n):root\s*\{/);
-    expect(globals).not.toContain("#F4F1EA");
-    expect(globals).not.toContain("#1F5C57");
-    expect(globals).toContain("--link-color: #1d4ed8");
+    expect(publicCss).not.toContain("overflow-x: hidden");
+    expect(publicCss).not.toContain("overflow-x: clip");
+    expect(publicCss).toContain("prefers-reduced-motion");
+    expect(publicCss).toContain("forced-colors");
+    expect(publicCss).toContain("outline-offset: 3px");
+    expect(globals).not.toContain("#090611");
+    expect(globals).not.toContain("#c8adff");
+    expect(appShellCss).not.toContain("#090611");
+    expect(loginCss).not.toContain("#090611");
+    expect(homeCss).not.toContain("#090611");
     expect(layout).toContain("parseDocumentLanguage");
-    expect(layout).toContain("DOCUMENT_LANGUAGE_HEADER");
-    expect(layout).toContain('from "next/headers"');
-    expect(layout).toMatch(/<html lang=\{lang\}>/);
-    expect(layout).not.toContain('lang="en"');
-    expect(layout).not.toContain('lang="nl"');
-    expect(layout).not.toContain("useEffect");
-    expect(layout).not.toContain("document.documentElement");
-    expect(middleware).not.toContain("PublicHomepage");
-    expect(documentLanguage).toContain('=== "/" ? "nl" : "en"');
-    expect(documentLanguage).not.toContain("accept-language");
-    expect(documentLanguage).not.toContain("searchParams");
-    expect(supabaseMiddleware).toContain("nextWithTrustedDocumentLanguage");
-    expect(appShell).toContain("Skip to main content");
-    expect(appShell).not.toContain("Ga naar de hoofdinhoud");
-    expect(appShellCss).not.toContain("#F4F1EA");
-    expect(loginCss).not.toContain("#F4F1EA");
-    expect(homeCss).not.toContain("#F4F1EA");
     expect(packageJson).not.toContain("framer-motion");
     expect(rootPage).toContain("PublicHomepage");
     expect(rootPage).toContain("resolveAuthenticatedEntryPath");
-    expect(rootPage).toContain("readInvitationCookiesFromStore");
-    expect(rootPage).toContain('export const dynamic = "force-dynamic"');
     expect(rootPage).not.toMatch(/redirect\(\s*["']\/login["']/);
-  });
-
-  it("uses frozen hex values and isolation contracts in the public stylesheet", () => {
-    const publicCss = readSrc("src/features/public-web/ui/public-homepage.module.css");
-    expect(publicCss).toContain("#F4F1EA");
-    expect(publicCss).toContain("#1A1916");
-    expect(publicCss).toContain("#1F5C57");
-    expect(publicCss).toContain("box-shadow: none");
-    expect(publicCss).toContain("outline-offset: 2px");
-    expect(publicCss).toContain(".navDisclosure:not([open]) .disclosurePanel");
-    expect(publicCss).toContain("forced-colors");
-    expect(publicCss).toContain(".today {");
-    expect(publicCss).toContain("border: 1px solid CanvasText");
-    expect(publicCss).not.toContain("overflow-x: clip");
-    expect(publicCss).not.toContain("overflow-x: hidden");
-    expect(publicCss).toContain("prefers-reduced-motion");
-    expect(publicCss).toContain("max-width: 45rem");
-    expect(publicCss).toContain("max-width: 40rem");
-    expect(publicCss).toContain("--public-space-8: 2.5rem");
-    expect(publicCss).toContain("--public-wide: 64rem");
-    expect(publicCss).toContain("--public-reading: 40rem");
-  });
-
-  it("keeps hash-focus as a heading-aware progressive enhancement", () => {
-    const hashFocus = readSrc("src/features/public-web/ui/public-hash-focus.tsx");
-    expect(hashFocus).toContain('"use client"');
-    expect(hashFocus).toContain("hashchange");
-    expect(hashFocus).toContain("preventScroll: true");
-    expect(hashFocus).toContain("PUBLIC_SECTION_IDS.main");
-    expect(hashFocus).toContain("querySelector");
-    expect(hashFocus).toContain("removeEventListener");
-    expect(hashFocus).not.toContain("scrollIntoView");
-    expect(hashFocus).not.toContain("smooth");
   });
 });

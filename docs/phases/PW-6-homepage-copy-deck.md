@@ -757,12 +757,12 @@ A banned term may appear in this file only inside BAN, risk, or rejected-candida
 | PW6-BAN-015 | vier complete oplossingen | Equal editions | PW1-CLM-055; PW5-OD-002 | Omit deferred TGs |
 | PW6-BAN-016 | volledig cursusplatform | LMS | PW1-CLM-071 | Operator relevance |
 | PW6-BAN-017 | LMS | Learner platform | PW1-CLM-071 | Explicit not-LMS qualifier |
-| PW6-BAN-018 | gratis | Commercial falsehood | PW1-CLM-037 | Omit |
+| PW6-BAN-018 | gratis, except the sentences in PW6-AMD-001 | Historical commercial falsehood on 2026-09-15, before an owner price decision | PW1-CLM-037 historical PROHIBIT; active exception PW1-AMD-001 | Omit voor altijd, onbeperkt, proefperiode, and upgrade. The authorized free-use sentences may be published |
 | PW6-BAN-019 | trial / proefperiode as offer | Commercial falsehood | PW1-CLM-038, 052 | Honest stop |
 | PW6-BAN-020 | start nu | Acquisition CTA | PW3-MSG-010 | Inloggen utility |
 | PW6-BAN-021 | meld je aan | Public signup | PW1-CLM-046 | Geen open aanmelding |
 | PW6-BAN-022 | word lid | Membership acquisition | PW1-CLM-046 | Existing accounts only |
-| PW6-BAN-023 | vraag toegang | HOLD treated as live | PW1-CLM-047 | No request control |
+| PW6-BAN-023 | vraag toegang, except the Instagram button in PW6-AMD-001 | On-site request treated as a live form | PW1-CLM-047 historical HOLD; active exception PW1-AMD-001 | No form, waitlist, or stored request. The authorized profile link may say Vraag toegang via Instagram |
 | PW6-BAN-024 | wachtlijst | HOLD treated as live | PW1-CLM-048 | No waitlist control |
 | PW6-BAN-025 | volledig veilig | Absolute security | PW1-CLM-034 | Named controls |
 | PW6-BAN-026 | GDPR/AVG compliant | Legal conclusion | PW1-CLM-041, 042 | Externally gated legal |
@@ -1979,3 +1979,27 @@ PW-6 CONFIRMED — READY FOR FINAL VERIFICATION AND COMMIT
 ```
 
 End of PW-6-R1 evidence.
+
+---
+
+## PW6-AMD-001 — Active copy exception of 2026-10-07
+
+This section is the active copy authority for the free-use sentences and the Instagram access link. The 2026-09-15 freeze, including PW6-BAN-018 and PW6-BAN-023 as originally written, remains the historical record. Those two rows now name this exception. They were not true on 2026-09-15.
+
+Authorized visible sentences:
+
+- `Gratis te gebruiken · Toegang op uitnodiging.`
+- `Ja, het gebruik van ZyntixAI is gratis.` The same answer keeps the real limits: no subscription in the product, invitation rather than public registration, not every part in every workspace, and costs of services outside ZyntixAI are not included.
+- Button: `Vraag toegang via Instagram`
+- `Interesse in toegang? Stuur @zyntixai een bericht op Instagram.`
+- `Een bericht garandeert geen toegang.`
+- FAQ answer: `Stuur @zyntixai een bericht op Instagram om toegang te vragen. Verzoeken worden handmatig beoordeeld. Als je wordt toegelaten, ontvang je een uitnodiging via ZyntixAI. Een bericht garandeert geen toegang.`
+- Footer link name: `Contact via Instagram`
+
+The only authorized destination is `https://www.instagram.com/zyntixai/`. The link opens the profile. It does not promise a direct-message window.
+
+Still forbidden after this exception: `gratis proefperiode`, a paid subscription offer, an upgrade offer, `voor altijd gratis`, `onbeperkt`, a public registration form, a waitlist, and a claim that external services are free.
+
+`Inloggen` stays a separate utility for existing accounts. This exception does not change registration, payment, or product configuration.
+
+The same owner instruction later on 2026-10-07 authorized the privacy page to name Guus Vermolen and `testplatform617@gmail.com`. That page is informational. It is not a new price, trial, or registration offer.

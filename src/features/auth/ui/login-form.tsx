@@ -152,6 +152,12 @@ export function LoginForm({
           Forgot password?
         </a>
       </p>
+      <p className={styles.footer}>
+        Email and password are used to sign in.{" "}
+        <a href="/privacy" className={styles.link}>
+          Privacy
+        </a>
+      </p>
 
       <button type="submit" className={styles.submit} disabled={isPending}>
         {isPending ? "Signing in…" : "Sign in"}

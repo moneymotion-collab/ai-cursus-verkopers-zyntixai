@@ -242,7 +242,7 @@ Factual status and public decision each have **exactly one** primary value per r
 | PW1-CLM-034 | Security controls | Tenant/role security tests and RLS exist as product controls | Security test packs; fail-closed nav | E3 | `tests/security/*` cited by MASTER-FV; `FAIL_CLOSED_MODULE_NAV_VISIBILITY`; AppShell gating | IMPLEMENTED AND INTEGRATION TESTED | Controls; not certifications | ALLOW WITH QUALIFIER | Describe controls, not “fully secure” | Module navigation is fail-closed until capability resolution. Tenant isolation is enforced in product loaders and tests. | “Enterprise-grade”; “SOC 2”; “unhackable”; “fully secure” | Security incident or control change | Trust §11 |
 | PW1-CLM-035 | Accessibility | Some surfaces have accessibility-oriented tests; no WCAG certification | Scope-limited a11y notes in historical UX FVs | E2 | B1.6.5 / B1.7.5 docs disclaim full WCAG; H1 skip-link contract | IMPLEMENTED WITH LIMITED EVIDENCE | Not a certified a11y program | HOLD | If mentioned, only “selected authenticated surfaces have accessibility tests”; not homepage a11y | (no current public wording approved) | “WCAG 2.2 AA certified”; “fully accessible website” | Public-page a11y audit | Later public implementation |
 | PW1-CLM-036 | Performance and reliability | Specific uptime, latency, or savings figures may be published | No SLA/uptime measurement authority | E0 | TG3 notes SLA engine out of scope; no SLA docs | NOT PRESENT | n/a | PROHIBIT | n/a | (none) | “99.9% uptime”; “faster than X”; “save N hours” | Measured Production SLO program | Not PW-1 |
-| PW1-CLM-037 | Pricing and “free” claims | Pricing, plans, or “free” access are published | No pricing routes or Stripe | E0 | No pricing pages; commercial surfaces absent | NOT PRESENT | Closed beta is not a published price | PROHIBIT | n/a | (none) | “Free”; “free forever”; “start free”; listed prices | Pricing authority + implementation | PW-3 must not invent prices |
+| PW1-CLM-037 | Pricing and “free” claims | Pricing, plans, or “free” access are published | No pricing routes or Stripe. Historical public decision on 2026-09-14 was PROHIBIT. Active rule is PW1-AMD-001 | E0 | No pricing pages; commercial surfaces absent | NOT PRESENT | Owner decision 2026-10-07; still no price list | ALLOW WITH QUALIFIER | Only PW1-AMD-001 sentences. Not forever, not unlimited, not a trial | Ja, het gebruik van ZyntixAI is gratis. Limits stay attached. | “Free forever”; “unlimited”; “start trial”; listed prices; upgrade offers | Owner reversal of PW1-AMD-001 | Active rule: PW1-AMD-001 |
 | PW1-CLM-038 | Pricing and “free” claims | Closed beta implies a free or trial product | No trial UX; no quota product | E0 | No trial/quota UI | UNKNOWN | Closed beta ≠ free claim | PROHIBIT | n/a | (none) | “Start trial”; “unlimited”; “free while in beta” without a commercial authority | Commercial policy document | Commercial owner |
 | PW1-CLM-039 | Customer/user counts | Any specific customer, user, company, or usage count | Only QA/fixture orgs in evidence | E0 | DATA-TRACK QA org; BETA1-FV tester memberships are QA; no traction metrics in UI | NOT PRESENT | QA ≠ customers | PROHIBIT | n/a | (none) | Any numeric traction; “used by N companies” | Independent customer-count authority | Never from fixtures |
 | PW1-CLM-040 | Testimonials / logos / reviews | Testimonials, customer logos, or review scores | None in product UI | E0 | No testimonial/logo/review widgets in `src/app` | NOT PRESENT | n/a | PROHIBIT | n/a | (none) | Quotes, logos, star ratings, “as used by” | Permissioned relationship evidence + PW-1 update | PW-3 |
@@ -252,9 +252,9 @@ Factual status and public decision each have **exactly one** primary value per r
 | PW1-CLM-044 | Roadmap and future-direction | Roadmap items may be stated as current capabilities | Problem catalogues and deferred TG lists are exclusions | E1 | SCOPE-FREEZE deferred lists; PW-0 deferred phases | PLANNED OR ENVISIONED | Future only if labeled | PROHIBIT | Future language must be explicit and not look like availability | (none as current capability) | Present tense for deferred suites | New implementation + FV | PW-3 future section only with HOLD items |
 | PW1-CLM-045 | Public CTAs | “Sign in” is an accurate public CTA to the sign-in page | `/login` 200 on Production (H1-FV); existing accounts only | E5 | Login page; H1-FV | PRODUCTION VERIFIED | Existing accounts | ALLOW WITH QUALIFIER | Existing accounts only; destination is the sign-in page, not account creation | Sign in | “Sign in” presented as account creation | Registration-policy change | PW-2 |
 | PW1-CLM-046 | Public CTAs | “Create account” / “Register” as public CTAs | `/register` exists but public policy fail-closes; live flag unknown | E3 | Register page redirect; `public-registration.ts`; PW1-RQ-002 | DISABLED OR INACTIVE | Public visitors must not be treated as eligible | PROHIBIT | n/a | (none) | Create account; Register; Join now | Public registration enablement + live smokecheck | PW-2 |
-| PW1-CLM-047 | Public CTAs | “Request beta access” as a public CTA | No public intake route or governed visitor workflow | E0 | No App Router waitlist/request page; BQA waitlist is internal | NOT PRESENT | HOLD rather than invent | HOLD | Do not invent a form | (none until a destination exists) | Fake request-access form; “apply on this page” | New intake implementation | PW-2 |
+| PW1-CLM-047 | Public CTAs | “Request beta access” as a public CTA | No on-site intake. Historical decision on 2026-09-14 was HOLD. Active rule is PW1-AMD-001 | E0 | No App Router waitlist/request page; BQA waitlist is internal | NOT PRESENT | Instagram profile link only; not a form | ALLOW WITH QUALIFIER | Exact profile https://www.instagram.com/zyntixai/ ; a message does not guarantee access | Vraag toegang via Instagram. | On-site request form; waitlist; automatic admission; DM window promised | Owner reversal of PW1-AMD-001 | Active rule: PW1-AMD-001 |
 | PW1-CLM-048 | Public CTAs | “Join waitlist” as a public CTA | BQA demand waitlist is internal support-admission, not public | E2 | `src/features/business-qualification/**`; no public page | IMPLEMENTED WITH LIMITED EVIDENCE | Internal BQA only | HOLD | Not a website waitlist | (none) | Public waitlist that writes BQA without a public UI | Public waitlist implementation | PW-2 |
-| PW1-CLM-049 | Public CTAs | “Contact” as a public CTA | No public contact page; authenticated support mailto only | E3 | `closed-beta-support-contact.ts`; no `/contact` | PARTIALLY IMPLEMENTED | Authenticated, env-gated | HOLD | Do not publish a contact destination that does not exist | (none for public page) | Public contact page; exposing support mailbox in copy | Public contact destination | PW-2 |
+| PW1-CLM-049 | Public CTAs | “Contact” as a public CTA | No public contact page; authenticated support mailto only. Historical decision on 2026-09-14 was HOLD. Active rule is PW1-AMD-001 | E3 | `closed-beta-support-contact.ts`; no `/contact` | PARTIALLY IMPLEMENTED | Instagram profile is the public invitation-request contact only | ALLOW WITH QUALIFIER | Footer contact link to the same profile; not a support SLA and not a privacy contact | Contact via Instagram. | Public contact form; publishing the support mailbox; treating Instagram as a privacy statement | Owner reversal of PW1-AMD-001 | Active rule: PW1-AMD-001 |
 | PW1-CLM-050 | Public CTAs | “View product” / marketing product tour | No public product pages | E0 | PW-0: no `(marketing)` / `(public)` group | NOT PRESENT | Current journey is login | HOLD | Current truthful journey is sign-in, not a tour | (none) | Product tour / screenshots implying a public app demo | Isolated public surface after design freeze | PW-2 / PW-13 |
 | PW1-CLM-051 | Public CTAs | “Watch demo” | No demo route or video surface found | E0 | App Router inventory | NOT PRESENT | n/a | HOLD | Do not invent | (none) | Demo video CTA without a destination | Demo asset + hosting | PW-2 |
 | PW1-CLM-052 | Public CTAs | “Start free” / “Start trial” | No trial or free-plan UX | E0 | No commercial surfaces | NOT PRESENT | n/a | PROHIBIT | n/a | (none) | Start free; start trial; no credit card | Commercial authority | PW-3 |
@@ -750,3 +750,38 @@ No product code changed. Only this untracked PW-1 document was modified.
 ```text
 PASS — PW-1-R1 PRODUCT TRUTH REVIEW CLOSED WITH EVIDENCE
 ```
+
+---
+
+## PW1-AMD-001 — Owner decisions of 2026-10-07
+
+This amendment is the active public rule for free use and Instagram contact. It does not rewrite the 2026-09-14 evidence, and it does not mean those decisions already existed at R1. The R1 sentence “Pricing/free/trial remain PROHIBIT” stays the historical conclusion of that review.
+
+Rows PW1-CLM-037, PW1-CLM-047, and PW1-CLM-049 now point here. PW1-CLM-038, PW1-CLM-046, and PW1-CLM-052 stay active prohibitions: no trial, no “free while in beta”, no “voor altijd”, no “onbeperkt”, no public registration, no upgrade offer, and no listed price.
+
+| ID | Active decision |
+| --- | --- |
+| PW1-AMD-001-A | Public copy may say that use of ZyntixAI is free. Required limits stay attached: not every part is in every workspace, and costs of services outside ZyntixAI are not included. |
+| PW1-AMD-001-B | Invitation requests may use the ordinary link `https://www.instagram.com/zyntixai/`. The owner reads messages manually and sends invitations through the existing invitation feature. A message does not guarantee access. |
+| PW1-AMD-001-C | These decisions do not change registration, payment, or product configuration. `PUBLIC_REGISTRATION_ENABLED` stays fail-closed unless it is the exact string `true`. No Stripe, subscription, or trial surface is added. |
+
+Owner description recorded with the same decision: ZyntixAI is a personal hobby and learning project. This amendment does not invent a company, legal form, address, or KvK number.
+
+### Attention point — example env versus live invitation behavior
+
+Observed 2026-10-07, without a continuation cookie:
+
+- `GET https://www.zyntixai.com/register` returned `307` to `/login?registration=disabled`. That shows the live registration route is closed to a public signup. It does not show a successful account creation.
+- `GET https://www.zyntixai.com/invite/accept` returned the heading `Invitation unavailable` and the sentence `This invitation link is unavailable. Request a new invitation from your organization administrator if you still need access.` In `src/app/invite/accept/page.tsx`, that heading belongs to `UnavailableState`. `FeatureDisabledState` is the branch when `isInvitationsFeatureEnabled()` is false, and its heading is `Invitations are temporarily unavailable`. The live heading therefore shows that the feature-disabled branch was not taken.
+- A reachable unavailable-invitation screen does not prove that an invitation was created, emailed, or accepted.
+
+`.env.example` keeps `INVITATIONS_ENABLED=false` because that file documents a fail-closed development default. This amendment does not change production variables and does not change that example. The difference between the example default and the live feature-enabled branch stays an attention point.
+
+### Same-day addition — controller and privacy contact
+
+A later owner instruction on 2026-10-07 named the controller and the privacy contact. This is not a second commercial decision and does not replace PW1-AMD-001-A through C.
+
+- Controller: Guus Vermolen, personal hobby and learning project.
+- Privacy contact: `testplatform617@gmail.com`.
+- Invitation contact remains `https://www.instagram.com/zyntixai/`.
+- No legal form, KvK number, or address was provided. None is invented here.

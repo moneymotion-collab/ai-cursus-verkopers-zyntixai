@@ -196,6 +196,12 @@ export function RegisterForm({ mode = "owner" }: RegisterFormProps) {
           Sign in
         </Link>
       </p>
+      <p className={styles.footer}>
+        These details are used to continue an invited account.{" "}
+        <Link href="/privacy" className={styles.link}>
+          Privacy
+        </Link>
+      </p>
     </form>
   );
 }

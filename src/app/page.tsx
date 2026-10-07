@@ -3,7 +3,16 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { resolveAuthenticatedEntryPath } from "@/features/auth/server/resolve-registration-destination";
 import { readInvitationCookiesFromStore } from "@/features/invitations/server/resolve-invitation-auth-state";
+import { PUBLIC_HOME_DESCRIPTION, PUBLIC_HOME_TITLE } from "@/features/public-web/copy";
+import { publicPageMetadata } from "@/features/public-web/metadata";
+import { PUBLIC_HOME_PATH } from "@/features/public-web/paths";
 import { PublicHomepage } from "@/features/public-web/ui/public-homepage";
+
+export const metadata = publicPageMetadata({
+  title: PUBLIC_HOME_TITLE,
+  description: PUBLIC_HOME_DESCRIPTION,
+  path: PUBLIC_HOME_PATH,
+});
 
 export const dynamic = "force-dynamic";
 

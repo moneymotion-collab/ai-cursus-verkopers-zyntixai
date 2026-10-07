@@ -7,15 +7,20 @@ import {
   parseDocumentLanguage,
   resolveDocumentLanguageFromPathname,
 } from "@/lib/i18n/document-language";
+import { DUTCH_PUBLIC_PATHNAMES } from "@/lib/i18n/dutch-public-paths";
 
 describe("resolveDocumentLanguageFromPathname", () => {
-  it("assigns Dutch only to the public homepage path", () => {
+  it("assigns Dutch to the public information pages", () => {
     expect(resolveDocumentLanguageFromPathname("/")).toBe("nl");
     expect(resolveDocumentLanguageFromPathname("")).toBe("nl");
     expect(resolveDocumentLanguageFromPathname("/?ref=nav")).toBe("nl");
+    for (const pathname of DUTCH_PUBLIC_PATHNAMES) {
+      expect(resolveDocumentLanguageFromPathname(pathname)).toBe("nl");
+      expect(resolveDocumentLanguageFromPathname(`${pathname}/`)).toBe("nl");
+    }
   });
 
-  it("normalizes a trailing slash on the homepage without treating other routes as Dutch", () => {
+  it("normalizes a trailing slash on the homepage without treating product routes as Dutch", () => {
     expect(resolveDocumentLanguageFromPathname("///")).toBe("nl");
     expect(resolveDocumentLanguageFromPathname("/login/")).toBe("en");
     expect(resolveDocumentLanguageFromPathname("/home/")).toBe("en");

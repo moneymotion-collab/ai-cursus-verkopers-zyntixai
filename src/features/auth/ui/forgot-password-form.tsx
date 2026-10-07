@@ -123,6 +123,12 @@ export function ForgotPasswordForm({
           Back to sign in
         </Link>
       </p>
+      <p className={styles.footer}>
+        This email is used only to send a reset link when an account exists.{" "}
+        <Link href="/privacy" className={styles.link}>
+          Privacy
+        </Link>
+      </p>
     </form>
   );
 }
