@@ -240,7 +240,7 @@ export const PUBLIC_PRIVACY_SECTIONS = [
     paragraphs: [
       "Account- en werkruimtegegevens blijven staan zolang het account bestaat. In het product zit geen automatische verwijdering. Verwijderen gebeurt na een verzoek aan het privacycontact, niet door een taak die in de code al is bewezen.",
       "Supabase documenteert dagelijkse databaseback-ups voor Pro (7 dagen), Team (14 dagen) en Enterprise (tot 30 dagen). Voor het Free-plan documenteert Supabase die reeks niet en raadt het een eigen export aan. Het abonnement van het productieproject is met de opgevraagde projectgegevens niet vastgesteld. Daarom noemt deze tekst geen van die termijnen als de termijn van ZyntixAI. Na verwijdering kan een back-up de gegevens nog bevatten tot die back-up volgens het dan geldende abonnement vervalt. Point-in-time recovery is een aparte betaalde optie; niet vastgesteld of die aan staat.",
-      "Vercel documenteert de bewaring van runtime logs per abonnement: 1 uur op Hobby, 1 dag op Pro, 30 dagen op Pro met Observability Plus, 3 dagen op Enterprise en 30 dagen op Enterprise met Observability Plus. Het abonnement van dit Vercel-project is met project inspect niet als \u00e9\u00e9n van die rijen vastgesteld. De logs blijven dus staan volgens de rij van het actieve abonnement, en niet volgens een zelf gekozen termijn.",
+      "Vercel documenteert de bewaring van runtime logs per abonnement: 1 uur op Hobby, 1 dag op Pro, 30 dagen op Pro met Observability Plus, 3 dagen op Enterprise en 30 dagen op Enterprise met Observability Plus. De deploymentmetadata van de productiepublicatie op 7 oktober 2026 noemt het abonnement Hobby. Runtime logs blijven op dat abonnement 1 uur staan.",
     ],
   },
   {
