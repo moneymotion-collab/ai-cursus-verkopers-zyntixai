@@ -20,6 +20,16 @@ import {
 } from "@/features/attention/ui/attention-presentation";
 import { resolveAttentionEmptyState } from "@/features/attention/ui/attention-empty-state";
 import {
+  operatingModelNavVisibility,
+  terminologyForOperatingModel,
+} from "@/features/product-access/domain/operating-model-module-access";
+import {
+  FIELD_MODULE_NAV_VISIBILITY,
+  FIELD_PRODUCT_TERMINOLOGY,
+  KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY,
+  SERVICE_MODULE_NAV_VISIBILITY,
+} from "../features/product-access/module-access-fixtures";
+import {
   ATTENTION_ITEM_ID,
   CUSTOMER_ID,
   ENROLLMENT_ID,
@@ -157,7 +167,11 @@ describe("attention empty state (B1.7.5-A/C)", () => {
   it("distinguishes workspace empty from filtered no-results", () => {
     const empty = resolveAttentionEmptyState();
     expect(empty.title).toBe("No attention items yet");
-    expect(empty.description).toContain("detected for enrollments or Social operations");
+    expect(empty.description).toBe(
+      "When Attention items are detected for this organization, they appear here.",
+    );
+    expect(empty.description).not.toContain("enrollment");
+    expect(empty.description).not.toContain("Social");
     expect(resolveAttentionEmptyState({ hasActiveFilters: true }).title).toBe(
       "No attention items match these filters",
     );
@@ -167,5 +181,47 @@ describe("attention empty state (B1.7.5-A/C)", () => {
         clearHref: "/attention",
       }).clearHref,
     ).toBe("/attention");
+  });
+
+  it("uses Job terminology and omits hidden enrollment and Social copy for field workspaces", () => {
+    const empty = resolveAttentionEmptyState({
+      navVisibility: FIELD_MODULE_NAV_VISIBILITY,
+      projectPlural: FIELD_PRODUCT_TERMINOLOGY.project.plural,
+    });
+    expect(empty.description).toContain("jobs");
+    expect(empty.description).not.toContain("enrollment");
+    expect(empty.description).not.toContain("Social");
+    expect(empty.description).not.toContain("project");
+  });
+
+  it("keeps project wording for a service workspace and enrollment wording for knowledge", () => {
+    const service = resolveAttentionEmptyState({
+      navVisibility: SERVICE_MODULE_NAV_VISIBILITY,
+      projectPlural: "Projects",
+    });
+    expect(service.description).toContain("projects");
+    expect(service.description).not.toContain("enrollment");
+    expect(service.description).not.toContain("Social");
+
+    const knowledge = resolveAttentionEmptyState({
+      navVisibility: KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY,
+      projectPlural: "Projects",
+    });
+    expect(knowledge.description).toContain("enrollments");
+    expect(knowledge.description).not.toContain("projects");
+    expect(knowledge.description).not.toContain("Social");
+  });
+
+  it("uses a neutral empty message for product workspaces without enrollment or project modules", () => {
+    const product = resolveAttentionEmptyState({
+      navVisibility: operatingModelNavVisibility("product_operations"),
+      projectPlural: terminologyForOperatingModel("product_operations").project.plural,
+    });
+    expect(product.description).toBe(
+      "When Attention items are detected for this organization, they appear here.",
+    );
+    expect(product.description).not.toContain("enrollment");
+    expect(product.description).not.toContain("Social");
+    expect(product.description).not.toContain("project");
   });
 });

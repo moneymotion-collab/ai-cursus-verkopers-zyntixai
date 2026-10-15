@@ -10,10 +10,9 @@
 
 .pageHeaderRow {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 0.75rem;
-  align-items: center;
-  justify-content: space-between;
 }
 
 .newCustomerLink {
@@ -22,9 +21,9 @@
   align-items: center;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
-  border: 1px solid #1d4ed8;
-  background: #2563eb;
-  color: #fff;
+  border: 1px solid #c8adff;
+  background: #c8adff;
+  color: #23113f;
   font-weight: 600;
   text-decoration: none;
 }
@@ -37,6 +36,16 @@
 .pageHeader h1 {
   margin: 0;
   font-size: 1.75rem;
+  color: #f3e8ff;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 40rem) {
+  .pageHeaderRow {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 
 .subtitle,

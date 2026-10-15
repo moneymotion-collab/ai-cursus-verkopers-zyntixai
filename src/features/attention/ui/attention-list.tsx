@@ -3,6 +3,7 @@ import type { AttentionListWorkspaceRow } from "@/features/attention/ui/load-att
 import { AttentionEmptyPanel } from "@/features/attention/ui/attention-state-panels";
 import { canShowAttentionLifecycleActions } from "@/features/attention/ui/attention-workflow-visibility";
 import type { AttentionSeverity } from "@/features/attention/domain/types";
+import type { ModuleNavVisibility } from "@/features/product-access/domain/types";
 import styles from "./attention-list.module.css";
 
 function severityBadgeVariant(
@@ -44,6 +45,8 @@ export type AttentionListPresentationProps = {
   hasActiveFilters?: boolean;
   outOfRangePage?: boolean;
   clearHref?: string;
+  navVisibility?: ModuleNavVisibility;
+  projectPlural?: string;
 };
 
 function AttentionListItemMeta({ row }: { row: AttentionListWorkspaceRow }) {
@@ -103,6 +106,8 @@ export function AttentionListPresentation({
   hasActiveFilters = false,
   outOfRangePage = false,
   clearHref,
+  navVisibility,
+  projectPlural,
 }: AttentionListPresentationProps) {
   const showLifecycle = canShowAttentionLifecycleActions();
 
@@ -112,6 +117,8 @@ export function AttentionListPresentation({
         hasActiveFilters={hasActiveFilters}
         outOfRangePage={outOfRangePage}
         clearHref={clearHref}
+        navVisibility={navVisibility}
+        projectPlural={projectPlural}
       />
     );
   }
@@ -122,7 +129,7 @@ export function AttentionListPresentation({
         <p>Lifecycle actions must never render in B1.7.5 list workspace.</p>
       ) : null}
 
-      <div className={styles.tableWrap}>
+      <div className={styles.tableWrap} role="region" aria-label="Attention table" tabIndex={0}>
         <table className={styles.table}>
           <caption className={styles.visuallyHidden}>
             Attention items for {organizationName}

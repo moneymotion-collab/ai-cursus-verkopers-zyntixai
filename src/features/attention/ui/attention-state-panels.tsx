@@ -2,6 +2,7 @@ import { Alert } from "@/components/ui/alert";
 import type { OrganizationOption } from "@/features/tasks/ui/resolve-task-organization-selection";
 import { ATTENTION_ROUTE } from "@/features/attention/domain/attention-navigation";
 import { resolveAttentionEmptyState } from "@/features/attention/ui/attention-empty-state";
+import type { ModuleNavVisibility } from "@/features/product-access/domain/types";
 import styles from "./attention-states.module.css";
 
 export function AttentionAuthRequiredPanel() {
@@ -92,15 +93,21 @@ export function AttentionEmptyPanel({
   hasActiveFilters = false,
   outOfRangePage = false,
   clearHref,
+  navVisibility,
+  projectPlural,
 }: {
   hasActiveFilters?: boolean;
   outOfRangePage?: boolean;
   clearHref?: string;
+  navVisibility?: ModuleNavVisibility;
+  projectPlural?: string;
 }) {
   const empty = resolveAttentionEmptyState({
     hasActiveFilters,
     outOfRangePage,
     clearHref,
+    navVisibility,
+    projectPlural,
   });
   return (
     <section className={styles.emptyPanel} aria-labelledby="attention-empty-title">

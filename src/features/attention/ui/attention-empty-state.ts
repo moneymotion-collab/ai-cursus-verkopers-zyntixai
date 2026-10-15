@@ -1,3 +1,5 @@
+import type { ModuleNavVisibility } from "@/features/product-access/domain/types";
+
 /**
  * Foundation empty-state copy for Attention.
  * Distinguishes workspace-empty vs filtered no-results.
@@ -12,7 +14,27 @@ export type AttentionEmptyStateInput = {
   hasActiveFilters?: boolean;
   clearHref?: string;
   outOfRangePage?: boolean;
+  navVisibility?: ModuleNavVisibility;
+  projectPlural?: string;
 };
+
+function workspaceEmptyDescription(input: AttentionEmptyStateInput): string {
+  const subjects: string[] = [];
+  if (input.navVisibility?.enrollments) {
+    subjects.push("enrollments");
+  }
+  if (input.navVisibility?.projects) {
+    subjects.push((input.projectPlural ?? "Projects").toLowerCase());
+  }
+  if (subjects.length === 0) {
+    return "When Attention items are detected for this organization, they appear here.";
+  }
+  const named =
+    subjects.length === 1
+      ? subjects[0]
+      : `${subjects.slice(0, -1).join(", ")} or ${subjects[subjects.length - 1]}`;
+  return `When Attention items are detected for ${named} in this organization, they appear here.`;
+}
 
 export function resolveAttentionEmptyState(
   input: AttentionEmptyStateInput = {},
@@ -37,7 +59,6 @@ export function resolveAttentionEmptyState(
 
   return {
     title: "No attention items yet",
-    description:
-      "When Attention items are detected for enrollments or Social operations in this organization, they appear here.",
+    description: workspaceEmptyDescription(input),
   };
 }

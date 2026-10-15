@@ -20,6 +20,7 @@ type ProgramCreateFormProps = {
   organizationId: string;
   listState: ProgramListUrlState;
   cancelHref: string;
+  initialUiState?: ProgramFormUiState;
 };
 
 const DEFAULT_DELIVERY_MODE: ProgramDeliveryMode = "self_paced";
@@ -28,10 +29,11 @@ export function ProgramCreateForm({
   organizationId,
   listState,
   cancelHref,
+  initialUiState = { kind: "idle" },
 }: ProgramCreateFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
-  const [uiState, setUiState] = useState<ProgramFormUiState>({ kind: "idle" });
+  const [uiState, setUiState] = useState<ProgramFormUiState>(initialUiState);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [deliveryMode, setDeliveryMode] = useState<ProgramDeliveryMode>(DEFAULT_DELIVERY_MODE);

@@ -18,6 +18,7 @@ type DailyOperatingBriefPanelProps = {
   attentionQueryFailed: boolean;
   tasksQueryFailed: boolean;
   moduleNavVisibility: ModuleNavVisibility;
+  previewModuleHrefs?: Partial<Record<"attention" | "tasks" | "leads", string>>;
 };
 
 function Section({
@@ -30,6 +31,7 @@ function Section({
   failedMessage,
   children,
   itemCount,
+  emphasis = false,
 }: {
   title: string;
   emptyTitle: string;
@@ -40,10 +42,15 @@ function Section({
   failedMessage?: string;
   children: React.ReactNode;
   itemCount: number;
+  emphasis?: boolean;
 }) {
   const headingId = title.replace(/\s+/g, "-").toLowerCase();
   return (
-    <section className={styles.section} aria-labelledby={headingId}>
+    <section
+      className={styles.section}
+      aria-labelledby={headingId}
+      data-emphasis={emphasis ? "attention" : undefined}
+    >
       <div className={styles.sectionHeader}>
         <h2 id={headingId}>{title}</h2>
         {viewAllHref ? (
@@ -92,6 +99,7 @@ export function DailyOperatingBriefPanel({
   attentionQueryFailed,
   tasksQueryFailed,
   moduleNavVisibility,
+  previewModuleHrefs,
 }: DailyOperatingBriefPanelProps) {
   const showOrgAttention = brief.role === "owner" || brief.role === "admin";
   const showCalm = isDailyOperatingCalmState({
@@ -103,28 +111,37 @@ export function DailyOperatingBriefPanel({
     ? resolveDailyOperatingCalmActions({
         navVisibility: moduleNavVisibility,
         organizationId: brief.organizationId,
-      })
+      }).map((action) => ({
+        ...action,
+        href: previewModuleHrefs?.[action.moduleId as "attention" | "tasks" | "leads"] ?? action.href,
+      }))
     : [];
-  const attentionListHref = moduleNavVisibility.attention
-    ? buildDailyOperatingModuleHref(
-        PRODUCT_MODULE_BY_ID.attention.route,
-        brief.organizationId,
-      )
-    : null;
-  const overdueListHref = moduleNavVisibility.tasks
-    ? buildDailyOperatingModuleHref(
-        PRODUCT_MODULE_BY_ID.tasks.route,
-        brief.organizationId,
-        { dueState: "overdue" },
-      )
-    : null;
-  const dueTodayListHref = moduleNavVisibility.tasks
-    ? buildDailyOperatingModuleHref(
-        PRODUCT_MODULE_BY_ID.tasks.route,
-        brief.organizationId,
-        { dueState: "due_today" },
-      )
-    : null;
+  const attentionListHref = previewModuleHrefs?.attention
+    ? previewModuleHrefs.attention
+    : moduleNavVisibility.attention
+      ? buildDailyOperatingModuleHref(
+          PRODUCT_MODULE_BY_ID.attention.route,
+          brief.organizationId,
+        )
+      : null;
+  const overdueListHref = previewModuleHrefs?.tasks
+    ? previewModuleHrefs.tasks
+    : moduleNavVisibility.tasks
+      ? buildDailyOperatingModuleHref(
+          PRODUCT_MODULE_BY_ID.tasks.route,
+          brief.organizationId,
+          { dueState: "overdue" },
+        )
+      : null;
+  const dueTodayListHref = previewModuleHrefs?.tasks
+    ? previewModuleHrefs.tasks
+    : moduleNavVisibility.tasks
+      ? buildDailyOperatingModuleHref(
+          PRODUCT_MODULE_BY_ID.tasks.route,
+          brief.organizationId,
+          { dueState: "due_today" },
+        )
+      : null;
 
   const partialTitle = attentionQueryFailed && !tasksQueryFailed
     ? "Attention could not be loaded. Task items below may still be accurate."
@@ -138,7 +155,7 @@ export function DailyOperatingBriefPanel({
     <div className={styles.root}>
       {partialTitle ? (
         <div className={styles.partialWarning}>
-          <Alert variant="warning" title={partialTitle} />
+          <Alert variant="warning" surface="dark" title={partialTitle} />
         </div>
       ) : null}
 
@@ -160,6 +177,7 @@ export function DailyOperatingBriefPanel({
 
       {showOrgAttention ? (
         <Section
+          emphasis
           title="Organization attention"
           emptyTitle="Nothing urgent needs organization attention."
           emptyDescription="Critical and high Attention for this organization will appear here."
@@ -189,6 +207,7 @@ export function DailyOperatingBriefPanel({
       ) : null}
 
       <Section
+        emphasis
         title="Assigned to me — Attention"
         emptyTitle="No Attention is assigned to you."
         emptyDescription="Items assigned to you will appear here when they need action."

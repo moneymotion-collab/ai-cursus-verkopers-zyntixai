@@ -33,6 +33,7 @@ type EnrollmentCreateFormProps = {
   initialProgramId?: string;
   contextNotice?: string;
   duplicateOpenNotice?: string;
+  initialUiState?: EnrollmentFormUiState;
 };
 
 const DEFAULT_INITIAL_STATUS: EnrollmentInitialStatus = "pending";
@@ -50,10 +51,11 @@ export function EnrollmentCreateForm({
   initialProgramId,
   contextNotice,
   duplicateOpenNotice,
+  initialUiState = { kind: "idle" },
 }: EnrollmentCreateFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
-  const [uiState, setUiState] = useState<EnrollmentFormUiState>({ kind: "idle" });
+  const [uiState, setUiState] = useState<EnrollmentFormUiState>(initialUiState);
   const [customerId, setCustomerId] = useState(initialCustomerId ?? "");
   const [programId, setProgramId] = useState(initialProgramId ?? "");
   const [initialStatus, setInitialStatus] = useState<EnrollmentInitialStatus>(

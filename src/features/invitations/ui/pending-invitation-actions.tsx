@@ -14,9 +14,10 @@ export type PendingInvitationActionsProps = {
   canRevoke: boolean;
   /** Stable section heading for revoke-success focus restoration. */
   pendingHeadingRef?: RefObject<HTMLElement | null>;
+  initialFeedback?: ActionFeedback;
 };
 
-type ActionFeedback =
+export type ActionFeedback =
   | { kind: "idle" }
   | { kind: "resending" }
   | { kind: "revoking" }
@@ -35,12 +36,13 @@ export function PendingInvitationActions({
   canResend,
   canRevoke,
   pendingHeadingRef,
+  initialFeedback = { kind: "idle" },
 }: PendingInvitationActionsProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
   const revokeButtonRef = useRef<HTMLButtonElement>(null);
   const restoreRevokeFocusRef = useRef(false);
-  const [feedback, setFeedback] = useState<ActionFeedback>({ kind: "idle" });
+  const [feedback, setFeedback] = useState<ActionFeedback>(initialFeedback);
 
   useEffect(() => {
     if (!restoreRevokeFocusRef.current) {

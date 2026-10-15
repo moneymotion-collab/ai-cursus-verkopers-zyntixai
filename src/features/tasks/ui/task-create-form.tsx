@@ -16,9 +16,24 @@ import {
   buildTaskDetailHref,
 } from "@/features/tasks/ui/task-navigation";
 import type { TaskListUrlState } from "@/features/tasks/ui/task-list-search-params";
+import { FAIL_CLOSED_MODULE_NAV_VISIBILITY } from "@/features/product-access/domain/module-access";
+import {
+  DEFAULT_PRODUCT_TERMINOLOGY,
+  type ProductTerminology,
+} from "@/features/product-access/domain/terminology";
+import type { ModuleNavVisibility } from "@/features/product-access/domain/types";
 import styles from "./task-form.module.css";
 
 type ContextType = "lead" | "customer" | "enrollment" | "project";
+
+const CONTEXT_MODULE = {
+  lead: "leads",
+  customer: "customers",
+  enrollment: "enrollments",
+  project: "projects",
+} as const satisfies Record<ContextType, keyof ModuleNavVisibility>;
+
+const CONTEXT_TYPES = ["lead", "customer", "enrollment", "project"] as const;
 
 type TaskCreateFormProps = {
   organizationId: string;
@@ -26,7 +41,10 @@ type TaskCreateFormProps = {
   listState: TaskListUrlState;
   options: TaskFormOptions;
   cancelHref: string;
+  navVisibility?: ModuleNavVisibility;
+  terminology?: ProductTerminology;
   initialContext?: { contextType: "project"; contextEntityId: string } | null;
+  initialUiState?: TaskFormUiState;
 };
 
 const TYPE_LABELS: Record<(typeof TASK_TYPES)[number], string> = {
@@ -42,25 +60,38 @@ export function TaskCreateForm({
   listState,
   options,
   cancelHref,
+  navVisibility = FAIL_CLOSED_MODULE_NAV_VISIBILITY,
+  terminology = DEFAULT_PRODUCT_TERMINOLOGY,
   initialContext,
+  initialUiState = { kind: "idle" },
 }: TaskCreateFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
   const projectOptions = options.projects ?? [];
-  const [uiState, setUiState] = useState<TaskFormUiState>({ kind: "idle" });
-  const [contextType, setContextType] = useState<ContextType>(
-    initialContext
-      ? initialContext.contextType
-      : options.leads.length > 0
-        ? "lead"
-        : options.customers.length > 0
-          ? "customer"
-          : options.enrollments.length > 0
-            ? "enrollment"
-            : projectOptions.length > 0
-              ? "project"
-              : "enrollment",
-  );
+  const visibleContextTypes = CONTEXT_TYPES.filter((type) => navVisibility[CONTEXT_MODULE[type]]);
+  function recordCount(type: ContextType): number {
+    if (type === "lead") return options.leads.length;
+    if (type === "customer") return options.customers.length;
+    if (type === "enrollment") return options.enrollments.length;
+    return projectOptions.length;
+  }
+  function contextLabel(type: ContextType): string {
+    if (type === "customer") return terminology.customer.singular;
+    if (type === "project") return terminology.project.singular;
+    if (type === "enrollment") return "Enrollment";
+    return "Lead";
+  }
+  const [uiState, setUiState] = useState<TaskFormUiState>(initialUiState);
+  const [contextType, setContextType] = useState<ContextType>(() => {
+    if (initialContext && visibleContextTypes.includes(initialContext.contextType)) {
+      return initialContext.contextType;
+    }
+    return (
+      visibleContextTypes.find((type) => recordCount(type) > 0) ??
+      visibleContextTypes[0] ??
+      "lead"
+    );
+  });
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -286,30 +317,15 @@ export function TaskCreateForm({
               setContextEntityId("");
             }}
           >
-            <option value="lead" disabled={options.leads.length === 0}>
-              Lead
-            </option>
-            <option value="customer" disabled={options.customers.length === 0}>
-              Customer
-            </option>
-            <option value="enrollment" disabled={options.enrollments.length === 0}>
-              Enrollment
-            </option>
-            <option value="project" disabled={projectOptions.length === 0}>
-              Project
-            </option>
+            {visibleContextTypes.map((type) => (
+              <option key={type} value={type} disabled={recordCount(type) === 0}>
+                {contextLabel(type)}
+              </option>
+            ))}
           </select>
         </div>
         <div className={styles.field}>
-          <label htmlFor="create-context-entity">
-            {contextType === "lead"
-              ? "Lead"
-              : contextType === "customer"
-                ? "Customer"
-                : contextType === "enrollment"
-                  ? "Enrollment"
-                  : "Project"}
-          </label>
+          <label htmlFor="create-context-entity">{contextLabel(contextType)}</label>
           <select
             id="create-context-entity"
             name="contextEntityId"

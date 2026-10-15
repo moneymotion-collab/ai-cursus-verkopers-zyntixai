@@ -4,6 +4,7 @@
   padding: 1rem;
   background: var(--surface-color);
   margin-bottom: 1.25rem;
+  min-width: 0;
 }
 
 .heading {
@@ -33,10 +34,15 @@
 .field select,
 .fieldWide input {
   min-height: 2.75rem;
+  min-width: 0;
   padding: 0.5rem 0.625rem;
   border: 1px solid var(--border-color);
   border-radius: 0.375rem;
   width: 100%;
+  max-width: 100%;
+  background: #21132b;
+  color: #f6f1ff;
+  color-scheme: dark;
 }
 
 .checkboxField {
@@ -62,8 +68,9 @@
   min-width: 2.75rem;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
-  border: 1px solid var(--border-color);
-  background: #fff;
+  border: 1px solid #3d2b58;
+  background: #21132b;
+  color: #f6f1ff;
   font-weight: 600;
   cursor: pointer;
 }

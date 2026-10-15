@@ -16,7 +16,10 @@ import {
   toMemberAdminMemberPresentation,
   toPendingInvitationPresentation,
 } from "@/features/invitations/ui/member-administration-presentation";
-import { PendingInvitationActions } from "@/features/invitations/ui/pending-invitation-actions";
+import {
+  PendingInvitationActions,
+  type ActionFeedback,
+} from "@/features/invitations/ui/pending-invitation-actions";
 import styles from "./member-administration-lists.module.css";
 
 type ActiveMembersSectionProps = {
@@ -33,6 +36,7 @@ type PendingInvitationsSectionProps = {
   errorMessage?: string;
   organizationId: string;
   actorRole: OrganizationRole;
+  actionInitialFeedback?: ActionFeedback;
 };
 
 function resolvePendingActionCapabilities(
@@ -117,7 +121,12 @@ export function ActiveMembersSection({
         </div>
       ) : (
         <div className={styles.listContainer}>
-          <div className={styles.tableWrap}>
+          <div
+            className={styles.tableWrap}
+            role="region"
+            tabIndex={0}
+            aria-label="Active members table"
+          >
             <table className={styles.table}>
               <caption className={styles.visuallyHidden}>
                 Active organization members
@@ -184,6 +193,7 @@ export function PendingInvitationsSection({
   errorMessage,
   organizationId,
   actorRole,
+  actionInitialFeedback,
 }: PendingInvitationsSectionProps) {
   const pendingHeadingRef = useRef<HTMLHeadingElement>(null);
   const nowIso = new Date().toISOString();
@@ -244,7 +254,12 @@ export function PendingInvitationsSection({
           </p>
         </div>
       ) : (
-        <div className={styles.listContainer}>
+        <div
+          className={`${styles.listContainer} ${styles.pendingScroll}`}
+          role="region"
+          tabIndex={0}
+          aria-label="Pending invitations table"
+        >
           <table className={styles.pendingTable}>
             <caption className={styles.visuallyHidden}>
               Pending organization invitations
@@ -284,6 +299,7 @@ export function PendingInvitationsSection({
                         canResend={row.canResend}
                         canRevoke={row.canRevoke}
                         pendingHeadingRef={pendingHeadingRef}
+                        initialFeedback={actionInitialFeedback}
                       />
                     ) : row.showOwnerManageHint ? (
                       <p className={styles.manageHint}>

@@ -16,6 +16,10 @@ import {
 } from "@/features/customers/ui/customer-form-state";
 import { buildCustomerDetailHref } from "@/features/customers/ui/customer-navigation";
 import type { CustomerListUrlState } from "@/features/customers/ui/customer-list-search-params";
+import {
+  DEFAULT_PRODUCT_TERMINOLOGY,
+  type ProductTerminology,
+} from "@/features/product-access/domain/terminology";
 import styles from "./customer-form.module.css";
 
 type CustomerCreateFormProps = {
@@ -23,6 +27,8 @@ type CustomerCreateFormProps = {
   listState: CustomerListUrlState;
   ownerOptions: CustomerOwnerFormOptions;
   cancelHref: string;
+  terminology?: ProductTerminology;
+  initialUiState?: CustomerFormUiState;
 };
 
 function resolveOwnerMemberId(value: string): string | null {
@@ -37,10 +43,14 @@ export function CustomerCreateForm({
   listState,
   ownerOptions,
   cancelHref,
+  terminology = DEFAULT_PRODUCT_TERMINOLOGY,
+  initialUiState = { kind: "idle" },
 }: CustomerCreateFormProps) {
   const router = useRouter();
+  const singularLower = terminology.customer.singular.toLowerCase();
+  const pluralLower = terminology.customer.plural.toLowerCase();
   const pendingRef = useRef(false);
-  const [uiState, setUiState] = useState<CustomerFormUiState>({ kind: "idle" });
+  const [uiState, setUiState] = useState<CustomerFormUiState>(initialUiState);
   const [displayName, setDisplayName] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -96,9 +106,9 @@ export function CustomerCreateForm({
       noValidate
     >
       <a className={styles.backLink} href={cancelHref}>
-        Back to customers
+        Back to {pluralLower}
       </a>
-      <h1>Create customer</h1>
+      <h1>Create {singularLower}</h1>
 
       {uiState.kind === "error" ? (
         <div className={styles.formError} role="alert">
@@ -117,7 +127,9 @@ export function CustomerCreateForm({
           <p>{uiState.message}</p>
           {committedCustomerId ? (
             <p>
-              <a href={buildCustomerDetailHref(committedCustomerId, listState)}>Open saved customer</a>
+              <a href={buildCustomerDetailHref(committedCustomerId, listState)}>
+                Open saved {singularLower}
+              </a>
             </p>
           ) : null}
         </div>
@@ -130,10 +142,10 @@ export function CustomerCreateForm({
       ) : null}
 
       <section className={styles.section} aria-labelledby="create-identity-title">
-        <h2 id="create-identity-title">Customer details</h2>
+        <h2 id="create-identity-title">{terminology.customer.singular} details</h2>
 
         <div className={styles.field}>
-          <label htmlFor="create-display-name">Customer name (required)</label>
+          <label htmlFor="create-display-name">{terminology.customer.singular} name (required)</label>
           <input
             id="create-display-name"
             name="displayName"
@@ -263,7 +275,7 @@ export function CustomerCreateForm({
 
       <div className={styles.actions}>
         <button type="submit" className={styles.submitButton} disabled={locked || isPending}>
-          {isPending ? "Creating customer…" : "Create customer"}
+          {isPending ? `Creating ${singularLower}…` : `Create ${singularLower}`}
         </button>
         <a className={styles.secondaryButton} href={cancelHref}>
           Cancel

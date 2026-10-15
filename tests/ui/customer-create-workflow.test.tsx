@@ -3,6 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createCustomerAction } from "@/features/customers/actions/customer-actions";
 import { CustomerCreateForm } from "@/features/customers/ui/customer-create-form";
+import {
+  FIELD_PRODUCT_TERMINOLOGY,
+  SERVICE_PRODUCT_TERMINOLOGY,
+} from "../features/product-access/module-access-fixtures";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
@@ -41,6 +45,7 @@ describe("CustomerCreateForm", () => {
       />,
     );
     expect(html).toContain("Create customer");
+    expect(html).toContain("Back to customers");
     expect(html).toContain("Customer details");
     expect(html).toContain("Customer name (required)");
     expect(html).toContain('id="create-display-name"');
@@ -65,5 +70,44 @@ describe("CustomerCreateForm", () => {
       />,
     );
     expect(createActionMock).not.toHaveBeenCalled();
+  });
+
+  it("uses Client labels when the workspace terminology is service", () => {
+    const html = renderToStaticMarkup(
+      <CustomerCreateForm
+        organizationId="11111111-1111-4111-8111-111111111111"
+        listState={{ archived: false, sort: "display_name", direction: "asc", page: 1, pageSize: 25 }}
+        ownerOptions={ownerOptions}
+        cancelHref="/customers"
+        terminology={SERVICE_PRODUCT_TERMINOLOGY}
+      />,
+    );
+
+    expect(html).toContain("<h1>Create client</h1>");
+    expect(html).toContain("Back to clients");
+    expect(html).toContain("Create client");
+    expect(html).toContain("Client details");
+    expect(html).toContain("Client name (required)");
+    expect(html).not.toContain("Create customer");
+    expect(html).not.toContain("Back to customers");
+    expect(html).toContain('name="displayName"');
+  });
+
+  it("keeps Customer labels for field terminology", () => {
+    const html = renderToStaticMarkup(
+      <CustomerCreateForm
+        organizationId="11111111-1111-4111-8111-111111111111"
+        listState={{ archived: false, sort: "display_name", direction: "asc", page: 1, pageSize: 25 }}
+        ownerOptions={ownerOptions}
+        cancelHref="/customers"
+        terminology={FIELD_PRODUCT_TERMINOLOGY}
+      />,
+    );
+
+    expect(html).toContain("<h1>Create customer</h1>");
+    expect(html).toContain("Back to customers");
+    expect(html).toContain("Create customer");
+    expect(html).not.toContain("Create client");
+    expect(html).not.toContain("Back to clients");
   });
 });

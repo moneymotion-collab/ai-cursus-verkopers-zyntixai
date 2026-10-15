@@ -6,12 +6,13 @@ type AlertProps = {
   title: string;
   children?: string;
   variant?: AlertVariant;
+  surface?: "dark";
 };
 
-export function Alert({ title, children, variant = "info" }: AlertProps) {
+export function Alert({ title, children, variant = "info", surface }: AlertProps) {
   return (
     <div
-      className={`${styles.alert} ${styles[variant]}`}
+      className={`${styles.alert} ${styles[variant]} ${surface === "dark" ? styles.darkSurface : ""}`}
       role={variant === "error" ? "alert" : "status"}
       aria-live="polite"
     >

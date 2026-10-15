@@ -75,7 +75,13 @@ export function ProgramListPresentation({
 
   return (
     <div className={styles.listContainer}>
-      <div className={styles.tableWrap} aria-busy="false">
+      <div
+        className={styles.tableWrap}
+        role="region"
+        tabIndex={0}
+        aria-label="Program table"
+        aria-busy="false"
+      >
         <table className={styles.table}>
           <thead>
             <tr>

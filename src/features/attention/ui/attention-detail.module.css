@@ -55,7 +55,8 @@
   margin: 0;
   font-size: 1.75rem;
   line-height: 1.25;
-  word-break: break-word;
+  color: #f3e8ff;
+  overflow-wrap: anywhere;
 }
 
 .summary {

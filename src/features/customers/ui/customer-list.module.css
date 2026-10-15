@@ -1,9 +1,13 @@
 .listContainer {
   width: 100%;
+  min-width: 0;
 }
 
 .tableWrap {
   display: none;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
 }
 
 .cardList {
@@ -69,7 +73,6 @@
   background: var(--surface-color);
   border: 1px solid var(--border-color);
   border-radius: 0.75rem;
-  overflow: hidden;
 }
 
 .table th,
@@ -78,11 +81,22 @@
   border-bottom: 1px solid var(--border-color);
   text-align: left;
   vertical-align: top;
+}
+
+.table td {
   word-break: break-word;
 }
 
+.table td:nth-child(2),
+.table td:nth-child(3) {
+  min-width: max-content;
+  white-space: nowrap;
+  word-break: normal;
+}
+
 .table th {
-  background: #f1f5f9;
+  background: #21132b;
+  color: #f3e8ff;
   font-size: 0.875rem;
 }
 

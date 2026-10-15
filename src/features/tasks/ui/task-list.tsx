@@ -76,7 +76,7 @@ export function TaskListPresentation({
 
   return (
     <div className={styles.listContainer}>
-      <div className={styles.tableWrap} aria-busy="false">
+      <div className={styles.tableWrap} role="region" aria-label="Task table" tabIndex={0}>
         <table className={styles.table}>
           <thead>
             <tr>

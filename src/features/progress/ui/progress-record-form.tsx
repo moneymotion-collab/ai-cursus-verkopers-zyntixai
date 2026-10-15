@@ -26,6 +26,7 @@ type ProgressRecordFormProps = {
   enrollmentOptionsCapped?: boolean;
   initialEnrollmentId?: string;
   backHref: string;
+  initialUiState?: ProgressFormUiState;
 };
 
 const DEFAULT_FACT_TYPE: ProgressFactType = PROGRESS_FACT_TYPES[0];
@@ -48,10 +49,11 @@ export function ProgressRecordForm({
   enrollmentOptionsCapped,
   initialEnrollmentId,
   backHref,
+  initialUiState = { kind: "idle" },
 }: ProgressRecordFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
-  const [uiState, setUiState] = useState<ProgressFormUiState>({ kind: "idle" });
+  const [uiState, setUiState] = useState<ProgressFormUiState>(initialUiState);
   const [enrollmentId, setEnrollmentId] = useState(initialEnrollmentId ?? "");
   const [factType, setFactType] = useState<ProgressFactType>(DEFAULT_FACT_TYPE);
   const [occurredAt, setOccurredAt] = useState("");
