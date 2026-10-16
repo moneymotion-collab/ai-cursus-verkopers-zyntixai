@@ -428,6 +428,10 @@ export function AppShellChrome({
   });
   const supportMailto = resolveClosedBetaSupportMailto();
   const navigationPending = navigationPresentation === "pending";
+  const selectedOrganization = organizationOptions.find(
+    (option) => option.organizationId === selectedOrganizationId,
+  );
+  const checkedOrganization = selectedOrganization ?? organizationOptions[0];
 
   const resolvedNav = (key: string) =>
     navigationPending ? null : (
@@ -459,22 +463,33 @@ export function AppShellChrome({
     <div className={styles.headerActions}>
       {showOrgSelector ? (
         <form className={styles.orgForm} method="get" action={organizationSelectorAction}>
-          <label className={styles.orgLabel} htmlFor={organizationSelectId}>
+          <label className={styles.orgLabel} id={`${organizationSelectId}-label`} htmlFor={organizationSelectId}>
             Organization
           </label>
-          <select
-            id={organizationSelectId}
-            name="org"
-            className={styles.orgSelect}
-            defaultValue={selectedOrganizationId}
-            aria-label="Select organization"
-          >
-            {organizationOptions.map((option) => (
-              <option key={option.organizationId} value={option.organizationId}>
-                {option.displayName}
-              </option>
-            ))}
-          </select>
+          <details className={styles.orgPicker}>
+            <summary
+              id={organizationSelectId}
+              className={styles.orgSelect}
+              aria-labelledby={`${organizationSelectId}-label ${organizationSelectId}-value`}
+            >
+              <span className={styles.orgPickerValue} id={`${organizationSelectId}-value`}>
+                {checkedOrganization?.displayName}
+              </span>
+            </summary>
+            <div className={styles.orgOptions}>
+              {organizationOptions.map((option) => (
+                <label className={styles.orgOption} key={option.organizationId}>
+                  <input
+                    type="radio"
+                    name="org"
+                    value={option.organizationId}
+                    defaultChecked={option.organizationId === checkedOrganization?.organizationId}
+                  />
+                  <span>{option.displayName}</span>
+                </label>
+              ))}
+            </div>
+          </details>
           <button type="submit" className={styles.orgSubmit}>
             Switch
           </button>
@@ -493,45 +508,83 @@ export function AppShellChrome({
       <a className={styles.skipLink} href="#main-content">
         Skip to main content
       </a>
-      <header className={styles.header}>
-        <div className={styles.headerInner}>
-          <div className={styles.brandBlock}>
-            <p className={styles.brand}>ZyntixAI</p>
-            {navigationPending ? (
-              <p className={styles.navPending} role="status">
-                Loading workspace…
-              </p>
-            ) : null}
-          </div>
+      <div className={styles.frame}>
+        <aside className={styles.sidebar} aria-label="Workspace">
+          <p className={styles.brand}>ZyntixAI</p>
           {navigationPending ? (
-            shellActions("organization-selector")
-          ) : (
-            <>
-              <div className={styles.desktopCluster}>
-                {resolvedNav("desktop-nav")}
-                {shellActions("organization-selector")}
+            <p className={styles.navPending} role="status">
+              Loading workspace…
+            </p>
+          ) : selectedOrganization ? (
+            <p className={styles.orgContext}>{selectedOrganization.displayName}</p>
+          ) : null}
+          <div className={styles.desktopCluster}>
+            {navigationPending ? null : resolvedNav("desktop-nav")}
+            {shellActions("organization-selector")}
+          </div>
+        </aside>
+        <div
+          className={styles.workspace}
+          {...(activeNav === "customers" ||
+          activeNav === "leads" ||
+          activeNav === "tasks" ||
+          activeNav === "attention" ||
+          activeNav === "programs" ||
+          activeNav === "enrollments" ||
+          activeNav === "progress" ||
+          activeNav === "projects" ||
+          activeNav === "sites" ||
+          activeNav === "workOrders" ||
+          activeNav === "dispatch" ||
+          activeNav === "products" ||
+          activeNav === "orders" ||
+          activeNav === "inventory" ||
+          activeNav === "fulfillment" ||
+          activeNav === "members" ||
+          activeNav === "social"
+            ? { "data-record-surface": "" }
+            : {})}
+        >
+          <header className={styles.header}>
+            <div className={styles.headerInner}>
+              <div className={styles.mobileBar}>
+                <p className={styles.brand}>ZyntixAI</p>
+                {navigationPending ? (
+                  <>
+                    <p className={styles.navPending} role="status">
+                      Loading workspace…
+                    </p>
+                    {shellActions("organization-selector-pending")}
+                  </>
+                ) : (
+                  <details className={styles.navDisclosure}>
+                    <summary className={styles.menuTrigger}>Menu</summary>
+                    <div className={styles.navCluster}>
+                      {resolvedNav("mobile-nav")}
+                      {shellActions("organization-selector-mobile")}
+                    </div>
+                  </details>
+                )}
               </div>
-              <details className={styles.navDisclosure}>
-                <summary className={styles.menuTrigger}>Menu</summary>
-                <div className={styles.navCluster}>
-                  {resolvedNav("mobile-nav")}
-                  {shellActions("organization-selector-mobile")}
-                </div>
-              </details>
-            </>
-          )}
+              {selectedOrganization && !navigationPending ? (
+                <p className={styles.workspaceContext}>
+                  {selectedOrganization.displayName}
+                </p>
+              ) : null}
+            </div>
+          </header>
+          <main id="main-content" className={styles.main} tabIndex={-1}>
+            {children}
+          </main>
+          {supportMailto ? (
+            <footer className={styles.footer}>
+              <a className={styles.supportLink} href={supportMailto}>
+                {CLOSED_BETA_SUPPORT_LABEL}
+              </a>
+            </footer>
+          ) : null}
         </div>
-      </header>
-      <main id="main-content" className={styles.main} tabIndex={-1}>
-        {children}
-      </main>
-      {supportMailto ? (
-        <footer className={styles.footer}>
-          <a className={styles.supportLink} href={supportMailto}>
-            {CLOSED_BETA_SUPPORT_LABEL}
-          </a>
-        </footer>
-      ) : null}
+      </div>
     </div>
   );
 }

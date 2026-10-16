@@ -16,6 +16,7 @@ import {
 } from "@/features/customers/ui/customer-form-state";
 import { buildCustomerDetailHref } from "@/features/customers/ui/customer-navigation";
 import type { CustomerListUrlState } from "@/features/customers/ui/customer-list-search-params";
+import { DEFAULT_PRODUCT_TERMINOLOGY } from "@/features/product-access/domain/terminology";
 import styles from "./customer-form.module.css";
 
 type CustomerCreateFormProps = {
@@ -23,6 +24,10 @@ type CustomerCreateFormProps = {
   listState: CustomerListUrlState;
   ownerOptions: CustomerOwnerFormOptions;
   cancelHref: string;
+  customerTerms?: {
+    singular: string;
+    plural: string;
+  };
 };
 
 function resolveOwnerMemberId(value: string): string | null {
@@ -37,6 +42,7 @@ export function CustomerCreateForm({
   listState,
   ownerOptions,
   cancelHref,
+  customerTerms = DEFAULT_PRODUCT_TERMINOLOGY.customer,
 }: CustomerCreateFormProps) {
   const router = useRouter();
   const pendingRef = useRef(false);
@@ -87,6 +93,8 @@ export function CustomerCreateForm({
 
   const committedCustomerId =
     uiState.kind === "reload_required" && uiState.committed ? uiState.customerId : undefined;
+  const singular = customerTerms.singular.toLowerCase();
+  const plural = customerTerms.plural.toLowerCase();
 
   return (
     <form
@@ -96,9 +104,9 @@ export function CustomerCreateForm({
       noValidate
     >
       <a className={styles.backLink} href={cancelHref}>
-        Back to customers
+        Back to {plural}
       </a>
-      <h1>Create customer</h1>
+      <h1>Create {singular}</h1>
 
       {uiState.kind === "error" ? (
         <div className={styles.formError} role="alert">
@@ -263,7 +271,7 @@ export function CustomerCreateForm({
 
       <div className={styles.actions}>
         <button type="submit" className={styles.submitButton} disabled={locked || isPending}>
-          {isPending ? "Creating customer…" : "Create customer"}
+          {isPending ? `Creating ${singular}…` : `Create ${singular}`}
         </button>
         <a className={styles.secondaryButton} href={cancelHref}>
           Cancel

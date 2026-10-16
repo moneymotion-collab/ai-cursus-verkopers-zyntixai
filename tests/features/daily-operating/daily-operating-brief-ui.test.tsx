@@ -409,6 +409,7 @@ describe("DailyOperatingBriefPanel", () => {
     const html = renderPanel({ moduleNavVisibility: COURSE_NAV });
     expect(html).toContain(">Organization attention</h2>");
     expect(html).toContain(">Assigned to me — Attention</h2>");
+    expect(html.match(/data-emphasis="attention"/g)?.length).toBe(2);
     expect(html).toContain(">Overdue work</h2>");
     expect(html).toContain(">Due today</h2>");
     expect(html).not.toContain("<canvas");
@@ -439,7 +440,8 @@ describe("DailyOperatingBriefPanel", () => {
       join(process.cwd(), "src/app/(authenticated)/home/loading.module.css"),
       "utf8",
     );
-    expect(css).toContain("@media (min-width: 960px)");
+    expect(css).toContain("@container home (min-width: 40rem)");
+    expect(css).toContain("flex-direction: column");
     expect(css).toContain("minmax(0, 1fr) minmax(0, 1fr)");
     expect(css).toContain("min-height: var(--control-min-height)");
     expect(css).toContain("overflow-wrap: anywhere");

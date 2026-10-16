@@ -7,6 +7,7 @@
 .tableWrap {
   display: none;
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
 }
 
@@ -16,7 +17,6 @@
   background: var(--surface-color);
   border: 1px solid var(--border-color);
   border-radius: 0.75rem;
-  overflow: hidden;
 }
 
 .table th,
@@ -25,11 +25,15 @@
   border-bottom: 1px solid var(--border-color);
   text-align: left;
   vertical-align: top;
+}
+
+.table td {
   word-break: break-word;
 }
 
 .table th {
-  background: #f1f5f9;
+  background: #21132b;
+  color: #f3e8ff;
   font-size: 0.875rem;
 }
 

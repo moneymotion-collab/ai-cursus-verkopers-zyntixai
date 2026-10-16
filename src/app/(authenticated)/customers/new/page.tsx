@@ -91,6 +91,7 @@ export default async function CustomerCreatePage({ searchParams }: CustomerCreat
           listState={result.listState}
           ownerOptions={result.ownerOptions}
           cancelHref={buildBackToCustomersHref(result.listState)}
+          customerTerms={result.moduleAccess.terminology.customer}
         />
       </section>
     </AppShell>

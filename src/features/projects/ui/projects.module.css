@@ -4,10 +4,11 @@
   gap: 1.25rem;
   width: 100%;
   max-width: 72rem;
+  min-width: 0;
 }
 
 .form {
-  max-width: 48rem;
+  max-width: min(48rem, 100%);
 }
 
 .pageHeader,
@@ -50,10 +51,20 @@
   align-items: flex-end;
 }
 
-.filters label,
+.filters label {
+  display: grid;
+  gap: 0.35rem;
+}
+
 .field {
   display: grid;
   gap: 0.35rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.field label {
+  overflow-wrap: anywhere;
 }
 
 .filters input,
@@ -69,6 +80,20 @@
   background: var(--surface-color);
   color: inherit;
   font: inherit;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.field select {
+  width: 0;
+  min-width: 100%;
+  max-width: 100%;
 }
 
 .field textarea {
@@ -144,6 +169,8 @@
 .panel {
   display: grid;
   gap: 1rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .dateRow,

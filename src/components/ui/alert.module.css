@@ -30,3 +30,27 @@
   border-color: #fecaca;
   color: #7f1d1d;
 }
+
+.warning.darkSurface {
+  background: #3a2a0c;
+  border-color: #fcd34d;
+  color: #fef3c7;
+}
+
+.error.darkSurface {
+  background: #3b1219;
+  border-color: #fca5a5;
+  color: #fecaca;
+}
+
+:global([data-record-surface]) .warning {
+  background: #3a2a0c;
+  border-color: #fcd34d;
+  color: #fef3c7;
+}
+
+:global([data-record-surface]) .error {
+  background: #3b1219;
+  border-color: #fca5a5;
+  color: #fecaca;
+}

@@ -159,7 +159,13 @@ export function EnrollmentListPresentation({
 
   return (
     <div className={styles.listContainer}>
-      <div className={styles.tableWrap} aria-busy="false">
+      <div
+        className={styles.tableWrap}
+        role="region"
+        tabIndex={0}
+        aria-label="Enrollment table"
+        aria-busy="false"
+      >
         <table className={styles.table}>
           <thead>
             <tr>

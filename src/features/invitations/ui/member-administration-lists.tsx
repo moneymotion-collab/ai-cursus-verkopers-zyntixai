@@ -117,7 +117,12 @@ export function ActiveMembersSection({
         </div>
       ) : (
         <div className={styles.listContainer}>
-          <div className={styles.tableWrap}>
+          <div
+            className={styles.tableWrap}
+            role="region"
+            tabIndex={0}
+            aria-label="Active members table"
+          >
             <table className={styles.table}>
               <caption className={styles.visuallyHidden}>
                 Active organization members
@@ -244,7 +249,12 @@ export function PendingInvitationsSection({
           </p>
         </div>
       ) : (
-        <div className={styles.listContainer}>
+        <div
+          className={`${styles.listContainer} ${styles.pendingScroll}`}
+          role="region"
+          tabIndex={0}
+          aria-label="Pending invitations table"
+        >
           <table className={styles.pendingTable}>
             <caption className={styles.visuallyHidden}>
               Pending organization invitations

@@ -11,6 +11,8 @@
 .pageHeader h1 {
   margin: 0;
   font-size: 1.75rem;
+  color: #f3e8ff;
+  overflow-wrap: anywhere;
 }
 
 .subtitle,

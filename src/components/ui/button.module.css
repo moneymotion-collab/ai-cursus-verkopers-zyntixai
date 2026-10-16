@@ -29,7 +29,7 @@
 .primary {
   border-color: var(--link-color, #1d4ed8);
   background: var(--focus-color, #2563eb);
-  color: #fff;
+  color: var(--on-accent, #fff);
 }
 
 .secondary {

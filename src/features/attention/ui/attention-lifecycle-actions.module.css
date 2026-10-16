@@ -43,6 +43,7 @@
 .field {
   display: grid;
   gap: 0.375rem;
+  min-width: 0;
 }
 
 .field label {
@@ -50,19 +51,29 @@
 }
 
 .field select {
+  width: 100%;
+  min-width: 0;
   min-height: 2.75rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-color, #3d2b58);
   border-radius: 0.5rem;
   padding: 0.5rem 0.75rem;
+  background: #21132b;
+  color: #f6f1ff;
+  color-scheme: dark;
   font: inherit;
   max-width: 100%;
 }
 
 .field textarea {
+  width: 100%;
+  min-width: 0;
   min-height: 6rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-color, #3d2b58);
   border-radius: 0.5rem;
   padding: 0.5rem 0.75rem;
+  background: #21132b;
+  color: #f6f1ff;
+  color-scheme: dark;
   font: inherit;
   max-width: 100%;
   resize: vertical;
@@ -86,7 +97,7 @@
 
 .fieldError {
   margin: 0;
-  color: #b91c1c;
+  color: #fecaca;
   font-size: 0.875rem;
 }
 
@@ -100,13 +111,15 @@
 }
 
 .formError {
-  border: 1px solid #fecaca;
-  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  background: #3b1219;
+  color: #fecaca;
 }
 
 .formNotice {
-  border: 1px solid #fde68a;
-  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  background: #3a2a0c;
+  color: #fef3c7;
 }
 
 .formSuccess {
@@ -122,6 +135,7 @@
 
 .primaryButton {
   justify-self: start;
+  scroll-margin-block: 0.75rem;
   min-height: 2.75rem;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;

@@ -55,6 +55,33 @@ describe("CustomerCreateForm", () => {
     expect(html.toLowerCase()).not.toContain("archive");
   });
 
+  it("uses the workspace customer terminology for the title, back link, and action", () => {
+    const html = renderToStaticMarkup(
+      <CustomerCreateForm
+        organizationId="11111111-1111-4111-8111-111111111111"
+        listState={{
+          org: "11111111-1111-4111-8111-111111111111",
+          archived: false,
+          sort: "display_name",
+          direction: "asc",
+          page: 1,
+          pageSize: 25,
+        }}
+        ownerOptions={ownerOptions}
+        cancelHref="/customers"
+        customerTerms={{ singular: "Client", plural: "Clients" }}
+      />,
+    );
+
+    expect(html).toContain("<h1>Create client</h1>");
+    expect(html).toContain("Back to clients");
+    expect(html).toContain("Create client");
+    expect(html).not.toContain("Create customer");
+    expect(html).not.toContain("Back to customers");
+    expect(html).toContain('name="displayName"');
+    expect(html).toContain('name="ownerMemberId"');
+  });
+
   it("does not invoke createCustomerAction during static render", () => {
     renderToStaticMarkup(
       <CustomerCreateForm

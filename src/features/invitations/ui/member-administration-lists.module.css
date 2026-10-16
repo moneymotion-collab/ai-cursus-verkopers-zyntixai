@@ -1,5 +1,7 @@
 .listContainer {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .sectionHeader {
@@ -11,8 +13,14 @@
   margin-bottom: 0.75rem;
 }
 
-.sectionHeader h2 {
+.sectionHeader h2,
+.emptyTitle {
   margin: 0;
+  color: var(--heading-color, inherit);
+  overflow-wrap: anywhere;
+}
+
+.sectionHeader h2 {
   font-size: 1.125rem;
 }
 
@@ -21,7 +29,7 @@
 }
 
 .focusableHeading:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid var(--focus-color, #2563eb);
   outline-offset: 2px;
 }
 
@@ -71,8 +79,9 @@
 
 .cardMeta div {
   display: grid;
-  grid-template-columns: 7rem 1fr;
+  grid-template-columns: minmax(0, 7rem) minmax(0, 1fr);
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .cardMeta dt {
@@ -105,7 +114,6 @@
   background: var(--surface-color);
   border: 1px solid var(--border-color);
   border-radius: 0.75rem;
-  overflow: hidden;
 }
 
 .table th,
@@ -114,11 +122,15 @@
   border-bottom: 1px solid var(--border-color);
   text-align: left;
   vertical-align: top;
-  word-break: break-word;
+}
+
+.table td {
+  overflow-wrap: break-word;
 }
 
 .table th {
-  background: #f1f5f9;
+  background: var(--raised-surface, #f1f5f9);
+  color: var(--heading-color, inherit);
   font-size: 0.875rem;
 }
 
@@ -141,18 +153,26 @@
   border-bottom: 1px solid var(--border-color);
   text-align: left;
   vertical-align: top;
-  word-break: break-word;
+}
+
+.pendingTable td {
+  overflow-wrap: break-word;
 }
 
 .pendingTable th {
-  background: #f1f5f9;
+  background: var(--raised-surface, #f1f5f9);
+  color: var(--heading-color, inherit);
   font-size: 0.875rem;
 }
 
 .pendingTable {
   border: 1px solid var(--border-color);
   border-radius: 0.75rem;
-  overflow: hidden;
+}
+
+.pendingScroll {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .pendingActionsCell {
@@ -251,22 +271,23 @@
 }
 
 .errorWrap {
-  border: 1px solid #fecaca;
+  border: 1px solid var(--danger-border, #fecaca);
   border-radius: 0.75rem;
   padding: 1.25rem;
-  background: #fef2f2;
+  background: var(--danger-surface, #fef2f2);
 }
 
 .errorTitle {
   margin: 0 0 0.5rem;
   font-size: 1rem;
   font-weight: 600;
-  color: #991b1b;
+  color: var(--danger-text, #991b1b);
 }
 
 .errorDescription {
   margin: 0;
-  color: #7f1d1d;
+  color: var(--danger-text, #7f1d1d);
+  overflow-wrap: anywhere;
 }
 
 .visuallyHidden {
@@ -282,8 +303,33 @@
 }
 
 @media (min-width: 1024px) {
-  .tableWrap {
+  .tableWrap,
+  .pendingScroll {
     display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .table,
+  .pendingTable {
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .table th,
+  .table td,
+  .pendingTable th,
+  .pendingTable td {
+    white-space: nowrap;
+  }
+
+  .table .nameCell,
+  .pendingTable .nameCell {
+    white-space: normal;
+    max-width: 22rem;
+    overflow-wrap: anywhere;
   }
 
   .cardList {

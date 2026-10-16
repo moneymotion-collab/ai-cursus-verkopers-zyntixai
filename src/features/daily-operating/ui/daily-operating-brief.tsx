@@ -30,6 +30,7 @@ function Section({
   failedMessage,
   children,
   itemCount,
+  emphasis = false,
 }: {
   title: string;
   emptyTitle: string;
@@ -40,10 +41,15 @@ function Section({
   failedMessage?: string;
   children: React.ReactNode;
   itemCount: number;
+  emphasis?: boolean;
 }) {
   const headingId = title.replace(/\s+/g, "-").toLowerCase();
   return (
-    <section className={styles.section} aria-labelledby={headingId}>
+    <section
+      className={styles.section}
+      aria-labelledby={headingId}
+      data-emphasis={emphasis ? "attention" : undefined}
+    >
       <div className={styles.sectionHeader}>
         <h2 id={headingId}>{title}</h2>
         {viewAllHref ? (
@@ -138,7 +144,7 @@ export function DailyOperatingBriefPanel({
     <div className={styles.root}>
       {partialTitle ? (
         <div className={styles.partialWarning}>
-          <Alert variant="warning" title={partialTitle} />
+          <Alert variant="warning" surface="dark" title={partialTitle} />
         </div>
       ) : null}
 
@@ -160,6 +166,7 @@ export function DailyOperatingBriefPanel({
 
       {showOrgAttention ? (
         <Section
+          emphasis
           title="Organization attention"
           emptyTitle="Nothing urgent needs organization attention."
           emptyDescription="Critical and high Attention for this organization will appear here."
@@ -189,6 +196,7 @@ export function DailyOperatingBriefPanel({
       ) : null}
 
       <Section
+        emphasis
         title="Assigned to me — Attention"
         emptyTitle="No Attention is assigned to you."
         emptyDescription="Items assigned to you will appear here when they need action."

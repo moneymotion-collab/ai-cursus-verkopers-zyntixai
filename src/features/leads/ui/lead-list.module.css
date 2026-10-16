@@ -4,6 +4,8 @@
 
 .tableWrap {
   display: none;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .cardList {
@@ -69,7 +71,6 @@
   background: var(--surface-color);
   border: 1px solid var(--border-color);
   border-radius: 0.75rem;
-  overflow: hidden;
 }
 
 .table th,
@@ -78,11 +79,15 @@
   border-bottom: 1px solid var(--border-color);
   text-align: left;
   vertical-align: top;
+}
+
+.table td {
   word-break: break-word;
 }
 
 .table th {
-  background: #f1f5f9;
+  background: #21132b;
+  color: #f3e8ff;
   font-size: 0.875rem;
 }
 
@@ -139,9 +144,9 @@
   margin-top: 1rem;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
-  border: 1px solid #1d4ed8;
-  background: #2563eb;
-  color: #fff;
+  border: 1px solid #c8adff;
+  background: #c8adff;
+  color: #23113f;
   font-weight: 600;
   text-decoration: none;
 }

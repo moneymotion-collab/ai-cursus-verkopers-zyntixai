@@ -122,7 +122,7 @@ export function AttentionListPresentation({
         <p>Lifecycle actions must never render in B1.7.5 list workspace.</p>
       ) : null}
 
-      <div className={styles.tableWrap}>
+      <div className={styles.tableWrap} role="region" aria-label="Attention table" tabIndex={0}>
         <table className={styles.table}>
           <caption className={styles.visuallyHidden}>
             Attention items for {organizationName}

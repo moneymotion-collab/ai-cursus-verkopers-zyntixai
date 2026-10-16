@@ -25,5 +25,5 @@
 }
 
 .error {
-  color: #b91c1c;
+  color: var(--danger-text, #b91c1c);
 }

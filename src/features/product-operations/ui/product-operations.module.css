@@ -1,4 +1,4 @@
-.page { display: grid; gap: 1.25rem; }
+.page { display: grid; gap: 1.25rem; min-width: 0; max-width: 100%; }
 .header { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
 .header h1, .card h2, .card h3 { margin: 0; }
 .muted { color: var(--color-text-secondary, #59636e); }
@@ -11,14 +11,15 @@
 .button, .secondary { border: 0; border-radius: .5rem; padding: .65rem .85rem; cursor: pointer; text-decoration: none; }
 .button { background: #132f4c; color: white; }
 .secondary { background: #edf2f7; color: #132f4c; }
-.form { display: grid; gap: 1rem; max-width: 720px; }
-.field { display: grid; gap: .35rem; }
-.field input, .field select, .field textarea { border: 1px solid #b9c2cc; border-radius: .45rem; padding: .65rem; }
+.form { display: grid; gap: 1rem; width: 100%; max-width: min(720px, 100%); min-width: 0; }
+.field { display: grid; gap: .35rem; min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.field input, .field select, .field textarea { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid #b9c2cc; border-radius: .45rem; padding: .65rem; }
+.field select { width: 0; min-width: 100%; max-width: 100%; }
 .error { color: #a61b1b; }
 .metric { font-size: 2rem; font-weight: 700; margin: .25rem 0; }
 .positive { color: #166534; }
 .negative { color: #b91c1c; }
-.lines { display: grid; gap: .75rem; }
-.line { display: grid; grid-template-columns: 1fr 120px auto; gap: .5rem; align-items: end; }
+.lines { display: grid; gap: .75rem; min-width: 0; max-width: 100%; }
+.line { display: grid; grid-template-columns: minmax(0, 1fr) 7.5rem auto; gap: .5rem; align-items: end; min-width: 0; }
 .timeline { margin: 0; padding-left: 1.25rem; }
-@media (max-width: 650px) { .header, .row { align-items: stretch; flex-direction: column; } .line { grid-template-columns: 1fr; } }
+@media (max-width: 650px) { .header, .row { align-items: stretch; flex-direction: column; } .line { grid-template-columns: minmax(0, 1fr); } }

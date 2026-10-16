@@ -48,7 +48,10 @@ describe("DATA-1I import planning approval migration", () => {
   });
 
   it("has a frozen SHA-256", () => {
-    const hash = createHash("sha256").update(sql).digest("hex");
-    expect(hash).toBe("efd34811e36e46b0e6abeb3dd87047fc4dcbc1fb49145f9ac93b5d39d7b1d0a2");
+    // CRLF and mixed checkouts change the raw digest without changing SQL.
+    // Hash the canonical LF bytes so only a content change moves this digest.
+    const canonicalSql = sql.replace(/\r\n/g, "\n");
+    const hash = createHash("sha256").update(canonicalSql).digest("hex");
+    expect(hash).toBe("4c53e350984c21209838045d8318ff84f98ce0825637e377ab3250b2b0168473");
   });
 });
