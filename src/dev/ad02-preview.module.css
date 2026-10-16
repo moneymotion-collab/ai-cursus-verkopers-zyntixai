@@ -6,6 +6,27 @@
   font: 600 0.875rem/1.4 system-ui, sans-serif;
 }
 
+@media (min-width: 960px) {
+  .previewStage {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
+
+  .previewBanner {
+    flex: 0 0 auto;
+  }
+
+  .previewStage > :last-child {
+    flex: 1 1 0;
+    min-height: 0;
+    height: auto;
+    max-height: none;
+  }
+}
+
 .feature a:focus-visible {
   outline: 2px solid #1d4ed8;
   outline-offset: 2px;

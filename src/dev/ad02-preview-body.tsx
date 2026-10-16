@@ -163,12 +163,12 @@ export function Ad02PreviewBody({
   };
   const show = (content: ReactNode) =>
     courseSellerLayout ? (
-      <>
+      <div className={styles.previewStage}>
         <p className={styles.previewBanner} role="note">
           Local simulated QA preview for course_seller. Not a signed-in workspace and not a runtime access test.
         </p>
         {content}
-      </>
+      </div>
     ) : (
       content
     );

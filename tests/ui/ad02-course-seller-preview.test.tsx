@@ -4,6 +4,7 @@ import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Ad02PreviewBody } from "@/dev/ad02-preview-body";
+import previewStyles from "@/dev/ad02-preview.module.css";
 import {
   COURSE_SELLER_PREVIEW_STATES,
   resolveAd02PreviewAccess,
@@ -184,12 +185,38 @@ describe("course seller layout preview protection", () => {
     expect(programsFilled).toContain("AD05 example program");
   });
 
+  it("places the simulation banner and shell in one desktop viewport stage", () => {
+    const css = source("src/dev/ad02-preview.module.css");
+    const shell = source("src/components/app-shell.module.css");
+    const desktopRule = css.slice(css.indexOf("@media (min-width: 960px)"));
+
+    expect(desktopRule).toContain("height: 100vh");
+    expect(desktopRule).toContain("max-height: 100vh");
+    expect(desktopRule).toContain("overflow: hidden");
+    expect(desktopRule).toContain("flex: 0 0 auto");
+    expect(desktopRule).toContain("min-height: 0");
+    expect(css.slice(0, css.indexOf("@media (min-width: 960px)"))).not.toContain("overflow: hidden");
+    expect(shell).toContain("height: 100vh");
+    expect(shell).toContain("max-height: 100vh");
+    expect(shell).not.toContain("previewStage");
+
+    const html = renderToStaticMarkup(
+      <Ad02PreviewBody searchParams={{ state: "course-seller-long" }} />,
+    );
+    const stageAt = html.indexOf(previewStyles.previewStage);
+    const bannerAt = html.indexOf("Local simulated QA preview for course_seller");
+    expect(stageAt).toBeGreaterThanOrEqual(0);
+    expect(bannerAt).toBeGreaterThan(stageAt);
+    expect(html.indexOf(previewStyles.previewBanner)).toBeGreaterThan(stageAt);
+  });
+
   it("keeps an existing preview state free of the course seller banner", () => {
     const html = renderToStaticMarkup(
       <Ad02PreviewBody searchParams={{ state: "populated", model: "service" }} />,
     );
 
     expect(html).not.toContain("Local simulated QA preview for course_seller");
+    expect(html).not.toContain(previewStyles.previewStage);
     expect(html).toContain(">Customers</a>");
     expect(html).not.toContain(">Programs</a>");
   });
