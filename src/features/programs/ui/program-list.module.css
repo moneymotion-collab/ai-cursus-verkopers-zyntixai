@@ -1,12 +1,19 @@
 .listContainer {
   width: 100%;
+  min-width: 0;
 }
 
 .tableWrap {
   display: none;
   width: 100%;
   max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
+}
+
+.tableWrap:focus-visible {
+  outline: 2px solid var(--focus-color, #2563eb);
+  outline-offset: 2px;
 }
 
 .cardList {
@@ -68,6 +75,7 @@
 
 .table {
   width: 100%;
+  min-width: max-content;
   border-collapse: collapse;
   background: var(--surface-color);
   border: 1px solid var(--border-color);
@@ -82,8 +90,19 @@
   vertical-align: top;
 }
 
-.table td {
+.table td:first-child {
+  max-width: 24rem;
   overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.table td:nth-child(2),
+.table td:nth-child(3),
+.table td:nth-child(4) {
+  min-width: max-content;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .table th {

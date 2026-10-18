@@ -519,8 +519,10 @@ export function AppShellChrome({
             <p className={styles.orgContext}>{selectedOrganization.displayName}</p>
           ) : null}
           <div className={styles.desktopCluster}>
-            {navigationPending ? null : resolvedNav("desktop-nav")}
-            {shellActions("organization-selector")}
+            <div className={styles.desktopClusterContent}>
+              {navigationPending ? null : resolvedNav("desktop-nav")}
+              {shellActions("organization-selector")}
+            </div>
           </div>
         </aside>
         <div

@@ -75,7 +75,14 @@ export type TaskCreateInitialContext = {
 export type TaskCreatePageResult =
   | WorkflowOrgFailure
   | { kind: "action_unavailable"; listState: TaskListUrlState }
-  | { kind: "form_blocked"; message: string; listState: TaskListUrlState; organizationOptions: OrganizationOption[]; selectedOrganizationId: string }
+  | {
+      kind: "form_blocked";
+      message: string;
+      listState: TaskListUrlState;
+      organizationOptions: OrganizationOption[];
+      selectedOrganizationId: string;
+      moduleAccess: ProductModuleAccessState;
+    }
   | {
       kind: "ready";
       organizationId: string;
@@ -115,6 +122,7 @@ export async function loadTaskCreatePage(
       listState: org.listState,
       organizationOptions: org.organizationOptions,
       selectedOrganizationId: org.organizationId,
+      moduleAccess: org.moduleAccess,
     };
   }
 

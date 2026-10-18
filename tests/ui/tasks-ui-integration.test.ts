@@ -5,7 +5,10 @@ import { loadTasksPage } from "@/features/tasks/ui/load-tasks-page";
 import { loadTaskCreatePage } from "@/features/tasks/ui/load-task-workflow-page";
 import { loadTaskEditPage } from "@/features/tasks/ui/load-task-workflow-page";
 import { listTasks, getTaskById } from "@/features/tasks/server/task-read-queries";
-import { loadTaskMemberFilterOptions } from "@/features/tasks/ui/load-task-form-options";
+import {
+  loadTaskFormOptions,
+  loadTaskMemberFilterOptions,
+} from "@/features/tasks/ui/load-task-form-options";
 import { resolveTaskPageOrganization } from "@/features/tasks/ui/resolve-task-page-organization";
 import { mockKnowledgeProductModuleAccess } from "../features/product-access/module-access-fixtures";
 
@@ -50,6 +53,7 @@ vi.mock("@/features/tasks/ui/resolve-task-display-labels", () => ({
 }));
 
 const pageOrgMock = vi.mocked(resolveTaskPageOrganization);
+const formOptionsMock = vi.mocked(loadTaskFormOptions);
 const listTasksMock = vi.mocked(listTasks);
 const getTaskByIdMock = vi.mocked(getTaskById);
 const memberOptionsMock = vi.mocked(loadTaskMemberFilterOptions);
@@ -119,6 +123,42 @@ describe("tasks UI multi-organization integration", () => {
     expect(result.kind).toBe("organization_required");
     expect(listTasksMock).not.toHaveBeenCalled();
     expect(memberOptionsMock).not.toHaveBeenCalled();
+  });
+
+  it("retains resolved module access when the create form is blocked", async () => {
+    formOptionsMock.mockResolvedValueOnce({
+      members: [],
+      leads: [],
+      customers: [],
+      enrollments: [],
+      projects: [],
+      capped: {
+        members: false,
+        leads: false,
+        customers: false,
+        enrollments: false,
+        projects: false,
+      },
+    });
+
+    const result = await loadTaskCreatePage(createSupabase(), { org: ORG_A });
+
+    expect(result).toEqual({
+      kind: "form_blocked",
+      message: "No linked records are available to create a task in this organization.",
+      listState: {
+        status: "open",
+        archived: false,
+        page: 1,
+        pageSize: 25,
+        org: ORG_A,
+      },
+      organizationOptions,
+      selectedOrganizationId: ORG_A,
+      moduleAccess: mockKnowledgeProductModuleAccess(),
+    });
+    expect(formOptionsMock).toHaveBeenCalledTimes(1);
+    expect(pageOrgMock).toHaveBeenCalledTimes(1);
   });
 
   it("suppresses create form-option loading when organization selection is required", async () => {

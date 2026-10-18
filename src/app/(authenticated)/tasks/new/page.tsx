@@ -78,6 +78,8 @@ export default async function TaskCreatePage({ searchParams }: TaskCreatePagePro
   if (result.kind === "form_blocked") {
     return (
       <AppShell
+        moduleNavVisibility={result.moduleAccess.navVisibility}
+        terminology={result.moduleAccess.terminology}
         organizationOptions={result.organizationOptions}
         selectedOrganizationId={result.selectedOrganizationId}
         organizationSelectorAction="/tasks/new"

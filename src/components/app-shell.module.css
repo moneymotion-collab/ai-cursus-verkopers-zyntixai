@@ -631,18 +631,26 @@
   }
 
   .desktopCluster {
-    display: flex;
+    display: block;
     flex: 1 1 auto;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
     min-width: 0;
     min-height: 0;
-    padding-inline: 0.375rem;
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
     scroll-padding-block: 0.75rem;
+  }
+
+  .desktopClusterContent {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 100%;
+    padding-inline: 0.375rem;
   }
 
   .workspace {
