@@ -11,6 +11,7 @@ export default function HomeLoading() {
     <AppShell activeNav="home" navigationPresentation="pending">
       <section
         className={styles.loading}
+        data-home-surface=""
         aria-busy="true"
         aria-live="polite"
         aria-labelledby="home-loading-title"

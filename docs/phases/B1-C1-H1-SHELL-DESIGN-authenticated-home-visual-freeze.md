@@ -16,6 +16,21 @@ This document freezes visual and interaction design for the existing shared
 Today shell at `/home`. It does not implement SHELL, does not close
 B1-C1-H1, and is not Production evidence.
 
+## Owner update — 2026-10-20
+
+The owner replaces only the light Home-surface decision. The historical text stays in place below.
+
+Replaced: section 3, principle 1, the requirement for white surfaces on `#f8fafc`. Also replaced where later sections repeat that light canvas as the Home page surface. Not replaced: Today copy, calm copy, action mapping, section order, accessibility rules, or the prohibition on a Home hero, card shadow, and decorative illustration.
+
+Replacement, using the existing purple Home surface:
+
+- Canvas: `#12091c`.
+- Ordinary cards: `#171024`.
+- Attention sections: `#21132b`.
+- The existing purple sidebar and header stay as they are.
+
+`data-home-surface` on a descendant of `main` selects that existing surface. This update does not define a new palette or a new decision identifier.
+
 ---
 
 ## 1. Authorities and frozen product truth
@@ -103,6 +118,8 @@ Non-success Home headings remain: “Sign in required”, “Organization requir
 
 ### 2.2 Width, spacing, type, color
 
+The canvas, text, muted, surface, border, link, and focus rows below record the 2026-09-13 inventory. The owner update replaces those light Home surfaces. Control sizes, radius, type, and shell width stay.
+
 | Token / fact | Value | Source |
 | --- | --- | --- |
 | Page canvas | `body` background `#f8fafc` | `globals.css` |
@@ -179,8 +196,11 @@ forbidden.
 
 ## 3. Design principles
 
-1. Quiet high-end SaaS: white surfaces on `#f8fafc`, 1px `--border-color`,
-   `--surface-radius`, **no shadow, no gradient hero, no decorative illustration**.
+1. Historical, replaced 2026-10-20: quiet high-end SaaS with white surfaces on
+   `#f8fafc`, 1px `--border-color`, `--surface-radius`, **no shadow, no gradient
+   hero, no decorative illustration**. The owner update at the top of this
+   document replaces the white surfaces. The prohibitions on shadow, a gradient
+   hero, and decorative illustration remain.
 2. One shared Today shell for all four operating models and unresolved context.
 3. Priority is communicated by heading order, severity **text**, and overdue
    labels — not by saturating the page with color.

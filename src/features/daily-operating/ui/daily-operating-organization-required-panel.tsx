@@ -12,6 +12,7 @@ export function DailyOperatingOrganizationRequiredPanel({
   return (
     <section
       className={styles.orgRequired}
+      data-home-surface=""
       aria-labelledby="daily-operating-org-required-title"
     >
       <h1 id="daily-operating-org-required-title">

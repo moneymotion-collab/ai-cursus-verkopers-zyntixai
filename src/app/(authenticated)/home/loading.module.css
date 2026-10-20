@@ -28,9 +28,9 @@
   border: 1px solid var(--border-color);
   background: linear-gradient(
     90deg,
-    var(--surface-color, #f8fafc) 0%,
-    #e2e8f0 50%,
-    var(--surface-color, #f8fafc) 100%
+    var(--surface-color) 0%,
+    var(--border-color) 50%,
+    var(--surface-color) 100%
   );
   background-size: 200% 100%;
 }
@@ -59,6 +59,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .block {
-    background: #e2e8f0;
+    background: var(--surface-color);
   }
 }

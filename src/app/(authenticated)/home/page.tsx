@@ -26,7 +26,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   if (result.kind === "auth_required") {
     return (
       <AppShell activeNav="home">
-        <section className={styles.statePanel} aria-labelledby="auth-required-title">
+        <section className={styles.statePanel} data-home-surface="" aria-labelledby="auth-required-title">
           <h1 id="auth-required-title">Sign in required</h1>
           <p>Sign in to view your daily operating brief.</p>
         </section>
@@ -37,7 +37,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   if (result.kind === "no_organizations") {
     return (
       <AppShell activeNav="home">
-        <section className={styles.statePanel} aria-labelledby="no-org-title">
+        <section className={styles.statePanel} data-home-surface="" aria-labelledby="no-org-title">
           <h1 id="no-org-title">Organization required</h1>
           <p>Join or create an organization to use ZyntixAI.</p>
         </section>
@@ -62,7 +62,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   if (result.kind === "org_context_missing" || result.kind === "query_error") {
     return (
       <AppShell activeNav="home">
-        <section className={styles.statePanel} aria-labelledby="home-error-title">
+        <section className={styles.statePanel} data-home-surface="" aria-labelledby="home-error-title">
           <h1 id="home-error-title">Unable to load today’s brief</h1>
           <Alert variant="error" title={result.message} />
         </section>
@@ -86,7 +86,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       selectedOrganizationId={result.selectedOrganizationId}
       organizationSelectorAction="/home"
     >
-      <div className={styles.page}>
+      <div className={styles.page} data-home-surface="">
         <header className={styles.pageHeader}>
           {organizationDisplayName ? (
             <p className={styles.kicker}>
