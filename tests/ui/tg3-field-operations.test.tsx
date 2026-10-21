@@ -1,0 +1,283 @@
+import React from "react";
+import { renderAsyncServerTree } from "../helpers/render-async-server-tree";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
+
+import { AppShellChrome } from "@/components/app-shell-chrome";
+import type {
+  FieldPageContext,
+  SiteRecord,
+  WorkOrderRecord,
+} from "@/features/field-operations/domain/types";
+import {
+  DispatchView,
+  SiteDetail,
+  SitesList,
+  WorkOrderDetail,
+  WorkOrdersList,
+} from "@/features/field-operations/ui/views";
+import { ProjectDetail } from "@/features/projects/ui/project-views";
+import type { ProjectRecord } from "@/features/projects/domain/types";
+import {
+  FIELD_MODULE_NAV_VISIBILITY,
+  FIELD_PRODUCT_TERMINOLOGY,
+  SERVICE_MODULE_NAV_VISIBILITY,
+  SERVICE_PRODUCT_TERMINOLOGY,
+} from "../features/product-access/module-access-fixtures";
+
+const ORG = "11111111-1111-4111-8111-111111111111";
+const PROJECT = "22222222-2222-4222-8222-222222222222";
+const SITE = "33333333-3333-4333-8333-333333333333";
+const WORK_ORDER = "44444444-4444-4444-8444-444444444444";
+
+const context: FieldPageContext = {
+  organizationId: ORG,
+  organizationName: "Field Ops",
+  organizationOptions: [{ organizationId: ORG, role: "admin", displayName: "Field Ops" }],
+  role: "admin",
+  terminology: FIELD_PRODUCT_TERMINOLOGY,
+  moduleAccess: {
+    resolution: "resolved",
+    navVisibility: FIELD_MODULE_NAV_VISIBILITY,
+    relevantCapabilities: [],
+    terminology: FIELD_PRODUCT_TERMINOLOGY,
+  },
+  moduleId: "sites",
+};
+
+const site: SiteRecord = {
+  id: SITE,
+  organizationId: ORG,
+  customerId: "55555555-5555-4555-8555-555555555555",
+  customerLabel: "Acme",
+  projectId: PROJECT,
+  projectLabel: "Boiler installation",
+  name: "Warehouse North",
+  addressLine1: "Market Street 4",
+  addressLine2: null,
+  postalCode: "1000 AA",
+  city: "Amsterdam",
+  country: "Netherlands",
+  operationalNote: "Use loading entrance.",
+  archivedAt: null,
+  createdAt: "2026-09-05T08:00:00Z",
+  updatedAt: "2026-09-05T08:00:00Z",
+};
+
+const workOrder: WorkOrderRecord = {
+  id: WORK_ORDER,
+  organizationId: ORG,
+  projectId: PROJECT,
+  projectLabel: "Boiler installation",
+  customerId: site.customerId,
+  customerLabel: "Acme",
+  siteId: SITE,
+  siteLabel: "Warehouse North",
+  siteAddress: "Market Street 4, 1000 AA Amsterdam",
+  title: "Install control panel",
+  instructions: "Check isolation first.",
+  technicianMemberId: null,
+  technicianLabel: null,
+  scheduledFor: "2020-01-01T09:00:00Z",
+  status: "scheduled",
+  completedAt: null,
+  createdAt: "2026-09-05T08:00:00Z",
+  updatedAt: "2026-09-05T08:00:00Z",
+};
+
+const project: ProjectRecord = {
+  id: PROJECT,
+  organizationId: ORG,
+  customerId: site.customerId,
+  customerLabel: "Acme",
+  name: "Boiler installation",
+  summary: null,
+  status: "active",
+  ownerMemberId: null,
+  ownerLabel: null,
+  plannedStart: "2026-09-05",
+  plannedEnd: "2026-09-10",
+  archivedAt: null,
+  createdAt: "2026-09-05T08:00:00Z",
+  updatedAt: "2026-09-05T08:00:00Z",
+};
+
+function emptyStateRegion(html: string) {
+  const labelledBy = 'aria-labelledby="empty-state-title"';
+  const labelledIndex = html.indexOf(labelledBy);
+  if (labelledIndex === -1) return null;
+  const start = html.lastIndexOf("<section", labelledIndex);
+  const end = html.indexOf("</section>", labelledIndex);
+  if (start === -1 || end === -1) return null;
+  return html.slice(start, end + "</section>".length);
+}
+
+describe("TG3 Field Operations workflow UI", () => {
+  it("shows Field-only Sites, Work orders, and Dispatch navigation with Job terminology", async () => {
+    const html = await renderAsyncServerTree(
+      <AppShellChrome
+        moduleNavVisibility={FIELD_MODULE_NAV_VISIBILITY}
+        terminology={FIELD_PRODUCT_TERMINOLOGY}
+        selectedOrganizationId={ORG}
+      ><p>Field</p></AppShellChrome>,
+    );
+    expect(html).toContain(">Jobs<");
+    expect(html).toContain(">Sites<");
+    expect(html).toContain(">Work orders<");
+    expect(html).toContain(">Dispatch<");
+    expect(html).toContain("/sites?org=");
+    expect(html).toContain("/work-orders?org=");
+  });
+
+  it("keeps all Field-only navigation hidden for Service", async () => {
+    const html = await renderAsyncServerTree(
+      <AppShellChrome moduleNavVisibility={SERVICE_MODULE_NAV_VISIBILITY} terminology={SERVICE_PRODUCT_TERMINOLOGY}>
+        <p>Service</p>
+      </AppShellChrome>,
+    );
+    expect(html).toContain(">Projects<");
+    expect(html).not.toContain(">Sites<");
+    expect(html).not.toContain(">Work orders<");
+    expect(html).not.toContain(">Dispatch<");
+  });
+
+  it("renders Customer → Job → Site context and a prefilled New work order link", async () => {
+    const listHtml = await renderAsyncServerTree(<SitesList context={context} sites={[site]} />);
+    const detailHtml = await renderAsyncServerTree(
+      <SiteDetail context={context} site={site} workOrders={[workOrder]} warning={null} />,
+    );
+    expect(listHtml).toContain("Boiler installation");
+    expect(detailHtml).toContain("Acme");
+    expect(detailHtml).toContain("Market Street 4");
+    expect(detailHtml).toContain(`/work-orders/new?org=${ORG}&amp;siteId=${SITE}`);
+    expect(detailHtml).toContain("Install control panel");
+  });
+
+  it("shows assignment, schedule, execution status, and completion visibility", async () => {
+    const scheduled = await renderAsyncServerTree(<WorkOrderDetail context={{ ...context, moduleId: "workOrders" }} workOrder={workOrder} />);
+    const completed = await renderAsyncServerTree(
+      <WorkOrderDetail
+        context={{ ...context, moduleId: "workOrders" }}
+        workOrder={{ ...workOrder, status: "completed", completedAt: "2026-09-05T12:00:00Z" }}
+      />,
+    );
+    expect(scheduled).toContain("Unassigned");
+    expect(scheduled).toContain("Scheduled");
+    expect(scheduled).toContain("Mark in progress");
+    expect(completed).toContain("Completed");
+    expect(completed).not.toContain("Not completed");
+  });
+
+  it("groups overdue, unassigned, and completed work in lightweight Dispatch", async () => {
+    const html = await renderAsyncServerTree(
+      <DispatchView
+        context={{ ...context, moduleId: "dispatch" }}
+        workOrders={[
+          workOrder,
+          { ...workOrder, id: "66666666-6666-4666-8666-666666666666", title: "Finished visit", status: "completed", completedAt: "2026-09-05T12:00:00Z" },
+        ]}
+      />,
+    );
+    expect(html).toContain("Overdue");
+    expect(html).toContain("Unassigned");
+    expect(html).toContain("Completed");
+    expect(html).toContain("Install control panel");
+    expect(html).toContain("Finished visit");
+    expect(html).toContain("No routing or optimization");
+  });
+
+  it("teaches an empty unfiltered Work Orders workspace and keeps grouped no-results distinct", async () => {
+    const workspaceHtml = await renderAsyncServerTree(
+      <WorkOrdersList context={{ ...context, moduleId: "workOrders" }} workOrders={[]} />,
+    );
+    const filteredHtml = await renderAsyncServerTree(
+      <WorkOrdersList context={{ ...context, moduleId: "workOrders" }} workOrders={[]} status="scheduled" />,
+    );
+    const viewerHtml = await renderAsyncServerTree(
+      <WorkOrdersList context={{ ...context, moduleId: "workOrders", role: "viewer" }} workOrders={[]} />,
+    );
+    const populatedHtml = await renderAsyncServerTree(
+      <WorkOrdersList context={{ ...context, moduleId: "workOrders" }} workOrders={[workOrder]} />,
+    );
+    const dispatchHtml = await renderAsyncServerTree(
+      <DispatchView context={{ ...context, moduleId: "dispatch" }} workOrders={[]} />,
+    );
+
+    const workspaceEmpty = emptyStateRegion(workspaceHtml);
+    const viewerEmpty = emptyStateRegion(viewerHtml);
+    expect(workspaceEmpty).not.toBeNull();
+    expect(viewerEmpty).not.toBeNull();
+    if (!workspaceEmpty || !viewerEmpty) {
+      throw new Error("Work Orders empty-state region was not rendered.");
+    }
+    const headerMarkup = workspaceHtml.slice(0, workspaceHtml.indexOf(workspaceEmpty));
+
+    expect(workspaceEmpty).toContain("No work orders yet");
+    expect(workspaceEmpty).toContain("Work orders appear here when field work is scheduled across Jobs and Sites.");
+    expect(workspaceEmpty).toContain("New work order");
+    expect(workspaceEmpty).toContain(`href="/work-orders/new?org=${ORG}"`);
+    expect(headerMarkup).toContain(`href="/work-orders/new?org=${ORG}"`);
+    expect(workspaceHtml).not.toContain("No work orders in this group.");
+
+    expect(filteredHtml).toContain("No work orders in this group.");
+    expect(filteredHtml).not.toContain("No work orders yet");
+    expect(emptyStateRegion(filteredHtml)).toBeNull();
+
+    expect(viewerEmpty).toContain("No work orders yet");
+    expect(viewerEmpty).toContain("Work orders appear here when field work is scheduled across Jobs and Sites.");
+    expect(viewerEmpty).not.toContain("New work order");
+    expect(viewerEmpty).not.toContain("/work-orders/new");
+    expect(viewerEmpty).not.toContain("<a ");
+    expect(viewerHtml).not.toContain("/work-orders/new");
+
+    expect(populatedHtml).toContain("Install control panel");
+    expect(populatedHtml).not.toContain("No work orders yet");
+    expect(emptyStateRegion(populatedHtml)).toBeNull();
+
+    expect(dispatchHtml).toContain("No work orders in this group.");
+    expect(dispatchHtml).not.toContain("No work orders yet");
+    expect(emptyStateRegion(dispatchHtml)).toBeNull();
+  });
+
+  it("composes Sites and Work orders only into a Field Job detail", async () => {
+    const fieldHtml = await renderAsyncServerTree(
+      <ProjectDetail
+        context={{
+          ...context,
+          terminology: FIELD_PRODUCT_TERMINOLOGY,
+        }}
+        project={project}
+        tasks={[]}
+        tasksWarning={null}
+        fieldSites={[site]}
+        fieldWorkOrders={[workOrder]}
+      />,
+    );
+    const serviceHtml = await renderAsyncServerTree(
+      <ProjectDetail
+        context={{
+          ...context,
+          terminology: SERVICE_PRODUCT_TERMINOLOGY,
+          moduleAccess: {
+            resolution: "resolved",
+            navVisibility: SERVICE_MODULE_NAV_VISIBILITY,
+            relevantCapabilities: [],
+            terminology: SERVICE_PRODUCT_TERMINOLOGY,
+          },
+        }}
+        project={project}
+        tasks={[]}
+        tasksWarning={null}
+        fieldSites={[site]}
+        fieldWorkOrders={[workOrder]}
+      />,
+    );
+    expect(fieldHtml).toContain("Warehouse North");
+    expect(fieldHtml).toContain("Work orders");
+    expect(serviceHtml).not.toContain("Warehouse North");
+    expect(serviceHtml).not.toContain("Work orders");
+  });
+});

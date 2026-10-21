@@ -1,0 +1,129 @@
+/**
+ * Durable Social Account Connection lifecycle (SMM-B1.0).
+ * Temporary provider outage is a health overlay, not a lifecycle state.
+ * There is no generic `error` status.
+ */
+
+export const SOCIAL_CONNECTION_STATUSES = [
+  "initiated",
+  "authorization_pending",
+  "connected",
+  "reauthorization_required",
+  "permission_missing",
+  "revoked",
+  "disconnected",
+] as const;
+
+export type SocialConnectionStatus =
+  (typeof SOCIAL_CONNECTION_STATUSES)[number];
+
+/** Non-terminal operational rows. */
+export const ACTIVE_SOCIAL_CONNECTION_STATUSES = [
+  "initiated",
+  "authorization_pending",
+  "connected",
+  "reauthorization_required",
+  "permission_missing",
+] as const satisfies readonly SocialConnectionStatus[];
+
+/**
+ * Terminal until a new connect/reconnect generation.
+ * Historical row is retained.
+ */
+export const TERMINAL_SOCIAL_CONNECTION_STATUSES = [
+  "revoked",
+  "disconnected",
+] as const satisfies readonly SocialConnectionStatus[];
+
+/** Statuses that may use discovered capabilities against the provider. */
+export const CAPABILITY_ELIGIBLE_SOCIAL_CONNECTION_STATUSES = [
+  "connected",
+] as const satisfies readonly SocialConnectionStatus[];
+
+export const REAUTHORIZATION_REQUIRED_SOCIAL_CONNECTION_STATUSES = [
+  "reauthorization_required",
+] as const satisfies readonly SocialConnectionStatus[];
+
+/**
+ * Established Instagram identities that must use reconnect/disconnect,
+ * not a new ordinary connect intent. Pending shells are excluded.
+ */
+export const RECONNECTABLE_SOCIAL_CONNECTION_STATUSES = [
+  "connected",
+  "reauthorization_required",
+  "permission_missing",
+] as const satisfies readonly SocialConnectionStatus[];
+
+/**
+ * Statuses that may complete an explicit reauthorization finalize.
+ * Same set as reconnectable. Ordinary connect finalize remains
+ * authorization_pending-only and must not use this list.
+ */
+export const REAUTHORIZATION_FINALIZABLE_SOCIAL_CONNECTION_STATUSES =
+  RECONNECTABLE_SOCIAL_CONNECTION_STATUSES;
+
+export function isSocialConnectionStatus(
+  value: string,
+): value is SocialConnectionStatus {
+  return (SOCIAL_CONNECTION_STATUSES as readonly string[]).includes(value);
+}
+
+export function isActiveSocialConnectionStatus(
+  status: SocialConnectionStatus,
+): boolean {
+  return (
+    ACTIVE_SOCIAL_CONNECTION_STATUSES as readonly SocialConnectionStatus[]
+  ).includes(status);
+}
+
+export function isTerminalSocialConnectionStatus(
+  status: SocialConnectionStatus,
+): boolean {
+  return (
+    TERMINAL_SOCIAL_CONNECTION_STATUSES as readonly SocialConnectionStatus[]
+  ).includes(status);
+}
+
+export function isCapabilityEligibleSocialConnectionStatus(
+  status: SocialConnectionStatus,
+): boolean {
+  return (
+    CAPABILITY_ELIGIBLE_SOCIAL_CONNECTION_STATUSES as readonly SocialConnectionStatus[]
+  ).includes(status);
+}
+
+export function isSocialConnectionReauthorizationRequired(
+  status: SocialConnectionStatus,
+): boolean {
+  return (
+    REAUTHORIZATION_REQUIRED_SOCIAL_CONNECTION_STATUSES as readonly SocialConnectionStatus[]
+  ).includes(status);
+}
+
+export function isReconnectableSocialConnectionStatus(
+  status: string,
+): boolean {
+  return (
+    RECONNECTABLE_SOCIAL_CONNECTION_STATUSES as readonly string[]
+  ).includes(status);
+}
+
+export function isReauthorizationFinalizableSocialConnectionStatus(
+  status: string,
+): boolean {
+  return (
+    REAUTHORIZATION_FINALIZABLE_SOCIAL_CONNECTION_STATUSES as readonly string[]
+  ).includes(status);
+}
+
+export function findReconnectableInstagramConnection<
+  T extends { provider: string; status: string },
+>(connections: T[]): T | null {
+  return (
+    connections.find(
+      (connection) =>
+        connection.provider === "instagram" &&
+        isReconnectableSocialConnectionStatus(connection.status),
+    ) ?? null
+  );
+}

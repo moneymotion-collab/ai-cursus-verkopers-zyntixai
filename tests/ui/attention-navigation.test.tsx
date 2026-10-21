@@ -1,0 +1,82 @@
+import React from "react";
+import { describe, expect, it } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
+import { AppShellChrome } from "@/components/app-shell-chrome";
+import {
+  ATTENTION_NAV_LABEL,
+  ATTENTION_NAV_VISIBLE,
+  ATTENTION_ROUTE,
+} from "@/features/attention/domain/attention-navigation";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY } from "../features/product-access/module-access-fixtures";
+
+describe("Attention AppShell navigation (B1.7.5-E)", () => {
+  it("shows Attention nav with active state when context permits", () => {
+    expect(ATTENTION_NAV_VISIBLE).toBe(false);
+
+    const html = renderToStaticMarkup(
+      <AppShellChrome
+        activeNav="attention"
+        membersNavVisible={false}
+        moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
+      >
+        <p>content</p>
+      </AppShellChrome>,
+    );
+
+    expect(html).toContain(`>${ATTENTION_NAV_LABEL}<`);
+    expect(html).toContain(`href="${ATTENTION_ROUTE}"`);
+    expect(html).toContain(`aria-current="page"`);
+    expect(html).toContain(">Progress<");
+    expect(html).toContain(">Tasks<");
+
+    const shellSource = readFileSync(
+      path.join(process.cwd(), "src/components/app-shell-chrome.tsx"),
+      "utf8",
+    );
+    expect(shellSource).toContain("moduleNavVisibility.attention");
+    expect(shellSource).toContain("ATTENTION_ROUTE");
+    expect(shellSource).toContain("OrgAwareLink");
+    expect(shellSource).not.toMatch(
+      /from ["']@\/features\/attention\/server\//,
+    );
+  });
+
+  it("keeps Attention inactive when another nav section is active", () => {
+    const html = renderToStaticMarkup(
+      <AppShellChrome
+        activeNav="tasks"
+        membersNavVisible={false}
+        moduleNavVisibility={KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY}
+      >
+        <p>content</p>
+      </AppShellChrome>,
+    );
+
+    expect(html).toContain(`href="${ATTENTION_ROUTE}"`);
+    expect(html).toContain(`>${ATTENTION_NAV_LABEL}<`);
+    expect(html).not.toMatch(
+      new RegExp(
+        `aria-current="page"[^>]*href="${ATTENTION_ROUTE}"|href="${ATTENTION_ROUTE}"[^>]*aria-current="page"`,
+      ),
+    );
+  });
+
+  it("hides Attention link when context denies access", () => {
+    const html = renderToStaticMarkup(
+      <AppShellChrome
+        activeNav="tasks"
+        membersNavVisible={false}
+        moduleNavVisibility={{
+          ...KNOWLEDGE_OCB_MODULE_NAV_VISIBILITY,
+          attention: false,
+        }}
+      >
+        <p>content</p>
+      </AppShellChrome>,
+    );
+
+    expect(html).not.toContain(`>${ATTENTION_NAV_LABEL}<`);
+  });
+});

@@ -1,0 +1,199 @@
+import { ATTENTION_NAV_LABEL, ATTENTION_ROUTE } from "@/features/attention/domain/attention-navigation";
+import { ENROLLMENTS_NAV_LABEL, ENROLLMENTS_ROUTE } from "@/features/enrollments/domain/enrollments-navigation";
+import { MEMBERS_NAV_LABEL, MEMBERS_ROUTE } from "@/features/invitations/domain/members-navigation";
+import { PROGRESS_NAV_LABEL, PROGRESS_ROUTE } from "@/features/progress/domain/progress-navigation";
+import { PROGRAMS_NAV_LABEL, PROGRAMS_ROUTE } from "@/features/programs/domain/programs-navigation";
+import { PROJECTS_NAV_LABEL, PROJECTS_ROUTE } from "@/features/projects/domain/projects-navigation";
+import {
+  DISPATCH_ROUTE,
+  SITES_ROUTE,
+  WORK_ORDERS_ROUTE,
+} from "@/features/field-operations/domain/navigation";
+import type { ContextRelevance } from "@/features/control-plane/domain/types";
+import type { ProductModuleId } from "@/features/product-access/domain/types";
+import {
+  FULFILLMENT_ROUTE,
+  INVENTORY_ROUTE,
+  ORDERS_ROUTE,
+  PRODUCTS_ROUTE,
+} from "@/features/product-operations/domain/navigation";
+
+export type ProductModuleCapabilityRequirement = {
+  capabilityKey: string;
+  minRelevance: Extract<ContextRelevance, "required" | "recommended">;
+};
+
+export type ProductModuleDefinition = {
+  id: ProductModuleId;
+  route: string;
+  label: string;
+  implemented: true;
+  capabilityRequirement: ProductModuleCapabilityRequirement | null;
+};
+
+export const PRODUCT_MODULE_DEFINITIONS: readonly ProductModuleDefinition[] = [
+  {
+    id: "home",
+    route: "/home",
+    label: "Home",
+    implemented: true,
+    capabilityRequirement: null,
+  },
+  {
+    id: "leads",
+    route: "/leads",
+    label: "Leads",
+    implemented: true,
+    capabilityRequirement: {
+      capabilityKey: "shared.crm.leads",
+      minRelevance: "recommended",
+    },
+  },
+  {
+    id: "customers",
+    route: "/customers",
+    label: "Customers",
+    implemented: true,
+    capabilityRequirement: {
+      capabilityKey: "shared.crm.customers",
+      minRelevance: "required",
+    },
+  },
+  {
+    id: "projects",
+    route: PROJECTS_ROUTE,
+    label: PROJECTS_NAV_LABEL,
+    implemented: true,
+    capabilityRequirement: {
+      capabilityKey: "shared.projects",
+      minRelevance: "required",
+    },
+  },
+  {
+    id: "sites",
+    route: SITES_ROUTE,
+    label: "Sites",
+    implemented: true,
+    capabilityRequirement: {
+      capabilityKey: "field.locations",
+      minRelevance: "required",
+    },
+  },
+  {
+    id: "workOrders",
+    route: WORK_ORDERS_ROUTE,
+    label: "Work orders",
+    implemented: true,
+    capabilityRequirement: {
+      capabilityKey: "field.work-orders",
+      minRelevance: "required",
+    },
+  },
+  {
+    id: "dispatch",
+    route: DISPATCH_ROUTE,
+    label: "Dispatch",
+    implemented: true,
+    capabilityRequirement: {
+      capabilityKey: "field.dispatch",
+      minRelevance: "required",
+    },
+  },
+  {
+    id: "products",
+    route: PRODUCTS_ROUTE,
+    label: "Products",
+    implemented: true,
+    capabilityRequirement: { capabilityKey: "product.products", minRelevance: "required" },
+  },
+  {
+    id: "orders",
+    route: ORDERS_ROUTE,
+    label: "Orders",
+    implemented: true,
+    capabilityRequirement: { capabilityKey: "product.orders", minRelevance: "required" },
+  },
+  {
+    id: "inventory",
+    route: INVENTORY_ROUTE,
+    label: "Inventory",
+    implemented: true,
+    capabilityRequirement: { capabilityKey: "product.inventory", minRelevance: "required" },
+  },
+  {
+    id: "fulfillment",
+    route: FULFILLMENT_ROUTE,
+    label: "Fulfillment",
+    implemented: true,
+    capabilityRequirement: { capabilityKey: "product.fulfillment", minRelevance: "required" },
+  },
+  {
+    id: "programs",
+    route: PROGRAMS_ROUTE,
+    label: PROGRAMS_NAV_LABEL,
+    implemented: true,
+    capabilityRequirement: {
+      capabilityKey: "knowledge.programs",
+      minRelevance: "required",
+    },
+  },
+  {
+    id: "enrollments",
+    route: ENROLLMENTS_ROUTE,
+    label: ENROLLMENTS_NAV_LABEL,
+    implemented: true,
+    capabilityRequirement: {
+      capabilityKey: "knowledge.enrollments",
+      minRelevance: "required",
+    },
+  },
+  {
+    id: "progress",
+    route: PROGRESS_ROUTE,
+    label: PROGRESS_NAV_LABEL,
+    implemented: true,
+    capabilityRequirement: {
+      capabilityKey: "knowledge.progress",
+      minRelevance: "required",
+    },
+  },
+  {
+    id: "attention",
+    route: ATTENTION_ROUTE,
+    label: ATTENTION_NAV_LABEL,
+    implemented: true,
+    capabilityRequirement: {
+      capabilityKey: "core.attention",
+      minRelevance: "required",
+    },
+  },
+  {
+    id: "tasks",
+    route: "/tasks",
+    label: "Tasks",
+    implemented: true,
+    capabilityRequirement: {
+      capabilityKey: "core.tasks",
+      minRelevance: "required",
+    },
+  },
+  {
+    id: "members",
+    route: MEMBERS_ROUTE,
+    label: MEMBERS_NAV_LABEL,
+    implemented: true,
+    capabilityRequirement: {
+      capabilityKey: "core.member-administration",
+      minRelevance: "required",
+    },
+  },
+] as const;
+
+export const PRODUCT_MODULE_BY_ID: Readonly<Record<ProductModuleId, ProductModuleDefinition>> =
+  Object.fromEntries(
+    PRODUCT_MODULE_DEFINITIONS.map((definition) => [definition.id, definition]),
+  ) as Record<ProductModuleId, ProductModuleDefinition>;
+
+export const IMPLEMENTED_PRODUCT_MODULE_IDS = PRODUCT_MODULE_DEFINITIONS.map(
+  (definition) => definition.id,
+);

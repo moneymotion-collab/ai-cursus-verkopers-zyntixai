@@ -1,0 +1,105 @@
+import "server-only";
+
+import { createSupabaseServiceRoleClient } from "@/lib/supabase/service-role";
+import type { DataIntakeQueryClient } from "@/features/data-intake/server/data-intake-query";
+import type { DataIntakeFoundationRpcClient } from "@/features/data-intake/server/data-intake-rpc";
+import type { DataIntakeSourceObjectRpcClient } from "@/features/data-intake/server/data-intake-object-rpc";
+import type { DataIntakeSourceStructureRpcClient } from "@/features/data-intake/server/data-intake-structure-rpc";
+import type { DataIntakeMappingRpcClient } from "@/features/data-intake/server/data-intake-mapping-rpc";
+import type { DataIntakeStagingRpcClient } from "@/features/data-intake/server/data-intake-staging-rpc";
+import type { DataIntakeMatchingRpcClient } from "@/features/data-intake/server/data-intake-matching-rpc";
+import type { DataIntakePlanningRpcClient } from "@/features/data-intake/server/data-intake-planning-rpc";
+import type { DataIntakeExecutionRpcClient } from "@/features/data-intake/server/data-intake-execution-rpc";
+import {
+  createQueryCustomerIdentityLookup,
+  type CustomerIdentityLookup,
+} from "@/features/data-intake/server/customer-identity-lookup";
+import {
+  createQueryDataIntakeRecordLookup,
+  type DataIntakeRecordLookup,
+} from "@/features/data-intake/server/data-intake-lookup";
+import {
+  createSupabaseDataIntakeObjectStore,
+  type DataIntakeObjectStore,
+} from "@/features/data-intake/server/source-object-store";
+
+/**
+ * Canonical privileged construction point for DATA-1C/1D/1E commands.
+ * Server-only. Not a browser client. Not caller identity.
+ */
+export function createDataIntakeQueryClient(
+  env: Record<string, string | undefined> = process.env,
+): DataIntakeQueryClient {
+  return createSupabaseServiceRoleClient(env) as unknown as DataIntakeQueryClient;
+}
+
+export function createDataIntakeFoundationRpcClient(
+  env: Record<string, string | undefined> = process.env,
+): DataIntakeFoundationRpcClient {
+  return createSupabaseServiceRoleClient(env) as unknown as DataIntakeFoundationRpcClient;
+}
+
+export function createDataIntakeSourceObjectRpcClient(
+  env: Record<string, string | undefined> = process.env,
+): DataIntakeSourceObjectRpcClient {
+  return createSupabaseServiceRoleClient(env) as unknown as DataIntakeSourceObjectRpcClient;
+}
+
+export function createDataIntakeSourceStructureRpcClient(
+  env: Record<string, string | undefined> = process.env,
+): DataIntakeSourceStructureRpcClient {
+  return createSupabaseServiceRoleClient(env) as unknown as DataIntakeSourceStructureRpcClient;
+}
+
+export function createDataIntakeMappingRpcClient(
+  env: Record<string, string | undefined> = process.env,
+): DataIntakeMappingRpcClient {
+  return createSupabaseServiceRoleClient(env) as unknown as DataIntakeMappingRpcClient;
+}
+
+export function createDataIntakeStagingRpcClient(
+  env: Record<string, string | undefined> = process.env,
+): DataIntakeStagingRpcClient {
+  return createSupabaseServiceRoleClient(env) as unknown as DataIntakeStagingRpcClient;
+}
+
+export function createDataIntakeMatchingRpcClient(
+  env: Record<string, string | undefined> = process.env,
+): DataIntakeMatchingRpcClient {
+  return createSupabaseServiceRoleClient(env) as unknown as DataIntakeMatchingRpcClient;
+}
+
+export function createDataIntakePlanningRpcClient(
+  env: Record<string, string | undefined> = process.env,
+): DataIntakePlanningRpcClient {
+  return createSupabaseServiceRoleClient(env) as unknown as DataIntakePlanningRpcClient;
+}
+
+export function createDataIntakeExecutionRpcClient(
+  env: Record<string, string | undefined> = process.env,
+): DataIntakeExecutionRpcClient {
+  return createSupabaseServiceRoleClient(env) as unknown as DataIntakeExecutionRpcClient;
+}
+
+export function createCustomerIdentityLookup(
+  env: Record<string, string | undefined> = process.env,
+): CustomerIdentityLookup {
+  return createQueryCustomerIdentityLookup(
+    createSupabaseServiceRoleClient(env) as unknown as Parameters<
+      typeof createQueryCustomerIdentityLookup
+    >[0],
+  );
+}
+
+export function createDataIntakeRecordLookup(
+  env: Record<string, string | undefined> = process.env,
+): DataIntakeRecordLookup {
+  return createQueryDataIntakeRecordLookup(createDataIntakeQueryClient(env));
+}
+
+export function createDataIntakeObjectStore(
+  env: Record<string, string | undefined> = process.env,
+): DataIntakeObjectStore {
+  const client = createSupabaseServiceRoleClient(env);
+  return createSupabaseDataIntakeObjectStore(client.storage);
+}

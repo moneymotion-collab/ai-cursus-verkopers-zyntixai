@@ -1,0 +1,81 @@
+.page {
+  display: grid;
+  gap: 1rem;
+}
+
+.pageHeader {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.pageHeaderRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.pageHeader h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  color: #f3e8ff;
+  overflow-wrap: anywhere;
+}
+
+.recordLink {
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #c8adff;
+  background: #c8adff;
+  color: #23113f;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (min-width: 40rem) {
+  .pageHeaderRow {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.recordLink:focus-visible {
+  outline: 2px solid var(--focus-color, #2563eb);
+  outline-offset: 2px;
+}
+
+.subtitle,
+.summary {
+  margin: 0;
+  color: var(--muted-text);
+}
+
+.contextBanner {
+  margin: 0;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background: var(--surface-color);
+}
+
+.contextBanner a {
+  color: var(--link-color, #1d4ed8);
+  font-weight: 600;
+}
+
+.statePanel {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  background: var(--surface-color);
+  max-width: 40rem;
+}
+
+.statePanel h1 {
+  margin-top: 0;
+}

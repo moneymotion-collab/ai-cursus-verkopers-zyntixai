@@ -1,0 +1,134 @@
+.panel {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface-color);
+  display: grid;
+  gap: 0.875rem;
+}
+
+.headerRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.progress {
+  margin: 0.25rem 0 0;
+  color: var(--muted-text);
+  font-size: 0.9375rem;
+}
+
+.dismissButton {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--muted-text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dismissButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.dismissButton:focus-visible {
+  outline: 2px solid var(--focus-color, #2563eb);
+  outline-offset: 2px;
+}
+
+.error {
+  margin: 0;
+  color: var(--danger-text, #b91c1c);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.itemStatus {
+  width: 1.25rem;
+  text-align: center;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.statusDone,
+.statusTodo {
+  min-width: 3.25rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.5;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.statusDone {
+  color: var(--success-text, #15803d);
+}
+
+.statusTodo {
+  color: var(--muted-text);
+}
+
+.itemBody {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.itemLabel {
+  font-weight: 600;
+}
+
+.itemLink {
+  color: var(--link-color);
+  font-weight: 600;
+  text-decoration: none;
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.itemLink:focus-visible {
+  outline: 2px solid var(--focus-color, #2563eb);
+  outline-offset: 2px;
+}
+
+.softLinkRow {
+  margin: 0;
+}
+
+.softLink {
+  color: var(--muted-text);
+  font-weight: 600;
+  text-decoration: underline;
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.softLink:focus-visible {
+  outline: 2px solid var(--focus-color, #2563eb);
+  outline-offset: 2px;
+}

@@ -1,0 +1,177 @@
+import React from "react";
+import { describe, expect, it, vi } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
+import {
+  ProgramDetail,
+  ProgramUnavailableDetail,
+} from "@/features/programs/ui/program-detail";
+import type { ProgramDetailViewModel } from "@/features/programs/ui/load-program-detail-page";
+import {
+  sampleArchivedProgramDetail,
+  sampleProgramDetail,
+} from "../helpers/program-test-fixtures";
+
+vi.mock("@/components/ui/badge", () => ({
+  Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+}));
+
+const baseViewModel: ProgramDetailViewModel = {
+  program: sampleProgramDetail,
+  permissions: {
+    canListPrograms: true,
+    canViewProgram: true,
+    canViewArchivedPrograms: true,
+    canCreateProgram: true,
+    canUpdateProgram: true,
+    canTransitionProgramStatus: true,
+    canArchiveProgram: true,
+    canRestoreProgram: false,
+    canViewProgramHistory: true,
+  },
+  history: [
+    {
+      id: "55555555-5555-4555-8555-555555555555",
+      transitionLabel: "Set to Draft",
+      fromStatusLabel: null,
+      toStatusLabel: "Draft",
+      sourceLabel: "Manual",
+      reason: null,
+      timestampLabel: "Jul 1, 2026, 10:00 AM",
+    },
+  ],
+  historyState: { kind: "ready" },
+  descriptionLabel: "Cohort coaching program",
+  organizationTimezone: "UTC",
+  backHref: "/programs",
+};
+
+describe("ProgramDetail mutation controls", () => {
+  it("renders owner/admin workflow links when provided", () => {
+    const html = renderToStaticMarkup(
+      <ProgramDetail
+        viewModel={baseViewModel}
+        workflowLinks={{
+          edit: `/programs/${sampleProgramDetail.id}/edit`,
+          status: `/programs/${sampleProgramDetail.id}/status`,
+          archive: `/programs/${sampleProgramDetail.id}/archive`,
+        }}
+      />,
+    );
+
+    expect(html).toContain("Edit program");
+    expect(html).toContain("Change program status");
+    expect(html).toContain("Archive program");
+    expect(html).not.toContain("Restore program");
+    expect(html).toContain("Open enrollments");
+    expect(html).toContain("Status history");
+    expect(html).toContain("Enrollments are managed in the Enrollments workspace");
+    expect(html).not.toContain("Progress tracking remains deferred");
+    expect(html).not.toContain("deferred");
+    expect(html).not.toContain("Enrollment management and progress tracking will follow");
+    expect(html).not.toContain("Progress dashboard");
+  });
+
+  it("renders restore only for archived programs and keeps status prominent", () => {
+    const html = renderToStaticMarkup(
+      <ProgramDetail
+        viewModel={{
+          ...baseViewModel,
+          program: sampleArchivedProgramDetail,
+        }}
+        workflowLinks={{
+          restore: `/programs/${sampleProgramDetail.id}/restore`,
+        }}
+      />,
+    );
+
+    expect(html).toContain("Archived");
+    expect(html).toContain("Restore program");
+    expect(html).not.toContain("Edit program");
+    expect(html).not.toContain("Archive program");
+    expect(html).toContain("Draft");
+  });
+
+  it("stays read-only for staff/viewer when workflow links are omitted", () => {
+    const html = renderToStaticMarkup(<ProgramDetail viewModel={baseViewModel} />);
+
+    expect(html).not.toContain("Edit program");
+    expect(html).not.toContain("Change program status");
+    expect(html).not.toContain("Archive program");
+    expect(html).not.toContain("Restore program");
+  });
+
+  it("renders unavailable detail without enumeration hints", () => {
+    const html = renderToStaticMarkup(
+      <ProgramUnavailableDetail backHref="/programs" />,
+    );
+    expect(html).toContain("Program unavailable");
+    expect(html).not.toContain("does not exist in another organization");
+  });
+});
+
+describe("ProgramDetail contextual Enrollment links (B1.5.9)", () => {
+  it("omits enrollment links entirely when enrollmentLinks is not provided", () => {
+    const html = renderToStaticMarkup(<ProgramDetail viewModel={baseViewModel} />);
+    expect(html).not.toContain('href="/enrollments');
+    expect(html).not.toContain("New enrollment");
+    expect(html).not.toContain('aria-label="Enrollment actions"');
+  });
+
+  it("renders View enrollments and New enrollment when both hrefs are provided", () => {
+    const html = renderToStaticMarkup(
+      <ProgramDetail
+        viewModel={baseViewModel}
+        enrollmentLinks={{
+          viewEnrollmentsHref: `/enrollments?programId=${sampleProgramDetail.id}`,
+          createEnrollmentHref: `/enrollments/new?programId=${sampleProgramDetail.id}`,
+        }}
+      />,
+    );
+    expect(html).toContain('aria-label="Enrollment actions"');
+    expect(html).toContain("View enrollments");
+    expect(html).toContain(`href="/enrollments?programId=${sampleProgramDetail.id}"`);
+    expect(html).toContain("New enrollment");
+    expect(html).toContain(`href="/enrollments/new?programId=${sampleProgramDetail.id}"`);
+  });
+
+  it("renders View enrollments without New enrollment when createEnrollmentHref is absent (viewer/ineligible)", () => {
+    const html = renderToStaticMarkup(
+      <ProgramDetail
+        viewModel={baseViewModel}
+        enrollmentLinks={{
+          viewEnrollmentsHref: `/enrollments?programId=${sampleProgramDetail.id}`,
+        }}
+      />,
+    );
+    expect(html).toContain("View enrollments");
+    expect(html).not.toContain("New enrollment");
+  });
+});
+
+describe("ProgramDetail contextual Progress links (B1.6.4)", () => {
+  it("omits progress links entirely when progressLinks is not provided", () => {
+    const html = renderToStaticMarkup(<ProgramDetail viewModel={baseViewModel} />);
+    expect(html).not.toContain('aria-label="Progress actions"');
+    expect(html).not.toContain("View progress");
+  });
+
+  it("renders View progress when progressLinks are provided", () => {
+    const html = renderToStaticMarkup(
+      <ProgramDetail
+        viewModel={baseViewModel}
+        progressLinks={{
+          viewProgressHref: `/progress?org=11111111-1111-4111-8111-111111111111&programId=${sampleProgramDetail.id}`,
+        }}
+      />,
+    );
+    expect(html).toContain(
+      "Progress for enrollments in this program is recorded and reviewed in the Progress workspace.",
+    );
+    expect(html).toContain('aria-label="Progress actions"');
+    expect(html).toContain("View progress");
+    expect(html).toContain(
+      `href="/progress?org=11111111-1111-4111-8111-111111111111&amp;programId=${sampleProgramDetail.id}"`,
+    );
+    expect(html).not.toContain("Record progress");
+  });
+});

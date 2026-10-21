@@ -1,0 +1,635 @@
+# SMM-B1.7-R2 — Controlled Instagram Production Publishing — Evidence
+
+**Phase:** `SMM-B1.7-R2 — Controlled Instagram Production Publishing Verification`  
+**Date opened:** 2026-08-21  
+**Authoritative branch:** `core/platform-readiness-20260707`  
+**Production Supabase project:** `dmctinrcjvsgmoxwwodw`  
+**Canonical origin:** `https://www.zyntixai.com`
+
+Prerequisite closed:
+
+```text
+INSTAGRAM PRODUCTION OAUTH PASS
+SMM-B1.1-R A2 CLOSED WITH EVIDENCE
+```
+
+A2 evidence commit: `93996ce0572861743c0a3a022aeb52cb9b688a1f`
+
+**Latest status (2026-08-21 POST close):**
+
+```text
+INSTAGRAM CONTROLLED PRODUCTION PUBLISH PASS
+SMM-B1.7-R2 CLOSED WITH EVIDENCE
+INSTAGRAM VISUAL CONFIRMATION = PASS
+SOCIAL_PUBLISHING_ENABLED RESTORED OFF
+```
+
+Historical PRE-PUBLISH and live-window banners below are preserved and are not rewritten.
+
+```text
+SMM-B1.7-R2 LIVE WINDOW READY — OWNER SINGLE EXECUTE REQUIRED
+CONTROLLED WINDOW OPEN
+PRODUCTION PUBLISHING GATE TEMPORARILY ON
+LIVE PROVIDER WRITE NOT YET EXECUTED
+```
+
+Historical PRE-PUBLISH banner below is preserved and is not rewritten.
+
+```text
+SMM-B1.7-R2 PRE-PUBLISH READY — OWNER ACTION REQUIRED
+LIVE PROVIDER WRITE NOT EXECUTED
+SOCIAL_PUBLISHING_ENABLED REMAINS OFF
+SMM-B1.7-R2 NOT CLOSED
+```
+
+---
+
+## A. Repository state
+
+| Check | Result |
+| --- | --- |
+| Top-level | `D:/project ai cursus verkopers.worktrees/parallel__laptop-product-track-20260707-1` |
+| Branch | `core/platform-readiness-20260707` |
+| HEAD | `93996ce0572861743c0a3a022aeb52cb9b688a1f` |
+| Upstream | `origin/core/platform-readiness-20260707` |
+| Origin | `https://github.com/moneymotion-collab/ai-cursus-verkopers-zyntixai.git` |
+| Divergence | `0 0` |
+| Worktree | clean |
+
+HEAD is the A2 close commit. No implementation changes in this PRE-PUBLISH stop.
+
+---
+
+## B. Production deployment state
+
+Inspected via Vercel CLI against alias `https://www.zyntixai.com` (scope `guus-projects-ai`, project `zyntixai`). Not inferred from GitHub.
+
+| Field | Observed |
+| --- | --- |
+| Deployment id | `dpl_3sN9418cBkcifu8YxHaMsobHXZ3n` |
+| Deployment URL | `https://zyntixai-7in1j73oa-guus-projects-ai.vercel.app` |
+| Target | production |
+| State | Ready |
+| Created | 2026-08-21 12:21:30 GMT+0200 |
+| Aliases | `https://www.zyntixai.com`, `https://zyntixai.vercel.app`, `https://zyntixai.com` |
+| `gitCommitSha` | `db0a837c3c4435436a1736f657de2ea9365eadc9` |
+| Message | `docs(smm): record SMM-B1.1-R A2 retry blocked on stale Production app HEAD` |
+
+`db0a837` is the parent of current Git HEAD `93996ce` (A2 POST evidence docs only). Publishing adapter, B1.8 Prepare/Execute, B1.9 lifecycle, R1-E-R2 window binding, and P4 `FINISHED` wait are all present in `db0a837`.
+
+Build on this worktree includes `/social`, `/social/b18-instagram-publish` (legacy redirect), and `/api/social/media-delivery/[token]`.
+
+**Deployment verdict:** Production app is compatible with the current publishing implementation. Not `PRODUCTION APP STALE`.
+
+---
+
+## C. Instagram connection baseline
+
+Read-only on `dmctinrcjvsgmoxwwodw`. No tokens, ciphertext, keys, or client secrets.
+
+| Field | Value |
+| --- | --- |
+| Connection UUID | `24420652-d0b4-4237-9a75-51d89be50c65` |
+| Organization | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| Workspace | `4ce070a9-d1bc-40f3-a44a-061274bca9cb` |
+| Provider | `instagram` |
+| Account type | `business` |
+| Status | `connected` |
+| Health | `healthy` |
+| Identity fingerprint | `eefce660bad5c0ad` |
+| Credential envelopes | 1 |
+| Credential version | **2** |
+| `publish_image` capability | yes |
+| `reauthorization_required_at` | null |
+| Token expired | no (~1439.7 hours remaining at query) |
+| Last refreshed | `2026-08-21 10:30:16.624813+00` |
+| Active Instagram connections | 1 |
+| Ordinary pending shells | 6 |
+| Closed-beta enrollment | `publishing_allowed` since `2026-08-18 23:34:31.902692+00` |
+
+---
+
+## D. Publishing architecture map
+
+### Surfaces
+
+| Route | Role |
+| --- | --- |
+| `/social?section=publish` | **Authoritative** Owner/Admin controlled IMAGE publish |
+| `/social/b18-instagram-publish` | Legacy redirect to `/social?section=publish` |
+| `/operator/social-beta` | Closed-beta enrollment operator UI (does **not** open publish windows) |
+
+Buttons: **Prepare IMAGE publication** / **Execute image publish**. Execute is hidden unless `publishingEnabled && executeTargetId`.
+
+Caption stored on prepared rows: `ZYNTIXAI B1.8 controlled publish verification — safe to delete`.
+
+### Actions / services / RPCs
+
+| Step | Implementation |
+| --- | --- |
+| Prepare action | `prepareB18InstagramImagePublicationAction` |
+| Prepare service | `prepareB18ImagePublication` |
+| Execute action | `executeB18InstagramImagePublicationAction({ organizationId, publicationId })` |
+| Execute service | `executeB18ImagePublication` |
+| Start/complete | `b18_start_controlled_publication_attempt` / `b18_complete_controlled_publication_attempt` |
+| Window open/close | `operator_open_social_controlled_publish_window` / `operator_close_social_controlled_publish_window` (platform-operator / service_role; `mutateControlledPublishWindowAction`) |
+
+Prepare does **not** require `SOCIAL_PUBLISHING_ENABLED`. Execute requires exact `"true"` at the action, the executor, and SQL GUC `zyntix.social_publishing_enabled` inside `b18_start`.
+
+Execute is server-bound: connection, version, media, caption, and token come from the publication row. Browser may send only `organizationId` + `publicationId`.
+
+### Instagram adapter
+
+| Item | Value |
+| --- | --- |
+| Host | `https://graph.instagram.com` |
+| Version | `v26.0` |
+| Create | `POST /{igUserId}/media` |
+| Status | `GET /{containerId}?fields=status_code` |
+| Publish | `POST /{igUserId}/media_publish` |
+| Readiness | `waitForInstagramContainerFinished` — only `FINISHED` or `PUBLISHED`; poll 60s, max 5 |
+| Signed media | HMAC URL `/api/social/media-delivery/[token]`, TTL 3600s, org-prefixed storage key |
+
+---
+
+## E. Security / tenancy checks
+
+| Path | Contract |
+| --- | --- |
+| Owner / Admin | Prepare and Execute allowed when membership is `active` |
+| Staff / Viewer | Page load forbidden for manage; actions `forbidden` |
+| Foreign organization | `resolveOrganizationContext` fail-closed |
+| Foreign publication | Execute loads `.eq("organization_id", organizationId)` then RPC org-scoped claim |
+| Foreign connection | Execute uses `social_publications.connection_id`; Prepare validates workspace/org |
+| Unapproved content | Prepare requires workflow readiness + approval RPC before `create_social_publication` |
+| Signed media | Claims include org + asset + key hash; other-tenant key prefix rejected |
+
+---
+
+## F. Approval / version binding
+
+Create chain: JPEG upload → `register_social_media_asset` → content/variant/version → `submit_social_approval_decision` (`approved`) → workflow readiness → `create_social_publication` (`immediate`).
+
+Execute reloads `variant_version_id` from the publication row and uses that version’s `caption` + `media_snapshot`. Browser cannot substitute version/media/connection.
+
+---
+
+## G. Media readiness
+
+No JPEG is committed in the repository. Production already has six unused queued IMAGE publications with ready private JPEG assets (see J). Signed delivery is minted at Execute; storage keys are org-prefixed; credentials are not placed in media URLs.
+
+---
+
+## H. Idempotency / duplicate protection
+
+| Scenario | Protection |
+| --- | --- |
+| Double click | UI `pendingRef`; DB `SELECT … FOR UPDATE` + `claim_generation` |
+| Browser retry | Same claim / terminal status → `conflict` / `stale_claim` |
+| Already published | Terminal `succeeded` / `unknown_external_outcome` / `manual_intervention` → `conflict` |
+| Concurrent workers | In-flight `processing` → `conflict` |
+| Controlled window | One-shot consume inside `b18_start` (`max_execute_count=1`) |
+| UI leftovers | Unattempted queued rows are historical leftovers and are not auto-selected |
+
+Without an active window, a crafted Execute with another queued UUID would still be allowed at the app-binding layer (`ok_no_window`). That is why the owner flow **must** open a one-shot window **before** enabling the global gate.
+
+---
+
+## I. Partial-failure / reconciliation safety
+
+| Stage | Persistence |
+| --- | --- |
+| Before `media_publish` | Attempt row claimed; container create/status failures are definitive (no final publish) |
+| After dispatched `media_publish` timeout/network/invalid JSON | `unknown_external_outcome`; further Execute blocked |
+| Success | `external_publication_id` on publication + attempt |
+| Container ID | Presence flag only; raw provider IDs not logged in evidence |
+
+This is **not** classified as a BLOCKER. Uncertain outcome must **not** be retried blindly.
+
+---
+
+## J. Target publication candidate
+
+No dedicated 2026-08-21 R2 row exists. Historical queued leftovers are valid IMAGE publications and should be reused rather than duplicated.
+
+**Preferred unused candidate:**
+
+| Field | Value |
+| --- | --- |
+| Publication UUID | `0ffb466f-b477-4d7e-87c4-fbb60d330012` |
+| Status | `queued` |
+| Attempts | **0** |
+| Created | `2026-08-19 10:43:12.916033+00` |
+| Connection | `24420652-d0b4-4237-9a75-51d89be50c65` |
+| Workspace | `4ce070a9-d1bc-40f3-a44a-061274bca9cb` |
+| Version | `67551ecd-ee87-4907-bae5-b34e000163ff` |
+| Approval | 1 `approved` |
+| Format | `image` |
+| Caption prefix | `ZYNTIXAI B1.8 controlled publish verification — safe to delete` |
+| Asset | `46080b38-068a-45db-91b9-90cbc329721a` |
+| MIME | `image/jpeg` |
+| Dimensions | 1254×1254 |
+| Bytes | 293906 |
+| Processing | `ready` |
+| External publication id | absent |
+
+Do **not** Execute succeeded rows `640009e7-…`, `1f1fa14e-…`, `23821fb0-…`.
+
+Active controlled windows: **0**. Historical windows: 1 closed + 2 consumed.
+
+---
+
+## K. Pre-publish test evidence
+
+### Targeted publishing
+
+```text
+npx vitest run tests/features/social-media/r1a-closed-beta-entitlement-surface.test.ts tests/features/social-media/b18-instagram-publish-surface.test.ts tests/features/social-media/instagram-publishing-adapter.test.ts tests/features/social-media/instagram-provider-4xx-diagnostics.test.ts tests/features/social-media/instagram-provider-client.test.ts tests/features/social-media/r2-p2-controlled-publish-window-binding.test.ts tests/features/social-media/r2-prepare-durability-contract.test.ts tests/features/social-media/media-delivery-route.test.ts tests/domain/social-publishing.test.ts tests/domain/social-lifecycle-b19.test.ts tests/security/social-publishing-migration-security.test.ts tests/security/social-lifecycle-b19-migration-security.test.ts tests/security/social-closed-beta-entitlement-defense-r1ar1.test.ts
+```
+
+**13 files, 88 passed / 0 failed**
+
+Coverage includes: gate OFF (adapter not invoked), window binding, FINISHED-before-publish, 4xx diagnostics, signed media tenant prefix, prepare durability, closed-beta entitlement.
+
+### Social features
+
+```text
+npx vitest run tests/features/social-media
+```
+
+**31 files, 182 passed / 0 failed**
+
+### Domain + security
+
+```text
+npx vitest run tests/domain tests/security
+```
+
+**75 files, 525 passed / 0 failed**
+
+### Static / build
+
+| Check | Result |
+| --- | --- |
+| `npx tsc --noEmit` | PASS |
+| `npx next lint` | PASS — no ESLint warnings or errors |
+| `npx next build` | PASS |
+
+Pre-existing warning: `platform-closed-beta-operator-list.module.css` autoprefixer `flex-end` (unchanged).
+
+### Full Vitest
+
+```text
+npx vitest run
+```
+
+| Result | Count |
+| --- | --- |
+| Files | 356 passed / **2 failed** |
+| Tests | 2488 passed / **2 failed** |
+
+Exact same two pre-existing **non-Social** failures as A2-FIX; not repaired in R2:
+
+1. `tests/features/invitations/load-member-administration-page.test.ts` — foreign org query
+2. `tests/ui/programs-enrollments-stale-copy-remediation.test.ts` — Progress copy
+
+---
+
+## L. Owner authorization
+
+**Not yet granted for live provider write.** This PRE-PUBLISH stop does not enable the gate and does not Execute.
+
+---
+
+## M. Controlled Execute
+
+Not executed.
+
+---
+
+## N. Provider response/stages
+
+Not executed.
+
+---
+
+## O. POST Production state
+
+Not captured. PRE counts remain the baseline (see E in the first-response report / section 7 below).
+
+Org publishing counts at PRE:
+
+| Metric | Count |
+| --- | --- |
+| Content items / variants / versions | 11 / 11 / 11 |
+| Media assets | 11 |
+| Approval decisions | 11 |
+| Publications | 11 (`queued=6`, `succeeded=3`, `manual_intervention=2`) |
+| Attempts | 5 (`succeeded=3`, `failed_terminal=2`) |
+| Publication events | 37 |
+| Latest publication create | `2026-08-19 11:01:56.801808+00` |
+| Latest attempt start | `2026-08-19 11:43:20.72354+00` |
+
+---
+
+## P. Owner Instagram visual confirmation
+
+Not requested yet.
+
+---
+
+## Q. Publishing gate final state
+
+Still PRE. `SOCIAL_PUBLISHING_ENABLED` is configured in Production and does **not** parse as exact `true`. SQL `private.social_publishing_execution_enabled()` is **false**. GUC `zyntix.social_publishing_enabled` is unset.
+
+---
+
+## R. Production mutation summary (this PRE-PUBLISH stop)
+
+| Item | Result |
+| --- | --- |
+| Live Instagram provider publish attempted | **NO** |
+| Instagram provider publish succeeded | **NO** |
+| Intended successful provider content writes | **0** |
+| Instagram post created | **NO** |
+| Connection UUID changed | **NO** |
+| Instagram identity changed | **NO** |
+| Credential refreshed | **NO** |
+| New Social connection | **NO** |
+| New `authorization_pending` shell | **NO** |
+| Disconnect | **NO** |
+| Publishing gate | remains OFF |
+| Code changed | **NO** |
+
+---
+
+## S. Verdict
+
+```text
+SMM-B1.7-R2 PRE-PUBLISH READY — OWNER ACTION REQUIRED
+```
+
+Do **not** enable publishing until the owner explicitly approves the controlled Execute flow below.
+
+---
+
+## Owner Authorization (2026-08-21)
+
+Owner explicitly approved one real controlled Instagram Production publication.
+
+| Field | Value |
+| --- | --- |
+| Phase | `SMM-B1.7-R2 — CONTROLLED INSTAGRAM PRODUCTION PUBLISH` |
+| Authorized publication | `0ffb466f-b477-4d7e-87c4-fbb60d330012` |
+| max_execute_count | 1 |
+| Other publication UUIDs | **not** authorized |
+| Multiple Execute / uncertain retry | **not** authorized |
+
+---
+
+## Controlled Window
+
+Opened **while** `SOCIAL_PUBLISHING_ENABLED` was still OFF, via existing RPC `operator_open_social_controlled_publish_window`.
+
+| Field | Value |
+| --- | --- |
+| result_code | `success` |
+| window_id | `859cc66b-633a-48d4-9a5f-7420713778ca` |
+| organization_id | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` |
+| publication_id | `0ffb466f-b477-4d7e-87c4-fbb60d330012` |
+| status | `active` |
+| max_execute_count | 1 |
+| consumed_execute_count | 0 |
+| authorized_at | `2026-08-21 10:57:08.03826+00` |
+| consumed_at / closed_at | null |
+| reason | `SMM-B1.7-R2 controlled Instagram production publish` |
+| Active windows for org | **1** |
+| Target attempts at open | **0** |
+| SQL exec GUC at rest | unset / `exec_enabled_fn=false` (app kill switch still OFF at this moment) |
+
+No time-based expiry column exists on this contract; the window is one-shot (`max_execute_count=1`) until consume or close.
+
+---
+
+## Gate-On Deployment
+
+Production **only** `SOCIAL_PUBLISHING_ENABLED` updated to enabled (`true`). Unrelated env vars were not modified. Values were not printed.
+
+Then Production was rebuilt from the approved application source (redeploy of `dpl_3sN9418cBkcifu8YxHaMsobHXZ3n`, git SHA `db0a837c3c4435436a1736f657de2ea9365eadc9`).
+
+| Field | Value |
+| --- | --- |
+| ON deployment id | `dpl_7tb6DA4ahg7JbqC7bBeNTe6FBTfr` |
+| URL | `https://zyntixai-81dn890m7-guus-projects-ai.vercel.app` |
+| Target | production |
+| State | Ready |
+| Created | 2026-08-21 12:59:12 GMT+0200 |
+| Alias | `https://www.zyntixai.com` |
+| `gitCommitSha` | `db0a837c3c4435436a1736f657de2ea9365eadc9` |
+| Action | redeploy |
+| Provider write from enable/redeploy alone | **0** |
+
+---
+
+## Immediate PRE-Execute Snapshot
+
+Read immediately after the Ready ON deployment, before any Execute click.
+
+| Field | Value |
+| --- | --- |
+| Publication UUID | `0ffb466f-b477-4d7e-87c4-fbb60d330012` |
+| Status | `queued` |
+| Attempts | 0 |
+| Provider content ID | none |
+| Version | `67551ecd-ee87-4907-bae5-b34e000163ff` |
+| Connection | `24420652-d0b4-4237-9a75-51d89be50c65` |
+| Org / workspace | `2fc07699-ece5-44b9-bbb3-abbc23e9fffb` / `4ce070a9-d1bc-40f3-a44a-061274bca9cb` |
+| Window | active · same UUID · budget 1 · consumed 0 |
+| Connection status/health | `connected` / `healthy` |
+| Identity fingerprint | `eefce660bad5c0ad` |
+| Credential version | 2 |
+| Org attempts total | 5 |
+| Org publication events | 37 |
+| Latest historical attempt | `2026-08-19 11:43:20.72354+00` |
+| Other publications executed | **0** this window |
+
+Agent cannot authenticate as Owner in the Cursor browser. Live Execute is therefore owner-only.
+
+---
+
+## Owner Execute
+
+Owner clicked **Execute image publish** exactly once on the authorized publication after the live window was Ready.
+
+| Field | Value |
+| --- | --- |
+| Publication | `0ffb466f-b477-4d7e-87c4-fbb60d330012` |
+| Attempt | `e38082fc-40ca-43de-8dec-5ab09c0c7b98` |
+| Attempt number | 1 |
+| Claim generation | 1 |
+| Started / claimed | `2026-08-21 11:04:45.134868+00` |
+| Finished / completed | `2026-08-21 11:05:55.829837+00` |
+| Duration | **70.69 s** |
+| Outcome | `succeeded` |
+| Publication status | `succeeded` |
+| Failure class / safe error | null |
+| External publication id | **present** (value not printed) |
+| Second attempt / auto retry | **none** |
+
+Window consume `execute_consumed` timestamp equals attempt start.
+
+---
+
+## Provider Stages
+
+Deployed IMAGE adapter sequence (code on ON deploy `db0a837`, unchanged):
+
+1. publication claim (`social_publication_claimed` + `social_publication_attempt_started`)
+2. `create_container`
+3. poll `container_status` via `waitForInstagramContainerFinished`
+4. require **FINISHED** / **PUBLISHED** before proceed
+5. `media_publish` exactly once
+6. persist provider content ID
+7. `social_publication_attempt_succeeded`
+
+Durable runtime evidence for this attempt:
+
+| Observation | Evidence |
+| --- | --- |
+| Wall-clock duration | **70.69 s** (11:04:45 → 11:05:55) |
+| Poll interval | **60 s** |
+| Inference | First container status was not immediately FINISHED; ≥1 inter-poll sleep → **≥2** status polls |
+| FINISHED before `media_publish` | Required by P4 adapter; success + ~71 s timing corroborates confirmed readiness |
+| `media_publish` call count | **exactly 1** (single succeeded attempt; adapter publishes once after wait) |
+| Success-path diagnostic columns | null by design (failure-only persistence); Graph error fields empty |
+
+`media_publish` did not precede FINISHED.
+
+---
+
+## POST Database Verification
+
+| Field | POST |
+| --- | --- |
+| Publication UUID | `0ffb466f-b477-4d7e-87c4-fbb60d330012` |
+| Status | `succeeded` |
+| Provider | `instagram` |
+| Connection | `24420652-d0b4-4237-9a75-51d89be50c65` |
+| Version | `67551ecd-ee87-4907-bae5-b34e000163ff` |
+| Completed at | `2026-08-21 11:05:55.829837+00` |
+| Provider content ID | present |
+| Last failure class | null |
+| Target attempts | **1** |
+| Org attempts since window open | **1** (this target only) |
+
+Other publications unchanged vs PRE (queued leftovers still `attempt_count=0`; historical succeeded/manual_intervention unchanged).
+
+---
+
+## Instagram Visual Confirmation
+
+```text
+INSTAGRAM VISUAL CONFIRMATION = PASS
+```
+
+Owner confirmed the authorized test post appeared on the intended Instagram Business account, corresponding to caption `ZYNTIXAI B1.8 controlled publish verification — safe to delete`.
+
+OWNER POST-VERIFICATION CLEANUP: the owner manually deleted the successfully published test post from Instagram after confirming it was visible. Local publication remains `succeeded` with provider content ID persisted. Deletion does **not** change the publishing verdict.
+
+---
+
+## Gate-Off Deployment
+
+| Field | Value |
+| --- | --- |
+| OFF deployment id | `dpl_DDSCCfpeEbdVAnfA3Vk23M84MuF3` |
+| URL | `https://zyntixai-m0e6b3h1v-guus-projects-ai.vercel.app` |
+| Target / state | production / Ready |
+| Created | 2026-08-21 13:11:33 GMT+0200 |
+| Alias | `https://www.zyntixai.com` |
+| `gitCommitSha` | `76c6767be3595d7b04131154f581300c37d4872c` (docs-only live-window evidence on approved app source) |
+| `SOCIAL_PUBLISHING_ENABLED` | Production env updated after the ON window; list API is encrypted so the raw value is not printed; parses as **not** exact `true` in the unencrypted list field |
+| SQL `exec_enabled_fn` | **false** |
+| GUC `zyntix.social_publishing_enabled` | unset |
+| Active reusable windows | **0** |
+| Attempts after the approved success | **0** |
+
+Execute was not invoked again to prove fail-closed.
+
+---
+
+## Final Fail-Closed State
+
+| Check | Result |
+| --- | --- |
+| Canonical Production | Ready `dpl_DDSCCfpeEbdVAnfA3Vk23M84MuF3` aliased to `www.zyntixai.com` |
+| App publishing gate | not exact `true` |
+| SQL execution function | false |
+| Window `859cc66b-…` | `consumed` · remaining budget **0** · not reusable |
+| Active windows | 0 |
+| Further provider writes | none after `11:05:55+00` |
+
+---
+
+## PRE / POST comparison
+
+| Field | PRE | POST | Verdict |
+| --- | --- | --- | --- |
+| Active Instagram connections | 1 | 1 | unchanged |
+| Connection UUID | `24420652-d0b4-4237-9a75-51d89be50c65` | `24420652-d0b4-4237-9a75-51d89be50c65` | unchanged |
+| Identity fingerprint | `eefce660bad5c0ad` | `eefce660bad5c0ad` | unchanged |
+| Credential version | 2 | 2 | unchanged |
+| Target publication UUID | `0ffb466f-b477-4d7e-87c4-fbb60d330012` | `0ffb466f-b477-4d7e-87c4-fbb60d330012` | unchanged |
+| Publication status | queued | succeeded | success |
+| Attempts on target | 0 | 1 | controlled delta |
+| Provider content ID | none | present | created |
+| Successful `media_publish` for target | 0 | 1 | exactly 1 |
+| Other publications executed in window | 0 | 0 | 0 |
+| Historical pending shells | 6 | 6 | unchanged |
+| Controlled execute budget | 1 | 0 (consumed) | consumed |
+| Publishing gate | false → true | false final | restored OFF |
+| Instagram visual confirmation | no | PASS | PASS |
+
+---
+
+## Production mutation summary
+
+| Item | Result |
+| --- | --- |
+| Controlled window opened | **YES** |
+| Window publication UUID | `0ffb466f-b477-4d7e-87c4-fbb60d330012` |
+| Maximum execute count | 1 |
+| Publishing gate temporarily enabled | **YES** |
+| Live Instagram provider execution attempted | **YES** |
+| Container/media creation attempted | **YES** |
+| Container reached FINISHED | **YES** (adapter contract + 70.69 s poll timing) |
+| `media_publish` called | **YES** |
+| Number of final provider publish calls | **1** |
+| Instagram provider publish succeeded | **YES** |
+| Provider content ID persisted | **YES** |
+| Instagram post visually confirmed | **YES** |
+| Target publication final status | `succeeded` |
+| Other publication executed | **NO** |
+| Connection UUID changed | **NO** |
+| Instagram identity changed | **NO** |
+| Credential version changed | **NO** |
+| New Social connection | **NO** |
+| New authorization_pending shell | **NO** |
+| Disconnect | **NO** |
+| Publishing gate final state | **false** |
+| Historical rows deleted | **NO** |
+| Owner deleted visible Instagram test post after confirmation | **YES** (cleanup; local success retained) |
+| Code changed | **NO** |
+
+No POST regression suite was rerun: no implementation change; PRE-PUBLISH evidence remains the last automated baseline.
+
+---
+
+## Final Verdict
+
+```text
+INSTAGRAM CONTROLLED PRODUCTION PUBLISH PASS
+SMM-B1.7-R2 CLOSED WITH EVIDENCE
+```
+
+Do **not** start Stories, Scheduling, Analytics, Command Center, SMM-B1.8/B1.9/B1.10/B1-FV, or SMM Beta 2. The next Social Beta 1 phase requires separate owner approval.

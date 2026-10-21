@@ -1,0 +1,126 @@
+import { authenticatedPageMetadata } from "@/features/workspace/authenticated-document-titles";
+import { AppShell } from "@/components/app-shell";
+import { CustomerOrganizationRequiredPanel } from "@/features/customers/ui/customer-organization-required-panel";
+import { CustomerUnavailableDetail } from "@/features/customers/ui/customer-detail";
+import { CustomerRestoreForm } from "@/features/customers/ui/customer-restore-form";
+import { loadCustomerRestorePage } from "@/features/customers/ui/load-customer-lifecycle-workflow-page";
+import { buildBackToCustomersHref } from "@/features/customers/ui/customer-navigation";
+import {
+  lifecycleActionUnavailableHeading,
+  lifecycleAuthRequiredCopy,
+  lifecycleBackToSubjectLabel,
+  lifecycleOrganizationRequiredDescription,
+} from "@/features/customers/ui/customer-lifecycle-workflow-copy";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import styles from "../../page.module.css";
+
+export const metadata = authenticatedPageMetadata("/customers/[customerId]/restore");
+
+
+type CustomerRestorePageProps = {
+  params: Promise<{ customerId: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function CustomerRestorePage({ params, searchParams }: CustomerRestorePageProps) {
+  const supabase = await createSupabaseServerClient();
+  const { customerId } = await params;
+  const rawSearchParams = await searchParams;
+  const result = await loadCustomerRestorePage(supabase, customerId, rawSearchParams);
+
+  if (result.kind === "auth_required") {
+    return (
+      <AppShell activeNav="customers">
+        <section className={styles.statePanel} aria-labelledby="auth-required-title">
+          <h1 id="auth-required-title">Sign in required</h1>
+          <p>{lifecycleAuthRequiredCopy("restore")}</p>
+        </section>
+      </AppShell>
+    );
+  }
+
+  if (result.kind === "organization_unavailable") {
+    return (
+      <AppShell activeNav="customers">
+        <section className={styles.statePanel} aria-labelledby="org-unavailable-title">
+          <h1 id="org-unavailable-title">Organization unavailable</h1>
+        </section>
+      </AppShell>
+    );
+  }
+
+  if (result.kind === "organization_required") {
+    return (
+      <AppShell activeNav="customers" organizationOptions={result.organizations}>
+        <CustomerOrganizationRequiredPanel
+          organizations={result.organizations}
+          targetPath={`/customers/${customerId}/restore`}
+          description={lifecycleOrganizationRequiredDescription("restore")}
+        />
+      </AppShell>
+    );
+  }
+
+  if (result.kind === "query_error" || result.kind === "org_context_missing") {
+    return (
+      <AppShell activeNav="customers">
+        <section className={styles.statePanel}>
+          <h1>Unable to load restore form</h1>
+          <p>{result.message}</p>
+        </section>
+      </AppShell>
+    );
+  }
+
+  if (result.kind === "invalid_customer") {
+    return (
+      <AppShell activeNav="customers">
+        <CustomerUnavailableDetail backHref="/customers" unresolved />
+      </AppShell>
+    );
+  }
+
+  if (result.kind === "customer_unavailable") {
+    return (
+      <AppShell activeNav="customers" terminology={result.terminology}>
+        <CustomerUnavailableDetail
+          backHref={buildBackToCustomersHref(result.listState)}
+          terminology={result.terminology}
+        />
+      </AppShell>
+    );
+  }
+
+  if (result.kind === "action_unavailable") {
+    return (
+      <AppShell activeNav="customers" terminology={result.terminology}>
+        <section className={styles.statePanel}>
+          <h1>{lifecycleActionUnavailableHeading("restore", result.terminology)}</h1>
+          <p>{result.message}</p>
+          <a href={result.backHref}>{lifecycleBackToSubjectLabel(result.terminology)}</a>
+        </section>
+      </AppShell>
+    );
+  }
+
+  return (
+    <AppShell
+      moduleNavVisibility={result.moduleAccess.navVisibility}
+      terminology={result.moduleAccess.terminology}
+      activeNav="customers"
+      organizationOptions={result.organizationOptions}
+      selectedOrganizationId={result.organizationId}
+      organizationSelectorAction={`/customers/${customerId}/restore`}
+    >
+      <section className={styles.page}>
+        <CustomerRestoreForm
+          organizationId={result.organizationId}
+          customer={result.customer}
+          listState={result.listState}
+          backHref={result.backHref}
+          terminology={result.moduleAccess.terminology}
+        />
+      </section>
+    </AppShell>
+  );
+}

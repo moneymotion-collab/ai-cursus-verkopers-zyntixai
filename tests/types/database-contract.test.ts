@@ -1,0 +1,82 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+
+const generated = readFileSync(
+  join(process.cwd(), "src/types/database.generated.ts"),
+  "utf8",
+);
+
+describe("generated database contract", () => {
+  it("includes tasks tables", () => {
+    expect(generated).toContain("tasks:");
+    expect(generated).toContain("task_status_history:");
+  });
+
+  it("includes all eight task RPCs", () => {
+    for (const rpc of [
+      "create_task",
+      "update_task",
+      "reassign_task",
+      "reschedule_task",
+      "complete_task",
+      "cancel_task",
+      "archive_task",
+      "restore_task",
+    ]) {
+      expect(generated).toContain(`${rpc}:`);
+    }
+  });
+
+  it("includes PX2.1 registration tables and RPCs", () => {
+    expect(generated).toContain("registration_intents:");
+    expect(generated).toContain("complete_owner_self_registration:");
+    expect(generated).toContain("upsert_registration_intent:");
+  });
+
+  it("includes the three ORG-CONTEXT tenant tables", () => {
+    for (const table of [
+      "organization_business_activities",
+      "organization_context_assignments",
+      "organization_context_assignment_events",
+    ]) {
+      expect(generated).toContain(`${table}:`);
+    }
+  });
+
+  it("includes the seven BQA tenant tables", () => {
+    for (const table of [
+      "business_activity_qualifications",
+      "business_activity_qualification_answers",
+      "business_activity_classification_decisions",
+      "business_activity_support_assessments",
+      "business_activity_admission_decisions",
+      "business_activity_qualification_events",
+      "business_activity_demand_signals",
+    ]) {
+      expect(generated).toContain(`${table}:`);
+    }
+  });
+
+  it("includes all 15 TAX/CAP/CTX control-plane tables", () => {
+    for (const table of [
+      "taxonomy_releases",
+      "taxonomy_foundations",
+      "taxonomy_industries",
+      "taxonomy_niches",
+      "taxonomy_specializations",
+      "taxonomy_deep_specializations",
+      "taxonomy_aliases",
+      "capabilities",
+      "capability_dependencies",
+      "capability_readiness",
+      "context_packs",
+      "context_pack_versions",
+      "context_capability_mappings",
+      "context_terminology",
+      "context_pack_readiness",
+    ]) {
+      expect(generated).toContain(`${table}:`);
+    }
+  });
+});

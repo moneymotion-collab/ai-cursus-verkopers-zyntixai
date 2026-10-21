@@ -1,0 +1,268 @@
+import { isAttentionPathname } from "@/features/attention/domain/attention-navigation";
+import { isMembersPathname } from "@/features/invitations/domain/members-navigation";
+import { isB18InstagramPublishPathname } from "@/features/social-media/domain/b18-publish-navigation";
+import { isR1InstagramConnectPathname } from "@/features/social-media/domain/r1-connect-navigation";
+import { isSocialPathname } from "@/features/social-media/domain/social-navigation";
+import { isSocialClosedBetaOperatorPathname } from "@/features/social-media/domain/platform-operator-navigation";
+import { isDailyOperatingHomePathname } from "@/features/daily-operating/domain/compose-daily-operating-brief";
+import {
+  CREATING_ONBOARDING_PATH,
+  READY_ONBOARDING_PATH,
+  TEAM_ONBOARDING_PATH,
+  WORKSPACE_CONFIRMATION_ONBOARDING_PATH,
+} from "@/features/onboarding/domain/onboarding-routes";
+
+const DEFAULT_RETURN_PATH = "/";
+
+const WORKSPACE_PATH_ROOTS = [
+  "/projects",
+  "/sites",
+  "/work-orders",
+  "/dispatch",
+  "/products",
+  "/orders",
+  "/inventory",
+  "/fulfillment",
+] as const;
+
+function isExactOrNestedPath(pathname: string, root: string): boolean {
+  return pathname === root || pathname.startsWith(`${root}/`);
+}
+
+function isTgWorkspacePathname(pathname: string): boolean {
+  return WORKSPACE_PATH_ROOTS.some((root) => isExactOrNestedPath(pathname, root));
+}
+
+function isOnboardingApplicationPath(pathname: string): boolean {
+  return (
+    pathname === "/onboarding" ||
+    pathname === "/onboarding/operating-model" ||
+    pathname === WORKSPACE_CONFIRMATION_ONBOARDING_PATH ||
+    pathname === TEAM_ONBOARDING_PATH ||
+    pathname === CREATING_ONBOARDING_PATH ||
+    pathname === READY_ONBOARDING_PATH
+  );
+}
+
+function isAllowlistedPathname(pathname: string): boolean {
+  if (pathname === "/") {
+    return true;
+  }
+
+  if (isDailyOperatingHomePathname(pathname)) {
+    return true;
+  }
+
+  if (pathname === "/leads" || pathname.startsWith("/leads/")) {
+    return true;
+  }
+
+  if (pathname === "/customers" || pathname.startsWith("/customers/")) {
+    return true;
+  }
+
+  if (pathname === "/tasks" || pathname.startsWith("/tasks/")) {
+    return true;
+  }
+
+  if (pathname === "/programs" || pathname.startsWith("/programs/")) {
+    return true;
+  }
+
+  if (pathname === "/enrollments" || pathname.startsWith("/enrollments/")) {
+    return true;
+  }
+
+  if (pathname === "/progress" || pathname.startsWith("/progress/")) {
+    return true;
+  }
+
+  if (isAttentionPathname(pathname)) {
+    return true;
+  }
+
+  if (isMembersPathname(pathname)) {
+    return true;
+  }
+
+  if (isSocialPathname(pathname)) {
+    return true;
+  }
+
+  if (isSocialClosedBetaOperatorPathname(pathname)) {
+    return true;
+  }
+
+  if (isR1InstagramConnectPathname(pathname)) {
+    return true;
+  }
+
+  if (isB18InstagramPublishPathname(pathname)) {
+    return true;
+  }
+
+  if (
+    pathname === "/register" ||
+    pathname === "/register/check-email" ||
+    pathname === "/register/complete"
+  ) {
+    return true;
+  }
+
+  if (pathname === "/forgot-password" || pathname === "/reset-password") {
+    return true;
+  }
+
+  if (isTgWorkspacePathname(pathname)) {
+    return true;
+  }
+
+  if (isOnboardingApplicationPath(pathname)) {
+    return true;
+  }
+
+  // Invitation continuation confirm surface only (not /invite/* wildcard).
+  if (pathname === "/invite/accept") {
+    return true;
+  }
+
+  return false;
+}
+
+function containsControlCharacters(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code < 32 || code === 127) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function pathnameHasRedirectTrick(pathname: string): boolean {
+  if (pathname.includes("\\")) {
+    return true;
+  }
+
+  if (pathname.includes("//")) {
+    return true;
+  }
+
+  if (containsControlCharacters(pathname)) {
+    return true;
+  }
+
+  try {
+    const decoded = decodeURIComponent(pathname);
+    if (containsControlCharacters(decoded)) {
+      return true;
+    }
+    if (decoded !== pathname && pathnameHasRedirectTrick(decoded)) {
+      return true;
+    }
+  } catch {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Accept only internal, allowlisted application paths.
+ * Rejects open redirects, schemes, protocol-relative URLs, and bypass tricks.
+ */
+export function resolveSafeReturnPath(
+  raw: unknown,
+  fallback: string = DEFAULT_RETURN_PATH,
+): string {
+  if (typeof raw !== "string") {
+    return fallback;
+  }
+
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) {
+    return fallback;
+  }
+
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
+    return fallback;
+  }
+
+  if (trimmed.startsWith("//") || !trimmed.startsWith("/")) {
+    return fallback;
+  }
+
+  if (trimmed.includes("\\")) {
+    return fallback;
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed, "http://zyntix.local");
+  } catch {
+    return fallback;
+  }
+
+  if (parsed.username || parsed.password || parsed.host !== "zyntix.local") {
+    return fallback;
+  }
+
+  if (pathnameHasRedirectTrick(parsed.pathname)) {
+    return fallback;
+  }
+
+  if (!isAllowlistedPathname(parsed.pathname)) {
+    return fallback;
+  }
+
+  return `${parsed.pathname}${parsed.search}`;
+}
+
+export function isProtectedApplicationPath(pathname: string): boolean {
+  return (
+    isDailyOperatingHomePathname(pathname) ||
+    pathname === "/leads" ||
+    pathname.startsWith("/leads/") ||
+    pathname === "/customers" ||
+    pathname.startsWith("/customers/") ||
+    pathname === "/tasks" ||
+    pathname.startsWith("/tasks/") ||
+    pathname === "/programs" ||
+    pathname.startsWith("/programs/") ||
+    pathname === "/enrollments" ||
+    pathname.startsWith("/enrollments/") ||
+    pathname === "/progress" ||
+    pathname.startsWith("/progress/") ||
+    isAttentionPathname(pathname) ||
+    isMembersPathname(pathname) ||
+    isSocialPathname(pathname) ||
+    isSocialClosedBetaOperatorPathname(pathname) ||
+    isR1InstagramConnectPathname(pathname) ||
+    isB18InstagramPublishPathname(pathname) ||
+    isTgWorkspacePathname(pathname) ||
+    isOnboardingApplicationPath(pathname)
+  );
+}
+
+export function isRegistrationPath(pathname: string): boolean {
+  return (
+    pathname === "/register" ||
+    pathname === "/register/check-email" ||
+    pathname === "/register/complete"
+  );
+}
+
+export function isPasswordRecoveryPath(pathname: string): boolean {
+  return pathname === "/forgot-password" || pathname === "/reset-password";
+}
+
+export function isPasswordResetDestination(path: string): boolean {
+  const pathname = path.split("?")[0] ?? path;
+  return pathname === "/reset-password";
+}
+
+export function isAuthCallbackPath(pathname: string): boolean {
+  return pathname === "/auth/callback";
+}
+
+export { DEFAULT_RETURN_PATH };

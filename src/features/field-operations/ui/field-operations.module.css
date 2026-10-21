@@ -1,0 +1,157 @@
+.page {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 76rem;
+  margin: 0 auto;
+}
+
+.pageHeader,
+.panelHeader,
+.listItem,
+.actions,
+.formRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pageHeader h1,
+.listItem h2,
+.listItem h3,
+.panel h2,
+.panel h3 {
+  margin: 0;
+}
+
+.panel,
+.statePanel,
+.empty {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface-color);
+}
+
+.list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.listItem {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 0;
+}
+
+.listItem:last-child {
+  border-bottom: 0;
+}
+
+.muted {
+  color: var(--muted-text);
+}
+
+.primaryButton,
+.secondaryButton,
+.actions button,
+.filters button,
+.form button {
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.primaryButton,
+.form button {
+  border: 1px solid #1d4ed8;
+  background: #1d4ed8;
+  color: #fff;
+  text-decoration: none;
+}
+
+.secondaryButton,
+.actions button,
+.filters button {
+  border: 1px solid var(--border-color);
+  background: var(--surface-color);
+  color: inherit;
+  text-decoration: none;
+}
+
+.form,
+.filters {
+  display: grid;
+  gap: 1rem;
+}
+
+.form {
+  max-width: 44rem;
+}
+
+.form label,
+.filters label {
+  display: grid;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.form input,
+.form select,
+.form textarea,
+.filters select {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 0.65rem;
+  font: inherit;
+}
+
+.definitionList {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.definitionList div {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) 1fr;
+  gap: 1rem;
+}
+
+.definitionList dt {
+  color: var(--muted-text);
+}
+
+.definitionList dd {
+  margin: 0;
+}
+
+.dispatchGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.error {
+  color: #991b1b;
+}
+
+@media (max-width: 48rem) {
+  .pageHeader,
+  .panelHeader,
+  .listItem,
+  .actions,
+  .formRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .definitionList div {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+}

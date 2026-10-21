@@ -1,0 +1,39 @@
+.loading {
+  display: grid;
+  gap: 1rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.message {
+  margin: 0;
+  color: var(--muted-text);
+}
+
+.skeleton {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  min-height: 12rem;
+  background: linear-gradient(90deg, #f8fafc 25%, #eef2f7 50%, #f8fafc 75%);
+  background-size: 200% 100%;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: #eef2f7;
+  }
+}

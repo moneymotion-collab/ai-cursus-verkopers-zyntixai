@@ -1,0 +1,72 @@
+/**
+ * DATA-1C error vocabulary. Internal server failures, not a public API.
+ */
+
+export const DATA_INTAKE_ERROR_CODES = [
+  "UNAUTHORIZED",
+  "ORG_NOT_FOUND",
+  "FORBIDDEN_ROLE",
+  "TARGET_NOT_SUPPORTED",
+  "ACTIVITY_NOT_ALLOWED_FOR_TARGET",
+  "ACTIVITY_NOT_FOUND",
+  "SESSION_NOT_FOUND",
+  "SOURCE_NOT_FOUND",
+  "SOURCE_NOT_VERIFIED",
+  "UNSUPPORTED_FILE",
+  "UNSUPPORTED_ENCODING",
+  "FILE_TOO_LARGE",
+  "SOURCE_INVALID",
+  "SOURCE_HASH_INVALID",
+  "INVALID_STATE",
+  "MALFORMED_CSV",
+  "MALFORMED_XLSX",
+  "TOO_MANY_ROWS",
+  "TOO_MANY_COLUMNS",
+  "TOO_MANY_SHEETS",
+  "FIELD_TOO_LARGE",
+  "HEADER_INVALID",
+  "PARSER_LIMIT_EXCEEDED",
+  "SOURCE_COLUMN_UNKNOWN",
+  "TARGET_FIELD_UNKNOWN",
+  "TARGET_FIELD_FORBIDDEN",
+  "DUPLICATE_TARGET_MAPPING",
+  "MAPPING_INCOMPLETE",
+  "MAPPING_ALREADY_FROZEN",
+  "MAPPING_HASH_MISMATCH",
+  "PLAN_STALE",
+  "CUSTOMER_CONFLICT",
+  "CUSTOMER_CREATE_FAILED",
+  "DATABASE_READ_ERROR",
+  "DATABASE_WRITE_ERROR",
+] as const;
+
+export type DataIntakeErrorCode = (typeof DATA_INTAKE_ERROR_CODES)[number];
+
+export type DataIntakeError = {
+  code: DataIntakeErrorCode;
+  message: string;
+  details?: Readonly<Record<string, unknown>>;
+};
+
+export type DataIntakeResult<T> =
+  | { ok: true; value: T }
+  | { ok: false; error: DataIntakeError };
+
+export function dataOk<T>(value: T): DataIntakeResult<T> {
+  return { ok: true, value };
+}
+
+export function dataFail(
+  code: DataIntakeErrorCode,
+  message: string,
+  details?: Readonly<Record<string, unknown>>,
+): DataIntakeResult<never> {
+  return {
+    ok: false,
+    error: details ? { code, message, details } : { code, message },
+  };
+}
+
+export function isDataIntakeErrorCode(value: string): value is DataIntakeErrorCode {
+  return (DATA_INTAKE_ERROR_CODES as readonly string[]).includes(value);
+}

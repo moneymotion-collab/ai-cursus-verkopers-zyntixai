@@ -1,0 +1,89 @@
+.lifecycleForm {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 42rem;
+}
+
+.backLink {
+  color: var(--link-color, #1d4ed8);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  width: fit-content;
+}
+
+.backLink:focus-visible {
+  outline: 2px solid var(--focus-color, #2563eb);
+  outline-offset: 2px;
+}
+
+.description {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.pendingStatus {
+  margin: 0;
+  font-weight: 600;
+}
+
+.summary {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface-color);
+}
+
+.summary h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+}
+
+.summaryList {
+  margin: 0;
+  display: grid;
+  gap: 0.625rem;
+}
+
+.summaryList div {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.summaryList dt {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.summaryList dd {
+  margin: 0;
+  word-break: break-word;
+}
+
+.explanationList {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.destructiveButton {
+  border: 1px solid #b91c1c;
+  background: #dc2626;
+  color: #fff;
+}
+
+.destructiveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.destructiveButton:focus-visible {
+  outline: 2px solid #b91c1c;
+  outline-offset: 2px;
+}
+
+@media (max-width: 40rem) {
+  .lifecycleForm {
+    max-width: none;
+  }
+}

@@ -1,0 +1,157 @@
+.surface {
+  width: 100%;
+}
+
+.content {
+  display: grid;
+  gap: 2rem;
+  padding: 1.5rem;
+}
+
+.header,
+.model,
+.modules {
+  display: grid;
+  gap: 0.625rem;
+}
+
+.header h1,
+.header p,
+.model h2,
+.model p,
+.modules h2 {
+  margin: 0;
+}
+
+.header h1 {
+  color: var(--text-color, #0f172a);
+  font-size: 1.75rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.header p {
+  max-width: 34rem;
+  color: var(--muted-text, #475569);
+  line-height: 1.6;
+}
+
+.model h2,
+.modules h2 {
+  color: var(--muted-text, #475569);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.model p {
+  color: var(--text-color, #0f172a);
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.modules ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.modules li {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 999px;
+  color: var(--text-color, #0f172a);
+  background: #f8fafc;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.actions {
+  width: 100%;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.primaryAction,
+.secondaryAction {
+  min-height: 3rem;
+  display: inline-flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid;
+  border-radius: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-weight: 650;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+}
+
+.primaryAction {
+  border-color: var(--link-color, #1d4ed8);
+  color: #fff;
+  background: var(--focus-color, #2563eb);
+}
+
+.secondaryAction {
+  border-color: var(--control-border-color, #64748b);
+  color: var(--text-color, #0f172a);
+  background: var(--surface-color, #fff);
+}
+
+.primaryAction:focus-visible,
+.secondaryAction:focus-visible {
+  outline: 2px solid var(--focus-color, #2563eb);
+  outline-offset: 2px;
+}
+
+.primaryAction:focus-visible {
+  outline-color: var(--text-color, #0f172a);
+}
+
+@media (max-width: 767px) {
+  .surface {
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+
+  .content {
+    gap: 1.5rem;
+    padding: 1.25rem 1rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .content {
+    padding: 2rem;
+  }
+
+  .header h1 {
+    font-size: 2rem;
+  }
+
+  .actions {
+    width: auto;
+  }
+
+  .primaryAction,
+  .secondaryAction {
+    min-width: 7rem;
+    flex: none;
+  }
+}
+
+@media (min-width: 1152px) {
+  .actions {
+    margin-right: 34rem;
+  }
+}

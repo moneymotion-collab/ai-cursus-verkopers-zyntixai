@@ -1,0 +1,6 @@
+.surface {
+  min-width: 0;
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: var(--surface-radius, 0.75rem);
+  background: var(--surface-color, #fff);
+}

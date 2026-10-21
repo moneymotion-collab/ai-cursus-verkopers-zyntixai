@@ -1,0 +1,179 @@
+.surface {
+  width: min(100%, 46rem);
+  padding: 2rem;
+}
+
+.form {
+  display: grid;
+  gap: 1.75rem;
+}
+
+.header {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.header h1,
+.header p {
+  margin: 0;
+}
+
+.header h1 {
+  font-size: clamp(1.65rem, 4vw, 2.15rem);
+  line-height: 1.15;
+}
+
+.header > p:last-child,
+.optionCopy span {
+  color: var(--muted-text);
+}
+
+.options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.875rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.option {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 0.75rem;
+  min-height: 8rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  background: #fff;
+  cursor: pointer;
+  transition:
+    border-color var(--motion-duration-micro) ease,
+    box-shadow var(--motion-duration-micro) ease,
+    background var(--motion-duration-micro) ease;
+}
+
+.option:hover {
+  border-color: #93c5fd;
+}
+
+.option:focus-within {
+  outline: 3px solid color-mix(in srgb, var(--focus-color) 24%, transparent);
+  outline-offset: 2px;
+}
+
+.optionSelected {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: inset 0 0 0 1px #2563eb;
+}
+
+.optionSelected:not(:focus-within) {
+  outline: none;
+}
+
+.option input {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0.15rem 0 0;
+  accent-color: #2563eb;
+}
+
+.optionCopy {
+  display: grid;
+  align-content: start;
+  gap: 0.4rem;
+}
+
+.optionCopy strong {
+  line-height: 1.3;
+}
+
+.optionCopy span {
+  font-size: 0.925rem;
+  line-height: 1.45;
+}
+
+.selectedIndicator {
+  display: none;
+  grid-column: 2;
+  width: fit-content;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.optionSelected .selectedIndicator {
+  display: inline;
+}
+
+.error {
+  padding: 0.75rem 1rem;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  color: #991b1b;
+  background: #fef2f2;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.mobileCta {
+  display: none;
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .option {
+    transition: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .surface {
+    padding: 1.25rem;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+
+  .options {
+    grid-template-columns: 1fr;
+  }
+
+  .option {
+    min-height: 7rem;
+  }
+
+  .footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .footer button {
+    width: 100%;
+  }
+
+  .desktopCta {
+    display: none;
+  }
+
+  .mobileCta {
+    display: inline;
+  }
+}
